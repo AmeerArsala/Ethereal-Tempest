@@ -46,7 +46,7 @@ public class RadialProgressBar extends Node {
             specificity = 1;
         }
         
-        Material progress, empty;
+        Material progress, empty, hasntfulfilled;
         
         progress = CustomProgressBar.getWhiteSquare().getMaterial().getMaterial().clone();
         progress.setColor("Color", color);
@@ -54,15 +54,18 @@ public class RadialProgressBar extends Node {
         empty = progress.clone();
         empty.setColor("Color", new ColorRGBA(0.22f, 0.22f, 0.22f, 1f));
         
+        hasntfulfilled = empty.clone();
+        hasntfulfilled.setColor("Color", new ColorRGBA(0.35f, 0.35f, 0.35f, 1f));
+        
         outerMeshComplete = new RadialMesh(outerRadius, 1f, specificity);
         innerMeshCurrent = new RadialMesh(innerRadius, 1f, specificity);
         
         outerComplete = new Geometry("completed outer mesh", outerMeshComplete);
-        outerComplete.setMaterial(empty);
+        outerComplete.setMaterial(hasntfulfilled);
         //outerComplete.setQueueBucket(Bucket.Opaque);
         
         innerCurrent = new Geometry("current inner mesh", innerMeshCurrent);
-        innerCurrent.setMaterial(empty.clone());
+        innerCurrent.setMaterial(empty);
         
         outerMeshCurrent = new RadialMesh(outerRadius, percentage, specificity);
         outerCurrent = new Geometry("current outer mesh", outerMeshCurrent);

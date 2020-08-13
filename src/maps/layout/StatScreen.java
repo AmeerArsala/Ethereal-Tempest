@@ -846,7 +846,7 @@ public class StatScreen extends Node {
         TrueTypeNode xptext = xpfont.getText(" EXP:\n" + tu.currentEXP +"/100", 2, ColorRGBA.White);
         xptext.move(-40f, 35f, 3);
         expbar.getChildrenNode().attachChild(xptext);
-        expbar.setCirclePercent(0.9f);
+        expbar.setCirclePercent(tu.currentEXP / 100f);
         
         Container expCont = new Container();
         //expCont.setBackground(nothing);

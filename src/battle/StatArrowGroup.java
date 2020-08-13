@@ -125,7 +125,7 @@ public class StatArrowGroup extends Node {
             //TODO: play a sound
             arrows.get(arrow).getMaterial().setColor("Color", new ColorRGBA(1, 1, 1, opacity));
             Label difference = new Label("+" + growths.get(arrow));
-            difference.setShadowColor(new ColorRGBA(0.133f, 0.843f, 0, 1));
+            difference.setShadowColor(ColorRGBA.White);
             difference.setColor(ColorRGBA.Black);
             difference.setFont(levelUpBonus);
             difference.setLocalTranslation(arrows.get(arrow).getLocalTranslation().add(32.5f, 40f, 1f));
