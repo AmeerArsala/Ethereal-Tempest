@@ -840,17 +840,10 @@ public class StatScreen extends Node {
                 Container statsCont = new Container();
                 statsCont.addChild(stats);
                 ((TbtQuadBackgroundComponent)statsCont.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
-                
-        /*expbar.setRotationPercent(72.0);
-        expbar.setBothText("", " EXP:\n72/100");
-        expbar.getTextNode().move(-45f, 290f, 0f);
-        expbar.getTextNode2().setHorizontalAlignment(StringContainer.Align.Center);
-        expbar.getTextNode2().move(0f, -202f, 0f);
-        expbar.getTextNode2().setLocalTranslation(expbar.getTextNode2().getLocalTranslation().x, expbar.getTextNode2().getLocalTranslation().y - 50f, expbar.getTextNode2().getLocalTranslation().z);*/
         
         TrueTypeKeyBMP xp = new TrueTypeKeyBMP("Interface/Fonts/Neuton-Italic.ttf", Style.Plain, 25);
         TrueTypeFont xpfont = (TrueTypeBMP)assetManager.loadAsset(xp);
-        TrueTypeNode xptext = xpfont.getText(" EXP:\n99/100", 2, ColorRGBA.White);
+        TrueTypeNode xptext = xpfont.getText(" EXP:\n" + tu.currentEXP +"/100", 2, ColorRGBA.White);
         xptext.move(-40f, 35f, 3);
         expbar.getChildrenNode().attachChild(xptext);
         expbar.setCirclePercent(0.9f);
