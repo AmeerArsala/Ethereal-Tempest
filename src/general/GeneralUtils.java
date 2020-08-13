@@ -94,4 +94,27 @@ public class GeneralUtils {
         return barColor;
     }
     
+    public static String ordinalNumberSuffix(int num) {
+        switch (num) {
+            case 1:
+                return "st";
+            case 2:
+                return "nd";
+            case 3:
+                return "rd";
+            default:
+                String str = "" + num;
+                
+                if (str.length() == 1) {
+                    return "th";
+                }
+                
+                if (str.charAt(str.length() - 2) == '1') { //teens
+                    return "th";
+                }
+                
+                return ordinalNumberSuffix(Integer.parseInt(str.substring(str.length() - 1)));
+        }
+    }
+    
 }
