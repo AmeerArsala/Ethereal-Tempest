@@ -289,42 +289,39 @@ public class Unit extends JobClass {
     
     public int[] formationBonus(Unit enemy) {
         int[] bn = {0, 0, 0, 0, 0, 0, 0, 0};
-        if (getEquippedFormation().getFormationType().equals("triangle")) {
-            if (enemy.getEquippedFormation().getFormationType().equals("rectangle")) {
-                bn[4] = (int)(getEquippedFormation().formationCoefficient() * (getAGI()));
-                return bn;
-            }
-            
-            if (enemy.getEquippedFormation().getFormationType().equals("circle")) {
-                bn[4] = (int)(-1 * getEquippedFormation().formationCoefficient() * (getAGI()));
-                return bn;
-            }
-        } else if (getEquippedFormation().getFormationType().equals("rectangle")) {
-            if (enemy.getEquippedFormation().getFormationType().equals("circle")) {
-                bn[0] = (int)(getEquippedFormation().formationCoefficient() * 100);
-                bn[1] = (int)(getEquippedFormation().formationCoefficient() * 100);
-                return bn;
-            }
-                
-            if (enemy.getEquippedFormation().getFormationType().equals("triangle")) {
-                bn[0] = (int)(getEquippedFormation().formationCoefficient() * -100);
-                bn[1] = (int)(getEquippedFormation().formationCoefficient() * -100);
-                return bn;
-            }
-        } else if (getEquippedFormation().getFormationType().equals("circle")) {
-            if (enemy.getEquippedFormation().getFormationType().equals("triangle")) {
-                bn[3] = 3;
-                bn[6] = (int)(getEquippedFormation().formationCoefficient() * getDEF());
-                bn[7] = (int)(getEquippedFormation().formationCoefficient() * getRSL());
-                return bn;
-            }
-            
-            if (enemy.getEquippedFormation().getFormationType().equals("rectangle")) {
-                bn[3] = -3;
-                bn[6] = (int)(-1 * getEquippedFormation().formationCoefficient() * getDEF());
-                bn[7] = (int)(-1 * getEquippedFormation().formationCoefficient() * getRSL());
-                return bn;
-            }
+        switch (getEquippedFormation().getFormationType()) {
+            case "triangle":
+                if (enemy.getEquippedFormation().getFormationType().equals("rectangle")) {
+                    bn[4] = (int)(getEquippedFormation().formationCoefficient() * (getAGI()));
+                    return bn;
+                }   if (enemy.getEquippedFormation().getFormationType().equals("circle")) {
+                    bn[4] = (int)(-1 * getEquippedFormation().formationCoefficient() * (getAGI()));
+                    return bn;
+                }   break;
+            case "rectangle":
+                if (enemy.getEquippedFormation().getFormationType().equals("circle")) {
+                    bn[0] = (int)(getEquippedFormation().formationCoefficient() * 100);
+                    bn[1] = (int)(getEquippedFormation().formationCoefficient() * 100);
+                    return bn;
+                }   if (enemy.getEquippedFormation().getFormationType().equals("triangle")) {
+                    bn[0] = (int)(getEquippedFormation().formationCoefficient() * -100);
+                    bn[1] = (int)(getEquippedFormation().formationCoefficient() * -100);
+                    return bn;
+                }   break;
+            case "circle":
+                if (enemy.getEquippedFormation().getFormationType().equals("triangle")) {
+                    bn[3] = 3;
+                    bn[6] = (int)(getEquippedFormation().formationCoefficient() * getDEF());
+                    bn[7] = (int)(getEquippedFormation().formationCoefficient() * getRSL());
+                    return bn;
+                }   if (enemy.getEquippedFormation().getFormationType().equals("rectangle")) {
+                    bn[3] = -3;
+                    bn[6] = (int)(-1 * getEquippedFormation().formationCoefficient() * getDEF());
+                    bn[7] = (int)(-1 * getEquippedFormation().formationCoefficient() * getRSL());
+                    return bn;
+                }   break;
+            default:
+                break;
         }
         
         if (getEquippedFormation().getFormationType().equals("diamond")) { for (int i = 0; i < 4; i++) { bn[i] = 3; } }
