@@ -138,10 +138,7 @@ public class TestMap extends AbstractAppState {
     protected StatScreen stats;
     protected Battle currentBattle;
     protected ViewPortAnimation transitionToFight;
-    //protected List<Loader> backgroundLoaders = new ArrayList<>();
     protected Vector3f worldUpVector = new Vector3f(0, 1, 0);
-    
-    private RadialProgressBar radialtest;
     
     private Savable savestate;
     
@@ -320,14 +317,6 @@ public class TestMap extends AbstractAppState {
         
         initMap();
         initMappers();
-        
-        //radialtest = new RadialProgressBar(45f, 60f, new ColorRGBA(0.012f, 0.58f, 0.988f, 1f), 2);
-        //guiNode.attachChild(radialtest);
-        //radialtest.move(400, 400, 0);
-        //radialtest.setCirclePercent(0.47f);
-        
-        //fightCam = cam.clone();
-        //screenView.attachScene(rootNode);
     }   
     
     public void initMap() {
