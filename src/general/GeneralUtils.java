@@ -8,6 +8,7 @@ package general;
 import com.atr.jme.font.shape.TrueTypeNode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import java.util.ArrayList;
 import java.util.List;
 import maps.layout.TangibleUnit;
 
@@ -117,4 +118,34 @@ public class GeneralUtils {
         }
     }
     
+    public static<T> boolean compareLists(List<T> listA, List<T> listB) {
+        if (listA.size() != listB.size()) {
+            return false;
+        }
+        
+        for (int i = 0; i < listA.size(); i++) {
+            if (listA.get(i) != listB.get(i)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    public static<T> List<T> cloneList(List<T> input) {
+        List<T> list = new ArrayList<>();
+        
+        for (T item : input) {
+            list.add(item);
+        }
+        
+        return list;
+    }
+    
+    public static<T> List<T> addItem(List<T> template, T item) {
+        List<T> temp = cloneList(template);
+        temp.add(item);
+        
+        return temp;
+    }
 }

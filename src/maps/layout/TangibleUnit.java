@@ -33,6 +33,8 @@ import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import general.GeneralUtils;
+import java.util.List;
 
 /**
  *
@@ -254,7 +256,11 @@ public class TangibleUnit extends Unit {
             totalDistanceY = 0;
         } else {
             int i = (int)(accumulatedDistance / 16f);
-            ArrayList<Tile> path = map.generatePath(stposX, stposY, destinationX, destinationY, layer);
+            
+            //ArrayList<Tile> path = map.generatePath(stposX, stposY, destinationX, destinationY, layer);
+            Path pathway = new Path(map, stposX, stposY, destinationX, destinationY, layer);
+            List<Tile> path = pathway.getPath();
+            
             //int i = getIndex(path, stposX, stposY, destinationX, destinationY, int layer, Map map);
             if (i > 0) {
                 //horizontal
@@ -318,10 +324,6 @@ public class TangibleUnit extends Unit {
                 //rewritePos(map, layer);
         }
     }
-    
-    //private int getIndex(ArrayList<Tile> path, int startX, int startY, int destX, int destY, int layer, Map map) {
-        
-    //}
     
     public boolean willParryAgainst(TangibleUnit enemy) {
         return currentParryCooldown == 0 && parryDecider;
