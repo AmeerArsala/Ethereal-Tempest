@@ -57,6 +57,8 @@ public class TangibleUnit extends Unit {
     private Quad q = new Quad(20f, 20f);
     private Geometry geo = new Geometry("Quad", q);
     
+    private Path pathway = null;
+    
     private final String filepath, fpath2;
     private final String[] silence, load;
     public DirFileExplorer[] dfes;
@@ -256,72 +258,64 @@ public class TangibleUnit extends Unit {
             totalDistanceY = 0;
         } else {
             int i = (int)(accumulatedDistance / 16f);
-            
-            //ArrayList<Tile> path = map.generatePath(stposX, stposY, destinationX, destinationY, layer);
-            Path pathway = new Path(map, stposX, stposY, destinationX, destinationY, layer);
             List<Tile> path = pathway.getPath();
             
-            //int i = getIndex(path, stposX, stposY, destinationX, destinationY, int layer, Map map);
             if (i > 0) {
                 //horizontal
-                    if (path.get(i).getPosX() - path.get(i - 1).getPosX() < 0) {
-                        //left
-                        geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
-                        animVar = 2;
-                        totalDistanceX -= distanceperframe;
-                    } else if (path.get(i).getPosX() - path.get(i - 1).getPosX() > 0) {
-                        //right
-                        geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
-                        animVar = 3;
-                        totalDistanceX += distanceperframe;
-                    } else {
-                        //vertical
-                        //System.out.println("path.get(i).getPosY() = " + path.get(i).getPosY() + ", path.get(i - 1).getPosY() = " + path.get(i - 1).getPosY());
-                        if (path.get(i).getPosY() - path.get(i - 1).getPosY() > 0) {
-                            //up
-                            geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                            animVar = 1;
-                            totalDistanceY += distanceperframe;
-                        } else if (path.get(i).getPosY() - path.get(i - 1).getPosY() < 0) {
-                            //down
-                            geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                            animVar = 4;
-                            totalDistanceY -= distanceperframe;
-                        }
+                if (path.get(i).getPosX() - path.get(i - 1).getPosX() < 0) {
+                    //left
+                    geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
+                    animVar = 2;
+                    totalDistanceX -= distanceperframe;
+                } else if (path.get(i).getPosX() - path.get(i - 1).getPosX() > 0) {
+                    //right
+                    geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
+                    animVar = 3;
+                    totalDistanceX += distanceperframe;
+                } else {
+                    //vertical
+                    if (path.get(i).getPosY() - path.get(i - 1).getPosY() > 0) {
+                        //up
+                        geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
+                        animVar = 1;
+                        totalDistanceY += distanceperframe;
+                    } else if (path.get(i).getPosY() - path.get(i - 1).getPosY() < 0) {
+                        //down
+                        geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
+                        animVar = 4;
+                        totalDistanceY -= distanceperframe;
                     }
-                    //geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].tile.getHeightmapHeight(8, 8) + 3, geo.getLocalTranslation().z);
-                    geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
-                    return;
+                }
+                geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
+                return;
             }
-                    //horizontal
-                    if (path.get(i).getPosX() - stposX < 0) {
-                        //left
-                        geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
-                        animVar = 2;
-                        totalDistanceX -= distanceperframe;
-                    } else if (path.get(i).getPosX() - stposX > 0) {
-                        //right
-                        geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
-                        animVar = 3;
-                        totalDistanceX += distanceperframe;
-                    } else {
-                        //vertical
-                        if (path.get(i).getPosY() - stposY > 0) {
-                            //up
-                            geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                            animVar = 1;
-                            totalDistanceY += distanceperframe;
-                        } else if (path.get(i).getPosY() - stposY < 0) {
-                            //down
-                            geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                            animVar = 4;
-                            totalDistanceY -= distanceperframe;
-                        }
-                    }
-                    
-                    //geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].tile.getHeightmapHeight(8, 8) + 3, geo.getLocalTranslation().z);
-                    geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
-                //rewritePos(map, layer);
+            //horizontal
+            if (path.get(i).getPosX() - stposX < 0) {
+                //left
+                geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
+                animVar = 2;
+                totalDistanceX -= distanceperframe;
+            } else if (path.get(i).getPosX() - stposX > 0) {
+                //right
+                geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
+                animVar = 3;
+                totalDistanceX += distanceperframe;
+            } else {
+                //vertical
+                if (path.get(i).getPosY() - stposY > 0) {
+                    //up
+                    geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
+                    animVar = 1;
+                    totalDistanceY += distanceperframe;
+                } else if (path.get(i).getPosY() - stposY < 0) {
+                    //down
+                    geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
+                    animVar = 4;
+                    totalDistanceY -= distanceperframe;
+                }
+            }
+            geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
+            //rewritePos(map, layer);
         }
     }
     
@@ -386,11 +380,13 @@ public class TangibleUnit extends Unit {
                     float prevAccumulatedDistance = (previousmovtime * 160);
                 
                     if (movLength < 0) { //is only called at the start
-                        movLength = ((MoveState)fsm.getState()).getMap().generatePath(posX, posY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation()).size();
+                        //movLength = ((MoveState)fsm.getState()).getMap().generatePath(posX, posY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation()).size();
                         pstartX = posX;
                         pstartY = posY;
                         totalDistanceX = 0;
                         totalDistanceY = 0;
+                        pathway = new Path(((MoveState)fsm.getState()).getMap(), pstartX, pstartY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation());
+                        movLength = pathway.getPath().size();
                     }   
                 
                     if (posX == ((MoveState)fsm.getState()).getCursor().pX && posY == ((MoveState)fsm.getState()).getCursor().pY || ((int)(accumulatedDistance / 16f)) >= movLength) {
