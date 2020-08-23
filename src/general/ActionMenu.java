@@ -37,7 +37,6 @@ import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import edited.EditedTextField;
 import general.Submenu.TransitionState;
 import general.Submenu.TransitionType;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -79,6 +78,9 @@ public class ActionMenu extends Container {
         @Override
         public void setNewStateIfAllowed(FsmState st) {
             state = st;
+            if (state.getEnum() == EntityState.PostActionMenuOpened) {
+                initializeTier1Submenus(((MenuState)state).getConveyer());
+            }
         }
     
     };
@@ -587,7 +589,7 @@ public class ActionMenu extends Container {
                     break;
                 case "done":
                     conv.getCursor().resetState(conv.getMap());
-                    returnable = new MasterFsmState().setAssetManager(conv.getAssetManager());
+                    returnable = new MasterFsmState();
                     fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
                     getParent().detachChild(this);
                     break;
@@ -606,6 +608,12 @@ public class ActionMenu extends Container {
                     break;
             }
             
+        }
+        if (name.equals("deselect")) {
+            returnable = new MasterFsmState();
+            conv.getCursor().goBackFromMenu(conv.getAssetManager());
+            fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
+            getParent().detachChild(this);
         }
         
         return returnable;
