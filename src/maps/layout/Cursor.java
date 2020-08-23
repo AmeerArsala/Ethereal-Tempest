@@ -32,8 +32,11 @@ public class Cursor {
     private int elv = 0;
     
     public Geometry geometry;
-    public Quad quad;
+    private final Quad quad;
+    
     public int pX, pY;
+    
+    private int selectionDisplacementX = 0, selectionDisplacementY = 0;
     
     private float toTraverseX = 0, toTraverseY = 0;
     private float cursorSpeed = 1.0f, accumulatedTPF = 0;
@@ -41,7 +44,7 @@ public class Cursor {
     private Purpose purpose = Purpose.None;
     
     private Vector3f preferredLocation;
-    private RangeDisplay rangeDisplay;
+    private final RangeDisplay rangeDisplay;
     
     protected Direction holding[] = new Direction[4];
     
@@ -100,6 +103,8 @@ public class Cursor {
         geometry.setLocalTranslation(geometry.getLocalTranslation().x - (16f * selectionDifferenceY), geometry.getLocalTranslation().y, geometry.getLocalTranslation().z - (16f * selectionDifferenceX));
         selectionDifferenceX = 0;
         selectionDifferenceY = 0;
+        selectionDisplacementX = 0;
+        selectionDisplacementY = 0;
     }
     
     public void translateX(int spaces) { //negative spaces for left, positive spaces for right
@@ -259,10 +264,9 @@ public class Cursor {
                     rangeDisplay.displayRange(tu, elv, mapFSM.getAssetManager());
                 }
             } else if (!tu.isSelected) {
-                if (tu.hoverSetter) { tu.hoverSetter = false; }
+                tu.hoverSetter = false;
             }
-            //if (pCursor.getState().getEnum() == EntityState.AnyoneSelected) { rangeDisplay.tileOpacity = 0.85f; }
-        } else if (!tu.isSelected && fsm.getState().getEnum() != EntityState.AnyoneSelected) {
+        } else if (!tu.isSelected && fsm.getState().getEnum() != EntityState.AnyoneSelected) { //if nobody is selected
             if (fsm.getState().getEnum() != EntityState.AnyoneHovered) { //if nobody is selected or hovered
                 rangeDisplay.cancelRange(elv);
             } else { //if nobody is selected but someone is hovered yet the cursor isnt there
@@ -310,14 +314,11 @@ public class Cursor {
                         toTraverseY = 0;
                     }
                     translateY(1);
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceY += 1; }
+                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceY++; }
+                    if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementY++; }
                     holding[0] = Direction.Up;
                     //accumulatedTPF += tpf;
                 } else {
-                    /*if (translatingY && directionHeld()) {
-                        //setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                        toTraverseY = -1 * accumulatedCursorDistanceY;
-                    } else { toTraverseY = 0; }*/
                     holding[0] = null;
                 }
             } else if (name.equals("move down")) {
@@ -330,15 +331,11 @@ public class Cursor {
                         toTraverseY = 0;
                     }
                     translateY(-1);
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceY -= 1; }
+                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceY--; }
+                    if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementY--; }
                     holding[1] = Direction.Down;
                     //accumulatedTPF += tpf;
                 } else {
-                    /*if (translatingY && directionHeld()) {
-                        //setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                        toTraverseY = accumulatedCursorDistanceY;
-                    } else { toTraverseY = 0; }*/
-                    
                     holding[1] = null;
                 }
             }  
@@ -353,14 +350,11 @@ public class Cursor {
                         toTraverseX = 0;
                     }
                     translateX(-1);
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceX -= 1; }
+                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceX--; }
+                    if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementX--; }
                     holding[2] = Direction.Left;
                     //accumulatedTPF += tpf;
                 } else {
-                    /*if (translatingX && directionHeld()) {
-                        //setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                        toTraverseX = accumulatedCursorDistanceX;
-                    } else { toTraverseX = 0; }*/
                     holding[2] = null;
                 }
             } else if (name.equals("move right")) {
@@ -373,14 +367,11 @@ public class Cursor {
                         toTraverseX = 0;
                     }
                     translateX(1);
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceX += 1; }
+                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceX++; }
+                    if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementX++; }
                     holding[3] = Direction.Right;
                     //accumulatedTPF += tpf;
                 } else {
-                    /*if (translatingX && directionHeld()) {
-                        //setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                        toTraverseX = -1 * accumulatedCursorDistanceX;
-                    } else { toTraverseX = 0; }*/
                     holding[3] = null;
                 }
             } 
@@ -432,6 +423,10 @@ public class Cursor {
                         selectedUnit = null;
                         setStateIfAllowed(new FsmState(EntityState.CursorDefault));
                         rangeDisplay.tileOpacity = 0.5f;
+                        pX -= selectionDisplacementX;
+                        pY -= selectionDisplacementY;
+                        selectionDisplacementX = 0;
+                        selectionDisplacementY = 0;
                     } else if (fsm.getState().getEnum() == EntityState.PostActionMenuOpened) {}
                 }
             }
@@ -461,6 +456,15 @@ public class Cursor {
         selectedUnit.setStateIfAllowed(new FsmState(EntityState.Done));
         selectedUnit = null;
         fsm.forceState(new FsmState(EntityState.CursorDefault));
+    }
+    
+    public void goBackFromMenu(AssetManager AM) {
+        forceState(new FsmState(EntityState.AnyoneSelected));
+        selectedUnit.remapPositions(selectedUnit.prevX, selectedUnit.prevY, elv, MasterFsmState.getCurrentMap());
+        selectedUnit.animVar = 0; //idle animation
+        selectedUnit.setStateIfAllowed(new FsmState(EntityState.Active));
+        rangeDisplay.tileOpacity = 0.85f;
+        rangeDisplay.displayRange(selectedUnit, elv, AM);
     }
     
     public void setSpeed(float speed) { //default is 1

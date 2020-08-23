@@ -40,7 +40,8 @@ public class TangibleUnit extends Unit {
     
     private int saveMaxParryCooldown;
     private int posX, posY, elevation;
-    private int prevX, prevY;
+    
+    int prevX, prevY;
     
     private Skill inUse = null;
     private Formula toUse = null;

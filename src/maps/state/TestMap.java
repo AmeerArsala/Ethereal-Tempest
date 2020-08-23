@@ -9,13 +9,9 @@ import battle.Battle;
 import battle.Battle.BattleState;
 import battle.Catalog;
 import battle.Conveyer;
-import battle.JobClass;
-import battle.Unit;
 import battle.Unit.UnitStatus;
-import battle.item.Weapon;
 
 import com.atr.jme.font.asset.TrueTypeLoader;
-import com.destroflyer.jme3.effekseer.renderer.EffekseerControl;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -50,7 +46,6 @@ import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
-
 import com.jme3.post.SceneProcessor;
 import com.jme3.profile.AppProfiler;
 import com.jme3.renderer.queue.RenderQueue;
@@ -75,17 +70,10 @@ import edited.state.FlyCamTrueAppState;
 
 import general.ActionMenu;
 import general.MenuState;
-import general.VisualTransition;
-import general.VisualTransition.Progress;
-import java.awt.Toolkit;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import jme3tools.optimize.LodGenerator;
 
 import jme3tools.savegame.SaveGame;
@@ -103,7 +91,6 @@ import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.Main;
 import etherealtempest.MasterFsmState;
-import general.visual.RadialProgressBar;
 
 /**
  *
@@ -163,13 +150,13 @@ public class TestMap extends AbstractAppState {
                                         .setAssetManager(assetManager)
                         )
                 );
-                postAction.initializeTier1Submenus(
+                /*postAction.initializeTier1Submenus(
                     new Conveyer(pCursor.selectedUnit)
                             .setMap(map00)
                             .setAllUnits(units)
                             .setCursor(pCursor)
                             .setAssetManager(assetManager)
-                );
+                );*/
                 state = new MasterFsmState().setAssetManager(assetManager);
             } 
         }
@@ -217,7 +204,7 @@ public class TestMap extends AbstractAppState {
         this.alU = new ActionListener() {
             @Override
             public void onAction(String name, boolean keyPressed, float tpf) {
-                
+                //stat screen action
                 if (stats.getState().getEnum() != EntityState.GuiClosed && keyPressed) {
                     stats.resolveInput(name, tpf);
                     if (stats.getState().getEnum() == EntityState.GuiClosed) { 
@@ -225,9 +212,13 @@ public class TestMap extends AbstractAppState {
                         pCursor.setStateIfAllowed(new FsmState(EntityState.CursorDefault));
                     }
                 }
+                
+                //cursor action
                 if (pCursor.getState().getEnum() != EntityState.Idle && stats.getState().getEnum() == EntityState.GuiClosed && postAction.getState().getEnum() != EntityState.PostActionMenuOpened) {
                     pCursor.resolveInput(name, tpf, keyPressed);
                 }
+                
+                //post action menu action
                 if (postAction.getState().getEnum() == EntityState.PostActionMenuOpened && keyPressed) { //postActionMenu
                     if (name.equals("select")) {
                         pCursor.forceState(new FsmState(EntityState.Idle));
@@ -235,9 +226,11 @@ public class TestMap extends AbstractAppState {
                     
                     MasterFsmState change = postAction.resolveInput(name, tpf);
                     if (change != null) {
-                        fsm.setNewStateIfAllowed(change);
+                        fsm.setNewStateIfAllowed(change.setAssetManager(assetManager));
                     }
                 }
+                
+                //testing purposes w/ camera during battle
                 if (fsm.getState().getEnum() == EntityState.DuringBattle) {
                     currentBattle.resolveInput(name, tpf, keyPressed);
                 }
