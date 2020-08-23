@@ -40,14 +40,13 @@ public class RadialMesh extends Mesh {
         texCoord[0] = new Vector2f(0, 0);
         texCoord[1] = new Vector2f(1, 0);
         texCoord[2] = new Vector2f(0, 1);
-        texCoord[3] = new Vector2f(1 ,1);
+        texCoord[3] = new Vector2f(1, 1);
         
         setVertices();
         
         indices.add(0);
         indices.add(vertices.length - 2);
         indices.add(vertices.length - 1);
-        
         
         setIndices();
         
@@ -62,6 +61,7 @@ public class RadialMesh extends Mesh {
             vertices[i + 1] = new Vector3f(radius * FastMath.cos(i * FastMath.PI / (180f * specificity)), radius * FastMath.sin(i * FastMath.PI / (180f * specificity)), 1);
             
             if (i > 1) {
+                //counter clockwise triangle
                 indices.add(0);
                 indices.add(i - 1);
                 indices.add(i);

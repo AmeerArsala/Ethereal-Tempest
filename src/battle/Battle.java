@@ -1504,7 +1504,7 @@ class ShownCombatant {
         TrueTypeKeyBMP lvlbmp = new TrueTypeKeyBMP("Interface/Fonts/Montaga-Regular.ttf", Style.Plain, 37);
         TrueTypeFont lvlttf = (TrueTypeBMP)asm.loadAsset(lvlbmp);
         EditedLabel lvltag = new EditedLabel(
-                "LVL " + character.getLVL(),
+                "LVL " + (character.getLVL() - 1) + " ->" + character.getLVL(),
                 lvlttf,
                 ColorRGBA.Black
         );

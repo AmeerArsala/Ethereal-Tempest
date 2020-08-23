@@ -308,7 +308,7 @@ public class TestMap extends AbstractAppState {
         
         mob = (TerrainQuad)(S.getChild("movement"));
         mapscene = (TerrainQuad)(S.getChild("map"));
-        localRootNode.attachChild(S);
+        //localRootNode.attachChild(S);
         
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
@@ -322,7 +322,12 @@ public class TestMap extends AbstractAppState {
     public void initMap() {
         TerrainQuad[] mobilitysquares = {mob};
         TerrainQuad[] mapsquares = {mapscene};
-        map00 = new Map(16, 16, 1, assetManager, mapsquares, mobilitysquares, "terrain-testscene");
+        //map00 = new Map(16, 16, 1, assetManager, mapsquares, mobilitysquares, "terrain-testscene");
+        map00 = new Map("test map", 16, 16, 1, assetManager);
+        localRootNode.attachChild(map00.getMiscNode());
+        localRootNode.attachChild(map00.getTileNode());
+        
+        MasterFsmState.setCurrentDefaultMap(map00);
         
         //add units
         units.add(new TangibleUnit(Catalog.UnitCatalog[0], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
@@ -351,8 +356,6 @@ public class TestMap extends AbstractAppState {
         pCursor.init();
         pCursor.setPosition(5, 2, 0, map00); //change position later
         localRootNode.attachChild(pCursor.geometry);
-        
-        MasterFsmState.setCurrentDefaultMap(map00);
         
         initializePostMoveMenu();
         
@@ -492,6 +495,7 @@ public class TestMap extends AbstractAppState {
     }
     
     private void fullUpdate(float tpf) {
+        //System.out.println("(" + pCursor.pX + ", " + pCursor.pY + ")");
         updateAI(1f / 60f);
         
         stats.update(1f / 60f);

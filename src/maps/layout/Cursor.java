@@ -5,7 +5,6 @@
  */
 package maps.layout;
 
-import battle.Battle;
 import battle.Catalog;
 import battle.Conveyer;
 import com.jme3.asset.AssetManager;
@@ -42,6 +41,7 @@ public class Cursor {
     private Purpose purpose = Purpose.None;
     
     private Vector3f preferredLocation;
+    private RangeDisplay rangeDisplay;
     
     protected Direction holding[] = new Direction[4];
     
@@ -50,6 +50,7 @@ public class Cursor {
     public Cursor(Quad quad) {
         this.quad = quad;
         geometry = new Geometry("Quad", this.quad);
+        rangeDisplay = new RangeDisplay(MasterFsmState.getCurrentMap());
     }
     
     public enum Direction {
@@ -78,16 +79,13 @@ public class Cursor {
     }
     
     public void setPosition(int x, int y, int layer, Map map) {
-        if (x < map.getTilesX() && x >= 0 && y < map.getTilesY() && y >= 0) {
+        if (x < map.getXLength(elv) && x >= 0 && y < map.getYLength(elv) && y >= 0) {
             pX = x;
             pY = y;
             elv = layer;
         
-            geometry.setLocalTranslation(map.fullmap[layer][x][y].tile.getWorldTranslation().x - 5f, map.fullmap[layer][x][y].getHighestPointHeight() + 1.5f, map.fullmap[layer][x][y].tile.getWorldTranslation().z - 3f);
+            geometry.setLocalTranslation(map.fullmap[layer][x][y].getWorldTranslation().x - 5f, map.fullmap[layer][x][y].getHighestPointHeight() + 1.5f, map.fullmap[layer][x][y].getWorldTranslation().z - 3f);
         }
-        
-        //geometry.setLocalTranslation(map.fullmap[layer][x][y].tile.getWorldTranslation());
-        //geometry.setLocalTranslation(geometry.getLocalTranslation().x - 5f, map.fullmap[layer][x][y].getHighestPointHeight() + 1.5f, geometry.getLocalTranslation().z - 3f);
     }
     
     public int getPosX() { return pX; }
@@ -105,7 +103,7 @@ public class Cursor {
     }
     
     public void translateX(int spaces) { //negative spaces for left, positive spaces for right
-        if (pX + spaces >= 0 && pX + spaces < MasterFsmState.getCurrentMap().getTilesX()) {
+        if (pX + spaces >= MasterFsmState.getCurrentMap().getMinimumX(elv) && pX + spaces < MasterFsmState.getCurrentMap().getXLength(elv)) {
             geometry.setLocalTranslation(geometry.getLocalTranslation().x, MasterFsmState.getCurrentMap().fullmap[elv][pX + spaces][pY].getHighestPointHeight() + 1.5f, geometry.getLocalTranslation().z);
             translatingX = true;
             toTraverseX += spaces;
@@ -116,7 +114,7 @@ public class Cursor {
     }
     
     public void translateY(int spaces) { //negative spaces for down, positive spaces for up
-        if (pY + spaces >= 0 && pY + spaces < MasterFsmState.getCurrentMap().getTilesY()) {
+        if (pY + spaces >= MasterFsmState.getCurrentMap().getMinimumY(elv) && pY + spaces < MasterFsmState.getCurrentMap().getYLength(elv)) {
             geometry.setLocalTranslation(geometry.getLocalTranslation().x, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY + spaces].getHighestPointHeight() + 1.5f, geometry.getLocalTranslation().z);
             translatingY = true;
             toTraverseY += spaces;
@@ -144,32 +142,32 @@ public class Cursor {
         switch (fsm.getState().getEnum()) {
             case CursorDefault: 
             {
-                tileOpacity = 0;
+                rangeDisplay.tileOpacity = 0;
                 break;
             }
             case AnyoneHovered: 
             {
-                tileOpacity = 0.5f;
+                rangeDisplay.tileOpacity = 0.5f;
                 break;
             }
             case AnyoneMoving: 
             {
-                tileOpacity = 0;
+                rangeDisplay.tileOpacity = 0;
                 break;
             }
             case AnyoneSelected:
             {
-                tileOpacity = 0.85f;
+                rangeDisplay.tileOpacity = 0.85f;
                 break;
             }
             case AnyoneSelectingTarget: 
             {
-                tileOpacity = 0;
+                rangeDisplay.tileOpacity = 0;
                 break;
             }
             case AnyoneTargeted: 
             {
-                tileOpacity = 0;
+                rangeDisplay.tileOpacity = 0;
                 break;
             }
             default:
@@ -185,7 +183,8 @@ public class Cursor {
     
     public void update(float tpf, TangibleUnit specified, MasterFsmState mapFSM) {
         //System.out.println("accumulatedCursorDistanceX = " + accumulatedCursorDistanceX + ", accumulatedCursorDistanceY = " + accumulatedCursorDistanceY + ", toTraverseX = " + toTraverseX + ", toTraverseY = " + toTraverseY);
-        preferredLocation = new Vector3f(MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].tile.getWorldTranslation().x - 5f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getHighestPointHeight() + 1.5f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].tile.getWorldTranslation().z - 3f);
+        
+        preferredLocation = new Vector3f(MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getWorldTranslation().x - 5f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getHighestPointHeight() + 1.5f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getWorldTranslation().z - 3f);
         geometry.setLocalTranslation(geometry.getLocalTranslation().x, preferredLocation.y, geometry.getLocalTranslation().z);
         if (geometry.getLocalTranslation().x != preferredLocation.x || geometry.getLocalTranslation().z != preferredLocation.z) {
             geometry.setLocalTranslation(geometry.getLocalTranslation().x + ((preferredLocation.x - geometry.getLocalTranslation().x) / 10f), preferredLocation.y, geometry.getLocalTranslation().z + ((preferredLocation.z - geometry.getLocalTranslation().z) / 10f));
@@ -247,8 +246,6 @@ public class Cursor {
         updateAI(tpf, specified, mapFSM);
     }
     
-    public float tileOpacity = 0;
-    
     public void updateAIForInteraction(float tpf, TangibleUnit tu, MasterFsmState mapFSM) {
         //System.out.println(fsm.getState().getEnum());
         
@@ -259,15 +256,15 @@ public class Cursor {
             }
             if (fsm.getState().getEnum() != EntityState.AnyoneSelectingTarget) {
                 if (fsm.getState().getEnum() != EntityState.AnyoneSelected || (fsm.getState().getEnum() == EntityState.AnyoneSelected && tu.isSelected)) {
-                    displayRange(tu, MasterFsmState.getCurrentMap(), elv, mapFSM.getAssetManager());
+                    rangeDisplay.displayRange(tu, elv, mapFSM.getAssetManager());
                 }
             } else if (!tu.isSelected) {
                 if (tu.hoverSetter) { tu.hoverSetter = false; }
             }
-            //if (pCursor.getState().getEnum() == EntityState.AnyoneSelected) { tileOpacity = 0.85f; }
+            //if (pCursor.getState().getEnum() == EntityState.AnyoneSelected) { rangeDisplay.tileOpacity = 0.85f; }
         } else if (!tu.isSelected && fsm.getState().getEnum() != EntityState.AnyoneSelected) {
             if (fsm.getState().getEnum() != EntityState.AnyoneHovered) { //if nobody is selected or hovered
-                cancelRange(0, MasterFsmState.getCurrentMap());
+                rangeDisplay.cancelRange(elv);
             } else { //if nobody is selected but someone is hovered yet the cursor isnt there
                 if (tu.hoverSetter) {
                     AssetManager AM = mapFSM.getAssetManager();
@@ -278,60 +275,14 @@ public class Cursor {
             }
         }
         
-        if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget && tu.getFSM().getState().getEnum() == EntityState.SelectingTarget) {
+        /*if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget && tu.getFSM().getState().getEnum() == EntityState.SelectingTarget) {
             //put something here later
-        }
+        }*/
         
         if (fsm.getState().getEnum() == EntityState.AnyoneTargeted && tu.getFSM().getState().getEnum() == EntityState.SelectingTarget && tu != receivingEnd) {
-            //revamp this whole battle thing later
-            
-            /*Battle.start(new Conveyer(selectedUnit).setEnemyUnit(receivingEnd).setMap(MasterFsmState.getCurrentMap()), 1);
-            mapFSM.updateState(EntityState.PostBattle);*/
+            //start a battle
             if (mapFSM.getEnum() == EntityState.PostActionMenuOpened) {
                 mapFSM.updateState(EntityState.PreBattle).setConveyer(new Conveyer(selectedUnit).setEnemyUnit(receivingEnd).setMap(MasterFsmState.getCurrentMap()));
-            }
-        }
-    }
-    
-    public void displayRange(TangibleUnit tu, Map mp, int layer, AssetManager assetManager) {
-        for (int x = 0; x < mp.fullmap[layer].length; x++) {
-            for (int y = 0; y < mp.fullmap[layer][0].length; y++) {
-                if (Map.isWithinSpaces(tu.getMOBILITY(), tu.getPosX(), tu.getPosY(), mp.fullmap[layer][x][y].getPosX(), mp.fullmap[layer][x][y].getPosY())) {
-                    //reveal at specified opacity in blue tile
-                    Texture tx = assetManager.loadTexture("Textures/tiles/movsquare.png");
-                    mp.movSet[layer][x][y].changeTexture(tx);
-                    mp.movSet[layer][x][y].tile.getMaterial().setColor("Color", new ColorRGBA(1, 1, 1, tileOpacity));
-                    //mp.movSet[layer][x][y].tile.getMaterial().setColor("Color", new ColorRGBA(0.122f, 0.247f, 0.804f, tileOpacity));
-                } else {
-                    for (int i = 0; i < Catalog.furthestTrue(tu.getEquippedWeapon().getRange()); i++) {
-                        
-                        if (Map.isWithinSpaces(tu.getMOBILITY() + i + 1, tu.getPosX(), tu.getPosY(), x, y)) {
-                            //reveal red tile
-                            Texture tx = assetManager.loadTexture("Textures/tiles/atksquare.png");
-                            mp.movSet[layer][x][y].changeTexture(tx);
-                            mp.movSet[layer][x][y].tile.getMaterial().setColor("Color", new ColorRGBA(1, 1, 1, tileOpacity));
-                            //mp.movSet[layer][x][y].tile.getMaterial().setColor("Color", new ColorRGBA(0.902f, 0.176f, 0.082f, tileOpacity)); //red
-                        } else {
-                            //dissipate
-                            Texture tx = assetManager.loadTexture("Textures/tiles/movsquare.png");
-                            mp.movSet[layer][x][y].changeTexture(tx);
-                            mp.movSet[layer][x][y].tile.getMaterial().setColor("Color", new ColorRGBA(1, 1, 1, 0));
-                            //mp.movSet[layer][x][y].tile.getMaterial().setColor("Color", new ColorRGBA(0.122f, 0.247f, 0.804f, 0));
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
-    public void cancelRange(int layer, Map mp) {
-        for (int x2 = 0; x2 < mp.fullmap[layer].length; x2++) {
-            for (int y2 = 0; y2 < mp.fullmap[layer][0].length; y2++) {               
-                if (mp.movSet[layer][x2][y2].tile.getMaterial().getAdditionalRenderState().getBlendMode() != RenderState.BlendMode.Alpha) {
-                    mp.movSet[layer][x2][y2].tile.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-                }
-
-                mp.movSet[layer][x2][y2].tile.getMaterial().setColor("Color", new ColorRGBA(1, 1, 1, 0));
             }
         }
     }
@@ -437,7 +388,7 @@ public class Cursor {
             if (name.equals("select")) {
                 if (keyPressed) {
                     if (fsm.getState().getEnum() == EntityState.AnyoneSelected) {
-                        tileOpacity = 0.85f;
+                        rangeDisplay.tileOpacity = 0.85f;
                     }
                 
                     TangibleUnit tu = MasterFsmState.getCurrentMap().fullmap[getElevation()][pX][pY].getOccupier();
@@ -467,10 +418,10 @@ public class Cursor {
             } else {
                 if (selectedUnit == null) {
                     if (fsm.getState().getEnum() == EntityState.AnyoneHovered) {
-                        tileOpacity = 0.5f;
-                    } else { tileOpacity = 0f; }
+                        rangeDisplay.tileOpacity = 0.5f;
+                    } else { rangeDisplay.tileOpacity = 0f; }
                 } else {
-                    tileOpacity = 0.85f;
+                    rangeDisplay.tileOpacity = 0.85f;
                 }
             }
             if (name.equals("deselect")) {
@@ -480,7 +431,7 @@ public class Cursor {
                         selectedUnit.isSelected = false;
                         selectedUnit = null;
                         setStateIfAllowed(new FsmState(EntityState.CursorDefault));
-                        tileOpacity = 0.5f;
+                        rangeDisplay.tileOpacity = 0.5f;
                     } else if (fsm.getState().getEnum() == EntityState.PostActionMenuOpened) {}
                 }
             }
@@ -504,7 +455,7 @@ public class Cursor {
         resetCursorPositionFromSelection();
         selectedUnit.remapPositions(pX, pY, elv, M);
         selectedUnit.animVar = 0;
-        cancelRange(elv, M);
+        rangeDisplay.cancelRange(elv);
         M.fullmap[elv][selectedUnit.getPosX()][selectedUnit.getPosY()].setOccupier(selectedUnit);
         selectedUnit.isSelected = false;
         selectedUnit.setStateIfAllowed(new FsmState(EntityState.Done));
@@ -533,8 +484,8 @@ public class Cursor {
     }
     
     public boolean directionHeld() {
-        for (int i = 0; i < holding.length; i++) {
-            if (holding[i] != null) {
+        for (Direction holding1 : holding) {
+            if (holding1 != null) {
                 return true;
             }
         }
@@ -543,9 +494,9 @@ public class Cursor {
     
     public void updatePosition(Map map) {
         int closestX = 0, closestY = 0;
-        for (int x = 0; x < map.getTilesX(); x++) {
-            for (int y = 0; y < map.getTilesY(); y++) {
-                if (FastMath.abs(map.fullmap[elv][x][y].tile.getWorldTranslation().x) + FastMath.abs(map.fullmap[elv][x][y].tile.getWorldTranslation().y) < FastMath.abs(map.fullmap[elv][closestX][closestY].tile.getWorldTranslation().x) + FastMath.abs(map.fullmap[elv][closestX][closestY].tile.getWorldTranslation().y)) {
+        for (int x = 0; x < map.getXLength(elv); x++) {
+            for (int y = 0; y < map.getYLength(elv); y++) {
+                if (FastMath.abs(map.fullmap[elv][x][y].getWorldTranslation().x) + FastMath.abs(map.fullmap[elv][x][y].getWorldTranslation().y) < FastMath.abs(map.fullmap[elv][closestX][closestY].getWorldTranslation().x) + FastMath.abs(map.fullmap[elv][closestX][closestY].getWorldTranslation().y)) {
                     closestX = x;
                     closestY = y;
                 }

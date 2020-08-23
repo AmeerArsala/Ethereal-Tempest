@@ -148,4 +148,93 @@ public class GeneralUtils {
         
         return temp;
     }
+    
+    public static<T> T[] setAllInArray(T[] arr, T value) {
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = value;
+        }
+        
+        return arr;
+    }
+    
+    public static int[] toIntArray(final List<Integer> list) {
+        int[] ret = new int[list.size()];
+        for (int i = 0; i < ret.length; i++) {
+            ret[i] = list.get(i);
+        }
+        return ret;
+    }
+    
+    public static double lowest(List<Double> vals) {
+        double least = vals.get(0);
+        for (Double d : vals) {
+            if (d < least) {
+                least = d;
+            }
+        }
+        
+        return least;
+    }
+    
+    public static double highest(List<Double> vals) {
+        double most = vals.get(0);
+        for (Double d : vals) {
+            if (d > most) {
+                most = d;
+            }
+        }
+        
+        return most;
+    }
+    
+    public static double closest(double num, List<Double> vals) {
+        double closest = vals.get(0);
+        for (Double d : vals) {
+            if (Math.abs(num - d) < Math.abs(num - closest)) {
+                closest = d;
+            }
+        }
+        
+        return closest;
+    }
+    
+    public static int closestIndex(double num, List<Float> vals) {
+        int closest = 0;
+        for (int i = 0; i < vals.size(); i++) {
+            if (Math.abs(num - vals.get(i)) < Math.abs(num - vals.get(closest))) {
+                closest = i;
+            }
+        }
+        
+        return closest;
+    }
+    
+    public static int closestIndex(double num, float[] vals) {
+        int closest = 0;
+        for (int i = 0; i < vals.length; i++) {
+            if (Math.abs(num - vals[i]) < Math.abs(num - vals[closest])) {
+                closest = i;
+            }
+        }
+        
+        return closest;
+    }
+    
+    public static <T> List<T> createListFromElements(List<Integer> indexes, T[] ts) {
+        List<T> creation = new ArrayList<>(indexes.size());
+        for (int i = 0; i < indexes.size(); i++) {
+            creation.set(indexes.get(i), ts[indexes.get(i)]);
+        }
+        
+        return creation;
+    }
+    
+    public static float[] createFloatArrayFromElements(List<Integer> indexes, float[] ts) {
+        float[] creation = new float[indexes.size()];
+        for (int i = 0; i < indexes.size(); i++) {
+            creation[i] = ts[indexes.get(i)];
+        }
+        
+        return creation;
+    }
 }

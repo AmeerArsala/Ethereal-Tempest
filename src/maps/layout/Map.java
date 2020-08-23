@@ -8,6 +8,8 @@ package maps.layout;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
+import com.jme3.material.RenderState.BlendMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.terrain.Terrain;
@@ -18,6 +20,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.terrain.geomipmap.TerrainPatch;
 import com.jme3.terrain.geomipmap.TerrainQuad;
+import maps.layout.Tile.Spread;
 
 /**
  *
@@ -25,17 +28,36 @@ import com.jme3.terrain.geomipmap.TerrainQuad;
  */
 public class Map {
     private final int tilesX, tilesY, layers;
+    private Coords[][] layerBounds;
     
     public Tile[][][] fullmap; // a 3d array of layers, it's a 3d array due to multiple elevations 
     public Tile[][][] movSet; // for movement squares
     
     private String terrainName = "";
+    private Node tileNode = new Node("tile node for tiles and terrain");
+    private Node extraMapStuff = new Node("extra map things");
     
     public TerrainQuad[] mapscene;
     public TerrainQuad[] mov;
     
     protected Integer i, n = 0;
     private ArrayList<ArrayList<TerrainPatch>> realTiles, mobilityTiles;
+    
+    public Map(String terrainName, int tilesX, int tilesY, int layers, AssetManager assetManager) {
+        this.terrainName = terrainName;
+        this.tilesX = tilesX;
+        this.tilesY = tilesY;
+        this.layers = layers;
+        
+        layerBounds = new Coords[layers][2]; //2 for (x, y)
+        //default settings
+        for (int l = 0; l < layers; l++) {
+            layerBounds[l][0] = new Coords(0, tilesX); //x coordinate bounds [0, tilesX)
+            layerBounds[l][1] = new Coords(0, tilesY); //y coordinate bounds [0, tilesY)
+        }
+        
+        generateTiles(assetManager);
+    }
     
     public Map(int tilesX, int tilesY, int layers, AssetManager assetManager, TerrainQuad[] mapscene, TerrainQuad[] mov, String terrainName) {
         this.tilesX = tilesX;
@@ -44,6 +66,13 @@ public class Map {
         this.terrainName = terrainName;
         this.mapscene = mapscene;
         this.mov = mov;
+        
+        layerBounds = new Coords[layers][2]; //2 for (x, y)
+        //default settings
+        for (int l = 0; l < layers; l++) {
+            layerBounds[l][0] = new Coords(0, tilesX); //x coordinate bounds [0, tilesX)
+            layerBounds[l][1] = new Coords(0, tilesY); //y coordinate bounds [0, tilesY)
+        }
         
         realTiles = new ArrayList<>();
         mobilityTiles = new ArrayList<>();
@@ -66,7 +95,6 @@ public class Map {
         
         tilesX = (int)FastMath.sqrt(FastMath.pow(4, getLayersOfChildren(mapscene[0])));
         tilesY = tilesX;
-        
         //for (int i = 0; i < layers; i++) { setTilePositions(mapscene[i].getChildren(), mov[i].getChildren()); }
         realTiles = new ArrayList<>();
         mobilityTiles = new ArrayList<>();
@@ -85,17 +113,108 @@ public class Map {
     public int getTilesY() { return tilesY; }
     public int getLayerCount() { return layers; }
     
+    public String getName() { return terrainName; }
+    
+    public Coords[][] getBoundsForAllLayers() { return layerBounds; }
+    
+    public int getXLength(int layer) {
+        return layerBounds[layer][0].getY();
+    }
+    
+    public int getMinimumX(int layer) {
+        return layerBounds[layer][0].getX();
+    }
+    
+    public int getYLength(int layer) {
+        return layerBounds[layer][1].getY();
+    }
+    
+    public int getMinimumY(int layer) {
+        return layerBounds[layer][1].getX();
+    }
+    
+    public Map setMaximumXTile(int maxX, int layer) { //inclusive
+        layerBounds[layer][0].setY(maxX);
+        return this;
+    }
+    
+    public Map setMaximumYTile(int maxY, int layer) { //inclusive
+        layerBounds[layer][1].setY(maxY);
+        return this;
+    }
+    
+    public Map setMinimumXTile(int minX, int layer) { //inclusive
+        layerBounds[layer][0].setX(minX);
+        return this;
+    }
+    
+    public Map setMinimumYTile(int minY, int layer) { //inclusive
+        layerBounds[layer][1].setX(minY);
+        return this;
+    }
+    
+    public boolean isWithinXBounds(int test, int layer) {
+        return test >= getMinimumX(layer) && test < getXLength(layer);
+    }
+    
+    public boolean isWithinYBounds(int test, int layer) {
+        return test >= getMinimumY(layer) && test < getYLength(layer);
+    }
+    
+    public boolean isWithinBounds(Coords test, int layer) {
+        return test.getX() >= getMinimumX(layer) && test.getX() < getXLength(layer) 
+               && test.getY() >= getMinimumY(layer) && test.getY() < getYLength(layer);
+    }
+    
+    public Node getMiscNode() {
+        return extraMapStuff;
+    }
+    
+    public Node getTileNode() {
+        return tileNode;
+    }
+    
+    private void generateTiles(AssetManager assetManager) {
+        //make new instances
+        fullmap = new Tile[layers][tilesX][tilesY];
+        movSet = new Tile[layers][tilesX][tilesY];
+        for (int l = 0; l < layers; l++) {
+            for (int x = 0; x < tilesX; x++) {
+                for (int y = 0; y < tilesY; y++) {
+                    fullmap[l][x][y] = new Tile("Ground", x, y, l);
+                    movSet[l][x][y] = new Tile(x, y, l);
+                    
+                    Material grass = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                    grass.setTexture("ColorMap", assetManager.loadTexture("Textures/tiles/grass2.jpg"));
+                    fullmap[l][x][y].initializeGeometry(grass);
+                    //fullmap[l][x][y].initializeGeometry(grass, 3, 50, 1, true, Spread.Randomize); //maxHeight = 3, % random = 50%, smoothness = 1
+                    fullmap[l][x][y].setLocalTranslation(tilesY * y, 50 * l, tilesX * x);
+                    tileNode.attachChild(fullmap[l][x][y].getGeometry());
+                    
+                    Material movsquare = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+                    movsquare.setTexture("ColorMap", assetManager.loadTexture("Textures/tiles/movsquare.png"));
+                    movsquare.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+                    movsquare.setColor("Color", new ColorRGBA(1, 1, 1, 0));
+                    movSet[l][x][y].emulateOtherTile(movsquare, fullmap[l][x][y]);
+                    movSet[l][x][y].setLocalTranslation(tilesY * y, (50 * l), tilesX * x);
+                    movSet[l][x][y].getGeometry().setQueueBucket(RenderQueue.Bucket.Transparent);
+                    extraMapStuff.attachChild(movSet[l][x][y].getGeometry());
+                }
+            }
+        }
+    }
+    
     private void createTiles(AssetManager assetManager) {
-        int[] bonuses = {0};
+        int[] bonuses = {0}; //TODO: change this later
         fullmap = new Tile[layers][tilesX][tilesY];
         movSet = fullmap;
         for (int l = 0; l < layers; l++) {
             for (int x = 0; x < tilesX; x++) {
                 for (int y = 0; y < tilesY; y++) {
-                    printCoords(l);
-                    fullmap[l][x][y] = new Tile("Blank", x, y, l, bonuses, 10, assetManager);
+                    //printCoords(l);
+                    fullmap[l][x][y] = new Tile("Ground", x, y, l, bonuses, 10);
                     //fullmap[l][x][y].tile = realTiles.get(l).get(n);
-                    movSet[l][x][y] = new Tile(x, y, l, assetManager);
+                    movSet[l][x][y] = new Tile(x, y, l);
                     //movSet[l][x][y].tile = mobilityTiles.get(l).get(n);
                 }
             }
@@ -108,13 +227,23 @@ public class Map {
                     int[] crd = Sequence.nextCoord(((TerrainQuad)masterQuadrant(realTiles.get(l).get(n))).getQuadrant());
                     //System.out.println("(" + crd[0] + ", " + crd[1] + "), Quadrant " + ((TerrainQuad)masterQuadrant(realTiles.get(l).get(n))).getQuadrant());
                     
+                    /*
                     fullmap[l][crd[0]][crd[1]].tile = realTiles.get(l).get(n);
+                    fullmap[l][crd[0]][crd[1]].tile.lockMesh();
+                    
+                    movSet[l][crd[0]][crd[1]].tile = mobilityTiles.get(l).get(n);
+                    movSet[l][crd[0]][crd[1]].tile.setQueueBucket(RenderQueue.Bucket.Transparent);
+                    movSet[l][crd[0]][crd[1]].tile.lockMesh();
                     
                     Material m2 = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-                    movSet[l][crd[0]][crd[1]].tile = mobilityTiles.get(l).get(n);
-                    movSet[l][crd[0]][crd[1]].tile.setMaterial(m2);
-                    movSet[l][crd[0]][crd[1]].tile.setQueueBucket(RenderQueue.Bucket.Transparent);
-                    
+                    m2.setTexture("ColorMap", assetManager.loadTexture("Textures/tiles/movsquare.png"));
+                    m2.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+                    m2.setColor("Color", new ColorRGBA(1, 1, 1, 0));
+                    movSet[l][crd[0]][crd[1]].initializeGeometry(m2); //, movSet[l].length, movSet[l][x].length
+                    movSet[l][crd[0]][crd[1]].tile.setMaterial(m2.clone());
+                    extraMapStuff.attachChild(movSet[l][crd[0]][crd[1]].getGeometry());
+                    movSet[l][crd[0]][crd[1]].getGeometry().setLocalTranslation(extraMapStuff.worldToLocal(movSet[l][crd[0]][crd[1]].tile.getWorldTranslation(), null));
+                    */
                     n--;
                 }
             }
@@ -132,7 +261,7 @@ public class Map {
     }
     
     private void printCoords(int l) {
-        /*try {
+        try {
                         System.out.println( "(" +
                                   realTiles.get(l).get(n).getWorldTranslation().x + ", " 
                                   + realTiles.get(l).get(n).getWorldTranslation().y
@@ -140,7 +269,7 @@ public class Map {
                                   + "Quadrant: " + ((TerrainQuad)masterQuadrant(realTiles.get(l).get(n))).getQuadrant());
                         
         }
-        catch (NullPointerException j) { System.out.println("null"); }*/ 
+        catch (NullPointerException j) { System.out.println("null"); }
     }
     
     private Node masterQuadrant(TerrainPatch tp) {
