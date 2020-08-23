@@ -8,6 +8,7 @@ package battle.item;
 import battle.skill.Skill;
 import battle.talent.Talent;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -17,6 +18,7 @@ public class Weapon extends Item {
   protected int Pow, Acc, CRIT; //might, hit rate, weight, crit rate
   protected double durability, currentDurability;
   protected boolean[] Range; //if range is 1-2, RNG[0] and RNG[1] return true
+  protected List<Integer> rangeInts = new ArrayList<>();
   protected String[] effect; //things the weapon is effective against
   
   private String wpnType = "", wpnAttribute = "";
@@ -54,6 +56,12 @@ public class Weapon extends Item {
     this.worth = worth;
     currentDurability = durability;
     
+    for (int i = 0; i < Range.length; i++) {
+        if (Range[i]) {
+            rangeInts.add(i);
+        }
+    }
+
     info = 
                 "Pow: " + Pow + '\n'
               + "Acc: " + Acc +  '\n'
@@ -63,7 +71,7 @@ public class Weapon extends Item {
       if (wpnAttribute.length() > 1 && !(wpnAttribute.equals("metal"))) {
           info += "Attribute: " + wpnAttribute + '\n';
       }
-    
+      
     declaration = declarationType.regular;
   }
   
@@ -83,6 +91,12 @@ public class Weapon extends Item {
     this.worth = worth;
     this.wpnTalent = wpnTalent;
     currentDurability = durability;
+    
+    for (int i = 0; i < Range.length; i++) {
+        if (Range[i]) {
+            rangeInts.add(i);
+        }
+    }
     
     info = 
                 "Pow: " + Pow + '\n'
@@ -113,6 +127,12 @@ public class Weapon extends Item {
     this.worth = worth;
     this.wpnSkill = wpnSkill;
     currentDurability = durability;
+    
+    for (int i = 0; i < Range.length; i++) {
+        if (Range[i]) {
+            rangeInts.add(i);
+        }
+    }
     
     info = 
                 "Pow: " + Pow + '\n'
@@ -152,7 +172,12 @@ public class Weapon extends Item {
   public String[] effective() { return effect; }
   public int getPow() { return Pow; }
   public int getAcc() { return Acc; }
+  
+  @Override
   public int getWeight() { return Weight; }
+  
+  public List<Integer> getRangeInts() { return rangeInts; }
+  
   public int getCRIT() { return CRIT; }
   public int getRequiredLevel() { return requiredLevel; }
   public int getWorth() { return worth; }

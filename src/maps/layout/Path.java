@@ -16,10 +16,14 @@ public class Path {
     private final Map map;
     private final int startPosX, startPosY;
     private final int destX, destY, layer;
-    private final int length;
+    //private final int length;
+    
+    private int length;
     
     private List<Tile> path = new ArrayList<>();
     private List<Coords> pathSequence = new ArrayList<>();
+    
+    private boolean succeeded;
     
     public Path(Map map, int startPosX, int startPosY, int destX, int destY, int layer) {
         this.map = map;
@@ -29,26 +33,38 @@ public class Path {
         this.destY = destY;
         this.layer = layer;
         
-        length = Math.abs(destX - startPosX) + Math.abs(destY - startPosY);
+        //length = Math.abs(destX - startPosX) + Math.abs(destY - startPosY);
 
-        boolean success;
-        success = generate(false);
+        succeeded = generate(false);
         
-        if (!success) {
+        if (!succeeded) {
             pathSequence = new ArrayList<>();
-            boolean successflip;
-            successflip = generate(true);
+            succeeded = generate(true);
         }
     }
+    
+    public Path setMaxLength(int len) {
+        length = len;
+        if (path.size() > length) {
+            succeeded = false;
+        }
+        return this;
+    }
+    
+    public boolean wasSuccess() { return succeeded; }
     
     public List<Tile> getPath() {
         return path;
     }
 
     private boolean generate(boolean flip) { //first option; tries to find path based on its current info
+        if (map.fullmap[layer][destX][destY].isOccupied) {
+            return false;
+        }
+        
         boolean success;
         success = pathfind(flip);
-        while (!pathSequence.get(pathSequence.size() - 1).equals(new Coords(destX, destY))/*.size() < length*/) {
+        while (!pathSequence.get(pathSequence.size() - 1).equals(new Coords(destX, destY))) {
             success = pathfind(flip);
         }
         
@@ -82,7 +98,7 @@ public class Path {
         
         Coords tileCoords = new Coords(prevX, prevY);
         
-        if (prevX != destX && !flipPriority) {
+        if (prevX != destX && map.isWithinBounds(tileCoords, layer) && !flipPriority) {
             tileCoords.setX(prevX + xDiff);
             
             if (sequenceHasCoords(tileCoords) || map.fullmap[layer][tileCoords.getX()][tileCoords.getY()].isOccupied) { //reverts the change if it treads previous ground
@@ -95,7 +111,7 @@ public class Path {
             }
             return tileCoords;
         }
-        if (prevY != destY) {
+        if (prevY != destY && map.isWithinBounds(tileCoords, layer)) {
             tileCoords.setY(prevY + yDiff);
             
             if (sequenceHasCoords(tileCoords) || map.fullmap[layer][tileCoords.getX()][tileCoords.getY()].isOccupied) { //reverts the change if it treads previous ground
@@ -120,44 +136,10 @@ public class Path {
         path = new ArrayList<>();
         pathSequence.forEach((coord) -> {
             path.add(map.fullmap[layer][coord.getX()][coord.getY()]);
-            System.out.print(coord.toString());
+            //System.out.print(coord.toString());
         });
-        System.out.println();
+        //System.out.println();
         
-    }
-    
-    private class Coords {
-        private int xcoord, ycoord;
-        
-        public Coords(int x, int y) {
-            xcoord = x;
-            ycoord = y;
-        }
-        
-        public int getX() { return xcoord; }
-        public int getY() { return ycoord; }
-        
-        public void setX(int x) { xcoord = x; }
-        public void setY(int y) { ycoord = y; }
-        
-        public void setCoords(int x, int y) {
-            xcoord = x;
-            ycoord = y;
-        }
-        
-        public void setCoords(Coords otro) {
-            xcoord = otro.getX();
-            ycoord = otro.getY();
-        }
-        
-        public boolean equals(Coords other) {
-            return xcoord == other.xcoord && ycoord == other.ycoord;
-        }
-        
-        @Override
-        public String toString() {
-            return "(" + xcoord + ", " + ycoord + ") ";
-        }
     }
     
 }

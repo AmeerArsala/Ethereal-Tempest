@@ -6,23 +6,15 @@
 package maps.layout;
 
 import battle.ability.Ability;
-import battle.Catalog;
 import battle.formation.Formation;
-import battle.item.Item;
-import battle.JobClass;
 import battle.skill.Skill;
-import battle.talent.Talent;
 import battle.Unit;
 import battle.formula.Formula;
 import battle.item.Weapon;
-import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.FastMath;
-import com.jme3.math.Matrix3f;
 import com.jme3.math.Quaternion;
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
@@ -33,7 +25,6 @@ import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
-import general.GeneralUtils;
 import java.util.List;
 
 /**
@@ -45,9 +36,11 @@ public class TangibleUnit extends Unit {
     //private final int INFANTRY_RESOLVE = 13, CAVALRY_RESOLVE = 11, ARMORED_RESOLVE = 15, MONSTER_RESOLVE = 14, MORPH_RESOLVE = 13, MECHANISM_RESOLVE = 12;
     public int Resolve = 0;
     public int animVar = 0;
-    public boolean hoverSetter = false;
+    public int currentParryCooldown;
     
+    private int saveMaxParryCooldown;
     private int posX, posY, elevation;
+    private int prevX, prevY;
     
     private Skill inUse = null;
     private Formula toUse = null;
@@ -63,14 +56,12 @@ public class TangibleUnit extends Unit {
     private final String[] silence, load;
     public DirFileExplorer[] dfes;
     
+    protected Material defMat;
+    
+    public boolean hoverSetter = false;
     public boolean isSelected = false;
-    Material defMat;
-    
-    public boolean parryDecider = true;
-    public int currentParryCooldown;
-    private int saveMaxParryCooldown;
-    
     public boolean hasStashAccess = false;
+    public boolean parryDecider = true;
     
     private static int IDgen = 0;
     
@@ -88,6 +79,8 @@ public class TangibleUnit extends Unit {
                 state = st;
                 accumulatedMovTime = 0;
                 movLength = -1;
+                prevX = posX;
+                prevY = posY;
             } //you can forceState() to forcefully change it
         }
         
@@ -195,7 +188,7 @@ public class TangibleUnit extends Unit {
         posY = y;
         elevation = layer;
         
-        geo.setLocalTranslation(map.fullmap[layer][x][y].tile.getWorldTranslation());
+        geo.setLocalTranslation(map.fullmap[layer][x][y].getGeometry().getWorldTranslation());
         //geo.setLocalTranslation(geo.getLocalTranslation().x - 4f, map.fullmap[layer][x][y].tile.getWorldTranslation().y + 209f, geo.getLocalTranslation().z - 1f);
         geo.setLocalTranslation(geo.getLocalTranslation().x - 4, map.fullmap[layer][x][y].getHighestPointHeight() + 1, geo.getLocalTranslation().z - 1);
     }
@@ -203,8 +196,8 @@ public class TangibleUnit extends Unit {
     private void rewritePos(Map map, int layer) {
         for (int x = 0; x < map.fullmap[layer].length; x++) {
             for (int y = 0; y < map.fullmap[layer][x].length; y++) {
-                float difX = FastMath.abs(map.fullmap[layer][x][y].tile.getWorldTranslation().z - geo.getWorldTranslation().z), 
-                      difY = FastMath.abs(map.fullmap[layer][x][y].tile.getWorldTranslation().x - geo.getWorldTranslation().x);
+                float difX = FastMath.abs(map.fullmap[layer][x][y].getWorldTranslation().z - geo.getWorldTranslation().z), 
+                      difY = FastMath.abs(map.fullmap[layer][x][y].getWorldTranslation().x - geo.getWorldTranslation().x);
                 if (difX == 0 && difY == 0) {
                     posX = x;
                     posY = y;
@@ -504,6 +497,10 @@ public class TangibleUnit extends Unit {
             return toUse.getStatus() ? (toUse.getCRIT() + (getDEX() / 2) + ClassBattleBonus()[2]) : 0;
         }
         return getCrit();
+    }
+    
+    public int getSpecifiedMobility() { //CHANGE THIS SO IT RESTRICTS MOVEMENT
+        return getMOBILITY();
     }
     
     @Override
