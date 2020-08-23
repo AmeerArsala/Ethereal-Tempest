@@ -983,7 +983,7 @@ public class StatScreen extends Node {
                 ((TbtQuadBackgroundComponent)master.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
                 master.addChild(skillName);
                 
-                block1.add(new Cosa(master, tu.getSkills().get(i).getPath(), tu.getSkills().get(i).getDescription()));
+                block1.add(new Cosa(master, tu.getSkills().get(i).getPath(), tu.getSkills().get(i).getEffect().effectDescription()));
                 
                 master.setInsets(new Insets3f(11.5f, 10, 0, 10));
                 

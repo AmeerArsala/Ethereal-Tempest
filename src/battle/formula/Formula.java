@@ -102,7 +102,7 @@ public class Formula extends Weapon {
         
     @Override
     public String getDescription() {
-        return desc;
+        return getStatDescription() + desc;
     }
         
     @Override
@@ -112,9 +112,9 @@ public class Formula extends Weapon {
             + "Acc: " + Acc +  '\n'
             + "Crit: " + CRIT + '\n';
         if (tpUsage > 0) {
-            st += "TP Used: " + tpUsage;
+            st += "TP Used: " + tpUsage + '\n';
         } else if (hpUsage > 0) {
-            st += "HP Used: " + hpUsage;
+            st += "HP Used: " + hpUsage + '\n';
         }
         
         return st;

@@ -576,7 +576,7 @@ public class ActionMenu extends Container {
         if (name.equals("move right")) {
             moveX(1);
         }
-        if (name.equals("select")) {
+        if (name.equals("select") && getSelectedOption().isAvailable) {
             switch (getSelectedOption().name) {
                 case "attack":
                     conv.getUnit().setStateIfAllowed(new FsmState(EntityState.SelectingTarget));
@@ -594,17 +594,7 @@ public class ActionMenu extends Container {
                     getParent().detachChild(this);
                     break;
                 default:
-                    for (int x = -1; x <= 1; x++) { //with it
-                        for (int y = -2; y <= 2; y++) {
-                            if (x != currentX || y != currentY) {
-                                try {
-                                    getOptionByCoordinates(x, y).beginDisappearance();
-                                }
-                                catch (NullPointerException e) {}
-                            }
-                        }
-                    }
-                    getSelectedOption().selectOption();
+                    fadeAll();
                     break;
             }
             
@@ -617,6 +607,20 @@ public class ActionMenu extends Container {
         }
         
         return returnable;
+    }
+    
+    private void fadeAll() {
+        for (int x = -1; x <= 1; x++) { //with it
+            for (int y = -2; y <= 2; y++) {
+                if (x != currentX || y != currentY) {
+                    try {
+                        getOptionByCoordinates(x, y).beginDisappearance();
+                    }
+                    catch (NullPointerException e) {}
+                }
+            }
+        }
+        getSelectedOption().selectOption();
     }
     
     public void resetPos() {
@@ -1091,7 +1095,7 @@ public class ActionMenu extends Container {
                 textContainer.setBackground(new QuadBackgroundComponent(am.loadTexture("Interface/GUI/general_ui/default.png")));
                 ((QuadBackgroundComponent)textContainer.getBackground()).setColor(new ColorRGBA(1, 1, 1, 1));
                 
-                infoText = new EditedTextField(tu.getFormulas().get(currentIndex).getStatDescription());
+                infoText = new EditedTextField(tu.getSkills().get(currentIndex).getEffect().effectDescription());
                 infoText.setSingleLine(false);
                 textContainer.setPreferredSize(new Vector3f(70, 100, textContainer.getPreferredSize().z));
                 infoText.setPreferredWidth(65f);
