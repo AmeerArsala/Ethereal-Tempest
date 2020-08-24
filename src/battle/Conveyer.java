@@ -24,6 +24,9 @@ public class Conveyer {
         private AssetManager assetmanager;
         private List<Runnable> tasks = new ArrayList<>();
         private Cursor cursor;
+        private int turnNumber;
+        
+        public Conveyer() {}
         
         public Conveyer(TangibleUnit unit) {
             user = unit;
@@ -55,6 +58,15 @@ public class Conveyer {
         
         public Cursor getCursor() {
             return cursor;
+        }
+        
+        public int getCurrentTurn() {
+            return turnNumber;
+        }
+        
+        public Conveyer setUnit(TangibleUnit playerUnit) {
+            user = playerUnit;
+            return this;
         }
         
         public Conveyer setEnemyUnit(TangibleUnit enemyUnit) {
@@ -89,6 +101,11 @@ public class Conveyer {
         
         public Conveyer setCursor(Cursor C) {
             cursor = C;
+            return this;
+        }
+        
+        public Conveyer setCurrentTurn(int current) {
+            turnNumber = current;
             return this;
         }
 }

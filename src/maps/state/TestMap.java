@@ -159,6 +159,7 @@ public class TestMap extends AbstractAppState {
         
         //load glass style
         BaseStyles.loadGlassStyle();
+        
         //default style is glass for now
         GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
