@@ -21,10 +21,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
-import com.jme3.export.JmeExporter;
-import com.jme3.export.JmeImporter;
 import com.jme3.export.Savable;
-import com.jme3.font.BitmapFont;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
@@ -34,24 +31,15 @@ import com.jme3.light.Light;
 
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
-import static com.jme3.material.RenderState.BlendMode.Color;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
-import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Quad;
-import com.jme3.post.SceneProcessor;
-import com.jme3.profile.AppProfiler;
-import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
-import com.jme3.scene.control.LodControl;
 
 import com.jme3.terrain.geomipmap.TerrainLodControl;
 import com.jme3.terrain.geomipmap.TerrainQuad;
@@ -59,14 +47,8 @@ import com.jme3.terrain.heightmap.AbstractHeightMap;
 import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 
-import com.jme3.terrain.Terrain;
-import com.jme3.texture.FrameBuffer;
-import com.simsilica.lemur.Axis;
-
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
-import edited.FlyCamera;
-import edited.state.FlyCamTrueAppState;
 
 import general.ActionMenu;
 import general.MenuState;
@@ -77,14 +59,14 @@ import java.util.concurrent.CompletableFuture;
 import jme3tools.optimize.LodGenerator;
 
 import jme3tools.savegame.SaveGame;
+import com.jme3.export.JmeExporter;
+import com.jme3.export.JmeImporter;
+
 import maps.layout.Cursor;
 import maps.layout.Map;
 import maps.layout.MoveState;
 import maps.layout.StatScreen;
 import maps.layout.TangibleUnit;
-import maps.layout.Tile;
-import misc.DirFileExplorer;
-import misc.Loader;
 import misc.ViewPortAnimation;
 import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
@@ -110,15 +92,13 @@ public class TestMap extends AbstractAppState {
     private ViewPort screenView;
     
     private FlyByCamera flCam;
-    private TerrainQuad terrain;
-    private TerrainQuad mob, atkrange, mapscene;
+    private TerrainQuad terrain; //remove later
+    //private TerrainQuad mob, atkrange, mapscene;
     private Map map00;
     private ArrayList<TangibleUnit> units = new ArrayList<>();
     private Node battleScene;
-
-    private float tileOpacity = 0;
     
-    Material mat_terrain;
+    private Material mat_terrain;
     
     protected Cursor pCursor;
     protected ActionMenu postAction;
@@ -136,10 +116,8 @@ public class TestMap extends AbstractAppState {
             if (st.getEnum() == EntityState.PostActionMenuOpened && postAction.getState().getEnum() == EntityState.GuiClosed) {
                 localGuiNode.setLocalTranslation(10, 760, 0);
                 localGuiNode.attachChild(postAction);
-                postAction.resetPos();
                 
-                //postAction.getMenuNode().move(50, 100, 10);
-                //postAction.setLocalTranslation((pCursor.selectedUnit.getPosX() / ((float)map00.getTilesX())) * cam.getWidth(), FastMath.pow((pCursor.selectedUnit.getPosY() / ((float)map00.getTilesY())) * cam.getHeight(), -1), postAction.getNode().getLocalTranslation().z);
+                postAction.resetPos();
                 postAction.setLocalTranslation((cam.getWidth() / 8) + 600, -150, postAction.getNode().getLocalTranslation().z);
                 postAction.setStateIfAllowed(
                         new MenuState(st.getEnum()).setConveyer(
@@ -150,13 +128,7 @@ public class TestMap extends AbstractAppState {
                                         .setAssetManager(assetManager)
                         )
                 );
-                /*postAction.initializeTier1Submenus(
-                    new Conveyer(pCursor.selectedUnit)
-                            .setMap(map00)
-                            .setAllUnits(units)
-                            .setCursor(pCursor)
-                            .setAssetManager(assetManager)
-                );*/
+                
                 state = new MasterFsmState().setAssetManager(assetManager);
             } 
         }
@@ -187,6 +159,7 @@ public class TestMap extends AbstractAppState {
         
         //load glass style
         BaseStyles.loadGlassStyle();
+        
         //default style is glass for now
         GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
@@ -294,14 +267,13 @@ public class TestMap extends AbstractAppState {
         rootNode.attachChild(localRootNode);
         guiNode.attachChild(localGuiNode);
         guiNode.setLocalScale(cam.getWidth() / 1366f, cam.getHeight() / 768f, 1);
-            
-        Node S = (Node)assetManager.loadModel("Scenes/testscene.j3o");
         
         Catalog.initializeCatalogImages(assetManager);
         
+        /*Node S = (Node)assetManager.loadModel("Scenes/testscene.j3o");
         mob = (TerrainQuad)(S.getChild("movement"));
         mapscene = (TerrainQuad)(S.getChild("map"));
-        //localRootNode.attachChild(S);
+        localRootNode.attachChild(S);*/
         
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
@@ -313,8 +285,8 @@ public class TestMap extends AbstractAppState {
     }   
     
     public void initMap() {
-        TerrainQuad[] mobilitysquares = {mob};
-        TerrainQuad[] mapsquares = {mapscene};
+        //TerrainQuad[] mobilitysquares = {mob};
+        //TerrainQuad[] mapsquares = {mapscene};
         //map00 = new Map(16, 16, 1, assetManager, mapsquares, mobilitysquares, "terrain-testscene");
         map00 = new Map("test map", 16, 16, 1, assetManager);
         localRootNode.attachChild(map00.getMiscNode());
