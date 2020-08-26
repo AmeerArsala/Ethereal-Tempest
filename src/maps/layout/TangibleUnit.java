@@ -5,14 +5,18 @@
  */
 package maps.layout;
 
+import battle.Combatant;
+import battle.Combatant.BattleStat;
 import battle.ability.Ability;
 import battle.formation.Formation;
 import battle.skill.Skill;
 import battle.Unit;
 import battle.formula.Formula;
 import battle.item.Weapon;
+import com.google.gson.annotations.SerializedName;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.renderer.queue.RenderQueue;
@@ -25,6 +29,7 @@ import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -47,6 +52,68 @@ public class TangibleUnit extends Unit {
     private Formula toUse = null;
     
     public String ustatus = "Healthy";
+    
+    public UnitStatus unitStatus;
+    
+    public enum UnitStatus {
+        @SerializedName("Player") Player(0),
+        @SerializedName("Ally") Ally(-1),
+        @SerializedName("Enemy") Enemy(1),
+        @SerializedName("ThirdParty") ThirdParty(2),
+        @SerializedName("FourthParty") FourthParty(3),
+        @SerializedName("FifthParty") FifthParty(4);
+        
+        private final int value;
+        
+        private static HashMap map = new HashMap<>();
+        private UnitStatus(int val) {
+            value = val;
+        }
+        
+        static {
+            for (UnitStatus stat : UnitStatus.values()) {
+                map.put(stat.value, stat);
+            }
+        }
+
+        public static UnitStatus valueOf(int stat) {
+            return (UnitStatus) map.get(stat);
+        }
+
+        public int getValue() {
+            return value;
+        }
+        
+        public ColorRGBA getAssociatedColor() {
+            ColorRGBA barColor;
+        
+            switch (value) {
+                case 0: //blue (Player)
+                    barColor = new ColorRGBA(0.012f, 0.58f, 0.988f, 1f);
+                    break;
+                case 1: //red (Enemy)
+                    barColor = new ColorRGBA(0.839f, 0, 0, 1f);
+                    break;
+                case -1: //yellow (Ally)
+                    barColor = new ColorRGBA(1f, 0.851f, 0, 1f);
+                    break;
+                case 2: //green (ThirdParty)
+                    barColor = new ColorRGBA(0, 1f, 0, 1f);
+                    break;
+                case 3: //purple (FourthParty)
+                    barColor = new ColorRGBA(0.784f, 0, 1f, 1f);
+                    break;
+                case 4: //white (FifthParty)
+                    barColor = ColorRGBA.White;
+                    break;
+                default:
+                    barColor = new ColorRGBA(0.012f, 0.58f, 0.988f, 1f); //blue
+                    break;
+            }
+        
+            return barColor;
+        }
+    }
     
     private Quad q = new Quad(20f, 20f);
     private Geometry geo = new Geometry("Quad", q);
@@ -488,14 +555,14 @@ public class TangibleUnit extends Unit {
     
     public int getSpecifiedAccuracy() {
         if (toUse != null) {
-            return toUse.getStatus() ? (toUse.getAcc() + (((getDEX() * 4) + getCOMP()) / 2) + ClassBattleBonus()[0]) : 0;
+            return toUse.getStatus() ? (toUse.getAcc() + (((getDEX() * 4) + getCOMP()) / 2) + ClassBattleBonus().get(BattleStat.Accuracy)) : 0;
         }
         return getAccuracy(); 
     } //add commander bonus
     
     public int getSpecifiedCrit() {
         if (toUse != null) {
-            return toUse.getStatus() ? (toUse.getCRIT() + (getDEX() / 2) + ClassBattleBonus()[2]) : 0;
+            return toUse.getStatus() ? (toUse.getCRIT() + (getDEX() / 2) + ClassBattleBonus().get(BattleStat.Crit)) : 0;
         }
         return getCrit();
     }

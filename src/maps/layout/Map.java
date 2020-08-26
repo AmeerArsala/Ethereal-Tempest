@@ -59,7 +59,7 @@ public class Map {
         generateTiles(assetManager);
     }
     
-    public Map(int tilesX, int tilesY, int layers, AssetManager assetManager, TerrainQuad[] mapscene, TerrainQuad[] mov, String terrainName) {
+    /*public Map(int tilesX, int tilesY, int layers, AssetManager assetManager, TerrainQuad[] mapscene, TerrainQuad[] mov, String terrainName) {
         this.tilesX = tilesX;
         this.tilesY = tilesY;
         this.layers = layers;
@@ -107,7 +107,7 @@ public class Map {
         }
         
         createTiles(assetManager);
-    }
+    }*/
     
     public int getTilesX() { return tilesX; }
     public int getTilesY() { return tilesY; }
@@ -204,7 +204,7 @@ public class Map {
         }
     }
     
-    private void createTiles(AssetManager assetManager) {
+    /*private void createTiles(AssetManager assetManager) {
         int[] bonuses = {0}; //TODO: change this later
         fullmap = new Tile[layers][tilesX][tilesY];
         movSet = fullmap;
@@ -243,7 +243,7 @@ public class Map {
                     movSet[l][crd[0]][crd[1]].tile.setMaterial(m2.clone());
                     extraMapStuff.attachChild(movSet[l][crd[0]][crd[1]].getGeometry());
                     movSet[l][crd[0]][crd[1]].getGeometry().setLocalTranslation(extraMapStuff.worldToLocal(movSet[l][crd[0]][crd[1]].tile.getWorldTranslation(), null));
-                    */
+                    
                     n--;
                 }
             }
@@ -256,9 +256,9 @@ public class Map {
                     catch (NullPointerException exc) { System.out.println("layer = " + l + ", (" + x + ", " + y + "): null"); }
                 }
             }
-        }*/
+        }
         
-    }
+    }*/
     
     private void printCoords(int l) {
         try {

@@ -10,7 +10,6 @@ import battle.Combatant.BaseStat;
 import battle.DamageNumber.VisibilityState;
 import battle.StatArrowGroup.ArrowStat;
 import battle.Toll.Exchange;
-import battle.Unit.statName;
 import battle.skill.Skill;
 import com.atr.jme.font.TrueTypeBMP;
 import com.atr.jme.font.TrueTypeFont;
@@ -1137,7 +1136,7 @@ class ShownCombatant {
     private Container lvlUpPanel = null;
     private StatArrowGroup lvlArrowsColumn1, lvlArrowsColumn2;
     private EditedLabel column1, column2;
-    private int[] leveledStats;
+    private HashMap<BaseStat, Integer> leveledStats;
     
     private Progress prog = Progress.Fresh;
     private String combatMode;
@@ -1434,7 +1433,7 @@ class ShownCombatant {
     
     public void generateLevelUpScreen(TangibleUnit character) {
         leveledStats = character.rollLevelUp();
-        character.setStats(statName.level, character.getLVL() + 1);
+        character.setStat(BaseStat.level, character.getLVL() + 1);
         
         lvlUpPanel = new Container();
         lvlUpPanel.setBackground(new QuadBackgroundComponent(asm.loadTexture("Interface/GUI/levelup_panel/bg.jpg"))); //panel background
@@ -1534,7 +1533,7 @@ class ShownCombatant {
         TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, 45);
         TrueTypeFont ttf = (TrueTypeBMP)asm.loadAsset(bmp);
         column1 = new EditedLabel(
-                  " MAX HP: " + character.getHP()[1] + "\n"
+                  " MAX HP: " + character.getMaxHP() + "\n"
                 + "        STR: " + character.getSTR() + "\n"
                 + "   ETHER: " + character.getETHER() + "\n"
                 + "        AGI: " + character.getAGI() + "\n"
@@ -1554,12 +1553,12 @@ class ShownCombatant {
         TrueTypeKeyBMP bmp2 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular2.ttf", Style.Plain, 45);
         TrueTypeFont ttf2 = (TrueTypeBMP)asm.loadAsset(bmp2);
         column2 = new EditedLabel(
-                  "     MAX TP: " + character.getTP()[1] + "\n"
+                  "     MAX TP: " + character.getMaxTP() + "\n"
                 + "            DEF: " + character.getDEF() + "\n"
                 + "            RSL: " + character.getRSL() + "\n"
                 + " MOBILITY: " + character.getMOBILITY() + "\n"
                 + "PHYSIQUE: " + character.getPHYSIQUE() + "\n"
-                + "INIT. ADR.: " + character.getCHARISMA(), //initial adrenaline
+                + "INIT. ADR.: " + character.getADRENALINE(), //initial adrenaline
                 ttf2, ColorRGBA.Black
         );
         column2.text.getTTFNode().scale(0.6f);
@@ -1580,19 +1579,16 @@ class ShownCombatant {
         contents.addChild(allStats);
         lvlUpPanel.setPreferredSize(lvlBounds);
         
-        lvlArrowsColumn1.inputGrowth(leveledStats[statName.maxHP.getValue()], ArrowStat.MAXHP);
-        lvlArrowsColumn1.inputGrowth(leveledStats[statName.strength.getValue()], ArrowStat.STR);
-        lvlArrowsColumn1.inputGrowth(leveledStats[statName.ether.getValue()], ArrowStat.ETHER);
-        lvlArrowsColumn1.inputGrowth(leveledStats[statName.agility.getValue()], ArrowStat.AGI);
-        lvlArrowsColumn1.inputGrowth(leveledStats[statName.comprehension.getValue()], ArrowStat.COMP);
-        lvlArrowsColumn1.inputGrowth(leveledStats[statName.dexterity.getValue()], ArrowStat.DEX);
+        List<ArrowStat> col1stats = Arrays.asList(ArrowStat.MAXHP, ArrowStat.STR, ArrowStat.ETHER, ArrowStat.AGI, ArrowStat.COMP, ArrowStat.DEX);
+        List<ArrowStat> col2stats = Arrays.asList(ArrowStat.MAXTP, ArrowStat.DEF, ArrowStat.RSL, ArrowStat.MOBILITY, ArrowStat.PHYSIQUE, ArrowStat.BaseADRENALINE);
         
-        lvlArrowsColumn2.inputGrowth(((Unit)character).simulateTP(leveledStats[statName.maxHP.getValue()], leveledStats[statName.ether.getValue()], leveledStats[statName.resilience.getValue()]) - character.getTP()[1], ArrowStat.MAXTP);
-        lvlArrowsColumn2.inputGrowth(leveledStats[statName.defense.getValue()], ArrowStat.DEF);
-        lvlArrowsColumn2.inputGrowth(leveledStats[statName.resilience.getValue()], ArrowStat.RSL);
-        lvlArrowsColumn2.inputGrowth(leveledStats[statName.mobility.getValue()], ArrowStat.MOBILITY);
-        lvlArrowsColumn2.inputGrowth(leveledStats[statName.physique.getValue()], ArrowStat.PHYSIQUE);
-        lvlArrowsColumn2.inputGrowth(leveledStats[statName.charisma.getValue()], ArrowStat.BaseADRENALINE);
+        col1stats.forEach((arrowStat) -> {
+            lvlArrowsColumn1.inputGrowth(leveledStats.get(arrowStat.getMatching()), arrowStat);
+        });
+        
+        col2stats.forEach((arrowStat) -> {
+            lvlArrowsColumn2.inputGrowth(leveledStats.get(arrowStat.getMatching()), arrowStat);
+        });
         
         character.levelUp(leveledStats);
     }
@@ -1629,7 +1625,7 @@ class ShownCombatant {
         return lvlUpPanel;
     }
     
-    public int[] getLeveledStats() {
+    public HashMap<BaseStat, Integer> getLeveledStats() {
         return leveledStats;
     }
     

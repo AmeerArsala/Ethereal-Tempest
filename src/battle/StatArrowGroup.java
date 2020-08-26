@@ -5,6 +5,7 @@
  */
 package battle;
 
+import battle.Combatant.BaseStat;
 import com.atr.jme.font.shape.TrueTypeNode;
 import com.jme3.asset.AssetManager;
 import com.jme3.font.BitmapFont;
@@ -35,28 +36,42 @@ public class StatArrowGroup extends Node {
     
     enum ArrowStat {
         //column 1
-        MAXHP(0),
-        STR(1),
-        ETHER(2),
-        AGI(3),
-        COMP(4),
-        DEX(5),
+        MAXHP(0, 'a'),
+        STR(1, 'b'),
+        ETHER(2, 'c'),
+        AGI(3, 'd'),
+        COMP(4, 'e'),
+        DEX(5, 'f'),
         
         //column 2
-        MAXTP(0),
-        DEF(1),
-        RSL(2),
-        MOBILITY(3),
-        PHYSIQUE(4),
-        BaseADRENALINE(5);
+        MAXTP(0, 'g'),
+        DEF(1, 'h'),
+        RSL(2, 'i'),
+        MOBILITY(3, 'j'),
+        PHYSIQUE(4, 'k'),
+        BaseADRENALINE(5, 'l');
         
         private final int value;
-        private ArrowStat(int val) {
+        private final char id;
+        private ArrowStat(int val, char identifier) {
             value = val;
+            id = identifier;
         }
         
         public int getValue() {
             return value;
+        }
+        
+        public char getID() { return id; }
+        
+        public BaseStat getMatching() {
+            for (BaseStat based : Unit.baseStats) {
+                if (id == based.getID()) {
+                    return based;
+                }
+            }
+            
+            return null;
         }
     }
     

@@ -53,6 +53,7 @@ import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import fundamental.StatBundle;
 import general.visual.RadialProgressBar;
 
 /**
@@ -646,7 +647,7 @@ public class StatScreen extends Node {
                 + "ACC: " + tu.getAccuracy() + "\n"
                 + "EVA: " + tu.getAvoid() + "\n"
                 + "CRIT: " + tu.getCrit() + "\n"
-                + "ADRENALINE: " + tu.getCHARISMA(), qrbmpfont3);
+                + "ADRENALINE: " + tu.getADRENALINE(), qrbmpfont3);
         bstats.addChild(battleStats);
         battleStats.text.getTTFNode().move(15f, -29.5f, 0f);
        
@@ -724,11 +725,11 @@ public class StatScreen extends Node {
                 hpBar = new CustomProgressBar(barsfont), //new ElementId("HP")
                 tpBar = new CustomProgressBar(barsfont); //new ElementId("TP")
         
-                hpBar.setMessage("HP: " + tu.getHP()[0] + "/" + tu.getHP()[1], ColorRGBA.Black);
-                hpBar.setProgressPercent(((double)tu.getHP()[0] / tu.getHP()[1]));
+                hpBar.setMessage("HP: " + tu.currentHP + "/" + tu.getMaxHP(), ColorRGBA.Black);
+                hpBar.setProgressPercent(((double)tu.currentHP / tu.getMaxHP()));
                 
-                tpBar.setMessage("TP: " + tu.getTP()[0] + "/" + tu.getTP()[1], ColorRGBA.Black);
-                tpBar.setProgressPercent(((double)tu.getTP()[0] / tu.getTP()[1]));
+                tpBar.setMessage("TP: " + tu.currentTP + "/" + tu.getMaxTP(), ColorRGBA.Black);
+                tpBar.setProgressPercent(((double)tu.currentTP / tu.getMaxTP()));
                 
                 hpBar.setBarColor(new ColorRGBA(0, 0.76f, 0, 1));
                 tpBar.setBarColor(new ColorRGBA(0.85f, 0.36f, 0.83f, 1f));
@@ -1173,15 +1174,17 @@ public class StatScreen extends Node {
             TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Montaga-Regular.ttf", Style.Plain, (35 + i));
             TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
             ttf.setScale(26.5f / (35f + i));
-            TrueTypeNode ttn = ttf.getText("" + tu.getRawBaseStats()[i + 1], 2, ColorRGBA.White);
+            
+            StatBundle sb = tu.getRawBaseStats().get(i + 1);
+            
+            TrueTypeNode ttn = ttf.getText("" + sb.getValue(), 2, ColorRGBA.White);
             ttn.move(-8.5f, 15f, 0);
-            if (tu.getRawBaseStats()[i + 1] >= 10) {
+            if (sb.getValue() >= 10) {
                 ttn.move(-6f, 0, 0);
             }
             statProgress[i].move(strWidth + 30f, i * (-1.168f * strHeight) - 12f, 0);
             statProgress[i].getChildrenNode().attachChild(ttn);
-            statProgress[i].setCirclePercent(tu.getRawBaseStats()[i + 1] / ((float)tu.reorderStatsToFitGUI(tu.ClassMaxStats())[i + 1]));
-            
+            statProgress[i].setCirclePercent(sb.getValue() / ((float)tu.ClassMaxStats().get(sb.getWhichBaseStat())));
             
             ttfnode.attachChild(statProgress[i]);
             

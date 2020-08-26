@@ -9,7 +9,6 @@ import battle.Battle;
 import battle.Battle.BattleState;
 import battle.Catalog;
 import battle.Conveyer;
-import battle.Unit.UnitStatus;
 
 import com.atr.jme.font.asset.TrueTypeLoader;
 
@@ -67,6 +66,7 @@ import maps.layout.Map;
 import maps.layout.MoveState;
 import maps.layout.StatScreen;
 import maps.layout.TangibleUnit;
+import maps.layout.TangibleUnit.UnitStatus;
 import misc.ViewPortAnimation;
 import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
@@ -486,7 +486,7 @@ public class TestMap extends AbstractAppState {
                     break;
                 case PostBattle:
                     //modify later
-                    if (pCursor.selectedUnit.currentHP <= 0) {
+                    if (pCursor.selectedUnit.currentHP <= 0 && pCursor.selectedUnit.getFSM().getState().getEnum() != EntityState.Dead) {
                         localRootNode.detachChild(pCursor.selectedUnit.getGeometry());
                         map00.fullmap[pCursor.getElevation()][pCursor.selectedUnit.getPosX()][pCursor.selectedUnit.getPosY()].resetOccupier();
                         pCursor.selectedUnit.getFSM().forceState(new FsmState(EntityState.Dead));
