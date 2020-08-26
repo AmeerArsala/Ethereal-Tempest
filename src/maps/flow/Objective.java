@@ -6,12 +6,13 @@
 package maps.flow;
 
 import battle.Conveyer;
-import battle.parse.AttackConfig;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import maps.layout.TangibleUnit;
 
 /**
  *
@@ -63,9 +64,13 @@ public class Objective {
         return turnLimit - currentTurn + 1;
     }
     
-    public boolean isMet(Conveyer conv) { //TODO: TAKE INTO ACCOUNT THE OBJECTIVEDATA AND MAKE A DECISION ABOUT IT
-        return false;
+    /*public boolean isMet(Conveyer conv) { //TODO: TAKE INTO ACCOUNT THE OBJECTIVEDATA AND MAKE A DECISION ABOUT IT
+        ArrayList<TangibleUnit> allUnits = conv.getAllUnits();
     }
+    
+    public boolean hasFailed(Conveyer conv) {
+    
+    }*/
     
     public static ObjectiveData Marry(ObjectiveData first, ObjectiveData other) {
         return first.marry(other);

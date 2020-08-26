@@ -5,6 +5,7 @@
  */
 package battle;
 
+import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;
 import battle.item.Item;
 import battle.item.ConsumableItem;
@@ -36,19 +37,62 @@ import maps.layout.Tile;
 import misc.CustomAnimationSegment;
 import misc.FrameDelay;
 import etherealtempest.MasterFsmState;
+import fundamental.StatBundle;
+import java.util.HashMap;
 /**
  *
  * @author night
  */
 public class Catalog {
+    //referring to weapons
     public static final int[] noStatBonuses = {0, 0, 0, 0, 0, 0, 0};
     public static final int[] noBattleBonus = {0, 0, 0, 0, 0, 0, 0, 0};
     public static final String[] effAgainstNothing = {"None"};
-                            //    {maxhp, str, ether, agi, dex, comp, def, rsl, mobility, physique, charisma} 
-    public static final int[] baseCav = {0, 1, 0, 1, 1, 0, 3, 0, 3, 10, 0};
-    public static final int[] tier0Bonuses = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    public static final String[] infantry = {"infantry"};
-    public static final String[] pureCav = {"cavalry"};
+    
+    public static List<StatBundle> baseCav() {
+        return Arrays.asList(
+                new StatBundle(BaseStat.maxHP, 0),
+                new StatBundle(BaseStat.maxTP, 0),
+                new StatBundle(BaseStat.strength, 1),
+                new StatBundle(BaseStat.ether, 0),
+                new StatBundle(BaseStat.agility, 1),
+                new StatBundle(BaseStat.dexterity, 1),
+                new StatBundle(BaseStat.comprehension, 0),
+                new StatBundle(BaseStat.defense, 3),
+                new StatBundle(BaseStat.resilience, 0),
+                new StatBundle(BaseStat.mobility, 3),
+                new StatBundle(BaseStat.physique, 10),
+                new StatBundle(BaseStat.adrenaline, 0)
+        );
+    }
+    
+    public static List<StatBundle> tier0Bonuses() {
+        return Arrays.asList(
+                new StatBundle(BaseStat.maxHP, 0),
+                new StatBundle(BaseStat.maxTP, 0),
+                new StatBundle(BaseStat.strength, 0),
+                new StatBundle(BaseStat.ether, 0),
+                new StatBundle(BaseStat.agility, 0),
+                new StatBundle(BaseStat.dexterity, 0),
+                new StatBundle(BaseStat.comprehension, 0),
+                new StatBundle(BaseStat.defense, 0),
+                new StatBundle(BaseStat.resilience, 0),
+                new StatBundle(BaseStat.mobility, 0),
+                new StatBundle(BaseStat.physique, 0),
+                new StatBundle(BaseStat.adrenaline, 0)
+        );
+    }
+    
+    public static List<StatBundle> noBattleBonus() {
+        return Arrays.asList(
+                new StatBundle(BattleStat.Accuracy, 0),
+                new StatBundle(BattleStat.AttackPower, 0),
+                new StatBundle(BattleStat.AttackSpeed, 0),
+                new StatBundle(BattleStat.Crit, 0),
+                new StatBundle(BattleStat.CritEvasion, 0),
+                new StatBundle(BattleStat.Evasion, 0)
+        );
+    }
     
     public static List<Item> emptyInventory() { return Arrays.asList(new Item(false), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false)); } //7 items max
     public static List<Talent> emptyTalents() { return Arrays.asList(new Talent(false), new Talent(false), new Talent(false), new Talent(false), new Talent(false), new Talent(false)); } //6 Talents max
@@ -115,11 +159,75 @@ public class Catalog {
     //WHEN TALKING ABOUT WEAPON STAT BONUSES IT IS ALWAYS { STR, ETHER, AGI, DEX, COMP, DEF, RSL }
     
     public static final JobClass[] ClassCatalog = 
-    {   //  JobClass(String jobname, int[] bonusStats, String[] mobilitytype, boolean[] wieldableWeapons, int[] battleBonus, int tier, int[] maxStats)
-        new JobClass("Cowboy", baseCav, pureCav, rangeCreator(new int[]{3, 5}), noBattleBonus, 1, new int[]{32, 20, 14, 16, 15, 14, 15, 12, 10, 20, 30}),
-        new JobClass("Knight", baseCav, pureCav, rangeCreator(new int[]{0, 2}), noBattleBonus, 1, new int[]{33, 22, 15, 14, 13, 11, 18, 12, 10, 20, 30}),
-        new JobClass("Marauder", tier0Bonuses, infantry, rangeCreator(new int[]{1}), noBattleBonus, 0, new int[]{35, 28, 10, 13, 11, 9, 13, 7, 10, 15, 20}),
-        new JobClass("Freeblade", tier0Bonuses, infantry, rangeCreator(new int[]{0}), noBattleBonus, 0, new int[]{31, 20, 17, 17, 17, 19, 17, 15, 10, 15, 40})
+    {   //  JobClass(String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, List<StatBundle> bonusStats, List<StatBundle> battleBonus, List<StatBundle> maxStats, int tier)
+        new JobClass("Cowboy", Arrays.asList("cavalry"), Arrays.asList("whip", "knife"), baseCav(), noBattleBonus(),
+                Arrays.asList( //max stats
+                    new StatBundle(BaseStat.maxHP, 32),
+                    new StatBundle(BaseStat.maxTP, 50),
+                    new StatBundle(BaseStat.strength, 20),
+                    new StatBundle(BaseStat.ether, 14),
+                    new StatBundle(BaseStat.agility, 16),
+                    new StatBundle(BaseStat.dexterity, 15),
+                    new StatBundle(BaseStat.comprehension, 14),
+                    new StatBundle(BaseStat.defense, 15),
+                    new StatBundle(BaseStat.resilience, 12),
+                    new StatBundle(BaseStat.mobility, 10),
+                    new StatBundle(BaseStat.physique, 20),
+                    new StatBundle(BaseStat.adrenaline, 30)
+                ), 
+                1 //tier
+        ),
+        new JobClass("Knight", Arrays.asList("cavalry"), Arrays.asList("sword", "polearm"), baseCav(), noBattleBonus(), 
+                Arrays.asList( //max stats
+                    new StatBundle(BaseStat.maxHP, 33),
+                    new StatBundle(BaseStat.maxTP, 60),
+                    new StatBundle(BaseStat.strength, 22),
+                    new StatBundle(BaseStat.ether, 15),
+                    new StatBundle(BaseStat.agility, 14),
+                    new StatBundle(BaseStat.dexterity, 13),
+                    new StatBundle(BaseStat.comprehension, 11),
+                    new StatBundle(BaseStat.defense, 18),
+                    new StatBundle(BaseStat.resilience, 12),
+                    new StatBundle(BaseStat.mobility, 10),
+                    new StatBundle(BaseStat.physique, 20),
+                    new StatBundle(BaseStat.adrenaline, 30)
+                ), 
+                1 //tier
+        ),
+        new JobClass("Marauder", Arrays.asList("infantry"), Arrays.asList("axe"), tier0Bonuses(), noBattleBonus(), 
+                Arrays.asList( //max stats
+                    new StatBundle(BaseStat.maxHP, 35),
+                    new StatBundle(BaseStat.maxTP, 30),
+                    new StatBundle(BaseStat.strength, 28),
+                    new StatBundle(BaseStat.ether, 10),
+                    new StatBundle(BaseStat.agility, 13),
+                    new StatBundle(BaseStat.dexterity, 11),
+                    new StatBundle(BaseStat.comprehension, 9),
+                    new StatBundle(BaseStat.defense, 13),
+                    new StatBundle(BaseStat.resilience, 7),
+                    new StatBundle(BaseStat.mobility, 10),
+                    new StatBundle(BaseStat.physique, 15),
+                    new StatBundle(BaseStat.adrenaline, 20)
+                ), 
+                0 //tier
+        ),
+        new JobClass("Freeblade", Arrays.asList("infantry"), Arrays.asList("sword"), tier0Bonuses(), noBattleBonus(), 
+                Arrays.asList( //max stats
+                    new StatBundle(BaseStat.maxHP, 31),
+                    new StatBundle(BaseStat.maxTP, 50),
+                    new StatBundle(BaseStat.strength, 20),
+                    new StatBundle(BaseStat.ether, 17),
+                    new StatBundle(BaseStat.agility, 17),
+                    new StatBundle(BaseStat.dexterity, 17),
+                    new StatBundle(BaseStat.comprehension, 19),
+                    new StatBundle(BaseStat.defense, 17),
+                    new StatBundle(BaseStat.resilience, 15),
+                    new StatBundle(BaseStat.mobility, 10),
+                    new StatBundle(BaseStat.physique, 15),
+                    new StatBundle(BaseStat.adrenaline, 40)
+                ), 
+                0 //tier
+        )
             .addCustomSkillAnimation("Heavy Swing", 
                 new CustomAnimationSegment(
                     "attack_and_followup",
@@ -401,36 +509,38 @@ public class Catalog {
         new Unit(
                 "Morva", //name
                 ClassCatalog[3], //class
-                new int[] //base stats
-                {
-                    1,  //level
-                    28, //max hp
-                    8,  //strength
-                    5,  //ether
-                    16, //agility
-                    5,  //dexterity
-                    6,  //comprehension
-                    5,  //defense
-                    2,  //resilience
-                    4,  //mobility
-                    9,  //physique
-                    10  //adrenaline
-                },
-                new int[] //growth rates
-                {
-                    100, //level
-                    60,  //max hp
-                    55,  //strength
-                    45,  //ether
-                    45,  //agility
-                    55,  //dexterity
-                    45,  //comprehension
-                    40,  //defense
-                    30,  //resilience
-                    5,   //mobility
-                    15,  //physique
-                    50   //adrenaline
-                },
+                Arrays.asList //base stats
+                (
+                    new StatBundle(BaseStat.level, 1),  //level
+                    new StatBundle(BaseStat.maxHP, 28), //max hp
+                    new StatBundle(BaseStat.maxTP, 0), //max tp
+                    new StatBundle(BaseStat.strength, 8),  //strength
+                    new StatBundle(BaseStat.ether, 5),  //ether
+                    new StatBundle(BaseStat.agility, 16), //agility
+                    new StatBundle(BaseStat.dexterity, 5),  //dexterity
+                    new StatBundle(BaseStat.comprehension, 6),  //comprehension
+                    new StatBundle(BaseStat.defense, 5),  //defense
+                    new StatBundle(BaseStat.resilience, 2),  //resilience
+                    new StatBundle(BaseStat.mobility, 4),  //mobility
+                    new StatBundle(BaseStat.physique, 9),  //physique
+                    new StatBundle(BaseStat.adrenaline, 10)  //adrenaline
+                ),
+                Arrays.asList //growth rates
+                (
+                    new StatBundle(BaseStat.level, 100),  //level
+                    new StatBundle(BaseStat.maxHP, 60), //max hp
+                    new StatBundle(BaseStat.maxTP, 10), //max tp
+                    new StatBundle(BaseStat.strength, 55),  //strength
+                    new StatBundle(BaseStat.ether, 45),  //ether
+                    new StatBundle(BaseStat.agility, 45), //agility
+                    new StatBundle(BaseStat.dexterity, 55),  //dexterity
+                    new StatBundle(BaseStat.comprehension, 45),  //comprehension
+                    new StatBundle(BaseStat.defense, 40),  //defense
+                    new StatBundle(BaseStat.resilience, 30),  //resilience
+                    new StatBundle(BaseStat.mobility, 5),  //mobility
+                    new StatBundle(BaseStat.physique, 15),  //physique
+                    new StatBundle(BaseStat.adrenaline, 50)  //adrenaline
+                ),
                 Arrays.asList(WeaponCatalog[0].getNewWeaponInstance(), ConsumableItemCatalog[0].newItemInstance(), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false)), //base inventory
                 replaceArrSlotWith(emptyFormulas(), FormulaCatalog[0], 0), //base formulas
                 replaceArrSlotWith(emptyTalents(), PassiveTalentCatalog[0], 0), //base talents
@@ -441,9 +551,24 @@ public class Catalog {
             ),
         new Unit(
                 "Pillager", 
-                ClassCatalog[2], 
-                new int[]{1, 18, 9, 0, 2, 2, 1, 4, 0, 4, 12, 0},
-                Unit.DEFAULT_ENEMY_GROWTH_RATES.clone(),
+                ClassCatalog[2],
+                Arrays.asList //base stats
+                (
+                    new StatBundle(BaseStat.level, 1),  //level
+                    new StatBundle(BaseStat.maxHP, 18), //max hp
+                    new StatBundle(BaseStat.maxTP, 0), //max tp
+                    new StatBundle(BaseStat.strength, 9),  //strength
+                    new StatBundle(BaseStat.ether, 0),  //ether
+                    new StatBundle(BaseStat.agility, 2), //agility
+                    new StatBundle(BaseStat.dexterity, 2),  //dexterity
+                    new StatBundle(BaseStat.comprehension, 1),  //comprehension
+                    new StatBundle(BaseStat.defense, 4),  //defense
+                    new StatBundle(BaseStat.resilience, 0),  //resilience
+                    new StatBundle(BaseStat.mobility, 4),  //mobility
+                    new StatBundle(BaseStat.physique, 12),  //physique
+                    new StatBundle(BaseStat.adrenaline, 0)  //adrenaline
+                ),
+                ((HashMap<BaseStat, Integer>)Unit.DEFAULT_ENEMY_GROWTH_RATES.clone()),
                 Arrays.asList(WeaponCatalog[6].getNewWeaponInstance(), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false)), 
                 emptyFormulas(), 
                 emptyTalents(), 

@@ -34,11 +34,12 @@ import java.util.List;
 public class Tile {
     private final float radiusForSquare = 8f;
     private final int pX, pY, elevation;
-    private int tileWeight = 10;
-    private int[] tileBonuses;
-    private float rotX, rotY, rotZ;
+    
+    //private float rotX, rotY, rotZ;
     
     private float[] heights = null;
+    
+    private TileData info;
     
     private String name;
     private Geometry tgeometry;
@@ -49,14 +50,14 @@ public class Tile {
     //public TerrainPatch tile;
     public boolean isOccupied = false;
     
-    public Tile(String tileName, int posx, int posy, int elevation, int[] tileBonuses, int t_weight) {
+    /*public Tile(String tileName, int posx, int posy, int elevation, int[] tileBonuses, int t_weight) {
         this.elevation = elevation;
         this.tileBonuses = tileBonuses;
         pX = posx;
         pY = posy;
         name = tileName;
         tileWeight = t_weight;
-    }
+    }*/
     
     public Tile(String tileName, int posx, int posy, int elevation) {
         this.elevation = elevation;
@@ -479,17 +480,4 @@ public class Tile {
     public int getPosX() { return pX; }
     public int getPosY() { return pY; }
     public int getElevation() { return elevation; }
-    public int[] getBonuses() { return tileBonuses; }
-    public int getTileWeight() { return tileWeight; } 
-    /* each unit will have a hidden Resolve stat
-     * there movement reduction would be MOBILITY - (tileWeight - Resolve)
-     * yes, this means if the unit has a higher Resolve than the tileWeight, they will move further
-     * but if the unit has a lower Resolve than tileWeight, they won't move as far. This will be used to make forests penalize movement like regular FE
-     * the Resolve stat will have baselines for infantry, cavalry, armored, etc.
-     * the Resolve stat will NOT be factored in at all for units that are on flying mounts, they can traverse any terrain
-     * but that also means they (fliers) don't get bonuses at all, even to mobility
-     * like Biorhythms, Resolve won't be constant between some chapters
-     * some units will get a bonus or penalty to the stat during them due to a story event
-     * standard tileWeight = 10
-     */
 }

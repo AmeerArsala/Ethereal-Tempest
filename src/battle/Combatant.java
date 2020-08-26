@@ -5,10 +5,10 @@
  */
 package battle;
 
-import battle.Unit.statName;
 import com.atr.jme.font.TrueTypeFont;
 import com.atr.jme.font.shape.TrueTypeNode;
 import com.destroflyer.jme3.effekseer.renderer.EffekseerControl;
+import com.google.gson.annotations.SerializedName;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Geometry;
@@ -87,26 +87,28 @@ public class Combatant {
     };
     
     public enum BaseStat {
-        level(0),
-        maxHP(1),
-        strength(2),
-        ether(3),
-        agility(4),
-        comprehension(5),
-        dexterity(6),
-        defense(7),
-        resilience(8),
-        mobility(9),
-        physique(10),
-        adrenaline(11),
-        currentHP(12),
-        currentTP(13),
-        maxTP(14);
+        @SerializedName("Level") level(0, 'x'),
+        @SerializedName("Max HP") maxHP(1, 'a'),
+        @SerializedName("Strength") strength(2, 'b'),
+        @SerializedName("Ether") ether(3, 'c'),
+        @SerializedName("Agility") agility(4, 'd'),
+        @SerializedName("Comprehension") comprehension(5, 'e'),
+        @SerializedName("Dexterity") dexterity(6, 'f'),
+        @SerializedName("Defense") defense(7, 'h'),
+        @SerializedName("Resilience") resilience(8, 'i'),
+        @SerializedName("Mobility") mobility(9, 'j'),
+        @SerializedName("Physique") physique(10, 'k'),
+        @SerializedName("Base Adrenaline") adrenaline(11, 'l'),
+        currentHP(12, 'y'),
+        currentTP(13, 'z'),
+        @SerializedName("Max TP") maxTP(14, 'g');
         
         private final int value;
+        private final char id;
         private static HashMap map = new HashMap<>();
-        private BaseStat(int val) {
+        private BaseStat(int val, char identifier) {
             value = val;
+            id = identifier;
         }
         
         static {
@@ -122,16 +124,17 @@ public class Combatant {
         public int getValue() {
             return value;
         }
+        
+        public char getID() { return id; }
     }
     
     public enum BattleStat {
-        AttackPower(0),
-        Accuracy(1),
-        Evasion(2),
-        Crit(3),
-        CritEvasion(4),
-        AttackSpeed(5);
-        
+        @SerializedName("AttackPower") AttackPower(0),
+        @SerializedName("Accuracy") Accuracy(1),
+        @SerializedName("Evasion") Evasion(2),
+        @SerializedName("Crit") Crit(3),
+        @SerializedName("CritEvasion") CritEvasion(4),
+        @SerializedName("AttackSpeed") AttackSpeed(5);
         
         private final int value;
         private static HashMap map = new HashMap<>();
@@ -170,10 +173,10 @@ public class Combatant {
         }
         
         level = tu.getLVL();
-        maxhp = tu.getHP()[1];
-        hp = tu.getHP()[0];
-        tp = tu.getTP()[0];
-        maxtp = tu.getTP()[1];
+        maxhp = tu.getMaxHP();
+        hp = tu.currentHP;
+        tp = tu.currentTP;
+        maxtp = tu.getMaxTP();
         strength = tu.getSTR();
         ether = tu.getETHER();
         agility = tu.getAGI();
@@ -183,13 +186,13 @@ public class Combatant {
         resilience = tu.getRSL();
         mobility = tu.getMOBILITY();
         physique = tu.getPHYSIQUE();
-        adrenaline = tu.getCHARISMA();
+        adrenaline = tu.getADRENALINE();
         fullBaseStats = updateBaseStats();
         
         attackPower = tu.getSpecifiedATK();
         evasion = tu.getAvoid();
         crit = tu.getSpecifiedCrit();
-        critEvasion = tu.getCOMP();
+        critEvasion = tu.getCritEvasion(); //change later
         attackSpeed = tu.getAS();
         accuracy = tu.getSpecifiedAccuracy();
         fullBattleStats = updateBattleStats();
@@ -291,7 +294,7 @@ public class Combatant {
     }
     
     public void applyAllStatsToUnit() {
-        tu.setStats(statName.level, fullBaseStats[0]);
+        tu.setStat(BaseStat.level, fullBaseStats[0]);
         /*tu.setStats(statName.maxHP, fullBaseStats[1]);
         tu.setStats(statName.strength, fullBaseStats[2]);
         tu.setStats(statName.ether, fullBaseStats[3]);
@@ -302,7 +305,7 @@ public class Combatant {
         tu.setStats(statName.resilience, fullBaseStats[8]);
         tu.setStats(statName.mobility, fullBaseStats[9]);
         tu.setStats(statName.physique, fullBaseStats[10]);*/
-        tu.setStats(statName.charisma, fullBaseStats[11]); //adrenaline
+        tu.setStat(BaseStat.adrenaline, fullBaseStats[11]); //adrenaline
         
         tu.currentHP = fullBaseStats[12];
         tu.currentTP = fullBaseStats[13];
@@ -310,7 +313,7 @@ public class Combatant {
 
     public void initializeExpCircle(Node actualGuiNode) {
         if (tu.currentHP > 0) {
-            figure.expbar = new RadialProgressBar(52.5f, 70.75f, GeneralUtils.AssociatedColor(tu), 2);
+            figure.expbar = new RadialProgressBar(52.5f, 70.75f, tu.unitStatus.getAssociatedColor(), 2);
             figure.expbar.move(300, 560, 0);
 
             expText = expFont.getText("  EXP\n " + tu.currentEXP + "/100", 3, ColorRGBA.White);

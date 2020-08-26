@@ -65,36 +65,6 @@ public class GeneralUtils {
         return false;
     }
     
-    public static ColorRGBA AssociatedColor(TangibleUnit tu) {
-        ColorRGBA barColor;
-        
-        switch (tu.unitStatus) {
-            case Player: //blue
-                barColor = new ColorRGBA(0.012f, 0.58f, 0.988f, 1f);
-                break;
-            case Enemy: //red
-                barColor = new ColorRGBA(0.839f, 0, 0, 1f);
-                break;
-            case Ally: //yellow
-                barColor = new ColorRGBA(1f, 0.851f, 0, 1f);
-                break;
-            case ThirdParty: //green
-                barColor = new ColorRGBA(0, 1f, 0, 1f);
-                break;
-            case FourthParty: //purple
-                barColor = new ColorRGBA(0.784f, 0, 1f, 1f);
-                break;
-            case FifthParty: //white
-                barColor = ColorRGBA.White;
-                break;
-            default:
-                barColor = new ColorRGBA(0.012f, 0.58f, 0.988f, 1f);
-                break;
-        }
-        
-        return barColor;
-    }
-    
     public static String ordinalNumberSuffix(int num) {
         switch (num) {
             case 1:

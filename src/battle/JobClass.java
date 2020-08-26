@@ -5,24 +5,20 @@
  */
 package battle;
 
-import battle.Battle.ImpactType;
+import battle.Combatant.BaseStat;
+import battle.Combatant.BattleStat;
 import battle.parse.AttackConfig;
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
-import com.jme3.asset.AssetNotFoundException;
 import com.jme3.texture.Texture;
-import general.TexturePlus;
-import java.io.File;
+import fundamental.StatBundle;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import misc.CustomAnimationSegment;
-import misc.DirFileExplorer;
 
 /**
  *
@@ -31,39 +27,52 @@ import misc.DirFileExplorer;
 public class JobClass {
     protected String jobname = "";
     protected AttackConfig attackAnimation;
-    //protected String id = "";
+
     private final int tier;
-    private final String[] mobilitytype;
-    private final boolean[] wieldableWeapons;
-    private final int[] bonusStats;
-    private final int[] battleBonus; //acc, avo, crit, crit avo
-    private final int[] maxStats;
+    
+    private final HashMap<BaseStat, Integer> bonusStats;
+    private final HashMap<BaseStat, Integer> maxStats;
+    private final HashMap<BattleStat, Integer> battleBonus; //acc, avo, crit, crit avo
+    
+    private final List<String> wieldableWeaponTypes;
+    private final List<String> mobilityTypes;
     
     protected HashMap<String, CustomAnimationSegment> customSkillAnimations = new HashMap<>();
     
-    //private List<Texture> attack = new ArrayList<>(), attack_and_followup = new ArrayList<>(), critical = new ArrayList<>(), finisher = new ArrayList<>();
     private Texture combatSheet;
     
-    public JobClass(String jobname, int[] bonusStats, String[] mobilitytype, boolean[] wieldableWeapons, int[] battleBonus, int tier, int[] maxStats) {
+    public JobClass(String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, List<StatBundle> bonusStats, List<StatBundle> battleBonus, List<StatBundle> maxStats, int tier) {
         this.jobname = jobname;
-        this.bonusStats = bonusStats;
-        this.mobilitytype = mobilitytype;
-        this.wieldableWeapons = wieldableWeapons;
-        this.battleBonus = battleBonus;
+        this.mobilityTypes = mobilityTypes;
+        this.wieldableWeaponTypes = wieldableWeaponTypes;
         this.tier = tier;
+        
+        this.bonusStats = StatBundle.createBaseStatsFromBundles(bonusStats);
+        this.battleBonus = StatBundle.createBattleStatsFromBundles(battleBonus);
+        this.maxStats = StatBundle.createBaseStatsFromBundles(maxStats);
+    }
+    
+    public JobClass(String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, int tier) {
+        this.jobname = jobname;
+        this.mobilityTypes = mobilityTypes;
+        this.wieldableWeaponTypes = wieldableWeaponTypes;
+        this.tier = tier;
+        
+        this.bonusStats = bonusStats;
+        this.battleBonus = battleBonus;
         this.maxStats = maxStats;
     }
     
     public String clName() { return jobname; }
     public int clTier() { return tier; }
-    //public String clID() { return id; }
-    public boolean[] UsableWeapons() { return wieldableWeapons; } // {"sword", "axe", "polearm", "knife", "bow", "whip", "monster", "pi ether", "gamma ether", "delta ether", "omega ether"}
-    public String[] MovementType() { return mobilitytype; } // infantry, armored, cavalry, flier, mechanism, morph, monster
-    public int[] ClassStatBonus() { return bonusStats; } // {MaxHP, Str, Ether, Agi, Dex, Comp, Def, Rsl, Mobility, Physique, Charisma}
-    public int[] ClassMaxStats() { return maxStats; } // {MaxHP, Str, Ether, Agi, Dex, Comp, Def, Rsl, Mobility, Physique, Charisma}
-    public int[] ClassBattleBonus() { return battleBonus; } // {Acc, Avo, Crit, CritAvo, AS, ATK, En, EtherDef}
+
+    public List<String> UsableWeapons() { return wieldableWeaponTypes; } // {"sword", "axe", "polearm", "knife", "bow", "whip", "monster", "pi ether", "gamma ether", "delta ether", "omega ether"}
+    public List<String> MovementType() { return mobilityTypes; } // infantry, armored, cavalry, flier, mechanism, morph, monster
+    public final HashMap<BaseStat, Integer> ClassStatBonus() { return bonusStats; } // {MaxHP, Str, Ether, Agi, Dex, Comp, Def, Rsl, Mobility, Physique, Charisma, MaxTP}
+    public final HashMap<BaseStat, Integer> ClassMaxStats() { return maxStats; } // {MaxHP, Str, Ether, Agi, Dex, Comp, Def, Rsl, Mobility, Physique, Charisma}
+    public final HashMap<BattleStat, Integer> ClassBattleBonus() { return battleBonus; } // {Acc, Avo, Crit, CritAvo, AS, ATK, En, EtherDef}
     
-    public int[] reorderStatsToFitGUI(int[] stats) {
+    /*public int[] reorderStatsToFitGUI(int[] stats) {
         int[] s = stats.clone();
         
         int temp1 = s[4];
@@ -71,7 +80,7 @@ public class JobClass {
         s[5] = temp1;
         
         return s;
-    }
+    }*/
     
     private AttackConfig deserializeFromJSON() {
         try {
@@ -87,13 +96,8 @@ public class JobClass {
     
     public void initializeFrames(AssetManager AM) {
         attackAnimation = deserializeFromJSON();
-        /*attack = attackFrames(AM);
-        attack_and_followup = attack_and_followupFrames(AM);
-        critical = criticalFrames(AM);
-        finisher = finisherFrames(AM);*/
         combatSheet = AM.loadTexture(attackAnimation.getSpritesheet());
         System.out.println(attackAnimation.toString());
-        //setCombatFrames(AM);
     }
     
     public AttackConfig getBattleConfig() { return attackAnimation; }
