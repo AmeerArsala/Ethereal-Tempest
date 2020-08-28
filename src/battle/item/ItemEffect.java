@@ -21,7 +21,6 @@ public abstract class ItemEffect {
     public abstract int[] tempBonusStats(Conveyer C); // buffs to {str, ether, agi, comp, dex, def, rsl, mobility, physique, charisma}
     public abstract int[] permanentBonusStats(Unit U); // {str, ether, agi, comp, dex, def, rsl, mobility, physique, charisma}
     
-    
     public abstract void enactEffect(Conveyer C); //this is also for learning a skill or talent or formula or ability
     
     

@@ -580,7 +580,7 @@ public class ActionMenu extends Container {
             switch (getSelectedOption().name) {
                 case "attack":
                     conv.getUnit().setStateIfAllowed(new FsmState(EntityState.SelectingTarget));
-                    conv.getUnit().setToUseFormula(null);
+                    conv.getUnit().equip(((Weapon)conv.getUnit().getInventory().getItems().get(0)));
                     conv.getUnit().setToUseSkill(null);
                     fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
                     conv.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
@@ -852,7 +852,7 @@ public class ActionMenu extends Container {
                             fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
                             info.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
                             info.getCursor().setPurpose(info.getUnit().getFormulas().get(index).getFormulaPurpose() == FormulaType.Attack ? Purpose.EtherAttack : Purpose.EtherSupport);
-                            info.getUnit().setToUseFormula(info.getUnit().getFormulas().get(index));
+                            info.getUnit().equip(info.getUnit().getFormulas().get(index));
                             ActionMenu.this.getParent().detachChild(ActionMenu.this);
                         }
 
@@ -1017,7 +1017,7 @@ public class ActionMenu extends Container {
                             info.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
                             info.getCursor().setPurpose(Purpose.SkillAttack);
                             info.getUnit().setToUseSkill(info.getUnit().getSkills().get(index));
-                            info.getUnit().setToUseFormula(null);
+                            //info.getUnit().setToUseFormula(null);
                             
                             ActionMenu.this.getParent().detachChild(ActionMenu.this);
                         }

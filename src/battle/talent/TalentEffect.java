@@ -6,6 +6,10 @@
 package battle.talent;
 
 import battle.Conveyer;
+import com.jme3.math.Vector2f;
+import fundamental.Bonus;
+import java.util.List;
+import maps.layout.Coords;
 
 /**
  *
@@ -15,50 +19,26 @@ public abstract class TalentEffect {
     
     public abstract void inputData(Conveyer data); //call this first
     
-    public abstract int[] battleBonusStats(); // {Acc, Eva, Crit, CritAvo, AS, ATK, En, EtherDef, Str, Ether} (permanent as long as talent equipped)
-    public abstract int[] rawBonusStats(); // {Str, Ether, Agi, Comp, Dex, Def, Rsl, Mobility, Physique, Charisma} (permanent as long as talent equipped)
-    
-    public abstract int[] temporaryBuffs(); // {Str, Ether, Agi, Comp, Dex, Def, Rsl, Mobility, Physique}
-    public abstract int[] temporaryEnemyDebuffs(); // {Str, Ether, Agi, Comp, Dex, Def, Rsl, Mobility, Physique}
-    
-    public abstract int[] userTranslation(); // {x, y}
-    public abstract int[] enemyTranslation(); // {x, y}
+    public abstract Coords userTranslation(); // {x, y}
+    public abstract Coords enemyTranslation(); // {x, y}
    
-    public abstract int[] enemyAOEDMG(); // {damage, range}
+    public abstract Vector2f enemyAOEDMG(); // {damage, range}
     
     public abstract void enactEffect(); //actually do the effect
     
-    public int[] retrieveBattleBonusStats(Conveyer data) {
-        inputData(data);
-        return battleBonusStats();
-    }
+    public abstract List<Bonus> Buffs();
     
-    public int[] retrieveRawBonusStats(Conveyer data) {
-        inputData(data);
-        return rawBonusStats();
-    }
-    
-    public int[] retrieveTemporaryBuffs(Conveyer data) {
-        inputData(data);
-        return temporaryBuffs();
-    }
-    
-    public int[] retrieveTemporaryEnemyDebuffs(Conveyer data) {
-        inputData(data);
-        return temporaryEnemyDebuffs();
-    }
-    
-    public int[] retrieveUserTranslation(Conveyer data) {
+    public Coords retrieveUserTranslation(Conveyer data) {
         inputData(data);
         return userTranslation();
     }
     
-    public int[] retrieveEnemyTranslation(Conveyer data) {
+    public Coords retrieveEnemyTranslation(Conveyer data) {
         inputData(data);
         return enemyTranslation();
     }
     
-    public int[] retrieveEnemyAOEDMG(Conveyer data) {
+    public Vector2f retrieveEnemyAOEDMG(Conveyer data) {
         inputData(data);
         return enemyAOEDMG();
     }

@@ -69,8 +69,9 @@ public class RangeDisplay {
         List<Coords> tileCoordinates = new ArrayList<>();
         
         //a bounding box of area
-        int boundingBoxLength = (((tu.getSpecifiedMobility() + Catalog.furthestTrue(tu.getEquippedWeapon().getRange())) * 2) + 1);
-        int centerXY = tu.getSpecifiedMobility() + Catalog.furthestTrue(tu.getEquippedWeapon().getRange()); //unit position on grid, center of this 2D boolean array
+        int furthest = Catalog.furthestTrue(Catalog.rangeCreator(tu.getEquippedWeapon().getRange()));
+        int boundingBoxLength = (((tu.getMobility() + furthest) * 2) + 1);
+        int centerXY = tu.getMobility() + furthest; //unit position on grid, center of this 2D boolean array
         int xDiff = tu.getPosX() - centerXY, yDiff = tu.getPosY() - centerXY; //same place subtracts from so finds difference
         
         for (int x = 0; x < boundingBoxLength; x++) {
@@ -78,7 +79,7 @@ public class RangeDisplay {
                 Coords input = new Coords(x + xDiff, y + yDiff);
                 if (mp.isWithinBounds(input, layer) && !displayedMovSquares.contains(mp.movSet[layer][x + xDiff][y + yDiff])) {
                     //check if the difference is small enough
-                    for (Integer range : tu.getEquippedWeapon().getRangeInts()) {
+                    for (Integer range : tu.getEquippedWeapon().getRange()) {
                         if (isXSpacesFromMovSquare(input, range)) {
                             tileCoordinates.add(input);
                         }

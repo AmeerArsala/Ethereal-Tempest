@@ -28,6 +28,7 @@ import battle.talent.Talent;
 import battle.talent.Differentiate;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
+import com.jme3.math.Vector2f;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,8 +38,12 @@ import maps.layout.Tile;
 import misc.CustomAnimationSegment;
 import misc.FrameDelay;
 import etherealtempest.MasterFsmState;
+import fundamental.Bonus;
+import fundamental.DamageTool;
+import fundamental.FreelyAssociated;
 import fundamental.StatBundle;
 import java.util.HashMap;
+import maps.layout.Coords;
 /**
  *
  * @author night
@@ -46,7 +51,6 @@ import java.util.HashMap;
 public class Catalog {
     //referring to weapons
     public static final int[] noStatBonuses = {0, 0, 0, 0, 0, 0, 0};
-    public static final int[] noBattleBonus = {0, 0, 0, 0, 0, 0, 0, 0};
     public static final String[] effAgainstNothing = {"None"};
     
     public static List<StatBundle> baseCav() {
@@ -112,6 +116,13 @@ public class Catalog {
         return rc;
     }
     
+    public static boolean[] rangeCreator(List<Integer> UpUntil) {
+        boolean[] rc = new boolean[50];
+        for (int i = 0; i < rc.length; i++) { rc[i] = false; }
+        for (int x : UpUntil) { rc[x] = true; }
+        return rc;
+    }
+    
     public static <K> List<K> replaceArrSlotWith(List<K> arr, K replacement, int index) {
         List<K> arr2 = arr;
         arr2.set(index, replacement);
@@ -135,24 +146,202 @@ public class Catalog {
     
     public static Weapon[] WeaponCatalog = 
     { //  Weapon(String name, String description, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, double durability, String[] eff, int[] bonus, int requiredLevel, String prf, int worth)
-      new Weapon("Firangi", "An extremely rare offensive sword of unknown origin. Many are found lying on the ground or at the bottom of a pond.", "sword", "metal", 8, 95, 6, 15, rangeCreator(new int[]{1}), 45.0, new String[]{"cavalry", "mechanism"}, new int[]{0, 1, 0, 1, 5, 1, 1}, 0, "Morva", 5000),
-      new Weapon("Cutlass", "An amateur sword designed for close-quarters fighting that is cheap to make. Favored in naval battles", "sword", "metal", 7, 90, 5, 0, rangeCreator(new int[]{1}), 40.0, effAgainstNothing, noStatBonuses, 1, "None", 500),
-      new Weapon("Rebel Pike", "A pike that becomes stronger when the user's HP is less than or equal to half", "polearm", "metal", 11, 75, 9, 5, rangeCreator(new int[]{1}), 35.0, effAgainstNothing, noStatBonuses, 5, "None", 1000),
-      new Weapon("Copper Shortsword", "A basic shortsword designed for quick cuts and maneuvers.", "sword", "metal", 5, 100, 3, 0, rangeCreator(new int[]{1}), 40.0, effAgainstNothing, noStatBonuses, 0, "None", 300),
-      new Weapon("Steel Broadsword", "A strong sword considered an essential by skilled swordsman.", "sword", "metal", 9, 85, 8, 3, rangeCreator(new int[]{1}), 35.0, effAgainstNothing, noStatBonuses, 2, "None", 700),
-      new Weapon("Svardstav", "A lance-like sword designed to combat cavalry foes.", "sword", "metal", 8, 75, 10, 0, rangeCreator(new int[]{1}), 30.0, new String[]{"cavalry"}, noStatBonuses, 5, "None", 1000),
-      new Weapon("Francisca", "An axe that is extremely popular amongst peasants, as it is both cheap and effective", "axe", "metal", 9, 70, 11, 0, rangeCreator(new int[]{1}), 35.0, effAgainstNothing, noStatBonuses, 0, "None", 300),
-      new Weapon("Glaive", "A powerful lance used for cutting down foes", "polearm", "metal", 12, 80, 9, 5, rangeCreator(new int[]{1}), 40.0, effAgainstNothing, noStatBonuses, 10, "None", 1500)
+      new Weapon(
+              new Item("Firangi", //weapon name
+                      "An extremely rare offensive sword of unknown origin. Many are found lying on the ground or at the bottom of a pond.",  //description
+                      6, //weight 
+                      5000 //worth
+              ), 
+              new DamageTool(
+                      8,  //pow
+                      95, //acc
+                      15, //crit 
+                      Arrays.asList(1), //range
+                      Arrays.asList( //bonuses when equipped
+                              new Bonus(1, BaseStat.ether),
+                              new Bonus(5, BaseStat.comprehension),
+                              new Bonus(1, BaseStat.dexterity),
+                              new Bonus(1, BaseStat.defense),
+                              new Bonus(1, BaseStat.resilience)
+                      ),
+                      "sword", //type
+                      "metal", //attribute
+                      new String[]{"cavalry", "mechanism"} //what it is effective against
+              ),
+              45.0, //durability
+              0, //required level
+              "Morva" //prf
+        ),
+      new Weapon(
+              new Item("Cutlass", //weapon name
+                      "An amateur sword designed for close-quarters fighting that is cheap to make. Favored in naval battles.",  //description
+                      5, //weight 
+                      500 //worth
+              ), 
+              new DamageTool(
+                      7,  //pow
+                      90, //acc
+                      0, //crit 
+                      Arrays.asList(1), //range
+                      Arrays.asList( //bonuses when equipped
+                      ),
+                      "sword", //type
+                      "metal", //attribute
+                      effAgainstNothing //what it is effective against
+              ),
+              40.0, //durability
+              0, //required level
+              "None" //prf
+        ),
+      new Weapon(
+              new Item("Rebel Pike", //weapon name
+                      "A pike that becomes stronger when the user's HP is less than or equal to half.",  //description
+                      9, //weight 
+                      1000 //worth
+              ), 
+              new DamageTool(
+                      11,  //pow
+                      75, //acc
+                      5, //crit 
+                      Arrays.asList(1), //range
+                      Arrays.asList( //bonuses when equipped
+                      ),
+                      "polearm", //type
+                      "metal", //attribute
+                      effAgainstNothing //what it is effective against
+              ),
+              35.0, //durability
+              5, //required level
+              "None" //prf
+        ),
+      new Weapon(
+              new Item("Copper Shortsword", //weapon name
+                      "A basic shortsword designed for quick cuts and maneuvers.",  //description
+                      3, //weight 
+                      300 //worth
+              ), 
+              new DamageTool(
+                      5,  //pow
+                      100, //acc
+                      0, //crit 
+                      Arrays.asList(1), //range
+                      Arrays.asList( //bonuses when equipped
+                      ),
+                      "sword", //type
+                      "metal", //attribute
+                      effAgainstNothing //what it is effective against
+              ),
+              40.0, //durability
+              0, //required level
+              "None" //prf
+        ),
+      new Weapon(
+              new Item("Steel Broadsword", //weapon name
+                      "A strong sword considered an essential by skilled swordsman.",  //description
+                      8, //weight 
+                      700 //worth
+              ), 
+              new DamageTool(
+                      9,  //pow
+                      85, //acc
+                      3, //crit 
+                      Arrays.asList(1), //range
+                      Arrays.asList( //bonuses when equipped
+                      ),
+                      "sword", //type
+                      "metal", //attribute
+                      effAgainstNothing //what it is effective against
+              ),
+              35.0, //durability
+              2, //required level
+              "None" //prf
+        ),
+      new Weapon(
+              new Item("Svardstav", //weapon name
+                      "A lance-like sword designed to combat cavalry foes.",  //description
+                      10, //weight 
+                      1000 //worth
+              ), 
+              new DamageTool(
+                      8,  //pow
+                      75, //acc
+                      0, //crit 
+                      Arrays.asList(1), //range
+                      Arrays.asList( //bonuses when equipped
+                      ),
+                      "sword", //type
+                      "metal", //attribute
+                      new String[]{"cavalry"} //what it is effective against
+              ),
+              30.0, //durability
+              5, //required level
+              "None" //prf
+        ),
+      new Weapon(
+              new Item("Francisca", //weapon name
+                      "An axe that is extremely popular amongst peasants, as it is both cheap and effective.",  //description
+                      11, //weight 
+                      300 //worth
+              ), 
+              new DamageTool(
+                      9,  //pow
+                      70, //acc
+                      0, //crit 
+                      Arrays.asList(1), //range
+                      Arrays.asList( //bonuses when equipped
+                      ),
+                      "axe", //type
+                      "metal", //attribute
+                      effAgainstNothing //what it is effective against
+              ),
+              35.0, //durability
+              0, //required level
+              "None" //prf
+        ),
+        new Weapon(
+              new Item("Glaive", //weapon name
+                      "A powerful lance used for cutting down foes.",  //description
+                      9, //weight 
+                      1500 //worth
+              ), 
+              new DamageTool(
+                      12,  //pow
+                      80, //acc
+                      5, //crit 
+                      Arrays.asList(1), //range
+                      Arrays.asList( //bonuses when equipped
+                      ),
+                      "polearm", //type
+                      "metal", //attribute
+                      effAgainstNothing //what it is effective against
+              ),
+              40.0, //durability
+              10, //required level
+              "None" //prf
+        )
     };
     
     public static Formula[] FormulaCatalog = 
     { //    Formula(String name, String description, FormulaType FT, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, String[] eff, int[] bonus, int requiredLevel, int hpUsage, int tpUsage)
       //    Formula(String name, String description, FormulaType FT, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, String[] eff, int[] bonus, int requiredLevel, int hpUsage, int tpUsage, Talent extraEffect)  
         new Formula(
-                "Anemo Schism", 
-                "Basic formula comprised of delta ether; condenses ether around target to cut a rift in the air and fill the diffusing wind with dense delta ether", 
+                new FreelyAssociated(
+                        "Anemo Schism", //name
+                        "Basic formula comprised of delta ether; condenses ether around target to cut a rift in the air and fill the diffusing wind with dense delta ether"
+                ),
+                new DamageTool(
+                        9, //pow
+                        80, //acc
+                        5, //crit
+                        Arrays.asList(1, 2), //range
+                        Arrays.asList(), //bonuses
+                        "delta ether",
+                        "wind",
+                        effAgainstNothing
+                ),
                 FormulaType.Attack,
-                "delta ether", "wind", 9, 80, 5, rangeCreator(new int[]{1, 2}), effAgainstNothing, noStatBonuses, 0, 0, 5)
+                new Toll(Exchange.TP, 5)
+        )
     };
     
     //WHEN TALKING ABOUT STATS, IT IS ALWAYS {MaxHP, Str, Ether, Agi, Dex, Comp, Def, Rsl, Mobility, Physique, Charisma}
@@ -282,7 +471,7 @@ public class Catalog {
 
                 @Override
                 public boolean getCondition() {
-                    return convey.getUnit().getEquippedWeapon().getExistence() && convey.getUnit().getEquippedWeapon().poweredByElement.length() > 2;
+                    return convey.getUnit().getEquippedWPN() != null && convey.getUnit().getEquippedWPN().poweredByElement.length() > 2;
                 }
             }
         };
@@ -299,51 +488,37 @@ public class Catalog {
                 public void inputData(Conveyer data) {
                     convey = data;
                 }
-
-                @Override
-                public int[] battleBonusStats() { return null; }
-                @Override
-                public int[] rawBonusStats() { return null; }
-                @Override
-                public int[] temporaryBuffs() { return null; }
-                @Override
-                public int[] temporaryEnemyDebuffs() { return null; }
-                @Override
-                public int[] userTranslation() { return null; }
-                @Override
-                public int[] enemyTranslation() { return null; }
-                @Override
-                public int[] enemyAOEDMG() { return null; }
             
                 @Override
                 public void enactEffect() {
                     convey.getEnemyUnit().parryDecider = false;
                 }
+
+                @Override
+                public Coords userTranslation() { return null; }
+                @Override
+                public Coords enemyTranslation() { return null; }
+                @Override
+                public Vector2f enemyAOEDMG() { return null; }
+                @Override
+                public List<Bonus> Buffs() { return null; }
             },
             new TalentEffect() { //aoe damage: 1/2 user's ether stat
                 Conveyer convey;
+                
                 @Override
                 public void inputData(Conveyer data) {
                     convey = data;
                 }
 
                 @Override
-                public int[] battleBonusStats() { return null; }
+                public Coords userTranslation() { return null; }
                 @Override
-                public int[] rawBonusStats() { return null; }
+                public Coords enemyTranslation() { return null; }
                 @Override
-                public int[] temporaryBuffs() { return null; }
+                public Vector2f enemyAOEDMG() { return new Vector2f((int)(0.5f * convey.getUnit().getETHER()), 3); }
                 @Override
-                public int[] temporaryEnemyDebuffs() { return null; }
-                @Override
-                public int[] userTranslation() { return null; }
-                @Override
-                public int[] enemyTranslation() { return null; }
-            
-                @Override
-                public int[] enemyAOEDMG() { 
-                    return new int[]{(int)(0.5f * convey.getUnit().getETHER()), 3}; 
-                }
+                public List<Bonus> Buffs() { return null; }
 
                 @Override
                 public void enactEffect() {
@@ -354,7 +529,7 @@ public class Catalog {
                                     convey.getUnit().unitStatus.getValue() != convey.getMap().fullmap[convey.getEnemyUnit().getElevation()][convey.getEnemyUnit().getPosX() + (xUsed * var)][convey.getEnemyUnit().getPosY() + (yUsed * var)].getOccupier().unitStatus.getValue()
                                     && convey.getUnit().unitStatus.getValue() + convey.getMap().fullmap[convey.getEnemyUnit().getElevation()][convey.getEnemyUnit().getPosX() + (xUsed * var)][convey.getEnemyUnit().getPosY() + (yUsed * var)].getOccupier().unitStatus.getValue() > -1) 
                                 { //if they are an enemy
-                                    convey.getMap().fullmap[convey.getEnemyUnit().getElevation()][convey.getEnemyUnit().getPosX() + (xUsed * var)][convey.getEnemyUnit().getPosY() + (yUsed * var)].getOccupier().currentHP -= enemyAOEDMG()[0];
+                                    convey.getMap().fullmap[convey.getEnemyUnit().getElevation()][convey.getEnemyUnit().getPosX() + (xUsed * var)][convey.getEnemyUnit().getPosY() + (yUsed * var)].getOccupier().currentHP -= ((int)enemyAOEDMG().x);
                                     if (convey.getMap().fullmap[convey.getEnemyUnit().getElevation()][convey.getEnemyUnit().getPosX() + (xUsed * var)][convey.getEnemyUnit().getPosY() + (yUsed * var)].getOccupier().currentHP <= 0) {
                                         convey.getMap().fullmap[convey.getEnemyUnit().getElevation()][convey.getEnemyUnit().getPosX() + (xUsed * var)][convey.getEnemyUnit().getPosY() + (yUsed * var)].getOccupier().currentHP = 1;
                                     }

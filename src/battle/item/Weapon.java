@@ -5,219 +5,85 @@
  */
 package battle.item;
 
-import battle.skill.Skill;
-import battle.talent.Talent;
-import java.util.ArrayList;
-import java.util.List;
+import fundamental.DamageTool;
 
 /**
  *
  * @author night
  */
 public class Weapon extends Item {
-  protected int Pow, Acc, CRIT; //might, hit rate, weight, crit rate
-  protected double durability, currentDurability;
-  protected boolean[] Range; //if range is 1-2, RNG[0] and RNG[1] return true
-  protected List<Integer> rangeInts = new ArrayList<>();
-  protected String[] effect; //things the weapon is effective against
+  private DamageTool weaponData;
   
-  private String wpnType = "", wpnAttribute = "";
-  private int[] bonus = new int[]{0, 0, 0, 0, 0, 0}; // { STR, ETHER, AGI, DEX, COMP, DEF, RSL }
-  private int requiredLevel, worth;
-  private String prf, info;
-
-  public Talent wpnTalent;
-  public Skill wpnSkill;
+  private int requiredLevel;
+  private double durability, currentDurability;
   
+  private String prf = "None";
   public String poweredByElement = "";
-  public int extraDamage = 0;
   
-  private boolean exists = true;
-  
-  private enum declarationType {
-      regular, withTalent, withSkill, doesntExist
-  }
-  
-  private declarationType declaration;
-  
-  public Weapon(String name, String description, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, double durability, String[] eff, int[] bonus, int requiredLevel, String prf, int worth) {
-    super(name, wt, description);
-    wpnType = type;
-    wpnAttribute = attr;
-    Pow = mt;
-    Acc = hit;
-    CRIT = crt;
-    Range = rng;
-    effect = eff;
-    this.bonus = bonus;
-    this.durability = durability;
-    this.requiredLevel = requiredLevel;
-    this.prf = prf;
-    this.worth = worth;
-    currentDurability = durability;
-    
-    for (int i = 0; i < Range.length; i++) {
-        if (Range[i]) {
-            rangeInts.add(i);
-        }
-    }
-
-    info = 
-                "Pow: " + Pow + '\n'
-              + "Acc: " + Acc +  '\n'
-              + "Crit: " + CRIT + '\n'
-              + "Weight: " + Weight + '\n'
-              + "Eff. against: " + getEffString() + '\n';
-      if (wpnAttribute.length() > 1 && !(wpnAttribute.equals("metal"))) {
-          info += "Attribute: " + wpnAttribute + '\n';
-      }
+  public Weapon(Item template, DamageTool data, double durability, int requiredLevel, String prf) {
+      super(template.getName(), template.getDescription(), template.getWeight(), template.getWorth(), template.getExtraSkill(), template.getExtraTalent());
+      weaponData = data;
       
-    declaration = declarationType.regular;
-  }
-  
-  public Weapon(String name, String description, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, double durability, String[] eff, int[] bonus, int requiredLevel, String prf, int worth, Talent wpnTalent) {
-    super(name, wt, description);
-    wpnType = type;
-    wpnAttribute = attr;
-    Pow = mt;
-    Acc = hit;
-    CRIT = crt;
-    Range = rng;
-    effect = eff;
-    this.bonus = bonus;
-    this.durability = durability;
-    this.requiredLevel = requiredLevel;
-    this.prf = prf;
-    this.worth = worth;
-    this.wpnTalent = wpnTalent;
-    currentDurability = durability;
-    
-    for (int i = 0; i < Range.length; i++) {
-        if (Range[i]) {
-            rangeInts.add(i);
-        }
-    }
-    
-    info = 
-                "Pow: " + Pow + '\n'
-              + "Acc: " + Acc +  '\n'
-              + "Crit: " + CRIT + '\n'
-              + "Weight: " + Weight + '\n'
-              + "Eff. against: " + getEffString() + '\n';
-      if (wpnAttribute.length() > 1 && !(wpnAttribute.equals("metal"))) {
-          info += "Attribute: " + wpnAttribute + '\n';
-      }
-    
-    declaration = declarationType.withTalent;
-  }
-  
-  public Weapon(String name, String description, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, double durability, String[] eff, int[] bonus, int requiredLevel, String prf, int worth, Skill wpnSkill) {
-    super(name, wt, description);
-    wpnType = type;
-    wpnAttribute = attr;
-    Pow = mt;
-    Acc = hit;
-    CRIT = crt;
-    Range = rng;
-    effect = eff;
-    this.bonus = bonus;
-    this.durability = durability;
-    this.requiredLevel = requiredLevel;
-    this.prf = prf;
-    this.worth = worth;
-    this.wpnSkill = wpnSkill;
-    currentDurability = durability;
-    
-    for (int i = 0; i < Range.length; i++) {
-        if (Range[i]) {
-            rangeInts.add(i);
-        }
-    }
-    
-    info = 
-                "Pow: " + Pow + '\n'
-              + "Acc: " + Acc +  '\n'
-              + "Crit: " + CRIT + '\n'
-              + "Weight: " + Weight + '\n'
-              + "Eff. against: " + getEffString() + '\n';
-      if (wpnAttribute.length() > 1 && !(wpnAttribute.equals("metal"))) {
-          info += "Attribute: " + wpnAttribute + '\n';
-      }
-    
-    declaration = declarationType.withSkill;
+      this.durability = durability;
+      this.requiredLevel = requiredLevel;
+      this.prf = prf;
+      
+      currentDurability = durability;
   }
 
   //only used for empty slots in the inventory
   public Weapon(boolean ex) {
     super(ex);
-    exists = false;
-    declaration = declarationType.doesntExist;
   }
   
   public Weapon getNewWeaponInstance() {
-      if (declaration == declarationType.regular) {
-          return new Weapon(name, desc, wpnType, wpnAttribute, Pow, Acc, Weight, CRIT, Range, durability, effect, bonus, requiredLevel, prf, worth);
-      }
-      if (declaration == declarationType.withSkill) {
-          return new Weapon(name, desc, wpnType, wpnAttribute, Pow, Acc, Weight, CRIT, Range, durability, effect, bonus, requiredLevel, prf, worth, wpnSkill);
-      }
-      if (declaration == declarationType.withTalent) {
-          return new Weapon(name, desc, wpnType, wpnAttribute, Pow, Acc, Weight, CRIT, Range, durability, effect, bonus, requiredLevel, prf, worth, wpnTalent);
+      if (exists) {
+          return new Weapon((Item)this, weaponData.getNewInstance(), durability, requiredLevel, prf);
       }
       return new Weapon(false);
   }
   
-  public boolean getExistence() { return exists; }
-  
-  public String[] effective() { return effect; }
-  public int getPow() { return Pow; }
-  public int getAcc() { return Acc; }
-  
-  @Override
-  public int getWeight() { return Weight; }
-  
-  public List<Integer> getRangeInts() { return rangeInts; }
-  
-  public int getCRIT() { return CRIT; }
+  public DamageTool getWeaponData() { return weaponData; }
   public int getRequiredLevel() { return requiredLevel; }
-  public int getWorth() { return worth; }
-  public int[] getBonuses() { return bonus; }
   public double getCurrentDurability() { return currentDurability; }
   public double getMaxDurability() { return durability; }
-  public String getWpnType() { return wpnType; } //sword, axe, lance, etc
-  public String getWpnAttribute() { return wpnAttribute; } //element
   public String getPRF() { return prf; }
-
-  public String getDmgType() {
-      if (wpnType.equals("sword") || wpnType.equals("axe") || wpnType.equals("polearm") || wpnType.equals("knife") || wpnType.equals("bow") || wpnType.equals("whip") || wpnType.equals("monster")) {
-        return "physical";
-      }
-      return "ether";
-  }
-
-  public boolean[] getRange() { return Range; }
   
   public void used(double amt) {
     if (durability < 99) { currentDurability -= amt; }
   }
-  //public boolean equipped() { return isEquipped; }
-  
-  public static int getWeaponIndex(String wpntp) {
-      String[] basic = {"sword", "axe", "polearm", "knife", "bow", "whip", "monster", "pi ether", "gamma ether", "delta ether", "omega ether"}; //PI Ether = holy ether, Delta Ether = Regular ether, encompasses most offensive Spells, Omega Ether = Special or Almighty Spells, Gamma Ether = Dark Spells
-      for (int i = 0; i < basic.length; i++) {
-          if (wpntp.equals(basic[i])) { return i; }
-      }
-      return -1;
-  }
   
   public void elementalPowerup(String element, int xtradmg) {
       poweredByElement = element;
-      extraDamage = xtradmg;
+      weaponData.extraDamage += xtradmg;
       //maybe do more here
   }
   
   public String getLoreDescription() { return desc; }
-  public String getStatDescription() { return info; }
+  
+  @Override
+  public String getDescription() {
+      return getStatDescription() + desc;
+  }
+  
+  public String getStatDescription() {
+      String fullDescription = weaponData.toString();
+      
+      if (poweredByElement.length() > 1) { //if it is powered by an element
+          fullDescription += "Powered by: " + poweredByElement + '\n';
+      }
+      
+      fullDescription += "Required level: " + requiredLevel + '\n';
+      
+      if (!prf.equalsIgnoreCase("None")) {
+          fullDescription += "User: " + prf + '\n';
+      }
+      
+      return fullDescription;
+  }
+  
+
+  /*public String getStatDescription() { return info; }
   
   public String getRangeString() {
       String wpnrange = "";
@@ -257,12 +123,30 @@ public class Weapon extends Item {
       return full;
   }
   
-  @Override
-  public String getDescription() {
-      return info + desc;
-  }
+  public List<Integer> getRangeInts() { return rangeInts; }
+  public boolean getExistence() { return exists; }
   
-  @Override
-  public String toString() { return name; }
+  public String[] effective() { return effect; }
+  public int getPow() { return Pow; }
+  public int getAcc() { return Acc; }
+  public int getCRIT() { return CRIT; }
+  
+  public int[] getBonuses() { return bonus; }
+  
+  public String getWpnType() { return wpnType; } //sword, axe, lance, etc
+  public String getWpnAttribute() { return wpnAttribute; } //element
+  
+  
+  public Talent getWeaponTalent() { return wpnTalent; }
+  public Skill getWeaponSkill() { return wpnSkill; }
+
+  public String getDmgType() {
+      if (wpnType.equals("sword") || wpnType.equals("axe") || wpnType.equals("polearm") || wpnType.equals("knife") || wpnType.equals("bow") || wpnType.equals("whip") || wpnType.equals("monster")) {
+        return "physical";
+      }
+      return "ether";
+  }
+
+  public boolean[] getRange() { return Range; }*/
   
 }

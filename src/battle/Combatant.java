@@ -166,7 +166,7 @@ public class Combatant {
             tu = info.getEnemyUnit();
         }
         
-        if (tu.getToUseFormula() != null) {
+        if (tu.getEquippedFormula() != null) {
             attackType = AttackType.Formula;
         } else {
             attackType = AttackType.Weapon;
@@ -189,12 +189,12 @@ public class Combatant {
         adrenaline = tu.getADRENALINE();
         fullBaseStats = updateBaseStats();
         
-        attackPower = tu.getSpecifiedATK();
-        evasion = tu.getAvoid();
-        crit = tu.getSpecifiedCrit();
+        attackPower = tu.getATK();
+        evasion = tu.getEvasion();
+        crit = tu.getCrit();
         critEvasion = tu.getCritEvasion(); //change later
         attackSpeed = tu.getAS();
-        accuracy = tu.getSpecifiedAccuracy();
+        accuracy = tu.getAccuracy();
         fullBattleStats = updateBattleStats();
     }
     
@@ -393,22 +393,22 @@ public class Combatant {
     }
     
     void updateEffects(float tpf) {
-        if (tu.getToUseFormula() != null && figure.allowEffectUpdate) {
+        if (tu.getEquippedFormula() != null && figure.allowEffectUpdate) {
             if (!controlAdded) {
                 effects.addControl(effectControl);
                 controlAdded = true;
             }
             effectControl.update(tpf);
-            if (figure.effIndex == tu.getToUseFormula().getInfo().getImpactFrame()) {
+            if (figure.effIndex == tu.getEquippedFormula().getInfo().getImpactFrame()) {
                 figure.impactStatus = Battle.ImpactType.All;
-            } else if (figure.effIndex == tu.getToUseFormula().getInfo().getFrames()) {
+            } else if (figure.effIndex == tu.getEquippedFormula().getInfo().getFrames()) {
                 figure.index++; //take it off freeze
                 figure.amassingTPF = 0;
                 figure.allowEffectUpdate = false;
                 figure.effIndex = 0;
                 effects.removeControl(effectControl);
                 controlAdded = false;
-                effectControl = tu.getToUseFormula().resetControl();
+                effectControl = tu.getEquippedFormula().resetControl();
             }
             figure.effIndex++;
         }

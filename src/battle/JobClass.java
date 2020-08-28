@@ -68,19 +68,9 @@ public class JobClass {
 
     public List<String> UsableWeapons() { return wieldableWeaponTypes; } // {"sword", "axe", "polearm", "knife", "bow", "whip", "monster", "pi ether", "gamma ether", "delta ether", "omega ether"}
     public List<String> MovementType() { return mobilityTypes; } // infantry, armored, cavalry, flier, mechanism, morph, monster
-    public final HashMap<BaseStat, Integer> ClassStatBonus() { return bonusStats; } // {MaxHP, Str, Ether, Agi, Dex, Comp, Def, Rsl, Mobility, Physique, Charisma, MaxTP}
-    public final HashMap<BaseStat, Integer> ClassMaxStats() { return maxStats; } // {MaxHP, Str, Ether, Agi, Dex, Comp, Def, Rsl, Mobility, Physique, Charisma}
-    public final HashMap<BattleStat, Integer> ClassBattleBonus() { return battleBonus; } // {Acc, Avo, Crit, CritAvo, AS, ATK, En, EtherDef}
-    
-    /*public int[] reorderStatsToFitGUI(int[] stats) {
-        int[] s = stats.clone();
-        
-        int temp1 = s[4];
-        s[4] = s[5];
-        s[5] = temp1;
-        
-        return s;
-    }*/
+    public final HashMap<BaseStat, Integer> ClassStatBonus() { return bonusStats; }
+    public final HashMap<BaseStat, Integer> ClassMaxStats() { return maxStats; }
+    public final HashMap<BattleStat, Integer> ClassBattleBonus() { return battleBonus; } // Acc, Avo, Crit, CritAvo, AS, ATK, En, EtherDef
     
     private AttackConfig deserializeFromJSON() {
         try {

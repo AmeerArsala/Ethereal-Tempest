@@ -137,17 +137,17 @@ public class Battle {
             //info.getUnit().currentHP -= info.getUnit().getToUseFormula().getHPUsage();
             //info.getUnit().currentTP -= info.getUnit().getToUseFormula().getTPUsage();
             
-            initTemp.setHPtoSubtract(info.getUnit().getToUseFormula().getHPUsage());
-            initTemp.setTPtoSubtract(info.getUnit().getToUseFormula().getTPUsage());
+            initTemp.setHPtoSubtract(info.getUnit().getEquippedFormula().getHPUsage());
+            initTemp.setTPtoSubtract(info.getUnit().getEquippedFormula().getTPUsage());
             
-            initTemp.setEffectControl(info.getUnit().getToUseFormula().getControl());
+            initTemp.setEffectControl(info.getUnit().getEquippedFormula().getControl());
         }
         
         try {
-            receiverTemp.setHPtoSubtract(info.getEnemyUnit().getToUseFormula().getHPUsage());
-            receiverTemp.setTPtoSubtract(info.getEnemyUnit().getToUseFormula().getTPUsage());
+            receiverTemp.setHPtoSubtract(info.getEnemyUnit().getEquippedFormula().getHPUsage());
+            receiverTemp.setTPtoSubtract(info.getEnemyUnit().getEquippedFormula().getTPUsage());
             
-            receiverTemp.setEffectControl(info.getEnemyUnit().getToUseFormula().getControl());
+            receiverTemp.setEffectControl(info.getEnemyUnit().getEquippedFormula().getControl());
         }
         catch (NullPointerException e) {}
         
@@ -222,8 +222,8 @@ public class Battle {
             if (strikes.get(strikeIndex).occurred || (strikes.get(strikeIndex).getStriker().figure.getProgress() == Progress.Finished && strikes.get(strikeIndex).getVictim().figure.getProgress() == Progress.Finished)) {
                 strikes.get(strikeIndex).occurred = true;
                 
-                if (strikes.get(strikeIndex).getStriker().getUnit().getToUseFormula() == null) {
-                    strikes.get(strikeIndex).getStriker().getUnit().getEquippedWeapon().used(strikes.get(strikeIndex).getStrikerDurabilityChange());
+                if (strikes.get(strikeIndex).getStriker().getUnit().getEquippedWPN() != null) {
+                    strikes.get(strikeIndex).getStriker().getUnit().getEquippedWPN().used(strikes.get(strikeIndex).getStrikerDurabilityChange());
                 }
                 
                 strikes.get(strikeIndex).getStriker().figure.totalDmgDone += strikes.get(strikeIndex).getDamage();
@@ -328,7 +328,7 @@ public class Battle {
                     if (strikes.get(strikeIndex).strikeDidHit()) {
                         strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, true, strikes.get(strikeIndex).strikeWasParried());
                     } else {
-                        if (strikeIndex + 1 < strikes.size() && strikes.get(strikeIndex + 1).getStriker().getUnit().getToUseFormula() == null && !strikes.get(strikeIndex + 1).strikeIsCrit() && strikes.get(strikeIndex + 1).getStriker() != strikes.get(strikeIndex).getStriker()) {
+                        if (strikeIndex + 1 < strikes.size() && strikes.get(strikeIndex + 1).getStriker().getUnit().getEquippedFormula() == null && !strikes.get(strikeIndex + 1).strikeIsCrit() && strikes.get(strikeIndex + 1).getStriker() != strikes.get(strikeIndex).getStriker()) {
                             if (strikes.get(strikeIndex).getVictim().figure.sInterlude.getProgress() != Progress.Finished) {
                                 strikes.get(strikeIndex).getVictim().figure.interlude(tpf, "dodge", false, false); //miss animation
                             } else {
@@ -544,7 +544,7 @@ public class Battle {
     }
     
     private void updateStriker(int strikeIndex, float tpf) {
-        if (strikes.get(strikeIndex).getStriker().getUnit().getToUseFormula() != null) {
+        if (strikes.get(strikeIndex).getStriker().getUnit().getEquippedFormula() != null) {
             if (strikes.get(strikeIndex).strikeIsCrit()) {
                 strikes.get(strikeIndex).getStriker().figure.update(tpf, "formulaCrit");
             } else {
@@ -1354,7 +1354,6 @@ class ShownCombatant {
         
         if (gotHit && update2 && !update1 && sInterlude.getBarProgress() == Progress.Finished) {
             sInterlude.forceEnd();
-            //System.out.println("wwwwwwwwwwww");
             prog = Progress.Finished;
             update2 = false;
             retaliating = false;

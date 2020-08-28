@@ -78,4 +78,18 @@ public class StatBundle {
         return ret;
     }
     
+    public static ArrayList<BattleStat> createBattleStats() {
+        ArrayList<BattleStat> ret = new ArrayList<>();
+        ret.addAll(Arrays.asList(
+                BattleStat.Accuracy,
+                BattleStat.AttackPower,
+                BattleStat.AttackSpeed,
+                BattleStat.Crit,
+                BattleStat.CritEvasion,
+                BattleStat.Evasion
+        ));
+        
+        return ret;
+    }
+    
 }

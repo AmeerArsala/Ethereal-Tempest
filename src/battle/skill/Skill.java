@@ -6,29 +6,28 @@
 package battle.skill;
 
 import battle.Toll;
+import fundamental.Associated;
 
 /**
  *
  * @author night
  */
-public class Skill {
-    private String name = "", desc = "", path = "Interface/GUI/skill_icons/empty.png";
-    public boolean exists = true;
+public class Skill extends Associated {
+    private String path = "Interface/GUI/skill_icons/empty.png";
     private Toll info;
     private SkillEffect effect;
     
     public Skill(String name, String desc, String path, Toll info, SkillEffect effect) {
-        this.name = name;
-        this.desc = desc;
+        super(name, desc);
         this.path = path;
         this.info = info; 
         this.effect = effect;
     }
     
-    public Skill(boolean exists) { this.exists = exists; }
-    
-    public String getName() { return name; }
-    public String getDescription() { return desc; } 
+    public Skill(boolean exists) {
+        super(exists);
+    }
+
     public String getPath() { return path; }
     
     public SkillEffect getEffect() { return effect; }
