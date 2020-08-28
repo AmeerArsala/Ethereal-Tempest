@@ -5,32 +5,46 @@
  */
 package battle.item;
 
+import battle.skill.Skill;
+import battle.talent.Talent;
+import fundamental.FreelyAssociated;
+
 /**
  *
  * @author night
  */
-public class Item {
-    protected String name = "", desc = "";
-    private boolean st = true;
+public class Item extends FreelyAssociated {
     protected int Weight;
+    protected int worth;
     
-    public Item(String name, int Weight, String desc) {
-        this.name = name;
+    public Item(String name, String desc, int Weight, int worth) {
+        super(name, desc);
         this.Weight = Weight;
-        this.desc = desc;
+        this.worth = worth;
+    }
+    
+    public Item(String name, String desc, int Weight, int worth, Skill extraSkill, Talent extraTalent) {
+        super(name, desc, extraTalent, extraSkill);
+        this.Weight = Weight;
+        this.worth = worth;
+    }
+    
+    public Item(String name, String desc, int Weight, int worth, Skill extraSkill) {
+        super(name, desc, extraSkill);
+        this.Weight = Weight;
+        this.worth = worth;
+    }
+    
+    public Item(String name, String desc, int Weight, int worth, Talent extraTalent) {
+        super(name, desc, extraTalent);
+        this.Weight = Weight;
+        this.worth = worth;
     }
     
     public Item(boolean exists) {
-        st = exists;
+        super(exists);
     }
-
-    public String getName() { return name; }
-    public String getDescription() { return desc; }
+    
     public int getWeight() { return Weight; }
-    
-    public boolean getStatus() { return st; }
-    
-    @Override
-    public String toString() { return name; }
-    
+    public int getWorth() { return worth; }
 }

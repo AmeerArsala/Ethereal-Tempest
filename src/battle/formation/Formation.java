@@ -5,25 +5,23 @@
  */
 package battle.formation;
 
-import battle.formation.FormationTechnique;
+import fundamental.Associated;
 
 /**
  *
  * @author night
  */
-public class Formation {
-    private String name = "", desc = "", imagePath = "Interface/GUI/formation_infographics/";
+public class Formation extends Associated {
+    private String imagePath = "Interface/GUI/formation_infographics/";
     private String formationType = "";
     
     public boolean isElite;
-    public boolean exists = true;
     
     private int stars;
     private FormationTechnique[] techniques;
     
     public Formation(String name, String desc, String type, boolean elite, int stars, String imageName, FormationTechnique[] techniques) {
-        this.name = name;
-        this.desc = desc;
+        super(name, desc);
         this.stars = stars;
         this.techniques = techniques;
         imagePath += imageName;
@@ -31,12 +29,15 @@ public class Formation {
         isElite = elite;
     }
     
+    public Formation(boolean ex) {
+        super(ex);
+    }
+    
     public String getFormationType() { return formationType; }
-    public int getStars() { return stars; }
-    public String getDescription() { return desc; }
     public String getPath() { return imagePath; }
     
-    public Formation(boolean ex) { exists = ex; }
+    public int getStars() { return stars; }
+    public FormationTechnique[] getTechniques() { return techniques; }
     
     public double formationCoefficient() {
         if (isElite) {

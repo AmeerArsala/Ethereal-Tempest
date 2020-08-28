@@ -29,6 +29,7 @@ import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import fundamental.DamageTool;
 import java.util.HashMap;
 import java.util.List;
 
@@ -49,7 +50,6 @@ public class TangibleUnit extends Unit {
     int prevX, prevY;
     
     private Skill inUse = null;
-    private Formula toUse = null;
     
     public String ustatus = "Healthy";
     
@@ -537,50 +537,13 @@ public class TangibleUnit extends Unit {
         inUse = S;
     }
     
-    public Formula getToUseFormula() {
+    /*public Formula getToUseFormula() {
         return toUse;
     }
     
     public void setToUseFormula(Formula F) {
         toUse = F;
-    }
-    
-    public int getSpecifiedATK() {
-        if (toUse != null) {
-            return getETHER() + toUse.getPow();
-        }
-        
-        return getATK();
-    }
-    
-    public int getSpecifiedAccuracy() {
-        if (toUse != null) {
-            return toUse.getStatus() ? (toUse.getAcc() + (((getDEX() * 4) + getCOMP()) / 2) + ClassBattleBonus().get(BattleStat.Accuracy)) : 0;
-        }
-        return getAccuracy(); 
-    } //add commander bonus
-    
-    public int getSpecifiedCrit() {
-        if (toUse != null) {
-            return toUse.getStatus() ? (toUse.getCRIT() + (getDEX() / 2) + ClassBattleBonus().get(BattleStat.Crit)) : 0;
-        }
-        return getCrit();
-    }
-    
-    public int getSpecifiedMobility() { //CHANGE THIS SO IT RESTRICTS MOVEMENT
-        return getMOBILITY();
-    }
-    
-    @Override
-    public Weapon getEquippedWeapon() { 
-        if (toUse != null) {
-            return toUse;
-        }
-        if (getInventory().getItems().get(0) instanceof Weapon) {
-            return (Weapon)getInventory().getItems().get(0);
-        }
-        return new Weapon(false); //if weapon type is equal to empty slot, unit can't attack
-    }
+    }*/
     
     public int getID() {
         return id;

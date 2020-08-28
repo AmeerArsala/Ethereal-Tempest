@@ -5,8 +5,8 @@
  */
 package battle.formula;
 
-import battle.item.Weapon;
-import battle.talent.Talent;
+import battle.Toll;
+import battle.Toll.Exchange;
 
 import com.destroflyer.jme3.effekseer.model.ParticleEffect;
 import com.destroflyer.jme3.effekseer.model.ParticleEffectSettings;
@@ -14,6 +14,8 @@ import com.destroflyer.jme3.effekseer.reader.EffekseerReader;
 import com.destroflyer.jme3.effekseer.renderer.EffekseerControl;
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
+import fundamental.DamageTool;
+import fundamental.FreelyAssociated;
 import general.visual.ParticleEffectBeta;
 import general.visual.ParticleEffectInfoBeta;
 import java.io.IOException;
@@ -25,13 +27,10 @@ import java.nio.file.Paths;
  *
  * @author night
  */
-public class Formula extends Weapon {
+public class Formula extends FreelyAssociated {
     private FormulaType formulaType;
-    private String desc = "";
-    private int hpUsage, tpUsage;
-    private Talent extraEffect = null;
-    
-    private final int worth = 0;
+    private Toll cost;
+    private DamageTool formulaData;
     
     private FormulaAnimation jsonInfo;
     private EffekseerControl control;
@@ -45,32 +44,21 @@ public class Formula extends Weapon {
         Support
     }
     
-    //                                                  type will always be a type of ether
-    public Formula(String name, String description, FormulaType FT, String type, String attr, int mt, int hit, int crt, boolean[] rng, String[] eff, int[] bonus, int requiredLevel, int hpUsage, int tpUsage) {
-        super(name, description, type, attr, mt, hit, 0, crt, rng, 300.0, eff, bonus, requiredLevel, "None", 0);
-        desc = description;
+    public Formula(FreelyAssociated template, DamageTool data, FormulaType FT, Toll usage) {
+        super(template.getName(), template.getDescription(), template.getExtraTalent(), template.getExtraSkill());
+        formulaData = data;
+        cost = usage;
         formulaType = FT;
-        
-        this.hpUsage = hpUsage;
-        this.tpUsage = tpUsage;
-        
-        jsonInfo = deserializeFromJSON();
-    }
-        
-    public Formula(String name, String description, FormulaType FT, String type, String attr, int mt, int hit, int crt, boolean[] rng, String[] eff, int[] bonus, int requiredLevel, int hpUsage, int tpUsage, Talent extraEffect) {
-        super(name, description, type, attr, mt, hit, 0, crt, rng, 300.0, eff, bonus, requiredLevel, "None", 0);
-        desc = description;
-        formulaType = FT;
-        
-        this.hpUsage = hpUsage;
-        this.tpUsage = tpUsage;
-        this.extraEffect = extraEffect;
         
         jsonInfo = deserializeFromJSON();
     }
         
     public Formula() {
         super(false);
+    }
+    
+    public Formula(boolean ex) {
+        super(ex);
     }
     
     private FormulaAnimation deserializeFromJSON() {
@@ -84,16 +72,14 @@ public class Formula extends Weapon {
             return null;
         }
     }
+    
+    public DamageTool getFormulaData() { return formulaData; }
         
-    public int getHPUsage() { return hpUsage; }
-    public int getTPUsage() { return tpUsage; }
+    public int getHPUsage() { return cost.getType() == Exchange.HP ? cost.getValue() : 0; }
+    public int getTPUsage() { return cost.getType() == Exchange.TP ? cost.getValue() : 0; }
         
     public FormulaType getFormulaPurpose() {
         return formulaType;
-    }
-    
-    public Talent getExtraEffect() {
-        return extraEffect;
     }
     
     public FormulaAnimation getInfo() {
@@ -104,17 +90,13 @@ public class Formula extends Weapon {
     public String getDescription() {
         return getStatDescription() + desc;
     }
-        
-    @Override
+    
     public String getStatDescription() {
-        String st = 
-              "Pow: " + Pow + '\n'
-            + "Acc: " + Acc +  '\n'
-            + "Crit: " + CRIT + '\n';
-        if (tpUsage > 0) {
-            st += "TP Used: " + tpUsage + '\n';
-        } else if (hpUsage > 0) {
-            st += "HP Used: " + hpUsage + '\n';
+        String st = formulaData.toString();
+        if (cost.getType() == Exchange.TP) {
+            st += "TP Used: " + cost.getValue() + '\n';
+        } else if (cost.getType() == Exchange.HP) {
+            st += "HP Used: " + cost.getValue() + '\n';
         }
         
         return st;

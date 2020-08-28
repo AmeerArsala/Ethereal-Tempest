@@ -645,7 +645,7 @@ public class StatScreen extends Node {
         EditedLabel battleStats = new EditedLabel(
                   "ATK PWR: " + tu.getATK() + "\n"
                 + "ACC: " + tu.getAccuracy() + "\n"
-                + "EVA: " + tu.getAvoid() + "\n"
+                + "EVA: " + tu.getEvasion() + "\n"
                 + "CRIT: " + tu.getCrit() + "\n"
                 + "ADRENALINE: " + tu.getADRENALINE(), qrbmpfont3);
         bstats.addChild(battleStats);
@@ -676,7 +676,7 @@ public class StatScreen extends Node {
         
         dontstretchportrait.addChild(formationPanel);
         formationPanel.setInsets(new Insets3f(15f, 5f, 0f, 0f));
-        if (tu.getFormations().get(0).exists) {
+        if (tu.getFormations().get(0).doesExist()) {
             Container equippedFormation = new Container();
             //equippedFormation.setBackground(nothing);
             ((TbtQuadBackgroundComponent)equippedFormation.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
@@ -933,7 +933,7 @@ public class StatScreen extends Node {
     
     protected void addAbilities(TangibleUnit tu, Container abilitiesPanel, ArrayList<Cosa> block2) {
         for (int i = 0; i < tu.getAbilities().size(); i++) {
-            if (!tu.getAbilities().get(i).exists) {
+            if (!tu.getAbilities().get(i).doesExist()) {
                 Label placehold = new Label("                                                                                   ");
                 placehold.setFontSize(11f - (2 * tu.getAmountExistingFormulas())); //the moment a unit gets 6 or more abilities, this will fail. Make it a scrolling view later
                 abilitiesPanel.addChild(placehold);
@@ -970,7 +970,7 @@ public class StatScreen extends Node {
     
     protected void addSkills(TangibleUnit tu, Container skillsPanel, ArrayList<Cosa> block1) {
         for (int i = 0; i < tu.getSkills().size(); i++) {
-            if (tu.getSkills().get(i).exists) {
+            if (tu.getSkills().get(i).doesExist()) {
                 TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular3.ttf", Style.Plain, (46 + i));
                 TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
                 ttf.setScale((20f / (46f + i)));
@@ -1032,7 +1032,7 @@ public class StatScreen extends Node {
     protected void addTalents(TangibleUnit tu, Container talentPanel, ArrayList<Cosa> col5) {
         for (int i = 0; i < tu.getTalents().size(); i++) {
             Container talentIcon = new Container();
-             if (tu.getTalents().get(i).exists) {
+             if (tu.getTalents().get(i).doesExist()) {
                 talentIcon.setBorder(new QuadBackgroundComponent(assetManager.loadTexture(tu.getTalents().get(i).getIconPath())));
             } else {
                 talentIcon.setBorder(new Container().getBackground());
@@ -1068,13 +1068,13 @@ public class StatScreen extends Node {
                 master.setInsets(new Insets3f(8.5f, 10, 0, 10));
             }
             
-            if (tu.getInventory().getItems().get(i).getStatus()) { col2.add(new Cosa(master, "i" + i, tu.getInventory().getItems().get(i).getDescription())); }
+            if (tu.getInventory().getItems().get(i).doesExist()) { col2.add(new Cosa(master, "i" + i, tu.getInventory().getItems().get(i).getDescription())); }
             
             itemPanel.addChild(master);
             
             if (tu.getInventory().getItems().get(i) instanceof Weapon) {
                 Panel icon = new Panel(24f, 24f);
-                icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_icons/" + ((Weapon)tu.getInventory().getItems().get(i)).getWpnType() + ".png")));
+                icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_icons/" + ((Weapon)tu.getInventory().getItems().get(i)).getWeaponData().getType() + ".png")));
                 icon.move(25 + xDisplace * -1f, 5f, 0);
                 itemName.text.getTTFNode().attachChild(icon);
                 
@@ -1106,7 +1106,7 @@ public class StatScreen extends Node {
     protected void addFormulas(TangibleUnit tu, Container formulaPanel, ArrayList<Cosa> col2) {
         for (int i = 0; i < tu.getFormulas().size(); i++) {
             
-            if (tu.getFormulas().get(i).getExistence()) {
+            if (tu.getFormulas().get(i).doesExist()) {
                 TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, (46 + i));
                 TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
                 ttf.setScale((20f / (46f + i)));
@@ -1131,7 +1131,7 @@ public class StatScreen extends Node {
                 formulaPanel.addChild(master);
             
                 Panel icon = new Panel(20f, 20f);
-                icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_icons/" + (tu.getFormulas().get(i)).getWpnType() + ".png")));
+                icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_icons/" + (tu.getFormulas().get(i)).getFormulaData().getType() + ".png")));
                 icon.move(25f + xDisplace * -1f, 0, 0);
                 formulaName.text.getTTFNode().attachChild(icon);
                 
@@ -1219,7 +1219,7 @@ public class StatScreen extends Node {
     public static List<Container> getItems(TangibleUnit tu, AssetManager ass) {
         List<Container> itms = new ArrayList<>();
         for (int i = 0; i < tu.getInventory().getItems().size(); i++) {
-            if (tu.getInventory().getItems().get(i).getStatus()) {
+            if (tu.getInventory().getItems().get(i).doesExist()) {
                 TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, (35 + i));
                 TrueTypeFont ttf = (TrueTypeBMP)ass.loadAsset(bmp);
                 ttf.setScale((20f / (35f + i)));
@@ -1240,7 +1240,7 @@ public class StatScreen extends Node {
             
                 if (tu.getInventory().getItems().get(i) instanceof Weapon) {
                     Panel icon = new Panel(24f, 24f);
-                    icon.setBackground(new QuadBackgroundComponent(ass.loadTexture("Interface/GUI/general_icons/" + ((Weapon)tu.getInventory().getItems().get(i)).getWpnType() + ".png")));
+                    icon.setBackground(new QuadBackgroundComponent(ass.loadTexture("Interface/GUI/general_icons/" + ((Weapon)tu.getInventory().getItems().get(i)).getWeaponData().getType() + ".png")));
                     icon.move(5 + xDisplace * -1f, 5f, 0);
                     itemName.text.getTTFNode().attachChild(icon);
                 
@@ -1273,7 +1273,7 @@ public class StatScreen extends Node {
     public static List<Container> getFormulas(TangibleUnit tu, AssetManager ass) {
         List<Container> itms = new ArrayList<>();
         for (int i = 0; i < tu.getFormulas().size(); i++) {
-            if (tu.getFormulas().get(i).getExistence()) {
+            if (tu.getFormulas().get(i).doesExist()) {
                 TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, (46 + i));
                 TrueTypeFont ttf = (TrueTypeBMP)ass.loadAsset(bmp);
                 ttf.setScale((20f / (46f + i)));
@@ -1292,7 +1292,7 @@ public class StatScreen extends Node {
                 master.scale(0.8f);
 
                 Panel icon = new Panel(20f, 20f);
-                icon.setBackground(new QuadBackgroundComponent(ass.loadTexture("Interface/GUI/general_icons/" + (tu.getFormulas().get(i)).getWpnType() + ".png")));
+                icon.setBackground(new QuadBackgroundComponent(ass.loadTexture("Interface/GUI/general_icons/" + (tu.getFormulas().get(i)).getFormulaData().getType() + ".png")));
                 icon.move(5f + xDisplace * -1f, 0, 0);
                 formulaName.text.getTTFNode().attachChild(icon);
                 
@@ -1323,7 +1323,7 @@ public class StatScreen extends Node {
     public static List<Container> getSkills(TangibleUnit tu, AssetManager ass) {
         List<Container> skls = new ArrayList<>();
         for (int i = 0; i < tu.getSkills().size(); i++) {
-            if (tu.getSkills().get(i).exists) {
+            if (tu.getSkills().get(i).doesExist()) {
                 TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular3.ttf", Style.Plain, (46 + i));
                 TrueTypeFont ttf = (TrueTypeBMP)ass.loadAsset(bmp);
                 ttf.setScale((20f / (46f + i)));

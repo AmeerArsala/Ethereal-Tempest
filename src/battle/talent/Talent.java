@@ -5,39 +5,37 @@
  */
 package battle.talent;
 
+import fundamental.Associated;
+
 /**
  *
  * @author night
  */
-public class Talent {
-    private String name = "", desc = "", loredesc = "";
+public class Talent extends Associated {
+    private String loredesc = "";
     private String imagePath = "";
     private TalentConcept body;
-    
-    public boolean exists = true;
     
     protected TalentConcept[] additionalEffects;
     
     public Talent(String talentname, String lore, String description, String imgPath) {
-        name = talentname;
+        super(talentname, description);
         loredesc = lore;
-        desc = description;
         imagePath = imgPath;
     }
     
     public Talent(String talentname, String lore, String description, String imgPath, TalentConcept tc) {
-        name = talentname;
+        super(talentname, description);
         loredesc = lore;
-        desc = description;
         imagePath = imgPath;
         body = tc;
     }
     
-    public Talent (boolean ex) { exists = ex; }
+    public Talent (boolean ex) {
+        super(ex);
+    }
  
-    public String getName() { return name; }
     public String getLoreDescription() { return loredesc; }
-    public String getDescription() { return desc; }
     public String getIconPath() { return imagePath; }
     
     public TalentConcept[] getAdditionalEffects() { return additionalEffects; }

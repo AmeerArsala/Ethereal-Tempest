@@ -5,7 +5,6 @@
  */
 package battle.item;
 
-import battle.item.Item;
 import java.util.List;
 
 /**
@@ -26,7 +25,7 @@ public class Inventory {
     public int getSpace(int physique) {
         int amt = items.size();
         for (Item item : items) {
-            if (item.getStatus() && physique - item.getWeight() < 0) {
+            if (item.doesExist() && physique - item.getWeight() < 0) {
                 amt--;
             }
         }
@@ -37,7 +36,7 @@ public class Inventory {
     public int getAmountOfItems() {
         int num = 0;
         for (Item item : items) {
-            if (item.getStatus()) {
+            if (item.doesExist()) {
                 num++;
             }
         }

@@ -5,25 +5,20 @@
  */
 package battle.ability;
 
+import fundamental.Associated;
+
 /**
  *
  * @author night
  */
-public class Ability {
-    private String name = "", desc = "";
-    public boolean exists = true;
+public class Ability extends Associated {
     
     public Ability(String name, String desc) {
-        this.name = name;
-        this.desc = desc;
+        super(name, desc);
     }
     
-    public Ability(boolean exi) { exists = exi; }
-    
-    public String getName() { return name; }
-    public String getDescription() { return desc; } 
-    
-    @Override
-    public String toString() { return name; }
+    public Ability(boolean exi) {
+        super(exi);
+    }
     
 }

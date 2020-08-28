@@ -157,6 +157,17 @@ public class GeneralUtils {
         return most;
     }
     
+    public static int highestInt(List<Integer> vals) {
+        int most = vals.get(0);
+        for (Integer d : vals) {
+            if (d > most) {
+                most = d;
+            }
+        }
+        
+        return most;
+    }
+    
     public static double closest(double num, List<Double> vals) {
         double closest = vals.get(0);
         for (Double d : vals) {

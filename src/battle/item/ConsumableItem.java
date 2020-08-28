@@ -10,13 +10,12 @@ package battle.item;
  * @author night
  */
 public class ConsumableItem extends Item {
-    private int worth, maxUses, currentUses;
+    private int maxUses, currentUses;
     private ItemEffect effect;
     private String iconPath = "Interface/GUI/general_icons/";
     
     public ConsumableItem(String consumableName, String description, int weight, int worth, int maxUses, ItemEffect effect, String iconPath) {
-        super(consumableName, weight, description);
-        this.worth = worth;
+        super(consumableName, description, weight, worth);
         this.maxUses = maxUses;
         this.effect = effect;
         this.iconPath += iconPath;
@@ -24,12 +23,10 @@ public class ConsumableItem extends Item {
     }
     
     public ConsumableItem(boolean exists) {
-        super(false);
+        super(exists);
     }
     
     public ItemEffect getItemEffect() { return effect; }
-    
-    public int getWorth() { return worth; }
     
     public int getCurrentUses() { return currentUses; }
     public int getMaxUses() { return maxUses; }

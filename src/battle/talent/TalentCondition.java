@@ -5,10 +5,7 @@
  */
 package battle.talent;
 
-import battle.Combatant;
 import battle.Conveyer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *

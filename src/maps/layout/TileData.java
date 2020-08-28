@@ -8,6 +8,9 @@ package maps.layout;
 import maps.layout.TangibleUnit.UnitStatus;
 import com.google.gson.annotations.SerializedName;
 import fundamental.Bonus;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -24,14 +27,16 @@ public class TileData {
     
     private TileTypeData pivotalFunction;
     private int tileWeight = 10; //10 is default tileWeight
-    private Bonus[] buffsAndOrDebuffs;
+    private List<Bonus> buffsAndOrDebuffs = new ArrayList<>(); //gson?
     
-    public TileData(TileTypeData pivotalFunction) {
+    public TileData(TileTypeData pivotalFunction, Bonus... bonuses) {
         this.pivotalFunction = pivotalFunction;
+        buffsAndOrDebuffs.addAll(Arrays.asList(bonuses));
     }
     
-    public TileData(TileType type, UnitStatus eligibleAllegiance) {
+    public TileData(TileType type, UnitStatus eligibleAllegiance, Bonus... bonuses) {
         pivotalFunction = new TileTypeData(type, eligibleAllegiance);
+        buffsAndOrDebuffs.addAll(Arrays.asList(bonuses));
     }
     
     private class TileTypeData {
@@ -50,7 +55,7 @@ public class TileData {
     public TileType getType() { return pivotalFunction.type; }
     public UnitStatus getElegibleAllegiance() { return pivotalFunction.forAllegiance; }
     
-    public Bonus[] getBonuses() { return buffsAndOrDebuffs; }
+    public List<Bonus> getBonuses() { return buffsAndOrDebuffs; }
     public int getTileWeight() { return tileWeight; } 
     /* each unit will have a hidden Resolve stat
      * there movement reduction would be MOBILITY - (tileWeight - Resolve)
