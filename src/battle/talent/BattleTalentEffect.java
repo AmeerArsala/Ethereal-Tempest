@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author night
  */
-public abstract class Differentiate {
+public abstract class BattleTalentEffect {
     protected Conveyer info;
     protected Combatant user, opponent;
     

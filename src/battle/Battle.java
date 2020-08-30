@@ -47,7 +47,7 @@ import edited.EditedLabel;
 import general.GeneralUtils;
 import general.GeneralUtils.CenterAxis;
 import general.ResetProtocol;
-import general.VisualTransition.Progress;
+import general.visual.VisualTransition.Progress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -56,7 +56,7 @@ import maps.layout.Cursor.Purpose;
 import maps.layout.TangibleUnit;
 import maps.layout.TangibleUnit.BattleRole;
 import misc.CustomAnimationSegment;
-import general.Submenu.TransitionState;
+import general.ui.Submenu.TransitionState;
 import general.visual.RadialProgressBar;
 import misc.FrameDelay;
 
@@ -1465,7 +1465,7 @@ class ShownCombatant {
         Container portraitContainer = new Container(new BoxLayout(Axis.Y, FillMode.None));
         portraitContainer.setBackground(new QuadBackgroundComponent(new ColorRGBA(1, 1, 1, 0)));
         Panel portrait = new Panel(180f, 180f);
-        portrait.setBackground(new QuadBackgroundComponent(asm.loadTexture(character.portraitString)));
+        portrait.setBackground(new QuadBackgroundComponent(asm.loadTexture("Textures/portraits/" + character.getName() + ".png")));
         //portrait.setBorder(new QuadBackgroundComponent(asm.loadTexture("Textures/gui/frame.png")));
         portraitContainer.addChild(portrait);
         portraitContainer.setInsets(new Insets3f(0, 210f, 0, 210f));
@@ -1565,7 +1565,6 @@ class ShownCombatant {
         
         lvlArrowsColumn2 = new StatArrowGroup(column1.text.getTTFNode(), 35f, asm);
         lvlArrowsColumn2.move(45f, -40f, 1);
-        //lvlArrowsColumn2.getArrow(ArrowStat.BaseADRENALINE).move(195, 0, 0);
         column2.text.getTTFNode().attachChild(lvlArrowsColumn2);
         
         MaxTpToBaseAdrenaline.addChild(column2);
@@ -1589,7 +1588,7 @@ class ShownCombatant {
             lvlArrowsColumn2.inputGrowth(leveledStats.get(arrowStat.getMatching()), arrowStat);
         });
         
-        character.levelUp(leveledStats);
+        character.levelUp(leveledStats); //apply those stats
     }
     
     public boolean updateArrows(float tpf) {
@@ -1605,7 +1604,7 @@ class ShownCombatant {
     }
     
     public void attemptUpdateTransitionToLevelUp(Node actualGuiNode, TangibleUnit unit, Vector3f moveDifference, int velocity) {
-        if (actualGuiNode.hasChild(expbar)) { //initiator leveled up
+        if (actualGuiNode.hasChild(expbar)) { //leveled up
             generateLevelUpScreen(unit);
             lvlUpPanel.move(moveDifference);
             actualGuiNode.attachChild(lvlUpPanel);

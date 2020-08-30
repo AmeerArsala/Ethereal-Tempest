@@ -29,6 +29,7 @@ public class JobClass {
     protected AttackConfig attackAnimation;
 
     private final int tier;
+    protected final int Resolve;
     
     private final HashMap<BaseStat, Integer> bonusStats;
     private final HashMap<BaseStat, Integer> maxStats;
@@ -50,6 +51,18 @@ public class JobClass {
         this.bonusStats = StatBundle.createBaseStatsFromBundles(bonusStats);
         this.battleBonus = StatBundle.createBattleStatsFromBundles(battleBonus);
         this.maxStats = StatBundle.createBaseStatsFromBundles(maxStats);
+        
+        if (MovementType().contains("armored")) {
+            Resolve = 15;
+        } else if (MovementType().contains("monster")) {
+            Resolve = 14;
+        } else if (MovementType().contains("infantry") || MovementType().contains("infantry")) {
+            Resolve = 13;
+        } else if (MovementType().contains("mechanism")) {
+            Resolve = 12;
+        } else { //cavalry
+            Resolve = 11;
+        }
     }
     
     public JobClass(String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, int tier) {
@@ -61,6 +74,18 @@ public class JobClass {
         this.bonusStats = bonusStats;
         this.battleBonus = battleBonus;
         this.maxStats = maxStats;
+        
+        if (MovementType().contains("armored")) {
+            Resolve = 15;
+        } else if (MovementType().contains("monster")) {
+            Resolve = 14;
+        } else if (MovementType().contains("infantry") || MovementType().contains("infantry")) {
+            Resolve = 13;
+        } else if (MovementType().contains("mechanism")) {
+            Resolve = 12;
+        } else { //cavalry
+            Resolve = 11;
+        }
     }
     
     public String clName() { return jobname; }
@@ -106,183 +131,10 @@ public class JobClass {
         customSkillAnimations = anims;
     }
     
+    public int getResolve() { //hidden stat
+        return Resolve;
+    }
+    
     @Override
     public String toString() { return jobname; }
-    
-    //everything below needs to be fixed
-    
-    /*public List<Texture> getAttackSheets() { return attack; }
-    public List<Texture> getAttackAndFollowupSheets() { return attack_and_followup; }
-    public List<Texture> getCriticalSheets() { return critical; }
-    public List<Texture> getFinisherSheets() { return finisher; }
-    
-    public JobClass setCombatFrames(AssetManager AM) {
-        attack = attackFrames(AM);
-        attack_and_followup = attack_and_followupFrames(AM);
-        critical = criticalFrames(AM);
-        finisher = finisherFrames(AM);
-        return this;
-    }
-    
-    public void setFramesByModeName(String mode, AssetManager AM) {
-         switch (mode) {
-            case "attack":
-                attack = attackFrames(AM);
-                break;
-            case "attack_and_followup":
-                attack_and_followup = attack_and_followupFrames(AM);
-                break;
-            case "critical":
-                critical = criticalFrames(AM);
-                break;
-            case "finisher":
-                finisher = finisherFrames(AM);
-                break;
-            default:
-                break;
-        }
-    }
-    
-    public List<Texture> getSheetsByModeName(String mode) {
-        switch (mode) {
-            case "attack":
-                return attack;
-            case "attack_and_followup":
-                return attack_and_followup;
-            case "critical":
-                return critical;
-            case "finisher":
-                return finisher;
-            default:
-                return null;
-        }
-    }*/
-    
-    /*private class Index {
-        private int val = 0;
-        
-        Index(int eger) {
-            val = eger;
-        }
-        
-        Index() {}
-        
-        int getValue() { return val; }
-        void setValue(int next) { val = next; }
-    }
-    
-    private Index atk = new Index(), followup = new Index(), crit = new Index(), fin = new Index();
-    
-    public void setNextFrameByModeName(String mode, AssetManager asm, int digits) {
-        Index i;
-        List<TexturePlus> target;
-        switch (mode) {
-            case "attack":
-                target = attack;
-                i = atk;
-                break;
-            case "attack_and_followup":
-                target = attack_and_followup;
-                i = followup;
-                break;
-            case "critical":
-                target = critical;
-                i = crit;
-                break;
-            case "finisher":
-                target = finisher;
-                i = fin;
-                break;
-            default:
-                target = null;
-                i = null;
-                break;
-        }
-        
-        int zeroes = digits - 1 - CustomAnimationSegment.getBase10(i.getValue());
-        String address = CustomAnimationSegment.amountOfNumber(0, zeroes) + i.getValue();
-        Texture tex;
-        ImpactType impactStatus = ImpactType.None;
-        try {
-            tex = asm.loadTexture("Models/Sprites/battle/" + clName() + "/" + mode + "/" + address + ".png");
-        }
-        catch (AssetNotFoundException e) {
-            try {
-                tex = asm.loadTexture("Models/Sprites/battle/" + clName() + "/" + mode + "/" + address + "ds.png");
-                impactStatus = ImpactType.All;
-            }
-            catch (AssetNotFoundException e2) {
-                tex = asm.loadTexture("Models/Sprites/battle/" + clName() + "/" + mode + "/" + address + "s.png");
-                impactStatus = ImpactType.SoundOnly;
-            }
-        }
-            
-        target.add(new TexturePlus(tex, impactStatus));
-        i.setValue(i.getValue() + 1);
-    }
-    
-    public List<Runnable[]> getLoadableTasks(AssetManager asm, int digits) {
-        return 
-                Arrays.asList(
-                    getPartialTasks("attack", asm, digits), 
-                    getPartialTasks("attack_and_followup", asm, digits),
-                    getPartialTasks("critical", asm, digits),
-                    getPartialTasks("finisher", asm, digits)
-                );
-        
-    }
-    
-    private Runnable[] getPartialTasks(String mode, AssetManager asm, int digits) {
-        Runnable[] partial = new Runnable[DirFileExplorer.FileCount(new File("assets\\Models\\Sprites\\battle\\" + clName() + "\\" + mode +"\\"), "png")];
-        for (int i = 0; i < partial.length; i++) {
-            partial[i] = new Runnable() {
-                @Override
-                public void run() {
-                    setNextFrameByModeName(mode, asm, digits);
-                }
-            };
-        }
-        return partial;
-    }*/
-    
-    /*private List<Texture> attackFrames(AssetManager asm) {
-        List<Texture> textures = new ArrayList<>();
-        
-        for (int i = 0; i < attackAnimation.getAllSheets(attackAnimation.getAttack()).size(); i++) {
-            textures.add(asm.loadTexture(attackAnimation.getAllSheets(attackAnimation.getAttack()).get(i).getSheetPath()));
-        }
-        
-        return textures;
-    }
-    
-    private List<Texture> attack_and_followupFrames(AssetManager asm) {
-        List<Texture> textures = new ArrayList<>();
-        
-        for (int i = 0; i < attackAnimation.getAllSheets(attackAnimation.getAttackAndFollowup()).size(); i++) {
-            textures.add(asm.loadTexture(attackAnimation.getAllSheets(attackAnimation.getAttackAndFollowup()).get(i).getSheetPath()));
-        }
-        
-        return textures;
-    }
-    
-    private List<Texture> criticalFrames(AssetManager asm) {
-        List<Texture> textures = new ArrayList<>();
-        
-        for (int i = 0; i < attackAnimation.getAllSheets(attackAnimation.getCritical()).size(); i++) {
-            textures.add(asm.loadTexture(attackAnimation.getAllSheets(attackAnimation.getCritical()).get(i).getSheetPath()));
-        }
-        
-        return textures;
-    }
-    
-    private List<Texture> finisherFrames(AssetManager asm) {
-        List<Texture> textures = new ArrayList<>();
-        
-        for (int i = 0; i < attackAnimation.getAllSheets(attackAnimation.getFinisher()).size(); i++) {
-            textures.add(asm.loadTexture(attackAnimation.getAllSheets(attackAnimation.getFinisher()).get(i).getSheetPath()));
-        }
-        
-        return textures;
-    }*/
-    
 }

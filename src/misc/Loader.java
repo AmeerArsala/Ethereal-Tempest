@@ -8,7 +8,7 @@ package misc;
 import com.jme3.math.ColorRGBA;
 import com.simsilica.lemur.ProgressBar;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
-import general.VisualTransition.Progress;
+import general.visual.VisualTransition.Progress;
 import java.util.ArrayList;
 import java.util.List;
 

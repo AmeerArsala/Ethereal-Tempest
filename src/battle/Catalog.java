@@ -20,15 +20,16 @@ import battle.Toll.Exchange;
 import battle.formula.Formula.FormulaType;
 import battle.skill.SkillEffect;
 import battle.talent.BattleTalent;
+import battle.talent.BattleTalentEffect;
 import battle.talent.PassiveTalent;
 import battle.talent.TalentCondition;
 import battle.talent.TalentConcept;
 import battle.talent.TalentEffect;
 import battle.talent.Talent;
-import battle.talent.Differentiate;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.Vector2f;
+import etherealtempest.DataStructure;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,10 +39,13 @@ import maps.layout.Tile;
 import misc.CustomAnimationSegment;
 import misc.FrameDelay;
 import etherealtempest.MasterFsmState;
+import etherealtempest.Request;
+import etherealtempest.Request.RequestType;
 import fundamental.Bonus;
 import fundamental.DamageTool;
 import fundamental.FreelyAssociated;
 import fundamental.StatBundle;
+import general.visual.VisualTransition;
 import java.util.HashMap;
 import maps.layout.Coords;
 /**
@@ -155,7 +159,7 @@ public class Catalog {
               new DamageTool(
                       8,  //pow
                       95, //acc
-                      15, //crit 
+                      75, //crit 
                       Arrays.asList(1), //range
                       Arrays.asList( //bonuses when equipped
                               new Bonus(1, BaseStat.ether),
@@ -440,8 +444,8 @@ public class Catalog {
             )
     };
     
-    public static Differentiate[] BattleTalentEffectCatalog() {
-        Differentiate[] D = 
+    public static BattleTalentEffect[] BattleTalentEffectCatalog() {
+        BattleTalentEffect[] D = 
         {
             
         };
@@ -644,22 +648,64 @@ public class Catalog {
             }
                               
             @Override
-            public void useTechnique(TangibleUnit user, Object[] entitiesInvolved) {
-                if (entitiesInvolved.length == 1 && entitiesInvolved[0] instanceof TangibleUnit) {
-                    int xDirection = user.getPosX() - ((TangibleUnit)entitiesInvolved[0]).getPosX();
-                    int yDirection = user.getPosY() - ((TangibleUnit)entitiesInvolved[0]).getPosY();
+            public void useTechnique(Conveyer data) {
+                TangibleUnit user = data.getUnit(), target = data.getOtherUnit();
+                
+                int xDirection = user.getPosX() - target.getPosX();
+                int yDirection = user.getPosY() - target.getPosY();
                     
-                    int allyPosX = ((TangibleUnit)entitiesInvolved[0]).getPosX(), allyPosY = ((TangibleUnit)entitiesInvolved[0]).getPosY();
-                    
-                    user.remapPositions(user.getPosX() + xDirection, user.getPosY() + yDirection, user.getElevation(), MasterFsmState.getCurrentMap());
-                    ((TangibleUnit)entitiesInvolved[0]).remapPositions(allyPosX + xDirection, allyPosY + yDirection, ((TangibleUnit)entitiesInvolved[0]).getElevation(), MasterFsmState.getCurrentMap());
-                }
+                int allyPosX = target.getPosX(), allyPosY = target.getPosY();
+                
+                user.getRequestDealer().getRequests().add(
+                    new Request(RequestType.Ordinal, 5, false) {
+                        private float xDistance = 0, yDistance = 0;
+                        
+                        @Override
+                        protected boolean update(DataStructure data, float tpf) {
+                            Conveyer conv = (Conveyer)data;
+                            conv.getUnit().getGeometry().move(yDirection / 5f, 0, xDirection / 5f);
+                            xDistance += xDirection / 5f;
+                            yDistance += yDirection / 5f;
+                            
+                            return xDistance == xDirection && yDistance == yDirection;
+                        }
+
+                        @Override
+                        protected void onFinish(DataStructure data) {
+                            TangibleUnit user = ((Conveyer)data).getUnit();
+                            user.remapPositions(user.getPosX() + xDirection, user.getPosY() + yDirection, user.getElevation(), MasterFsmState.getCurrentMap());
+                        }
+                    }
+                );
+                
+                target.getRequestDealer().getRequests().add(
+                    new Request(RequestType.Ordinal, 5, false) {
+                        private float xDistance = 0, yDistance = 0;
+                        
+                        @Override
+                        protected boolean update(DataStructure data, float tpf) {
+                            Conveyer conv = (Conveyer)data;
+                            conv.getOtherUnit().getGeometry().move(yDirection / 5f, 0, xDirection / 5f);
+                            xDistance += xDirection / 5f;
+                            yDistance += yDirection / 5f;
+                            
+                            return xDistance == xDirection && yDistance == yDirection;
+                        }
+
+                        @Override
+                        protected void onFinish(DataStructure data) {
+                            TangibleUnit target = ((Conveyer)data).getOtherUnit();
+                            target.remapPositions(allyPosX + xDirection, allyPosY + yDirection, target.getElevation(), MasterFsmState.getCurrentMap());
+                        }
+                    }
+                );
             }
             
             @Override
-            public boolean getCondition(TangibleUnit user) {
-                 boolean test = false;
-                 //Tile[] possibilities = {currentMap.fullmap[user.getElevation()][user.getPosX() + ][user.getPosY()]};
+            public boolean getCondition(Conveyer data) {
+                 TangibleUnit user = data.getUnit(), target = data.getOtherUnit();
+                 if (!user.isAlliedWith(target)) { return false; }
+                 
                  for (int i = 0; i < 2; i++) {
                      Tile possibilityX = MasterFsmState.getCurrentMap().fullmap[user.getElevation()][user.getPosX() + ((int)Math.cos(Math.PI * i))][user.getPosY()];
                      Tile possibilityY = MasterFsmState.getCurrentMap().fullmap[user.getElevation()][user.getPosX()][user.getPosY() + ((int)Math.cos(Math.PI * i))];
@@ -779,13 +825,5 @@ public class Catalog {
         }
         return search[0];
     }
-    
-    public static void initializeCatalogImages(AssetManager assetManager) {
-        //UnitCatalog[0].initializeFrames(assetManager);
-        //UnitCatalog[1].initializeFrames(assetManager);
-        UnitCatalog[0].portraitString = "Textures/gui/morvasquare.png";
-        UnitCatalog[1].portraitString = "Textures/gui/r.png";
-    }
-    
 }
 

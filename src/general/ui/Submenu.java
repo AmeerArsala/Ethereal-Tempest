@@ -3,8 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general;
+package general.ui;
 
+import general.visual.Transition;
+import general.visual.VisualTransition;
 import battle.Conveyer;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
@@ -13,9 +15,10 @@ import com.simsilica.lemur.Container;
 import com.simsilica.lemur.component.BoxLayout;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
-import general.Submenu.TransitionState;
-import general.Submenu.TransitionType;
-import general.VisualTransition.Progress;
+import general.ResetProtocol;
+import general.ui.Submenu.TransitionState;
+import general.ui.Submenu.TransitionType;
+import general.visual.VisualTransition.Progress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

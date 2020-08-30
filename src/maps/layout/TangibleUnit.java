@@ -7,13 +7,16 @@ package maps.layout;
 
 import battle.Combatant;
 import battle.Combatant.BattleStat;
+import battle.Conveyer;
 import battle.ability.Ability;
 import battle.formation.Formation;
 import battle.skill.Skill;
 import battle.Unit;
 import battle.formula.Formula;
 import battle.item.Weapon;
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -23,13 +26,22 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
+import etherealtempest.DataStructure;
 import java.util.ArrayList;
 import misc.DirFileExplorer;
 import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import etherealtempest.Request;
+import etherealtempest.RequestDealer;
+import etherealtempest.Requestable;
 import fundamental.DamageTool;
+import general.Spritesheet;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 
@@ -40,20 +52,18 @@ import java.util.List;
 public class TangibleUnit extends Unit {
     //forest tileWeight = 15
     //private final int INFANTRY_RESOLVE = 13, CAVALRY_RESOLVE = 11, ARMORED_RESOLVE = 15, MONSTER_RESOLVE = 14, MORPH_RESOLVE = 13, MECHANISM_RESOLVE = 12;
-    public int Resolve = 0;
     public int animVar = 0;
     public int currentParryCooldown;
     
-    private int saveMaxParryCooldown;
+    private int saveMaxParryCooldown; //max parry cd
     private int posX, posY, elevation;
     
     int prevX, prevY;
     
     private Skill inUse = null;
     
-    public String ustatus = "Healthy";
-    
-    public UnitStatus unitStatus;
+    public String ustatus = "Healthy"; //status ailments, etc.
+    public UnitStatus unitStatus; //allegiance
     
     public enum UnitStatus {
         @SerializedName("Player") Player(0),
@@ -120,9 +130,12 @@ public class TangibleUnit extends Unit {
     
     private Path pathway = null;
     
-    private final String filepath, fpath2;
-    private final String[] silence, load;
-    public DirFileExplorer[] dfes;
+    private String filepath, fpath2;
+    private String[] silence, load;
+    private DirFileExplorer[] dfes;
+    
+    private Spritesheet spritesheetInfo = null;
+    private AnimationState animState = AnimationState.Idle;
     
     protected Material defMat;
     
@@ -130,14 +143,39 @@ public class TangibleUnit extends Unit {
     public boolean isSelected = false;
     public boolean hasStashAccess = false;
     public boolean parryDecider = true;
+    public boolean isLeader = false;
     
     private static int IDgen = 0;
     
     private final int id;
+    private final RequestDealer requestDealer = new RequestDealer();
+    
+    private final DeclarationType dType; //temporary
     
     public enum BattleRole {
         Initiator,
         Receiver
+    }
+    
+    enum AnimationState {
+        MovingDown(0),
+        MovingRight(1),
+        MovingLeft(2),
+        MovingUp(3),
+        Idle(4),
+        Idle2(5);
+        
+        final int row;
+        private AnimationState(int r) {
+            row = r;
+        }
+        
+        public int getValue() { return row; }
+    }
+    
+    private enum DeclarationType {
+        Frames,
+        Spritesheet
     }
     
     private final FSM fsm = new FSM(){
@@ -175,12 +213,13 @@ public class TangibleUnit extends Unit {
         };
         
         fsm.setNewStateIfAllowed(new FsmState(EntityState.Active));
-        
-        setResolve();
+
         stabilize();
         
         id = IDgen;
         IDgen++;
+        
+        dType = DeclarationType.Frames;
     }
     
     public TangibleUnit(Unit X) {
@@ -191,8 +230,6 @@ public class TangibleUnit extends Unit {
        
         silence = new String[]{filepath + "idle", filepath + "up", filepath + "left", filepath + "right", filepath + "down"};
         load = new String[]{fpath2 + "idle/", fpath2 + "up/", fpath2 + "left/", fpath2 + "right/", fpath2 + "down/"};
-        
-        portraitString = X.portraitString;
         
         dfes = new DirFileExplorer[]
         {
@@ -205,11 +242,12 @@ public class TangibleUnit extends Unit {
         
         fsm.setNewStateIfAllowed(new FsmState(EntityState.Active));
         
-        setResolve();
         stabilize();
         
         id = IDgen;
         IDgen++;
+        
+        dType = DeclarationType.Frames;
     }
     
     public TangibleUnit(Unit X, Material defaultMat) {
@@ -220,8 +258,6 @@ public class TangibleUnit extends Unit {
         
         silence = new String[]{filepath + "idle", filepath + "up", filepath + "left", filepath + "right", filepath + "down"};
         load = new String[]{fpath2 + "idle/", fpath2 + "up/", fpath2 + "left/", fpath2 + "right/", fpath2 + "down/"};
-        
-        portraitString = X.portraitString;
         
         defMat = defaultMat;
         geo.setMaterial(defMat);
@@ -237,12 +273,46 @@ public class TangibleUnit extends Unit {
         
         fsm.setNewStateIfAllowed(new FsmState(EntityState.Active));
         
-        setResolve();
         stabilize();
         
         id = IDgen;
         IDgen++;
+        
+        dType = DeclarationType.Frames;
     }
+    
+    public TangibleUnit(Unit X, AssetManager assetManager) { //hasExtraIdleAnimation = hasSixthRow
+        super(X.getName(), X, X.getStats(), X.getGrowthRates(), X.getInventory().getItems(), X.getFormulas(), X.getTalents(), X.getAbilities(), X.getSkills(), X.getFormations(), X.getIsBoss());
+        
+        spritesheetInfo = deserializeFromJSON();
+        
+        q = new Quad(25f, 25f);
+        geo = new Geometry("character", q);
+        
+        defMat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
+        defMat.setTexture("ColorMap", assetManager.loadTexture("Models/Sprites/map/" + name + "/" + spritesheetInfo.getSheetName()));
+        defMat.setFloat("SizeX", spritesheetInfo.getColumns());
+        defMat.setFloat("SizeY", spritesheetInfo.getRows());
+        defMat.setFloat("Position", 0f);
+        defMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        geo.setQueueBucket(RenderQueue.Bucket.Transparent);
+        geo.setMaterial(defMat);
+        
+        stabilize();
+        
+        id = IDgen;
+        IDgen++;
+        
+        fsm.setNewStateIfAllowed(new FsmState(EntityState.Active));
+        
+        dType = DeclarationType.Spritesheet;
+    }
+    
+    public void setStateIfAllowed(FsmState state) {
+        fsm.setNewStateIfAllowed(state);
+    }
+    
+    public FSM getFSM() { return fsm; }
     
     private void stabilize() {
         Quaternion rotation = new Quaternion();
@@ -251,134 +321,23 @@ public class TangibleUnit extends Unit {
         geo.setLocalRotation(rotation);
     }
     
-    public void setPos(int x, int y, int layer, Map map) {
+    private void setPos(int x, int y, int layer, Map map) {
         posX = x;
         posY = y;
         elevation = layer;
         
         geo.setLocalTranslation(map.fullmap[layer][x][y].getGeometry().getWorldTranslation());
-        //geo.setLocalTranslation(geo.getLocalTranslation().x - 4f, map.fullmap[layer][x][y].tile.getWorldTranslation().y + 209f, geo.getLocalTranslation().z - 1f);
-        geo.setLocalTranslation(geo.getLocalTranslation().x - 4, map.fullmap[layer][x][y].getHighestPointHeight() + 1, geo.getLocalTranslation().z - 1);
+        geo.setLocalTranslation(geo.getLocalTranslation().x - 6.25f, map.fullmap[layer][x][y].getHighestPointHeight() + 1, geo.getLocalTranslation().z - 3f);
     }
     
-    private void rewritePos(Map map, int layer) {
-        for (int x = 0; x < map.fullmap[layer].length; x++) {
-            for (int y = 0; y < map.fullmap[layer][x].length; y++) {
-                float difX = FastMath.abs(map.fullmap[layer][x][y].getWorldTranslation().z - geo.getWorldTranslation().z), 
-                      difY = FastMath.abs(map.fullmap[layer][x][y].getWorldTranslation().x - geo.getWorldTranslation().x);
-                if (difX == 0 && difY == 0) {
-                    posX = x;
-                    posY = y;
-                }
-            }
-        }
+    public void remapPositions(int x, int y, int layer, Map map) {
+        setPos(x, y, layer, map);
+        map.fullmap[layer][x][y].isOccupied = true;
+        map.fullmap[layer][x][y].setOccupier(this);
     }
     
     public Quad getQuad() { return q; }
     public Geometry getGeometry() { return geo; }
-    
-    public String animationOnFrameUpdate(int x, double f) { //x: 0 = idle, 1 = up, 2 = left, 3 = right, 4 = down
-        double coefficient = (dfes[x].getFileCount("png") / 2.0);
-        int index = (int) ((-1 * coefficient * Math.cos(f)) + coefficient);
-        return load[x] + index + ".png";
-    } //DO NOT USE THIS ONE
-    
-    public String animationOnFrameUpdate(int x, int index) { //x: 0 = idle, 1 = up, 2 = left, 3 = right, 4 = down
-        return load[x] + index + ".png";
-    }
-    
-    public void updateTexture(Texture t) {
-        geo.getMaterial().setTexture("ColorMap", t);
-    }
-    
-    private void setResolve() {
-        if (MovementType().equals("infantry") || MovementType().equals("morph")) {
-            Resolve = 13;
-        } else if (MovementType().equals("cavalry")) {
-            Resolve = 11;
-        } else if (MovementType().equals("armored")) {
-            Resolve = 15;
-        } else if (MovementType().equals("monster")) {
-            Resolve = 14;
-        } else if (MovementType().equals("mechanism")) {
-            Resolve = 12;
-        }
-    }
-    
-    public int getPosX() { return posX; }
-    public int getPosY() { return posY; }
-    public int getElevation() { return elevation; }
-    
-    float totalDistanceX = 0, totalDistanceY = 0;
-    
-    public void moveTo(int stposX, int stposY, int destinationX, int destinationY, int layer, Map map, float distanceperframe, float accumulatedDistance, float prevaccumulatedDistance) { //distanceperframe must be a power of 2 and <= 16
-        //System.out.println("posX: " + posX + ", posY: " + posY);
-        if (destinationX == posX && destinationY == posY) {
-            animVar = 0;
-            totalDistanceX = 0;
-            totalDistanceY = 0;
-        } else {
-            int i = (int)(accumulatedDistance / 16f);
-            List<Tile> path = pathway.getPath();
-            
-            if (i > 0) {
-                //horizontal
-                if (path.get(i).getPosX() - path.get(i - 1).getPosX() < 0) {
-                    //left
-                    geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
-                    animVar = 2;
-                    totalDistanceX -= distanceperframe;
-                } else if (path.get(i).getPosX() - path.get(i - 1).getPosX() > 0) {
-                    //right
-                    geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
-                    animVar = 3;
-                    totalDistanceX += distanceperframe;
-                } else {
-                    //vertical
-                    if (path.get(i).getPosY() - path.get(i - 1).getPosY() > 0) {
-                        //up
-                        geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                        animVar = 1;
-                        totalDistanceY += distanceperframe;
-                    } else if (path.get(i).getPosY() - path.get(i - 1).getPosY() < 0) {
-                        //down
-                        geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                        animVar = 4;
-                        totalDistanceY -= distanceperframe;
-                    }
-                }
-                geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
-                return;
-            }
-            //horizontal
-            if (path.get(i).getPosX() - stposX < 0) {
-                //left
-                geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
-                animVar = 2;
-                totalDistanceX -= distanceperframe;
-            } else if (path.get(i).getPosX() - stposX > 0) {
-                //right
-                geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
-                animVar = 3;
-                totalDistanceX += distanceperframe;
-            } else {
-                //vertical
-                if (path.get(i).getPosY() - stposY > 0) {
-                    //up
-                    geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                    animVar = 1;
-                    totalDistanceY += distanceperframe;
-                } else if (path.get(i).getPosY() - stposY < 0) {
-                    //down
-                    geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                    animVar = 4;
-                    totalDistanceY -= distanceperframe;
-                }
-            }
-            geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
-            //rewritePos(map, layer);
-        }
-    }
     
     public boolean willParryAgainst(TangibleUnit enemy) {
         return currentParryCooldown == 0 && parryDecider;
@@ -405,23 +364,92 @@ public class TangibleUnit extends Unit {
     
     public int maxParryCooldown(ArrayList<TangibleUnit> allUnits) { return ((int)(getEnemyAmount(allUnits) / (0.5 * getCOMP()))); }
     
-    public void remapPositions(int x, int y, int layer, Map map) {
-        setPos(x, y, layer, map);
-        map.fullmap[layer][x][y].isOccupied = true;
-        map.fullmap[layer][x][y].setOccupier(this);
+    public int getPosX() { return posX; }
+    public int getPosY() { return posY; }
+    public int getElevation() { return elevation; }
+    
+    private float totalDistanceX = 0, totalDistanceY = 0;
+    
+    public void moveTo(int stposX, int stposY, int destinationX, int destinationY, int layer, Map map, float distanceperframe, float accumulatedDistance, float prevaccumulatedDistance) { //distanceperframe must be a power of 2 and <= 16
+        //System.out.println("posX: " + posX + ", posY: " + posY);
+        if (destinationX == posX && destinationY == posY) {
+            animVar = 0;
+            animState = AnimationState.Idle2;
+            totalDistanceX = 0;
+            totalDistanceY = 0;
+        } else {
+            int i = (int)(accumulatedDistance / 16f);
+            List<Tile> path = pathway.getPath();
+            
+            if (i > 0) {
+                //horizontal
+                if (path.get(i).getPosX() - path.get(i - 1).getPosX() < 0) {
+                    //left
+                    geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
+                    animVar = 2;
+                    animState = AnimationState.MovingLeft;
+                    totalDistanceX -= distanceperframe;
+                } else if (path.get(i).getPosX() - path.get(i - 1).getPosX() > 0) {
+                    //right
+                    geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
+                    animVar = 3;
+                    animState = AnimationState.MovingRight;
+                    totalDistanceX += distanceperframe;
+                } else {
+                    //vertical
+                    if (path.get(i).getPosY() - path.get(i - 1).getPosY() > 0) {
+                        //up
+                        geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
+                        animVar = 1;
+                        animState = AnimationState.MovingUp;
+                        totalDistanceY += distanceperframe;
+                    } else if (path.get(i).getPosY() - path.get(i - 1).getPosY() < 0) {
+                        //down
+                        geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
+                        animVar = 4;
+                        animState = AnimationState.MovingDown;
+                        totalDistanceY -= distanceperframe;
+                    }
+                }
+                geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
+                return;
+            }
+            //horizontal
+            if (path.get(i).getPosX() - stposX < 0) {
+                //left
+                geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
+                animVar = 2;
+                animState = AnimationState.MovingLeft;
+                totalDistanceX -= distanceperframe;
+            } else if (path.get(i).getPosX() - stposX > 0) {
+                //right
+                geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
+                animVar = 3;
+                animState = AnimationState.MovingRight;
+                totalDistanceX += distanceperframe;
+            } else {
+                //vertical
+                if (path.get(i).getPosY() - stposY > 0) {
+                    //up
+                    geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
+                    animVar = 1;
+                    animState = AnimationState.MovingUp;
+                    totalDistanceY += distanceperframe;
+                } else if (path.get(i).getPosY() - stposY < 0) {
+                    //down
+                    geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
+                    animVar = 4;
+                    animState = AnimationState.MovingDown;
+                    totalDistanceY -= distanceperframe;
+                }
+            }
+            geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
+            //rewritePos(map, layer);
+        }
     }
     
-    
-    
-    public void setStateIfAllowed(FsmState state) {
-        fsm.setNewStateIfAllowed(state);
-    }
-    
-    public FSM getFSM() { return fsm; }
-    
-    float accumulatedTime = 0, accumulatedMovTime = 0, previoustpf;
-    int movLength = -1, pstartX = 0, pstartY = 0, frameCount = 0;
-    
+    private float accumulatedTime = 0, accumulatedMovTime = 0, previoustpf;
+    private int movLength = -1, pstartX = 0, pstartY = 0, frameCount = 0;
     
     public void updateAI(float tpf, FSM mapFSM) {
         
@@ -429,11 +457,7 @@ public class TangibleUnit extends Unit {
                 case Moving:
                 {
                     
-                    //animate sprite
-                    int frameIndex = ((int)(frameCount * 0.1) + dfes[animVar].getFileCount("png")) % dfes[animVar].getFileCount("png");
-                    updateTexture(((MasterFsmState)mapFSM.getState()).getAssetManager().loadTexture(animationOnFrameUpdate(animVar, (int)(frameIndex))));
-                    getGeometry().getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-                    getGeometry().setQueueBucket(RenderQueue.Bucket.Transparent);
+                    updateAnimation(((MasterFsmState)mapFSM.getState()));
                     
                     float dpf = 160 * tpf; //160 distance per second; THE COEFFICIENT MUST BE A MULTIPLE OF 40
                     float accumulatedDistance = (accumulatedMovTime * 160);
@@ -464,12 +488,13 @@ public class TangibleUnit extends Unit {
                 }
                 
                 case Active:
-                {
-                    //animate sprite
-                    int frameIndex = ((int)(frameCount * 0.1) + dfes[animVar].getFileCount("png")) % dfes[animVar].getFileCount("png");
-                    updateTexture(((MasterFsmState)mapFSM.getState()).getAssetManager().loadTexture(animationOnFrameUpdate(animVar, (int)(frameIndex))));
-                    getGeometry().getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-                    getGeometry().setQueueBucket(RenderQueue.Bucket.Transparent);
+                {   
+                    if (isSelected && dType == DeclarationType.Spritesheet && hasExtraIdle()) {
+                        animState = AnimationState.Idle2;
+                    } else if (animState == AnimationState.Idle2) {
+                        animState = AnimationState.Idle;
+                    }
+                    updateAnimation(((MasterFsmState)mapFSM.getState()));
                     break;
                 }
                 
@@ -493,21 +518,13 @@ public class TangibleUnit extends Unit {
                 
                 case SelectingTarget:
                 {
-                    //animate sprite
-                    int frameIndex = ((int)(frameCount * 0.1) + dfes[animVar].getFileCount("png")) % dfes[animVar].getFileCount("png");
-                    updateTexture(((MasterFsmState)mapFSM.getState()).getAssetManager().loadTexture(animationOnFrameUpdate(animVar, (int)(frameIndex))));
-                    getGeometry().getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-                    getGeometry().setQueueBucket(RenderQueue.Bucket.Transparent);
+                    updateAnimation(((MasterFsmState)mapFSM.getState()));
                     break;
                 }
                 
                 case Idle:
                 {
-                    //animate sprite
-                    int frameIndex = ((int)(frameCount * 0.1) + dfes[animVar].getFileCount("png")) % dfes[animVar].getFileCount("png");
-                    updateTexture(((MasterFsmState)mapFSM.getState()).getAssetManager().loadTexture(animationOnFrameUpdate(animVar, (int)(frameIndex))));
-                    getGeometry().getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-                    getGeometry().setQueueBucket(RenderQueue.Bucket.Transparent);
+                    updateAnimation(((MasterFsmState)mapFSM.getState()));
                     break;
                 }
                 
@@ -529,6 +546,51 @@ public class TangibleUnit extends Unit {
         accumulatedTime += tpf;
     }
     
+    public String animationOnFrameUpdate(int x, double f) { //x: 0 = idle, 1 = up, 2 = left, 3 = right, 4 = down
+        double coefficient = (dfes[x].getFileCount("png") / 2.0);
+        int index = (int) ((-1 * coefficient * Math.cos(f)) + coefficient);
+        return load[x] + index + ".png";
+    } //DO NOT USE THIS ONE
+    public String animationOnFrameUpdate(int x, int index) { //x: 0 = idle, 1 = up, 2 = left, 3 = right, 4 = down
+        return load[x] + index + ".png";
+    }
+    
+    void setAnimationState(AnimationState state) {
+        animState = state;
+    }
+    
+    boolean hasExtraIdle() {
+        return spritesheetInfo != null && spritesheetInfo.getRows() > 5;
+    }
+    
+    private Spritesheet deserializeFromJSON() {
+        try {
+            Gson gson = new Gson();
+            Reader reader = Files.newBufferedReader(Paths.get("assets\\Models\\Sprites\\map\\" + name + "\\info.json"));
+            return gson.fromJson(reader, Spritesheet.class);
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+    
+    private void updateAnimation(MasterFsmState mapState) {
+        if (dType == DeclarationType.Spritesheet) {
+            defMat.setFloat("Position", calculateSpritesheetPosition());
+        } else {
+            //animate sprite
+            int frameIndex = ((int)(frameCount * 0.1) + dfes[animVar].getFileCount("png")) % dfes[animVar].getFileCount("png");
+            geo.getMaterial().setTexture("ColorMap", mapState.getAssetManager().loadTexture(animationOnFrameUpdate(animVar, (int)(frameIndex))));
+            geo.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+            geo.setQueueBucket(RenderQueue.Bucket.Transparent);
+        }
+    }
+    
+    private int calculateSpritesheetPosition() { //value is row
+        return ((animState.getValue() * spritesheetInfo.getColumns()) + (((int)(frameCount * 0.1)) % spritesheetInfo.getColumns()));
+    }
+    
     public Skill getToUseSkill() {
         return inUse;
     }
@@ -537,13 +599,35 @@ public class TangibleUnit extends Unit {
         inUse = S;
     }
     
-    /*public Formula getToUseFormula() {
-        return toUse;
+    public boolean isAlliedWith(TangibleUnit other) {
+        return unitStatus == other.unitStatus || (unitStatus == UnitStatus.Player && other.unitStatus == UnitStatus.Ally) || ((unitStatus == UnitStatus.Ally && other.unitStatus == UnitStatus.Player));
     }
     
-    public void setToUseFormula(Formula F) {
-        toUse = F;
-    }*/
+    public boolean isAlliedWith(UnitStatus allegiance) {
+        return unitStatus == allegiance || (unitStatus == UnitStatus.Player && allegiance == UnitStatus.Ally);
+    }
+    
+    public int getMobility() { //CHANGE THIS SO IT RESTRICTS MOVEMENT
+        return getMOBILITY();
+    }
+    
+    public RequestDealer getRequestDealer() {
+        return requestDealer;
+    }
+    
+    public boolean hasStashAccess() {
+        if (hasStashAccess || isLeader) { return true; }
+        
+        for (int i = 0; i < 2; i++) {
+            Tile possibilityX = MasterFsmState.getCurrentMap().fullmap[elevation][posX + ((int)Math.cos(Math.PI * i))][posY];
+            Tile possibilityY = MasterFsmState.getCurrentMap().fullmap[elevation][posX][posY + ((int)Math.cos(Math.PI * i))];
+            if ((possibilityX.getOccupier() != null && isAlliedWith(possibilityX.getOccupier()) && possibilityX.getOccupier().isLeader) || (possibilityY.getOccupier() != null && isAlliedWith(possibilityY.getOccupier()) && possibilityY.getOccupier().isLeader)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
     
     public int getID() {
         return id;

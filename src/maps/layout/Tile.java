@@ -26,6 +26,8 @@ import general.GeneralUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.TileData.TileType;
 
 /**
  *
@@ -35,11 +37,10 @@ public class Tile {
     private final float radiusForSquare = 8f;
     private final int pX, pY, elevation;
     
-    //private float rotX, rotY, rotZ;
-    
     private float[] heights = null;
     
     private TileData info;
+    private boolean gottenAnnexed = false;
     
     private String name;
     private Geometry tgeometry;
@@ -72,10 +73,45 @@ public class Tile {
         pY = posy;
     }
     
+    public String getName() { return name; }
+    public int getPosX() { return pX; }
+    public int getPosY() { return pY; }
+    public int getElevation() { return elevation; }
+    
     public Geometry getGeometry() { return tgeometry; }
     
+    public TileData getTileData() {
+        return info;
+    }
+    
+    public void setTileData(TileData TD) {
+        info = TD;
+    }
+    
+    public boolean hasBeenAnnexed() {
+        if (info != null) {
+            return info.getType() == TileType.Annex ? gottenAnnexed : true;
+        }
+        
+        return true;
+    }
+    
+    public boolean hasBeenAnnexedBy(UnitStatus allegiance) {
+        return hasBeenAnnexed() && info.getElegibleAllegiance() == allegiance;
+    }
+    
+    public boolean hasBeenAnnexedByEnemy() {
+        return hasBeenAnnexed() && info.getElegibleAllegiance() != UnitStatus.Player && info.getElegibleAllegiance() != UnitStatus.Ally; 
+    }
+    
+    public void annex() {
+        if (info.getType() == TileType.Annex) {
+            //do some visual stuff
+            gottenAnnexed = true;
+        }
+    }
+    
     public Vector3f getWorldTranslation() {
-        //tile.getWorldTranslation()
         return tgeometry.getWorldTranslation();
     }
     
@@ -438,23 +474,6 @@ public class Tile {
         }
     }
     
-    public void setMaterial(Material mat) {
-        patchMaterial = mat;
-        tgeometry.setMaterial(patchMaterial);
-        //tile.setMaterial(patchMaterial);
-    }
-    
-    public Material getPatchMaterial() { return patchMaterial; }
-    public Mesh getTileMesh() { return patchMesh; }
-    
-    public TangibleUnit getOccupier() { return occupier; }
-    public void setOccupier(TangibleUnit u) { occupier = u; }
-    
-    public void resetOccupier() {
-        occupier = null;
-        isOccupied = false;
-    }
-    
     public float getHighestPointHeight() {
         float highest = 0;
         
@@ -476,8 +495,20 @@ public class Tile {
         return highest;
     }
     
-    public String getName() { return name; }
-    public int getPosX() { return pX; }
-    public int getPosY() { return pY; }
-    public int getElevation() { return elevation; }
+    public void setMaterial(Material mat) {
+        patchMaterial = mat;
+        tgeometry.setMaterial(patchMaterial);
+        //tile.setMaterial(patchMaterial);
+    }
+    
+    public Material getPatchMaterial() { return patchMaterial; }
+    public Mesh getTileMesh() { return patchMesh; }
+    
+    public TangibleUnit getOccupier() { return occupier; }
+    public void setOccupier(TangibleUnit u) { occupier = u; }
+    
+    public void resetOccupier() {
+        occupier = null;
+        isOccupied = false;
+    }
 }

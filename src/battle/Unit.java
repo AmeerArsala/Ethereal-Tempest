@@ -18,6 +18,7 @@ import battle.talent.PassiveTalent;
 import battle.talent.Talent;
 import fundamental.Bonus;
 import fundamental.DamageTool;
+import fundamental.FreelyAssociated;
 import fundamental.StatBundle;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -268,10 +269,6 @@ public class Unit extends JobClass {
     
     public int getAS() { return getAGI() + ClassBattleBonus().get(BattleStat.AttackSpeed) + getTotalBonus(BattleStat.AttackSpeed); } //FIX LATER
     
-    public int getMobility() { //CHANGE THIS SO IT RESTRICTS MOVEMENT
-        return getMOBILITY();
-    }
-    
     public void equip(Weapon W) {
         equippedWeapon = W;
         equippedFormula = null;
@@ -387,8 +384,6 @@ public class Unit extends JobClass {
     
     @Override
     public String toString() { return name; }
-    
-    public String portraitString = "";
     
     public int getAmountExistingFormulas() {
         int count = 0;

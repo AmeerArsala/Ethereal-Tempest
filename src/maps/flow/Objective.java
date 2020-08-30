@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import maps.layout.TangibleUnit;
 
 /**
  *
@@ -64,13 +62,13 @@ public class Objective {
         return turnLimit - currentTurn + 1;
     }
     
-    /*public boolean isMet(Conveyer conv) { //TODO: TAKE INTO ACCOUNT THE OBJECTIVEDATA AND MAKE A DECISION ABOUT IT
-        ArrayList<TangibleUnit> allUnits = conv.getAllUnits();
+    public boolean isMet(Conveyer conv) { //TODO: TAKE INTO ACCOUNT THE OBJECTIVEDATA AND MAKE A DECISION ABOUT IT
+        return criteria.victoryConditionsMet(conv);
     }
     
     public boolean hasFailed(Conveyer conv) {
-    
-    }*/
+        return criteria.lossConditionsMet(conv);
+    }
     
     public static ObjectiveData Marry(ObjectiveData first, ObjectiveData other) {
         return first.marry(other);

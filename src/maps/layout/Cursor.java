@@ -23,6 +23,8 @@ import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import maps.layout.TangibleUnit.AnimationState;
+import maps.layout.TangibleUnit.UnitStatus;
 
 /**
  *
@@ -450,6 +452,7 @@ public class Cursor {
         resetCursorPositionFromSelection();
         selectedUnit.remapPositions(pX, pY, elv, M);
         selectedUnit.animVar = 0;
+        selectedUnit.setAnimationState(AnimationState.Idle);
         rangeDisplay.cancelRange(elv);
         M.fullmap[elv][selectedUnit.getPosX()][selectedUnit.getPosY()].setOccupier(selectedUnit);
         selectedUnit.isSelected = false;
@@ -462,6 +465,7 @@ public class Cursor {
         forceState(new FsmState(EntityState.AnyoneSelected));
         selectedUnit.remapPositions(selectedUnit.prevX, selectedUnit.prevY, elv, MasterFsmState.getCurrentMap());
         selectedUnit.animVar = 0; //idle animation
+        selectedUnit.setAnimationState(AnimationState.Idle);
         selectedUnit.setStateIfAllowed(new FsmState(EntityState.Active));
         rangeDisplay.tileOpacity = 0.85f;
         rangeDisplay.displayRange(selectedUnit, elv, AM);

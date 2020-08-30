@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general;
+package general.ui;
 
+import general.visual.VisualTransition;
 import battle.Conveyer;
 import battle.formula.Formula;
 import battle.formula.Formula.FormulaType;
@@ -35,8 +36,8 @@ import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import edited.EditedTextField;
-import general.Submenu.TransitionState;
-import general.Submenu.TransitionType;
+import general.ui.Submenu.TransitionState;
+import general.ui.Submenu.TransitionType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,6 +50,7 @@ import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import general.ResetProtocol;
 
 /**
  *
@@ -1017,6 +1019,7 @@ public class ActionMenu extends Container {
                             info.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
                             info.getCursor().setPurpose(Purpose.SkillAttack);
                             info.getUnit().setToUseSkill(info.getUnit().getSkills().get(index));
+                            info.getUnit().equip((Weapon)info.getUnit().getInventory().getItems().get(0));
                             //info.getUnit().setToUseFormula(null);
                             
                             ActionMenu.this.getParent().detachChild(ActionMenu.this);

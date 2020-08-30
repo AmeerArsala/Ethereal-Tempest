@@ -7,9 +7,9 @@ package etherealtempest;
 
 import battle.Conveyer;
 import com.jme3.asset.AssetManager;
-import java.util.ArrayList;
 import maps.layout.Map;
 import etherealtempest.FSM.EntityState;
+import maps.layout.Cursor;
 
 /**
  *
@@ -20,6 +20,7 @@ public class MasterFsmState extends FsmState {
     private Conveyer conveyor;
     
     private static Map current;
+    private static Cursor currentCursor;
     
     public MasterFsmState() {
         state = EntityState.MapDefault;
@@ -51,7 +52,11 @@ public class MasterFsmState extends FsmState {
         return this;
     }
     
-    public static void setCurrentDefaultMap(Map M) { current = M; }
     public static Map getCurrentMap() { return current; }
+    public static Cursor getCurrentCursor() { return currentCursor; }
+    
+    public static void setCurrentDefaultMap(Map M) { current = M; }
+    public static void setCurrentDefaultCursor(Cursor C) { currentCursor = C; }
+    
     
 }
