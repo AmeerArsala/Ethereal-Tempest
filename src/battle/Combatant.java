@@ -16,8 +16,8 @@ import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.simsilica.lemur.ProgressBar;
 import general.GeneralUtils;
-import general.VisualTransition;
-import general.VisualTransition.Progress;
+import general.visual.VisualTransition;
+import general.visual.VisualTransition.Progress;
 import general.visual.RadialProgressBar;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,7 +34,8 @@ public class Combatant {
     
     ShownCombatant figure;
     
-    private AttackType attackType;
+    private final AttackType attackType;
+    
     private int level, maxhp, hp, tp, maxtp, strength, ether, agility, comprehension, dexterity, defense, resilience, mobility, physique, adrenaline; //raw base stats
     private int attackPower, accuracy, evasion, crit, critEvasion, attackSpeed;
     
@@ -231,7 +232,7 @@ public class Combatant {
     
     public TangibleUnit getUnit() { return tu; }
     
-    public AttackType getAttackType() { return attackType; }
+    public AttackType getAttackType() { return attackType; } 
 
     public int getBaseStat(BaseStat stat) {
         return fullBaseStats[stat.getValue()];
@@ -422,6 +423,7 @@ public class Combatant {
     private void updateHP() {
         if (hpToSubtract != 0) {
             hpBar.setProgressPercent(((double)fullBaseStats[12]) / fullBaseStats[1]); //currentHP / maxHP
+            hpBar.setMessage("HP: " + fullBaseStats[12] + "/" + fullBaseStats[1]);
             
             int modifier;
             if (hpToSubtract > 0) {
@@ -438,6 +440,7 @@ public class Combatant {
     private void updateTP() {
         if (tpToSubtract != 0) {
             tpBar.setProgressPercent(((double)fullBaseStats[13]) / fullBaseStats[14]); //currentTP / maxTP
+            tpBar.setMessage("TP: " + fullBaseStats[13] + "/" + fullBaseStats[14]);
             
             int modifier;
             if (tpToSubtract > 0) {

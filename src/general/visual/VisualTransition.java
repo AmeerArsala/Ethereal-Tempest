@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general;
+package general.visual;
 
 import com.jme3.bounding.BoundingBox;
 import com.jme3.math.ColorRGBA;
@@ -15,7 +15,9 @@ import com.jme3.scene.Spatial;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Insets3f;
 import com.simsilica.lemur.Panel;
-import general.Submenu.TransitionType;
+import general.ResetProtocol;
+import general.ui.Submenu;
+import general.ui.Submenu.TransitionType;
 import java.util.List;
 
 /**

@@ -5,7 +5,7 @@
  */
 package battle.formation;
 
-import maps.layout.TangibleUnit;
+import battle.Conveyer;
 
 /**
  *
@@ -14,6 +14,6 @@ import maps.layout.TangibleUnit;
 public interface FormationTechnique {
     public String getName();
     public String getDescription();
-    public void useTechnique(TangibleUnit user, Object[] entitiesInvolved);
-    public boolean getCondition(TangibleUnit user);
+    public void useTechnique(Conveyer data);
+    public boolean getCondition(Conveyer data);
 }

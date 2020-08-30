@@ -16,7 +16,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.simsilica.lemur.Label;
-import general.VisualTransition.Progress;
+import general.visual.VisualTransition.Progress;
 import java.util.ArrayList;
 import java.util.List;
 

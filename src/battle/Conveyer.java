@@ -5,24 +5,25 @@
  */
 package battle;
 
-import battle.skill.Skill;
 import com.jme3.asset.AssetManager;
+import etherealtempest.DataStructure;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.Cursor;
 import maps.layout.Map;
+import maps.layout.MapEntity;
 import maps.layout.TangibleUnit;
 
 /**
  *
  * @author night
  */
-public class Conveyer {
-        private TangibleUnit user, enemy;
+public class Conveyer extends DataStructure {
+        private TangibleUnit user, enemy, other;
         private Map map;
         private ArrayList<TangibleUnit> allUnits;
+        private List<MapEntity> mapEntities;
         private AssetManager assetmanager;
-        private List<Runnable> tasks = new ArrayList<>();
         private Cursor cursor;
         private int turnNumber;
         
@@ -40,6 +41,10 @@ public class Conveyer {
             return enemy;
         }
         
+        public TangibleUnit getOtherUnit() {
+            return other;
+        }
+        
         public Map getMap() {
             return map;
         }
@@ -48,12 +53,12 @@ public class Conveyer {
             return allUnits;
         }
         
-        public AssetManager getAssetManager() {
-            return assetmanager;
+        public List<MapEntity> getMapEntities() {
+            return mapEntities;
         }
         
-        public List<Runnable> onSelect() {
-            return tasks;
+        public AssetManager getAssetManager() {
+            return assetmanager;
         }
         
         public Cursor getCursor() {
@@ -74,6 +79,11 @@ public class Conveyer {
             return this;
         }
         
+        public Conveyer setOtherUnit(TangibleUnit otherUnit) {
+            other = otherUnit;
+            return this;
+        }
+        
         public Conveyer setMap(Map current) {
             map = current;
             return this;
@@ -84,18 +94,13 @@ public class Conveyer {
             return this;
         }
         
-        public Conveyer setAssetManager(AssetManager am) {
-            assetmanager = am;
+        public Conveyer setMapEntities(List<MapEntity> entities) {
+            mapEntities = entities;
             return this;
         }
         
-        public Conveyer setTasks(List<Runnable> RS) {
-            tasks = RS;
-            return this;
-        } 
-        
-        public Conveyer addOnSelect(Runnable task) {
-            tasks.add(task);
+        public Conveyer setAssetManager(AssetManager am) {
+            assetmanager = am;
             return this;
         }
         

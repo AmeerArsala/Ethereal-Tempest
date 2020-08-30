@@ -608,10 +608,9 @@ public class StatScreen extends Node {
         dontstretchportrait.setInsets(new Insets3f(0, 0, 0, 35));
         
         Panel portrait = new Panel(241.46f, 241.46f);
-        portrait.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Textures/gui/portraitbg.jpg")));
-        portrait.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Textures/gui/morvasquare.png")));
+        portrait.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Textures/gui/portraitbg.png")));
+        portrait.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Textures/portraits/" + tu.getName() + ".png")));
         portrait.setInsets(new Insets3f(0.1f, 0.1f, 0.1f, 0.1f));
-        portrait.setBackground(new QuadBackgroundComponent(assetManager.loadTexture(tu.portraitString)));
         dontstretchportrait.addChild(portrait);
         dontstretchportrait.setBackground(qbtrans);
         
@@ -1068,7 +1067,14 @@ public class StatScreen extends Node {
                 master.setInsets(new Insets3f(8.5f, 10, 0, 10));
             }
             
-            if (tu.getInventory().getItems().get(i).doesExist()) { col2.add(new Cosa(master, "i" + i, tu.getInventory().getItems().get(i).getDescription())); }
+            if (tu.getInventory().getItems().get(i).doesExist()) { 
+                col2.add(new Cosa
+                    (master, "i" + i, 
+                        tu.getInventory().getItems().get(i) instanceof Weapon ? ((Weapon)tu.getInventory().getItems().get(i)).getLoreDescription()
+                        : tu.getInventory().getItems().get(i).getDescription()
+                    )
+                ); 
+            }
             
             itemPanel.addChild(master);
             

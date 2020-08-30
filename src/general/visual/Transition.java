@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general;
+package general.visual;
 
 import com.jme3.math.FastMath;
 import com.jme3.scene.Geometry;
@@ -11,7 +11,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Panel;
-import general.VisualTransition.Progress;
+import general.visual.VisualTransition.Progress;
 
 /**
  *

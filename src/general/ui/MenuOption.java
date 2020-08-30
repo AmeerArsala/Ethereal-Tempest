@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general;
+package general.ui;
 
+import general.visual.VisualTransition;
 import battle.Conveyer;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -14,9 +15,10 @@ import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import general.Submenu.TransitionState;
-import general.Submenu.TransitionType;
-import general.VisualTransition.Progress;
+import general.ResetProtocol;
+import general.ui.Submenu.TransitionState;
+import general.ui.Submenu.TransitionType;
+import general.visual.VisualTransition.Progress;
 import java.util.Arrays;
 
 /**

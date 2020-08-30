@@ -6,7 +6,7 @@
 package misc;
 
 import com.jme3.renderer.Camera;
-import general.VisualTransition.Progress;
+import general.visual.VisualTransition.Progress;
 
 /**
  *

@@ -38,6 +38,9 @@ public class Formula extends FreelyAssociated {
     private ParticleEffect particleEffect;
     
     private AssetManager assetM;
+    
+    private static int IDgen = 0;
+    private final int ID;
         
     public enum FormulaType {
         Attack,
@@ -51,15 +54,41 @@ public class Formula extends FreelyAssociated {
         formulaType = FT;
         
         jsonInfo = deserializeFromJSON();
+        
+        ID = IDgen;
+        IDgen++;
+    }
+    
+    private Formula(FreelyAssociated template, DamageTool data, FormulaType FT, Toll usage, int id) {
+        super(template.getName(), template.getDescription(), template.getExtraTalent(), template.getExtraSkill());
+        formulaData = data;
+        cost = usage;
+        formulaType = FT;
+        
+        jsonInfo = deserializeFromJSON();
+        
+        ID = id;
     }
         
     public Formula() {
         super(false);
+        
+        ID = IDgen;
+        IDgen++;
     }
     
     public Formula(boolean ex) {
         super(ex);
+        
+        ID = IDgen;
+        IDgen++;
     }
+    
+    public Formula cloneFormulaInstance() {
+        return new Formula(this, formulaData, formulaType, cost, ID);
+    }
+    
+    public int getID() { return ID; }
     
     private FormulaAnimation deserializeFromJSON() {
         try {

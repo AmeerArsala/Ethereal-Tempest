@@ -12,14 +12,14 @@ import battle.Unit;
  * @author night
  */
 public class BattleTalent extends Talent { //proc talent
-    private Differentiate btalent;
+    private BattleTalentEffect btalent;
     
-    public BattleTalent(String talentname, String lore, String description, String imgPath, Differentiate D) {
+    public BattleTalent(String talentname, String lore, String description, String imgPath, BattleTalentEffect D) {
         super(talentname, lore, description, imgPath);
         btalent = D;
     }
     
-    public Differentiate getEffect() {
+    public BattleTalentEffect getEffect() {
         return btalent;
     }
     

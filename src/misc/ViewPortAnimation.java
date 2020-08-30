@@ -7,7 +7,7 @@ package misc;
 
 import com.jme3.math.FastMath;
 import com.jme3.renderer.Camera;
-import general.VisualTransition.Progress;
+import general.visual.VisualTransition.Progress;
 import java.util.Arrays;
 import java.util.List;
 

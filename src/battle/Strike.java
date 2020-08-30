@@ -109,7 +109,6 @@ public class Strike {
             damage = striker.getDefaultDamage();
             
             if (isSkill) {
-                damage += striker.getUnit().getToUseSkill().getEffect().extraDamage();
                 applySkillExtraEffects();
             }
             

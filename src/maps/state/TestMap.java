@@ -49,8 +49,8 @@ import com.jme3.texture.Texture;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 
-import general.ActionMenu;
-import general.MenuState;
+import general.ui.ActionMenu;
+import general.ui.MenuState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -268,8 +268,6 @@ public class TestMap extends AbstractAppState {
         guiNode.attachChild(localGuiNode);
         guiNode.setLocalScale(cam.getWidth() / 1366f, cam.getHeight() / 768f, 1);
         
-        Catalog.initializeCatalogImages(assetManager);
-        
         /*Node S = (Node)assetManager.loadModel("Scenes/testscene.j3o");
         mob = (TerrainQuad)(S.getChild("movement"));
         mapscene = (TerrainQuad)(S.getChild("map"));
@@ -295,9 +293,10 @@ public class TestMap extends AbstractAppState {
         MasterFsmState.setCurrentDefaultMap(map00);
         
         //add units
-        units.add(new TangibleUnit(Catalog.UnitCatalog[0], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
+        units.add(new TangibleUnit(Catalog.UnitCatalog[0], assetManager));
         units.get(0).unitStatus = UnitStatus.Player;
         units.get(0).hasStashAccess = true;
+        units.get(0).isLeader = true;
         
         units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
         units.get(1).unitStatus = UnitStatus.Enemy;
@@ -321,6 +320,7 @@ public class TestMap extends AbstractAppState {
         pCursor.init();
         pCursor.setPosition(5, 2, 0, map00); //change position later
         localRootNode.attachChild(pCursor.geometry);
+        MasterFsmState.setCurrentDefaultCursor(pCursor);
         
         initializePostMoveMenu();
         
