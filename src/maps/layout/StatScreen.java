@@ -148,7 +148,7 @@ public class StatScreen extends Node {
             }
         } 
         if (name.equals("open unit info menu")) {
-            if (fsm.getState().getEnum() != EntityState.StatScreenOpened) {
+            if (fsm.getState().getEnum() != EntityState.StatScreenOpened || fsm.getState().getEnum() != EntityState.StatScreenSelecting) {
                 fsm.setNewStateIfAllowed(new FsmState(EntityState.StatScreenOpened));
             }
         }

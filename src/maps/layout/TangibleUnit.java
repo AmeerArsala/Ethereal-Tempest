@@ -308,18 +308,22 @@ public class TangibleUnit extends Unit {
         dType = DeclarationType.Spritesheet;
     }
     
-    public void setStateIfAllowed(FsmState state) {
-        fsm.setNewStateIfAllowed(state);
-    }
-    
-    public FSM getFSM() { return fsm; }
-    
     private void stabilize() {
         Quaternion rotation = new Quaternion();
         rotation.fromAngles((FastMath.PI / -2f), (FastMath.PI / -2f), 0);
         
         geo.setLocalRotation(rotation);
     }
+    
+    public FSM getFSM() { return fsm; }
+    
+    public void setStateIfAllowed(FsmState state) {
+        fsm.setNewStateIfAllowed(state);
+    }
+    
+    public int getPosX() { return posX; }
+    public int getPosY() { return posY; }
+    public int getElevation() { return elevation; }
     
     private void setPos(int x, int y, int layer, Map map) {
         posX = x;
@@ -339,10 +343,6 @@ public class TangibleUnit extends Unit {
     public Quad getQuad() { return q; }
     public Geometry getGeometry() { return geo; }
     
-    public boolean willParryAgainst(TangibleUnit enemy) {
-        return currentParryCooldown == 0 && parryDecider;
-    }
-    
     public int getEnemyAmount(ArrayList<TangibleUnit> allUnits) {
         int count = 0;
         for (TangibleUnit character : allUnits) {
@@ -353,20 +353,17 @@ public class TangibleUnit extends Unit {
         return count;
     }
     
-    public void incrementParryCooldown() {
-        if (currentParryCooldown > 0) { currentParryCooldown--; } else { currentParryCooldown = saveMaxParryCooldown; }
+    public boolean willParryAgainst(TangibleUnit enemy) { return currentParryCooldown == 0 && parryDecider; }
+    public int maxParryCooldown(ArrayList<TangibleUnit> allUnits) { return ((int)(getEnemyAmount(allUnits) / (0.5 * getCOMP()))); }
+    
+    public void incrementParryCooldown() { 
+        if (currentParryCooldown > 0) { currentParryCooldown--; } else { currentParryCooldown = saveMaxParryCooldown; } 
     }
     
     public void resetParryCooldown(ArrayList<TangibleUnit> allUnits) { 
         currentParryCooldown = maxParryCooldown(allUnits); 
         saveMaxParryCooldown = currentParryCooldown;
     }
-    
-    public int maxParryCooldown(ArrayList<TangibleUnit> allUnits) { return ((int)(getEnemyAmount(allUnits) / (0.5 * getCOMP()))); }
-    
-    public int getPosX() { return posX; }
-    public int getPosY() { return posY; }
-    public int getElevation() { return elevation; }
     
     private float totalDistanceX = 0, totalDistanceY = 0;
     
@@ -448,11 +445,22 @@ public class TangibleUnit extends Unit {
         }
     }
     
+    public void update(float tpf, FSM mapFSM) {
+        if (frameCount > 1000) {
+            frameCount = 0;
+        }
+        
+        updateAI(tpf, mapFSM);
+        
+        frameCount++;
+        previoustpf = tpf;
+        accumulatedTime += tpf;
+    }
+    
     private float accumulatedTime = 0, accumulatedMovTime = 0, previoustpf;
     private int movLength = -1, pstartX = 0, pstartY = 0, frameCount = 0;
     
     public void updateAI(float tpf, FSM mapFSM) {
-        
             switch (fsm.getState().getEnum()) {
                 case Moving:
                 {
@@ -531,19 +539,6 @@ public class TangibleUnit extends Unit {
                 default:
                     break;
             }
-        
-    }
-    
-    public void update(float tpf, FSM mapFSM) {
-        if (frameCount > 1000) {
-            frameCount = 0;
-        }
-        
-        updateAI(tpf, mapFSM);
-        
-        frameCount++;
-        previoustpf = tpf;
-        accumulatedTime += tpf;
     }
     
     public String animationOnFrameUpdate(int x, double f) { //x: 0 = idle, 1 = up, 2 = left, 3 = right, 4 = down
@@ -591,13 +586,8 @@ public class TangibleUnit extends Unit {
         return ((animState.getValue() * spritesheetInfo.getColumns()) + (((int)(frameCount * 0.1)) % spritesheetInfo.getColumns()));
     }
     
-    public Skill getToUseSkill() {
-        return inUse;
-    }
-    
-    public void setToUseSkill(Skill S) {
-        inUse = S;
-    }
+    public Skill getToUseSkill() { return inUse; }
+    public void setToUseSkill(Skill S) { inUse = S; }
     
     public boolean isAlliedWith(TangibleUnit other) {
         return unitStatus == other.unitStatus || (unitStatus == UnitStatus.Player && other.unitStatus == UnitStatus.Ally) || ((unitStatus == UnitStatus.Ally && other.unitStatus == UnitStatus.Player));
@@ -628,6 +618,8 @@ public class TangibleUnit extends Unit {
         
         return false;
     }
+    
+    public void onPhaseBegin() {}
     
     public int getID() {
         return id;

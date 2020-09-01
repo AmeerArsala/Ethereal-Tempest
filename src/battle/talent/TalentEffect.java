@@ -10,6 +10,7 @@ import com.jme3.math.Vector2f;
 import fundamental.Bonus;
 import java.util.List;
 import maps.layout.Coords;
+import maps.layout.TangibleUnit.UnitStatus;
 
 /**
  *
@@ -25,6 +26,7 @@ public abstract class TalentEffect {
     public abstract Vector2f enemyAOEDMG(); // {damage, range}
     
     public abstract void enactEffect(); //actually do the effect
+    public abstract void onPhaseBegin(UnitStatus phase);
     
     public abstract List<Bonus> Buffs();
     
@@ -41,6 +43,11 @@ public abstract class TalentEffect {
     public Vector2f retrieveEnemyAOEDMG(Conveyer data) {
         inputData(data);
         return enemyAOEDMG();
+    }
+    
+    public void doOnPhaseBegin(UnitStatus phase, Conveyer data) {
+        inputData(data);
+        onPhaseBegin(phase);
     }
     
     public void doEffect(Conveyer data) {
