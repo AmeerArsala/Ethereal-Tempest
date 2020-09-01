@@ -12,7 +12,6 @@ import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.texture.Texture;
-import general.TexturePlus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

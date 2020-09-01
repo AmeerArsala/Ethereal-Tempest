@@ -5,7 +5,6 @@
  */
 package maps.layout;
 
-import battle.Catalog;
 import battle.Conveyer;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.RenderState;
@@ -13,16 +12,17 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import java.util.ArrayList;
 import java.util.List;
 import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import general.ComplexInputReader;
 import maps.layout.TangibleUnit.AnimationState;
 import maps.layout.TangibleUnit.UnitStatus;
 
@@ -33,7 +33,7 @@ import maps.layout.TangibleUnit.UnitStatus;
 public class Cursor {
     private int elv = 0;
     
-    public Geometry geometry;
+    public final Geometry geometry;
     private final Quad quad;
     
     public int pX, pY;
@@ -41,14 +41,30 @@ public class Cursor {
     private int selectionDisplacementX = 0, selectionDisplacementY = 0;
     
     private float toTraverseX = 0, toTraverseY = 0;
-    private float cursorSpeed = 1.0f, accumulatedTPF = 0;
+    private float cursorSpeed = 1.5f;
     private boolean translatingX = false, translatingY = false;
     private Purpose purpose = Purpose.None;
     
     private Vector3f preferredLocation;
     private final RangeDisplay rangeDisplay;
     
-    protected Direction holding[] = new Direction[4];
+    private final float BUTTON_HOLD_TIME = 0.25f;
+    private final float DEFAULT_CURSOR_SPEED = 1.5f, HELD_CURSOR_SPEED = 1.25f;
+    
+    protected ComplexInputReader interpreter = 
+            new ComplexInputReader(true, BUTTON_HOLD_TIME) {
+                @Override
+                public void protocolProcedure(Object inputHeld) {
+                    Direction dir = (Direction)inputHeld;
+                    if (getHeldTime(dir) > BUTTON_HOLD_TIME) {
+                        tryTranslate(dir, 1, amountOfKeysPressed() == 1 || !keyIsHeld(dir.getConflicter()));
+                    }
+                }
+            }
+            .link(Direction.Up, "move up")
+            .link(Direction.Down, "move down")
+            .link(Direction.Left, "move left")
+            .link(Direction.Right, "move right");
     
     public TangibleUnit receivingEnd, selectedUnit;
     
@@ -56,13 +72,37 @@ public class Cursor {
         this.quad = quad;
         geometry = new Geometry("Quad", this.quad);
         rangeDisplay = new RangeDisplay(MasterFsmState.getCurrentMap());
+        
+        Quaternion rotation = new Quaternion();
+        rotation.fromAngles((FastMath.PI / -2f), (FastMath.PI / -2f), 0);
+        geometry.setLocalRotation(rotation);
+        geometry.setQueueBucket(RenderQueue.Bucket.Transparent);
+        
+        fsm.forceState(new FsmState(EntityState.CursorDefault));
     }
     
     public enum Direction {
         Up,
         Down,
         Left,
-        Right
+        Right;
+        
+        private Direction conflicter;
+        
+        private void setConflicter(Direction conflict) {
+            conflicter = conflict;
+        }
+        
+        static {
+            Up.setConflicter(Down);
+            Down.setConflicter(Up);
+            Left.setConflicter(Right);
+            Right.setConflicter(Left);
+        }
+        
+        public Direction getConflicter() {
+            return conflicter;
+        }
     }
     
     public enum Purpose {
@@ -74,14 +114,18 @@ public class Cursor {
         None
     }
     
-    public void init() {
-        Quaternion rotation = new Quaternion();
-        rotation.fromAngles((FastMath.PI / -2f), (FastMath.PI / -2f), 0);
-        geometry.setLocalRotation(rotation);
-        geometry.setQueueBucket(Bucket.Transparent);
-        
-        fsm.forceState(new FsmState(EntityState.CursorDefault));
-    }
+    private FSM fsm = new FSM() {
+        @Override
+        public void setNewStateIfAllowed(FsmState st) {
+            if (st.getEnum() != EntityState.AnyoneHovered || (st.getEnum() == EntityState.AnyoneHovered && state.getEnum() == EntityState.CursorDefault)) {
+                state = st; //maybe change this if needed
+                if (st.getEnum() == EntityState.AnyoneSelectingTarget) {
+                    selectionDifferenceX = 0;
+                    selectionDifferenceY = 0;
+                }
+            } 
+        }
+    };
     
     public void setPosition(int x, int y, int layer, Map map) {
         if (x < map.getXLength(elv) && x >= 0 && y < map.getYLength(elv) && y >= 0) {
@@ -109,14 +153,31 @@ public class Cursor {
         selectionDisplacementY = 0;
     }
     
+    public void translate(Direction dir, int spaces) {
+        switch (dir) {
+            case Up:
+                translateY(spaces);
+                break;
+            case Down:
+                translateY(spaces * -1);
+                break;
+            case Left:
+                translateX(spaces * -1);
+                break;
+            case Right:
+                translateX(spaces);
+                break;
+        }
+    }
+    
     public void translateX(int spaces) { //negative spaces for left, positive spaces for right
         if (pX + spaces >= MasterFsmState.getCurrentMap().getMinimumX(elv) && pX + spaces < MasterFsmState.getCurrentMap().getXLength(elv)) {
             geometry.setLocalTranslation(geometry.getLocalTranslation().x, MasterFsmState.getCurrentMap().fullmap[elv][pX + spaces][pY].getHighestPointHeight() + 1.5f, geometry.getLocalTranslation().z);
             translatingX = true;
             toTraverseX += spaces;
             
-            //geometry.setLocalTranslation(geometry.getLocalTranslation().x, MasterFsmState.getCurrentMap().fullmap[elv][pX + spaces][pY].getHighestPointHeight() + 1.5f, geometry.getLocalTranslation().z + (16f * spaces));
-            //pX += spaces;
+            if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceX += spaces; }
+            if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementX += spaces; }
         }
     }
     
@@ -126,24 +187,10 @@ public class Cursor {
             translatingY = true;
             toTraverseY += spaces;
             
-            //geometry.setLocalTranslation(geometry.getLocalTranslation().x, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY + spaces].getHighestPointHeight() + 1.5f, geometry.getLocalTranslation().z);
-            //geometry.setLocalTranslation(geometry.getLocalTranslation().x + (16f * spaces), MasterFsmState.getCurrentMap().fullmap[elv][pX][pY + spaces].getHighestPointHeight() + 1.5f, geometry.getLocalTranslation().z);
-            //pY += spaces;
+            if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceY += spaces; }
+            if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementY += spaces; }
         }
     }
-    
-    private FSM fsm = new FSM() {
-        @Override
-        public void setNewStateIfAllowed(FsmState st) {
-            if (st.getEnum() != EntityState.AnyoneHovered || (st.getEnum() == EntityState.AnyoneHovered && state.getEnum() == EntityState.CursorDefault)) {
-                state = st; //maybe change this if needed
-                if (st.getEnum() == EntityState.AnyoneSelectingTarget) {
-                    selectionDifferenceX = 0;
-                    selectionDifferenceY = 0;
-                }
-            } 
-        }
-    };
     
     public void updateAI(float tpf, TangibleUnit tu, MasterFsmState mapFSM) {
         switch (fsm.getState().getEnum()) {
@@ -188,22 +235,16 @@ public class Cursor {
         return (input > 0) ? 1 : (input < 0 ? -1 : 0);
     }
     
-    public void update(float tpf, TangibleUnit specified, MasterFsmState mapFSM) {
-        //System.out.println("accumulatedCursorDistanceX = " + accumulatedCursorDistanceX + ", accumulatedCursorDistanceY = " + accumulatedCursorDistanceY + ", toTraverseX = " + toTraverseX + ", toTraverseY = " + toTraverseY);
+    public void update(float tpf, MasterFsmState mapFSM) {
+        //System.out.println("Held Keys: " + interpreter.heldPointers());
         
         preferredLocation = new Vector3f(MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getWorldTranslation().x - 5f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getHighestPointHeight() + 1.5f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getWorldTranslation().z - 3f);
         geometry.setLocalTranslation(geometry.getLocalTranslation().x, preferredLocation.y, geometry.getLocalTranslation().z);
-        if (geometry.getLocalTranslation().x != preferredLocation.x || geometry.getLocalTranslation().z != preferredLocation.z) {
-            geometry.setLocalTranslation(geometry.getLocalTranslation().x + ((preferredLocation.x - geometry.getLocalTranslation().x) / 10f), preferredLocation.y, geometry.getLocalTranslation().z + ((preferredLocation.z - geometry.getLocalTranslation().z) / 10f));
+        if ((geometry.getLocalTranslation().x != preferredLocation.x || geometry.getLocalTranslation().z != preferredLocation.z)) {
+            geometry.move(((preferredLocation.x - geometry.getLocalTranslation().x) / 15f), 0, ((preferredLocation.z - geometry.getLocalTranslation().z) / 15f));
         }
         
-        if (directionHeld()) {
-            accumulatedTPF += tpf;
-        } else {
-            accumulatedTPF = 0;
-            holding = new Direction[4];
-        }
-        
+        //cursor moving in the X direction
         if (accumulatedCursorDistanceX >= 16) {
             translatingX = false;
             pX += getSign(toTraverseX);
@@ -212,14 +253,9 @@ public class Cursor {
         } else if (translatingX) {
             geometry.move(0, 0, cursorSpeed * 2 * getSign(toTraverseX));
             accumulatedCursorDistanceX += cursorSpeed * 2 * FastMath.abs(getSign(toTraverseX));
-            /*if (accumulatedCursorDistanceX < 16 + 1 - FastMath.abs(getSign(toTraverseX))) {
-                geometry.move(0, 0, cursorSpeed * 2 * getSign(toTraverseX));
-                accumulatedCursorDistanceX += cursorSpeed * 2 * FastMath.abs(getSign(toTraverseX));
-            } else if (accumulatedCursorDistanceX > 16) {
-                toTraverseX = getSign(toTraverseX) * accumulatedCursorDistanceX;
-                accumulatedCursorDistanceX = 0;
-            }*/
         }
+        
+        //cursor moving in the Y direction
         if (accumulatedCursorDistanceY >= 16) {
             translatingY = false;
             pY += getSign(toTraverseY);
@@ -228,29 +264,18 @@ public class Cursor {
         } else if (translatingY) {
             geometry.move(cursorSpeed * 2 * getSign(toTraverseY), 0, 0);
             accumulatedCursorDistanceY += cursorSpeed * 2 * FastMath.abs(getSign(toTraverseY));
-            /*if (accumulatedCursorDistanceY < 16 + 1 - FastMath.abs(toTraverseY)) {
-                geometry.move(cursorSpeed * 2 * getSign(toTraverseY), 0, 0);
-                accumulatedCursorDistanceY += cursorSpeed * 2 * FastMath.abs(getSign(toTraverseY));
-            } else if (accumulatedCursorDistanceY > 16 + 1 - FastMath.abs(toTraverseY)) {
-                toTraverseY = getSign(toTraverseY) * accumulatedCursorDistanceY;
-                accumulatedCursorDistanceY = 0;
-            }*/
         }
         
-        if (directionHeld() && accumulatedTPF >= 0.625f) {
-            if (!translatingX) {
-                cursorSpeed = 0.75f;
-                tryContinueX();
-            }
-            if (!translatingY) {
-                cursorSpeed = 0.75f;
-                tryContinueY();
-            }
+        TangibleUnit specified = MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getOccupier();
+        
+        if (specified != null) {
+            updateAIForInteraction(tpf, specified, mapFSM);
+            updateAI(tpf, specified, mapFSM);
+        } else if (fsm.getState().getEnum() != EntityState.AnyoneSelected) {
+            rangeDisplay.cancelRange(elv);
         }
         
-        updateAIForInteraction(tpf, specified, mapFSM);
-        
-        updateAI(tpf, specified, mapFSM);
+        interpreter.update(tpf);
     }
     
     public void updateAIForInteraction(float tpf, TangibleUnit tu, MasterFsmState mapFSM) {
@@ -294,89 +319,25 @@ public class Cursor {
     }
     
     public void resolveInput(String name, float tpf, boolean keyPressed) {
-        //System.out.println(accumulatedTPF);
-        if (!directionHeld() && keyPressed) {
-            cursorSpeed = 1.0f;
+        if (!interpreter.anyKeyPressed() && keyPressed) {
+            cursorSpeed = DEFAULT_CURSOR_SPEED;
         }
         
-        /*if (!keyPressed) {
-            if (!directionHeld()) {
-                accumulatedTPF = 0;
-            } else {}
-        }*/
+        interpreter.obtainInput(name, tpf, keyPressed);
         
         if (fsm.getState().getEnum() != EntityState.Idle) {
-            if (name.equals("move up")) {
-                if (keyPressed) {
-                    //setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                    if (holding[1] == Direction.Down) {
-                        holding[1] = null;
-                        setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                        accumulatedCursorDistanceY = 0;
-                        toTraverseY = 0;
-                    }
-                    translateY(1);
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceY++; }
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementY++; }
-                    holding[0] = Direction.Up;
-                    //accumulatedTPF += tpf;
-                } else {
-                    holding[0] = null;
-                }
-            } else if (name.equals("move down")) {
-                if (keyPressed) {
-                    //setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                    if (holding[0] == Direction.Up) {
-                        holding[0] = null;
-                        setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                        accumulatedCursorDistanceY = 0;
-                        toTraverseY = 0;
-                    }
-                    translateY(-1);
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceY--; }
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementY--; }
-                    holding[1] = Direction.Down;
-                    //accumulatedTPF += tpf;
-                } else {
-                    holding[1] = null;
-                }
-            }  
-            
-            if (name.equals("move left")) {
-                if (keyPressed) {
-                    //setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                    if (holding[3] == Direction.Right) {
-                        holding[3] = null;
-                        setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                        accumulatedCursorDistanceX = 0;
-                        toTraverseX = 0;
-                    }
-                    translateX(-1);
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceX--; }
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementX--; }
-                    holding[2] = Direction.Left;
-                    //accumulatedTPF += tpf;
-                } else {
-                    holding[2] = null;
-                }
-            } else if (name.equals("move right")) {
-                if (keyPressed) {
-                    //setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                    if (holding[2] == Direction.Left) {
-                        holding[2] = null;
-                        setPosition(pX, pY, elv, MasterFsmState.getCurrentMap());
-                        accumulatedCursorDistanceX = 0;
-                        toTraverseX = 0;
-                    }
-                    translateX(1);
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceX++; }
-                    if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementX++; }
-                    holding[3] = Direction.Right;
-                    //accumulatedTPF += tpf;
-                } else {
-                    holding[3] = null;
-                }
+            if (name.equals("move up") && keyPressed) {
+                translateY(1);
             } 
+            if (name.equals("move down") && keyPressed) {
+                translateY(-1);
+            }  
+            if (name.equals("move left") && keyPressed) {
+                translateX(-1);
+            } 
+            if (name.equals("move right") && keyPressed) {
+                translateX(1);
+            }
             
             if (name.equals("select")) {
                 if (keyPressed) {
@@ -451,7 +412,7 @@ public class Cursor {
         M.fullmap[elv][selectedUnit.getPosX()][selectedUnit.getPosY()].resetOccupier();
         resetCursorPositionFromSelection();
         selectedUnit.remapPositions(pX, pY, elv, M);
-        selectedUnit.animVar = 0;
+        selectedUnit.animVar = 0; //remove later
         selectedUnit.setAnimationState(AnimationState.Idle);
         rangeDisplay.cancelRange(elv);
         M.fullmap[elv][selectedUnit.getPosX()][selectedUnit.getPosY()].setOccupier(selectedUnit);
@@ -471,34 +432,50 @@ public class Cursor {
         rangeDisplay.displayRange(selectedUnit, elv, AM);
     }
     
-    public void setSpeed(float speed) { //default is 1
-        cursorSpeed = speed;
-    } 
+    public void tryTranslate(Direction dir, int spaces, boolean overrideCondition) {
+        switch (dir) {
+            case Up:
+                if (!translatingY || overrideCondition) {
+                    cursorSpeed = HELD_CURSOR_SPEED;
+                    translateY(spaces); 
+                }
+                break;
+            case Down:
+                if (!translatingY || overrideCondition) {
+                    cursorSpeed = HELD_CURSOR_SPEED;
+                    translateY(spaces * -1);
+                }
+                break;
+            case Left:
+                if (!translatingX || overrideCondition) {
+                    cursorSpeed = HELD_CURSOR_SPEED;
+                    translateX(spaces * -1);
+                }
+                break;
+            case Right:
+                if (!translatingX || overrideCondition) {
+                    cursorSpeed = HELD_CURSOR_SPEED;
+                    translateX(spaces);
+                }
+                break;
+        }
+    }
     
     public void tryContinueX() {
-        if (holding[2] == Direction.Left) {
+        if (interpreter.keyIsHeld(Direction.Left)) {
             translateX(-1);
-        } else if (holding[3] == Direction.Right) {
+        } else if (interpreter.keyIsHeld(Direction.Right)) {
             translateX(1);
         }
     }
     
     public void tryContinueY() {
-        if (holding[0] == Direction.Up) {
+        if (interpreter.keyIsHeld(Direction.Up)) {
             translateY(1);
-        } else if (holding[1] == Direction.Down) {
+        } else if (interpreter.keyIsHeld(Direction.Down)) {
             translateY(-1);
-        }
+        } 
     }
-    
-    public boolean directionHeld() {
-        for (Direction holding1 : holding) {
-            if (holding1 != null) {
-                return true;
-            }
-        }
-        return false;
-    } 
     
     public void updatePosition(Map map) {
         int closestX = 0, closestY = 0;
@@ -512,6 +489,12 @@ public class Cursor {
         }
         pX = closestX;
         pY = closestY;
+    }
+    
+    public float getSpeed() { return cursorSpeed; } 
+    
+    public void setSpeed(float speed) { //default is 1
+        cursorSpeed = speed;
     }
     
     public Purpose getPurpose() { return purpose; }

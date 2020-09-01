@@ -48,6 +48,7 @@ import fundamental.StatBundle;
 import general.visual.VisualTransition;
 import java.util.HashMap;
 import maps.layout.Coords;
+import maps.layout.TangibleUnit.UnitStatus;
 /**
  *
  * @author night
@@ -159,7 +160,7 @@ public class Catalog {
               new DamageTool(
                       8,  //pow
                       95, //acc
-                      75, //crit 
+                      15, //crit 
                       Arrays.asList(1), //range
                       Arrays.asList( //bonuses when equipped
                               new Bonus(1, BaseStat.ether),
@@ -506,6 +507,9 @@ public class Catalog {
                 public Vector2f enemyAOEDMG() { return null; }
                 @Override
                 public List<Bonus> Buffs() { return null; }
+
+                @Override
+                public void onPhaseBegin(UnitStatus phase) {}
             },
             new TalentEffect() { //aoe damage: 1/2 user's ether stat
                 Conveyer convey;
@@ -542,6 +546,10 @@ public class Catalog {
                         }
                     }
                 }
+
+            @Override
+            public void onPhaseBegin(UnitStatus phase) {}
+            
             }
         };
         return TE;

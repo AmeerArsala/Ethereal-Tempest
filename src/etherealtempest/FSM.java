@@ -64,7 +64,11 @@ public abstract class FSM {
         AnyoneSelected,
         AnyoneMoving,
         AnyoneSelectingTarget,
-        AnyoneTargeted
+        AnyoneTargeted,
+        
+        //MapFlow states
+        SwitchingTurn,
+        ApplyingEffects
         
     }
     

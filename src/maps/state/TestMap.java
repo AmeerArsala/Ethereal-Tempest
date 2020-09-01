@@ -60,6 +60,7 @@ import jme3tools.optimize.LodGenerator;
 import jme3tools.savegame.SaveGame;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
+import com.jme3.renderer.queue.RenderQueue;
 
 import maps.layout.Cursor;
 import maps.layout.Map;
@@ -73,6 +74,9 @@ import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.Main;
 import etherealtempest.MasterFsmState;
+import maps.flow.MapFlow;
+import maps.flow.MapFlow.Turn;
+import maps.flow.UnitPlacementInitiation;
 
 /**
  *
@@ -92,18 +96,19 @@ public class TestMap extends AbstractAppState {
     private ViewPort screenView;
     
     private FlyByCamera flCam;
-    private TerrainQuad terrain; //remove later
     //private TerrainQuad mob, atkrange, mapscene;
     private Map map00;
-    private ArrayList<TangibleUnit> units = new ArrayList<>();
+    //private ArrayList<TangibleUnit> units = new ArrayList<>();
     private Node battleScene;
     
     private Material mat_terrain;
+    private TerrainQuad terrain; //remove later
     
     protected Cursor pCursor;
     protected ActionMenu postAction;
     protected StatScreen stats;
     protected Battle currentBattle;
+    protected MapFlow mapFlow = new MapFlow(Arrays.asList(Turn.Player, Turn.Enemy));
     protected ViewPortAnimation transitionToFight;
     protected Vector3f worldUpVector = new Vector3f(0, 1, 0);
     
@@ -123,7 +128,7 @@ public class TestMap extends AbstractAppState {
                         new MenuState(st.getEnum()).setConveyer(
                                 new Conveyer(pCursor.selectedUnit)
                                         .setMap(map00)
-                                        .setAllUnits(units)
+                                        .setAllUnits(mapFlow.getUnits())
                                         .setCursor(pCursor)
                                         .setAssetManager(assetManager)
                         )
@@ -169,7 +174,7 @@ public class TestMap extends AbstractAppState {
         this.analogListener = new AnalogListener() {
             @Override
             public void onAnalog(String name, float value, float tpf) {
-                
+                //do something here later
             }
         
         };
@@ -177,6 +182,8 @@ public class TestMap extends AbstractAppState {
         this.alU = new ActionListener() {
             @Override
             public void onAction(String name, boolean keyPressed, float tpf) {
+                int fps = (int)(1 / tpf);
+                
                 //stat screen action
                 if (stats.getState().getEnum() != EntityState.GuiClosed && keyPressed) {
                     stats.resolveInput(name, tpf);
@@ -208,8 +215,7 @@ public class TestMap extends AbstractAppState {
                     currentBattle.resolveInput(name, tpf, keyPressed);
                 }
                 
-                int fps = (int)(1 / tpf);
-                
+                //opening stat screen
                 if (name.equals("open unit info menu") && keyPressed) {
                     if (stats.getState().getEnum() != EntityState.StatScreenOpened && map00.fullmap[pCursor.getElevation()][pCursor.pX][pCursor.pY].getOccupier() != null) {
                         fsm.setNewStateIfAllowed(new MasterFsmState(EntityState.Idle).setAssetManager(assetManager));
@@ -293,31 +299,32 @@ public class TestMap extends AbstractAppState {
         MasterFsmState.setCurrentDefaultMap(map00);
         
         //add units
-        units.add(new TangibleUnit(Catalog.UnitCatalog[0], assetManager));
-        units.get(0).unitStatus = UnitStatus.Player;
-        units.get(0).hasStashAccess = true;
-        units.get(0).isLeader = true;
-        
-        units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
-        units.get(1).unitStatus = UnitStatus.Enemy;
-        
-        units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
-        units.get(2).unitStatus = UnitStatus.Enemy;
-       
-        units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
-        units.get(3).unitStatus = UnitStatus.Enemy;
-        
-        for (int k = 0; k < units.size(); k++) {
-            localRootNode.attachChild(units.get(k).getGeometry());
-            units.get(k).remapPositions((int)(1 + (8 * Math.random())), (int)(1 + (10 * Math.random())), 0, map00);
-        }
+        mapFlow.initialize((ArrayList<TangibleUnit> units) -> {
+            units.add(new TangibleUnit(Catalog.UnitCatalog[0], assetManager));
+            units.get(0).unitStatus = UnitStatus.Player;
+            units.get(0).hasStashAccess = true;
+            units.get(0).isLeader = true;
+            
+            units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
+            units.get(1).unitStatus = UnitStatus.Enemy;
+            
+            units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
+            units.get(2).unitStatus = UnitStatus.Enemy;
+            
+            units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
+            units.get(3).unitStatus = UnitStatus.Enemy;
+            
+            for (int k = 0; k < units.size(); k++) {
+                localRootNode.attachChild(units.get(k).getGeometry());
+                units.get(k).remapPositions((int)(1 + (8 * Math.random())), (int)(1 + (10 * Math.random())), 0, map00);
+            }
+        });
         
         pCursor = new Cursor(new Quad(24f, 24f));
         Material pcs = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         pcs.setTexture("ColorMap", assetManager.loadTexture("Models/Sprites/unfinished/Map/tpCursor.png"));
         pcs.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         pCursor.geometry.setMaterial(pcs);
-        pCursor.init();
         pCursor.setPosition(5, 2, 0, map00); //change position later
         localRootNode.attachChild(pCursor.geometry);
         MasterFsmState.setCurrentDefaultCursor(pCursor);
@@ -450,6 +457,7 @@ public class TestMap extends AbstractAppState {
         int fps = (int)(1 / tpf);
         
         postAction.update(1f / 60f);
+        pCursor.update(tpf, ((MasterFsmState)fsm.getState()));
         
         if (accumulatedTPF >= (1f / 60f)) {
             fullUpdate(tpf);
@@ -460,15 +468,13 @@ public class TestMap extends AbstractAppState {
     }
     
     private void fullUpdate(float tpf) {
-        //System.out.println("(" + pCursor.pX + ", " + pCursor.pY + ")");
         updateAI(1f / 60f);
         
         stats.update(1f / 60f);
         
-        for (TangibleUnit tu : units) {
-            pCursor.update(1f / 60f, tu, ((MasterFsmState)fsm.getState()));
-            tu.update(1f / 60f, fsm);
-        }
+        //pCursor.update(1f / 60f, ((MasterFsmState)fsm.getState()));
+        
+        mapFlow.update(1f / 60f, fsm);
     }
     
     int fc = 0;
