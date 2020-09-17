@@ -7,8 +7,9 @@ package battle.skill;
 
 import battle.Combatant;
 import battle.Combatant.BattleStat;
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 import battle.Strike;
+import fundamental.Tool;
 import java.util.List;
 
 /**
@@ -26,7 +27,19 @@ public abstract class SkillEffect {
     
     public abstract int extraDamage();
     public abstract int extraHits();
+    public abstract List<Integer> range();
     public abstract void setBattleStats();
+    
+    public List<Integer> getTrueRange(Tool tool) { //range() is for extra range
+        List<Integer> ranges = tool.getRange();
+        int max = ranges.get(ranges.size() - 1);
+        
+        range().forEach((I) -> {
+            ranges.add(max + I);
+        });
+        
+        return ranges;
+    }
     
     public void setData(Conveyer convey, Combatant striker, Combatant victim) {
         conv = convey;

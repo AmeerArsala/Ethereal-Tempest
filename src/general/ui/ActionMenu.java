@@ -5,34 +5,24 @@
  */
 package general.ui;
 
+import etherealtempest.info.ActionInfo;
 import general.visual.VisualTransition;
-import battle.Conveyer;
-import battle.formula.Formula;
-import battle.formula.Formula.FormulaType;
+import etherealtempest.info.Conveyer;
 import battle.item.Weapon;
 import com.jme3.asset.AssetManager;
 import com.jme3.font.LineWrapMode;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue.Bucket;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
-import com.simsilica.lemur.Axis;
 import com.simsilica.lemur.Container;
-import com.simsilica.lemur.FillMode;
 import com.simsilica.lemur.HAlignment;
 import com.simsilica.lemur.Insets3f;
 import com.simsilica.lemur.Label;
 import com.simsilica.lemur.Panel;
-import com.simsilica.lemur.component.BoxLayout;
-import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import edited.EditedTextField;
@@ -41,16 +31,18 @@ import general.ui.Submenu.TransitionType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import maps.layout.Cursor;
 import maps.layout.Cursor.Purpose;
 import maps.layout.Map;
-import maps.layout.StatScreen;
+import maps.ui.StatScreen;
 import maps.layout.TangibleUnit;
 import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import fundamental.Tool.ToolType;
 import general.ResetProtocol;
+import etherealtempest.info.ActionInfo.PostMoveAction;
+import maps.layout.Coords;
 
 /**
  *
@@ -81,7 +73,7 @@ public class ActionMenu extends Container {
         public void setNewStateIfAllowed(FsmState st) {
             state = st;
             if (state.getEnum() == EntityState.PostActionMenuOpened) {
-                initializeTier1Submenus(((MenuState)state).getConveyer());
+                initialize(((MenuState)state).getConveyer());
             }
         }
     
@@ -439,7 +431,50 @@ public class ActionMenu extends Container {
     public int getPositionX() { return currentX; }
     public int getPositionY() { return currentY; }
     
-    public void initializeTier1Submenus(Conveyer C) {
+    private void initialize(Conveyer C) {
+        initializeTier1Submenus(C);
+        
+        //initialize position from presets
+        ActionInfo info = C.getUnit().determineOptions(C);
+        for (PostMoveAction enabled : info.getAvailableActions()) {
+            switch (enabled) {
+                case Attack:
+                    attack.isAvailable = true;
+                    break;
+                case Ether:
+                    aid.isAvailable = true;
+                    break;
+                case Item:
+                    inventory.isAvailable = true;
+                    break;
+                case Skill:
+                    skill.isAvailable = true;
+                    break;
+                case Trade:
+                    trade.isAvailable = true;
+                    break;
+                case ChainAttack:
+                    eye.isAvailable = true;
+                    break;
+                case Formation:
+                    formation.isAvailable = true;
+                    break;
+                case Ability:
+                    ability.isAvailable = true;
+                    break;
+                case Talk:
+                    talk.isShown = true;
+                    talk.isAvailable = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        setPos(info.getStartingPosition());
+    }
+    
+    private void initializeTier1Submenus(Conveyer C) {
         inventory.submenu.partialInitialize(C);
         
         aid.submenu = getFormulaContents(menuNode, C);
@@ -450,17 +485,17 @@ public class ActionMenu extends Container {
     }
     
     public MenuOption getOptionByCoordinates(int x, int y) {
-        if (x == 0 && y == 0) { return eye; }
-        if (x == 1 && y == 0) { return inventory; }
-        if (x == 0 && y == 2) { return attack; }
-        if (x == 0 && y == -2) { return done; }
-        if (x == -1 && y == 0) { return aid; }
-        if (x == -1 && y == -1) { return ability; }
-        if (x == -1 && y == 1) { return skill; }
-        if (x == 1 && y == -1) { return formation; }
-        if (x == 1 && y == 1) { return trade; }
-        if (x == 0 && y == 1) { return talk; }
-        if (x == 0 && y == -1) {
+        if (x == 0 && y == 0) { return eye; } // (0, 0)
+        if (x == 1 && y == 0) { return inventory; } // (1, 0)
+        if (x == 0 && y == 2) { return attack; } // (0, 2)
+        if (x == 0 && y == -2) { return done; } // (0, -2)
+        if (x == -1 && y == 0) { return aid; } // (-1, 0)
+        if (x == -1 && y == -1) { return ability; } // (-1, 1)
+        if (x == -1 && y == 1) { return skill; } // (-1, 1)
+        if (x == 1 && y == -1) { return formation; } // (1, -1)
+        if (x == 1 && y == 1) { return trade; } // (1, 1)
+        if (x == 0 && y == 1) { return talk; } // (0, 1)
+        if (x == 0 && y == -1) { // (0, -1)
             if (annex.isShown) { return annex; }
         }
         return null;
@@ -497,7 +532,6 @@ public class ActionMenu extends Container {
     public void moveY(int direction) { //1 for up, -1 for down
         //first make the current point unselected
         getOptionByCoordinates(currentX, currentY).isSelected = false;
-        //getOptionByCoordinates(currentX, currentY).updateState((int)(((universalAccumulatedTime + 5) % 5) * fps));
         
         if (Math.abs(currentY + direction) > getYThreshold()) {
             currentY *= -1;
@@ -507,16 +541,16 @@ public class ActionMenu extends Container {
             currentY += direction * getYThreshold();
         }
         
-        getOptionByCoordinates(currentX, currentY).isSelected = true;
-        //getOptionByCoordinates(currentX, currentY).updateState((int)(((universalAccumulatedTime + 5) % 5) * fps));
+        if (!eye.isAvailable && currentX == 0 && currentY == 0) {
+            currentY += direction;
+        }
         
-        //updateState(universalAccumulatedTime, fps);
+        getOptionByCoordinates(currentX, currentY).isSelected = true;
     }
     
     public void moveX(int direction) { //1 for right, -1 for left
         //first make the current point unselected
         getOptionByCoordinates(currentX, currentY).isSelected = false;
-        //getOptionByCoordinates(currentX, currentY).updateState((int)(((universalAccumulatedTime + 5) % 5) * fps));
         
         if (Math.abs(currentX + direction) > 1) { //1 is the X threshold
             currentX *= -1;
@@ -537,25 +571,16 @@ public class ActionMenu extends Container {
             } else { currentX += direction; }
         }
         
-        getOptionByCoordinates(currentX, currentY).isSelected = true;
-        //getOptionByCoordinates(currentX, currentY).updateState((int)(((universalAccumulatedTime + 5) % 5) * fps));
+        if (!eye.isAvailable && currentX == 0 && currentY == 0) {
+            currentX += direction;
+        }
         
-        //updateState(universalAccumulatedTime, fps);
+        getOptionByCoordinates(currentX, currentY).isSelected = true;
     }
     
     private int getYThreshold() { return (int)(2 + (-1 * Math.pow(currentX, 2))); }
     
     public Node getNode() { return menuNode; }
-    
-    public void RevealEscapeOption(boolean vis) {
-        escape.isShown = vis;
-        annex.isShown = false;
-    }
-    
-    public void RevealAnnexOption(boolean vis) {
-        annex.isShown = vis;
-        escape.isShown = false;
-    }
     
     public MasterFsmState resolveInput(String name, float tpf) {
         Conveyer conv = ((MenuState)fsm.getState()).getConveyer();
@@ -587,6 +612,7 @@ public class ActionMenu extends Container {
                     fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
                     conv.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
                     conv.getCursor().setPurpose(Purpose.WeaponAttack);
+                    conv.getUnit().incrementOption(Purpose.WeaponAttack);
                     getParent().detachChild(this);
                     break;
                 case "done":
@@ -625,11 +651,11 @@ public class ActionMenu extends Container {
         getSelectedOption().selectOption();
     }
     
-    public void resetPos() {
+    public void setPos(Coords pos) {
         getOptionByCoordinates(currentX, currentY).deselect();
-        currentX = 0;
-        currentY = 0;
-        eye.isSelected = true;
+        currentX = pos.getX();
+        currentY = pos.getY();
+        getOptionByCoordinates(currentX, currentY).isSelected = true;
         getOptionByCoordinates(currentX, currentY).updateState(0);
     }
     
@@ -853,7 +879,9 @@ public class ActionMenu extends Container {
                             info.getUnit().setStateIfAllowed(new FsmState(EntityState.SelectingTarget));
                             fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
                             info.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
-                            info.getCursor().setPurpose(info.getUnit().getFormulas().get(index).getFormulaPurpose() == FormulaType.Attack ? Purpose.EtherAttack : Purpose.EtherSupport);
+                            Purpose purpose = info.getUnit().getFormulas().get(index).getFormulaPurpose() == ToolType.Attack ? Purpose.EtherAttack : Purpose.EtherSupport;
+                            info.getCursor().setPurpose(purpose);
+                            info.getUnit().incrementOption(purpose);
                             info.getUnit().equip(info.getUnit().getFormulas().get(index));
                             ActionMenu.this.getParent().detachChild(ActionMenu.this);
                         }
@@ -1018,6 +1046,7 @@ public class ActionMenu extends Container {
                             fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
                             info.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
                             info.getCursor().setPurpose(Purpose.SkillAttack);
+                            info.getUnit().incrementOption(Purpose.SkillAttack);
                             info.getUnit().setToUseSkill(info.getUnit().getSkills().get(index));
                             info.getUnit().equip((Weapon)info.getUnit().getInventory().getItems().get(0));
                             //info.getUnit().setToUseFormula(null);
@@ -1145,46 +1174,3 @@ public class ActionMenu extends Container {
     }
     
 }
-
-class IntHolder {
-    private int held;
-    
-    public IntHolder(int in) {
-        held = in;
-    }
-    
-    public int getHeld() { return held; }
-    
-    public void setHeld(int v2) {
-        held = v2;
-    }
-}
-
-/*class EventTransition {
-    Spatial focus;
-    VisualTransition eventchain;
-    TransitionState tState = TransitionState.Standby;
-    TransitionType tType = TransitionType.None;
-    
-    public EventTransition(Spatial sp, VisualTransition VT) {
-        focus = sp;
-        eventchain = VT;
-    }
-    
-    public VisualTransition getVisualTransition() { return eventchain; }
-    public TransitionState getTransitionState() { return tState; }
-    public TransitionType getTransitionType() { return tType; }
-    
-    public void setTransitionState(TransitionState TS) {
-        tState = TS;
-    }
-    
-    public void setTransitionType(TransitionType TT) {
-        tType = TT;
-    }
-    
-    public void setVisualTransition(VisualTransition VT) {
-        eventchain = VT;
-    } 
-    
-}*/

@@ -7,8 +7,8 @@ package maps.state;
 
 import battle.Battle;
 import battle.Battle.BattleState;
-import battle.Catalog;
-import battle.Conveyer;
+import battle.parse.Catalog;
+import etherealtempest.info.Conveyer;
 
 import com.atr.jme.font.asset.TrueTypeLoader;
 
@@ -65,7 +65,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import maps.layout.Cursor;
 import maps.layout.Map;
 import maps.layout.MoveState;
-import maps.layout.StatScreen;
+import maps.ui.StatScreen;
 import maps.layout.TangibleUnit;
 import maps.layout.TangibleUnit.UnitStatus;
 import misc.ViewPortAnimation;
@@ -77,6 +77,7 @@ import etherealtempest.MasterFsmState;
 import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
 import maps.flow.UnitPlacementInitiation;
+import maps.layout.Coords;
 
 /**
  *
@@ -122,7 +123,7 @@ public class TestMap extends AbstractAppState {
                 localGuiNode.setLocalTranslation(10, 760, 0);
                 localGuiNode.attachChild(postAction);
                 
-                postAction.resetPos();
+                postAction.setPos(new Coords(0, 0)); //remove later
                 postAction.setLocalTranslation((cam.getWidth() / 8) + 600, -150, postAction.getNode().getLocalTranslation().z);
                 postAction.setStateIfAllowed(
                         new MenuState(st.getEnum()).setConveyer(
@@ -327,7 +328,7 @@ public class TestMap extends AbstractAppState {
         pCursor.geometry.setMaterial(pcs);
         pCursor.setPosition(5, 2, 0, map00); //change position later
         localRootNode.attachChild(pCursor.geometry);
-        MasterFsmState.setCurrentDefaultCursor(pCursor);
+        //MasterFsmState.setCurrentDefaultCursor(pCursor);
         
         initializePostMoveMenu();
         

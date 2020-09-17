@@ -5,7 +5,7 @@
  */
 package battle.formation;
 
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 
 /**
  *
@@ -15,5 +15,6 @@ public interface FormationTechnique {
     public String getName();
     public String getDescription();
     public void useTechnique(Conveyer data);
+    public int calculateDesirability(Conveyer data);
     public boolean getCondition(Conveyer data);
 }

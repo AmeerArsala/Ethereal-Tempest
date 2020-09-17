@@ -19,7 +19,7 @@ import java.util.List;
 public abstract class ComplexInputReader<E> {
     private final boolean allowErgonomics;
     
-    protected float heldTimeCheckpoint = 1f; //1 second
+    protected float heldTimeCheckpoint = 1f; //1 second by default
     
     private BiMap<E, String> mapping = HashBiMap.create();
     private HashMap<E, Float> heldInputs = new HashMap<>();

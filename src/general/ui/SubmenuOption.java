@@ -5,7 +5,7 @@
  */
 package general.ui;
 
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 import com.jme3.math.Vector3f;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Panel;

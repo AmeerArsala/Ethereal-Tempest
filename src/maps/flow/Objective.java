@@ -5,7 +5,7 @@
  */
 package maps.flow;
 
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.Reader;
@@ -100,6 +100,4 @@ public class Objective {
     public static ObjectiveData SurviveFor_X_Turns(Integer X) {
         return new ObjectiveData().setTurnsToPassForVictory(X);
     }
-    
-    
 }

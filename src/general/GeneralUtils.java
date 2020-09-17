@@ -102,6 +102,18 @@ public class GeneralUtils {
         return true;
     }
     
+    public static <T> boolean compareArrays(T[] a1, T[] a2) {
+        if (a1.length != a2.length) { return false; }
+        
+        for (int i = 0; i < a1.length; i++) {
+            if (a1[i] != a2[i] && !a1[i].equals(a2[i])) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
     public static<T> List<T> cloneList(List<T> input) {
         List<T> list = new ArrayList<>();
         
@@ -218,4 +230,14 @@ public class GeneralUtils {
         
         return creation;
     }
+    
+    public static <T> int getCountOfArray(T[] arr, T val) {
+        int f = 0;
+        for (T x : arr) {
+            if (x == val || x.equals(val)) { f++; }
+        }
+        
+        return f;
+    }
+
 }

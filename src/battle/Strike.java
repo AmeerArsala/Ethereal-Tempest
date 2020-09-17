@@ -5,6 +5,7 @@
  */
 package battle;
 
+import etherealtempest.info.Conveyer;
 import battle.Combatant.AttackType;
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;

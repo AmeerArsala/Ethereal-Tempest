@@ -20,7 +20,8 @@ public class TileData {
     //all types can have extra options if need be, like a ballista (TODO: add List<TileOption> to tile)
     public enum TileType {
         @SerializedName("Normal") Normal, 
-        @SerializedName("Annex") Annex,
+        @SerializedName("Transporter") Transport,
+        @SerializedName("Annexable") Annex,
         @SerializedName("Escape") Escape,
         @SerializedName("Save") Save
     }
@@ -29,31 +30,35 @@ public class TileData {
     private int tileWeight = 10; //10 is default tileWeight
     private List<Bonus> buffsAndOrDebuffs = new ArrayList<>(); //gson?
     
-    public TileData(TileTypeData pivotalFunction, Bonus... bonuses) {
+    public TileData(TileTypeData pivotalFunction, List<Bonus> bonuses) {
         this.pivotalFunction = pivotalFunction;
-        buffsAndOrDebuffs.addAll(Arrays.asList(bonuses));
+        buffsAndOrDebuffs.addAll(bonuses);
     }
     
-    public TileData(TileType type, UnitStatus eligibleAllegiance, Bonus... bonuses) {
-        pivotalFunction = new TileTypeData(type, eligibleAllegiance);
-        buffsAndOrDebuffs.addAll(Arrays.asList(bonuses));
+    public TileData(TileType type, UnitStatus eligibleAllegiance, TangibleUnit eligibleUnit, List<Bonus> bonuses) {
+        pivotalFunction = new TileTypeData(type, eligibleAllegiance, eligibleUnit);
+        buffsAndOrDebuffs.addAll(bonuses);
     }
     
     private class TileTypeData {
         private TileType type;
         private UnitStatus forAllegiance;
+        private TangibleUnit eligibleUnit;
         
-        public TileTypeData(TileType type, UnitStatus forAllegiance) {
+        public TileTypeData(TileType type, UnitStatus forAllegiance, TangibleUnit eligibleUnit) {
             this.type = type;
             this.forAllegiance = forAllegiance;
+            this.eligibleUnit = eligibleUnit;
         }
         
         public TileType getType() { return type; }
         public UnitStatus getElegibleAllegiance() { return forAllegiance; }
+        public TangibleUnit getEligibleUnit() { return eligibleUnit; }
     }
     
     public TileType getType() { return pivotalFunction.type; }
     public UnitStatus getElegibleAllegiance() { return pivotalFunction.forAllegiance; }
+    public TangibleUnit getEligibleUnit() { return pivotalFunction.eligibleUnit; }
     
     public List<Bonus> getBonuses() { return buffsAndOrDebuffs; }
     public int getTileWeight() { return tileWeight; } 

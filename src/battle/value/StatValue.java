@@ -3,21 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle;
+package battle.value;
 
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;
+import fundamental.Bonus.StatType;
 
 /**
  *
  * @author night
  */
 public class StatValue {
-    public enum StatType {
-        Base,
-        Battle
-    }
-    
     private StatType type;
     private BattleStatValue battleStatValue;
     private BaseStatValue baseStatValue;
@@ -53,32 +49,4 @@ public class StatValue {
         return -1;
     }
     
-}
-
-class BattleStatValue {
-    private final BattleStat stat;
-    private int value;
-    
-    public BattleStatValue(BattleStat statname, int val) {
-        super();
-        stat = statname;
-        value = val;
-    }
-    
-    public BattleStat getStatName() { return stat; }
-    public int getValue() { return value; }
-}
-
-class BaseStatValue {
-    private final BaseStat stat;
-    private int value;
-    
-    public BaseStatValue(BaseStat statname, int val) {
-        super();
-        stat = statname;
-        value = val;
-    }
-    
-    public BaseStat getStatName() { return stat; }
-    public int getValue() { return value; }
 }

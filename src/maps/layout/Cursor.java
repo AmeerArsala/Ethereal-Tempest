@@ -5,7 +5,7 @@
  */
 package maps.layout;
 
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
@@ -24,7 +24,6 @@ import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
 import general.ComplexInputReader;
 import maps.layout.TangibleUnit.AnimationState;
-import maps.layout.TangibleUnit.UnitStatus;
 
 /**
  *
@@ -38,26 +37,23 @@ public class Cursor {
     
     public int pX, pY;
     
-    private int selectionDisplacementX = 0, selectionDisplacementY = 0;
-    
     private float toTraverseX = 0, toTraverseY = 0;
     private float cursorSpeed = 1.5f;
-    private boolean translatingX = false, translatingY = false;
+    private boolean translatingX = false, translatingY = false, isBacking = false, isCorrected = true;
     private Purpose purpose = Purpose.None;
-    
+
     private Vector3f preferredLocation;
     private final RangeDisplay rangeDisplay;
     
-    private final float BUTTON_HOLD_TIME = 0.25f;
-    private final float DEFAULT_CURSOR_SPEED = 1.5f, HELD_CURSOR_SPEED = 1.25f;
+    private static final float BUTTON_HOLD_TIME = 0.25f;
+    private static final float DEFAULT_CURSOR_SPEED = 1.5f, HELD_CURSOR_SPEED = 1.25f;
     
-    protected ComplexInputReader interpreter = 
-            new ComplexInputReader(true, BUTTON_HOLD_TIME) {
+    protected ComplexInputReader<Direction> interpreter = 
+            new ComplexInputReader<Direction>(true, BUTTON_HOLD_TIME) {
                 @Override
-                public void protocolProcedure(Object inputHeld) {
-                    Direction dir = (Direction)inputHeld;
-                    if (getHeldTime(dir) > BUTTON_HOLD_TIME) {
-                        tryTranslate(dir, 1, amountOfKeysPressed() == 1 || !keyIsHeld(dir.getConflicter()));
+                public void protocolProcedure(Direction inputHeld) {
+                    if (getHeldTime(inputHeld) > BUTTON_HOLD_TIME) {
+                        tryTranslate(inputHeld, 1, amountOfKeysPressed() == 1 || !keyIsHeld(inputHeld.getConflicter()));
                     }
                 }
             }
@@ -141,6 +137,8 @@ public class Cursor {
     public int getPosY() { return pY; }
     public int getElevation() { return elv; }
     
+    public Coords coords() { return new Coords(pX, pY); }
+    
     public int selectionDifferenceX = 0, selectionDifferenceY = 0;
     
     public void resetCursorPositionFromSelection() {
@@ -149,8 +147,6 @@ public class Cursor {
         geometry.setLocalTranslation(geometry.getLocalTranslation().x - (16f * selectionDifferenceY), geometry.getLocalTranslation().y, geometry.getLocalTranslation().z - (16f * selectionDifferenceX));
         selectionDifferenceX = 0;
         selectionDifferenceY = 0;
-        selectionDisplacementX = 0;
-        selectionDisplacementY = 0;
     }
     
     public void translate(Direction dir, int spaces) {
@@ -177,7 +173,6 @@ public class Cursor {
             toTraverseX += spaces;
             
             if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceX += spaces; }
-            if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementX += spaces; }
         }
     }
     
@@ -188,7 +183,6 @@ public class Cursor {
             toTraverseY += spaces;
             
             if (fsm.getState().getEnum() == EntityState.AnyoneSelectingTarget) { selectionDifferenceY += spaces; }
-            if (fsm.getState().getEnum() == EntityState.AnyoneSelected) { selectionDisplacementY += spaces; }
         }
     }
     
@@ -236,12 +230,13 @@ public class Cursor {
     }
     
     public void update(float tpf, MasterFsmState mapFSM) {
-        //System.out.println("Held Keys: " + interpreter.heldPointers());
-        
         preferredLocation = new Vector3f(MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getWorldTranslation().x - 5f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getHighestPointHeight() + 1.5f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getWorldTranslation().z - 3f);
         geometry.setLocalTranslation(geometry.getLocalTranslation().x, preferredLocation.y, geometry.getLocalTranslation().z);
         if ((geometry.getLocalTranslation().x != preferredLocation.x || geometry.getLocalTranslation().z != preferredLocation.z)) {
-            geometry.move(((preferredLocation.x - geometry.getLocalTranslation().x) / 15f), 0, ((preferredLocation.z - geometry.getLocalTranslation().z) / 15f));
+            geometry.move(((preferredLocation.x - geometry.getLocalTranslation().x) / 10f), 0, ((preferredLocation.z - geometry.getLocalTranslation().z) / 10f));
+            
+            isCorrected = ((Math.abs(preferredLocation.x - geometry.getLocalTranslation().x) < 2f) && Math.abs(preferredLocation.z - geometry.getLocalTranslation().z) < 2f);
+            if (isCorrected) { isBacking = false; }
         }
         
         //cursor moving in the X direction
@@ -275,7 +270,9 @@ public class Cursor {
             rangeDisplay.cancelRange(elv);
         }
         
-        interpreter.update(tpf);
+        if (!isBacking || isCorrected) {
+            interpreter.update(tpf);
+        }
     }
     
     public void updateAIForInteraction(float tpf, TangibleUnit tu, MasterFsmState mapFSM) {
@@ -325,7 +322,7 @@ public class Cursor {
         
         interpreter.obtainInput(name, tpf, keyPressed);
         
-        if (fsm.getState().getEnum() != EntityState.Idle) {
+        if (fsm.getState().getEnum() != EntityState.Idle && (!isBacking || isCorrected)) {
             if (name.equals("move up") && keyPressed) {
                 translateY(1);
             } 
@@ -382,14 +379,13 @@ public class Cursor {
                 if (keyPressed) {
                     if (fsm.getState().getEnum() == EntityState.AnyoneSelected) {
                         //fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
-                        selectedUnit.isSelected = false;
-                        selectedUnit = null;
                         setStateIfAllowed(new FsmState(EntityState.CursorDefault));
                         rangeDisplay.tileOpacity = 0.5f;
-                        pX -= selectionDisplacementX;
-                        pY -= selectionDisplacementY;
-                        selectionDisplacementX = 0;
-                        selectionDisplacementY = 0;
+                        pX = selectedUnit.getPosX();
+                        pY = selectedUnit.getPosY();
+                        selectedUnit.isSelected = false;
+                        selectedUnit = null;
+                        isBacking = true;
                     } else if (fsm.getState().getEnum() == EntityState.PostActionMenuOpened) {}
                 }
             }

@@ -8,6 +8,8 @@ package fundamental;
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;
 import com.google.gson.annotations.SerializedName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -63,17 +65,103 @@ public class Bonus {
     public BaseStat getBaseStat() { return baseStatBonus; }
     public BattleStat getBattleStat() { return battleStatBonus; }
     
-    public Bonus attemptCompileWith(Bonus other) {
-        if (bonusType == other.getType()) {
-            if (baseStatBonus != null && baseStatBonus == other.getBaseStat()) {
-                return new Bonus(value + other.getValue(), bonusType, baseStatBonus);
-            } 
+    public enum StatType {
+        Base(1), 
+        Battle(-1);
+        
+        private BattleStat battleStat = null;
+        private BaseStat baseStat = null;
+        
+        private final int id;
+        private StatType(int identifier) {
+            id = identifier;
+        }
+        
+        public StatType setBaseStat(BaseStat based) {
+            baseStat = based;
+            return getMatchingValue(id);
+        }
+        
+        public StatType setBattleStat(BattleStat bt) {
+            battleStat = bt;
+            return getMatchingValue(id);
+        }
+        
+        public BaseStat getBaseStat() { return baseStat; }
+        public BattleStat getBattleStat() { return battleStat; }
+        
+        public int getID() { return id; }
+        
+        public StatType getMatchingValue(int val) {
+            return val == 1 ? Base : (val == -1 ? Battle : null);
+        }
+    }
+    
+    public Bonus attemptCompileWith(Bonus B) {
+        StatType result = bonusesCanBeCompiled(B);
+        if (result != null) {
+            if (result == StatType.Base) {
+                return new Bonus(value + B.value, bonusType, result.baseStat);
+            }
             
-            if (battleStatBonus != null && battleStatBonus == other.getBattleStat()) {
-                return new Bonus(value + other.getValue(), bonusType, battleStatBonus);
+            if (result == StatType.Battle) {
+                return new Bonus(value + B.value, bonusType, result.battleStat);
             }
         }
         
         return null;
     }
+    
+    private StatType bonusesCanBeCompiled(Bonus B) {
+        return 
+                bonusType == B.bonusType ? 
+                (baseStatBonus != null && B.baseStatBonus != null && baseStatBonus == B.baseStatBonus ? StatType.Base.setBaseStat(baseStatBonus)
+                : (battleStatBonus != null && B.battleStatBonus != null && battleStatBonus == B.battleStatBonus ? StatType.Battle.setBattleStat(battleStatBonus)
+                : null)
+                ) 
+                : null;
+    }
+    
+    private boolean canBeCompiledWith(Bonus B) {
+        return 
+                bonusType == B.bonusType ? 
+                (baseStatBonus != null && B.baseStatBonus != null && baseStatBonus == B.baseStatBonus)
+                : (battleStatBonus != null && B.battleStatBonus != null && battleStatBonus == B.battleStatBonus);
+    }
+    
+    public static void organizeList(List<Bonus> family) {
+        if (family.size() <= 1) { return; } //list must have at least 2 items
+        
+        List<Bonus> toAdd = new ArrayList<>();
+        
+        for (int i = 0; i < family.size(); i++) {
+            List<Bonus> toCompile = new ArrayList<>();
+            
+            for (int k = i + 1; k < family.size(); k++) {
+                if (family.get(i).canBeCompiledWith(family.get(k))) {
+                    toCompile.add(family.get(k));
+                }
+            }
+            
+            if (!toCompile.isEmpty()) {
+                toCompile.add(family.get(i));
+                toAdd.add(compileList(toCompile));
+                family.removeAll(toCompile);
+                i = 0;
+            }
+        }
+        
+        family.addAll(toAdd);
+    }
+    
+    private static Bonus compileList(List<Bonus> toCompile) {
+        Bonus bonus = toCompile.get(0);
+        
+        for (int i = 1; i < toCompile.size(); i++) {
+            bonus = bonus.attemptCompileWith(toCompile.get(i));
+        }
+        
+        return bonus;
+    }
+
 }
