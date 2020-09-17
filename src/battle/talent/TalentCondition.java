@@ -5,7 +5,7 @@
  */
 package battle.talent;
 
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 
 /**
  *

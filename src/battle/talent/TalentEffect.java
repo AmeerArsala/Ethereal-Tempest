@@ -5,7 +5,7 @@
  */
 package battle.talent;
 
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 import com.jme3.math.Vector2f;
 import fundamental.Bonus;
 import java.util.List;

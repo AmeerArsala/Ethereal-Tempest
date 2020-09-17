@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.layout;
+package maps.ui;
 
 import battle.item.ConsumableItem;
-import battle.Toll;
-import battle.Toll.Exchange;
+import fundamental.Toll;
+import fundamental.Toll.Exchange;
 import battle.item.Weapon;
 import com.atr.jme.font.TrueTypeBMP;
 import com.atr.jme.font.TrueTypeFont;
@@ -25,7 +25,9 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
+import com.jme3.texture.Texture;
 import com.simsilica.lemur.Axis;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.FillMode;
@@ -46,15 +48,15 @@ import com.simsilica.lemur.style.Styles;
 import edited.CustomProgressBar;
 import edited.EditedLabel;
 import edited.EditedTextField;
-import edited.LoadedCircle;
 import java.util.ArrayList;
 import java.util.List;
 import etherealtempest.FSM;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
-import etherealtempest.MasterFsmState;
 import fundamental.StatBundle;
 import general.visual.RadialProgressBar;
+import java.util.Arrays;
+import maps.layout.TangibleUnit;
 
 /**
  *
@@ -62,17 +64,17 @@ import general.visual.RadialProgressBar;
  */
 public class StatScreen extends Node {
     private AssetManager assetManager;
-    protected RadialProgressBar[] statProgress = new RadialProgressBar[9];
-    protected RadialProgressBar expbar;
-    protected Container menu, specialNode, info;
+    private RadialProgressBar[] statProgress = new RadialProgressBar[9];
+    private RadialProgressBar expbar;
+    private Container menu, specialNode, info;
     
     private final Quad special = new Quad(130f, 130f), transitionAnimation = new Quad(254f, 335.5f);
-    protected Geometry specialGeo = new Geometry("special", special), transitionAnim = new Geometry("transitionAnimation", transitionAnimation);
+    private Geometry specialGeo = new Geometry("special", special), transitionAnim = new Geometry("transitionAnimation", transitionAnimation);
     private TrueTypeNode strikesTillParry;
     
-    QuadBackgroundComponent nothing, cursorColor;
-    Material sword;
-    ColorRGBA defaultBGColor;
+    private Texture cursorColor;
+    private Material sword;
+    private ColorRGBA defaultBGColor;
     
     private EditedTextField stuff;
     
@@ -92,7 +94,7 @@ public class StatScreen extends Node {
     
     };
     
-    enum TransitionState {
+    private enum TransitionState {
         Transition,
         TransitionBack,
         Standby,
@@ -100,7 +102,7 @@ public class StatScreen extends Node {
         Off
     }
     
-    TransitionState currentTransitionState = TransitionState.Off;
+    private TransitionState currentTransitionState = TransitionState.Off;
     
     public StatScreen(AssetManager AM) {
         assetManager = AM;
@@ -223,7 +225,7 @@ public class StatScreen extends Node {
         System.out.println("(" + currentX + ", " + currentY + ")");
     }
     
-    int frameTrans = 0;
+    private int frameTrans = 0;
     
     public void update(float tpf) {
         //System.out.println(currentTransitionState);
@@ -301,9 +303,7 @@ public class StatScreen extends Node {
             if (direction > 0) {
                 return 1;
             } else if (direction < 0) {
-                if (currentY <= 1) {
-                    return 0;
-                } else if (currentY <= 3) {
+                if (currentY <= 3) {
                     if (
                             (currentY == 2 && namedElements.get(1).get(2).getBlock().equals("i0")) 
                             || (currentY == 3 && namedElements.get(1).get(3).getBlock().equals("i1"))
@@ -429,10 +429,10 @@ public class StatScreen extends Node {
         if (using) {
             if (currentX != 1 || currentY > 1) {
                 try {
-                    ((QuadBackgroundComponent)currentElement().getContainer().getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/hovered.png"));
+                    ((QuadBackgroundComponent)currentElement().getContainer().getBackground()).setTexture(cursorColor);
                 }
                 catch (Exception e) {
-                    ((TbtQuadBackgroundComponent)currentElement().getContainer().getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/hovered.png"));
+                    ((TbtQuadBackgroundComponent)currentElement().getContainer().getBackground()).setTexture(cursorColor);
                 }
             } else {
                 ((TbtQuadBackgroundComponent)currentElement().getContainer().getBackground()).setColor(new ColorRGBA(1, 1, 1, 1));
@@ -494,21 +494,11 @@ public class StatScreen extends Node {
     public void initializeRenders() {
         //set this texture
         CustomProgressBar.setWhiteSquare(assetManager.loadTexture("Textures/gui/whitesquare.png"));
+        cursorColor = assetManager.loadTexture("Interface/GUI/general_ui/hovered.png");
         
         //exp circle
         expbar = new RadialProgressBar(52.5f, 63.75f, new ColorRGBA(0.012f, 0.58f, 0.988f, 1f), 2);
         expbar.move(90f, -125f, 0);
-        /*TrueTypeKeyBMP xp = new TrueTypeKeyBMP("Interface/Fonts/Neuton-Italic.ttf", Style.Plain, 28);
-        TrueTypeFont xpfont = (TrueTypeBMP)assetManager.loadAsset(xp);
-        
-        TrueTypeKeyBMP fake = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Bold, 28);
-        TrueTypeFont fakefont = (TrueTypeBMP)assetManager.loadAsset(fake);
-        
-        expbar = new LoadedCircle(70.0f, 85.0f);
-        expbar.move(90f, -125f, 0);
-        
-        expbar.setFont(fakefont);
-        expbar.setFont2(xpfont);*/
         
         //stat circles
         for (int i = 0; i < statProgress.length; i++) {
@@ -517,18 +507,16 @@ public class StatScreen extends Node {
             ttf.setScale(28f / (35f + i));
             
             statProgress[i] = new RadialProgressBar(20.7f, 24f, new ColorRGBA(0.98f, 0.557f, 0f, 1f), 1);
-            //statProgress[i].getChildrenNode().attachChild()
-            /*statProgress[i] = new LoadedCircle(23f, 25f);
-            statProgress[i].setForegroundColor(new ColorRGBA(0.98f, 0.557f, 0f, 1f));
-            statProgress[i].setFont(ttf);
-            statProgress[i].setSingleText("");*/
         }
-        
+
+        //START PARRY CIRCLE
         TrueTypeKeyBMP amountLeft = new TrueTypeKeyBMP("Interface/Fonts/Cinzel/Cinzel-Bold.ttf", Style.Plain, 50);
         TrueTypeFont parryFont = (TrueTypeBMP)assetManager.loadAsset(amountLeft);
-        
-        strikesTillParry = parryFont.getText("3", 3, ColorRGBA.White); //CHANGE LATER
+        strikesTillParry = parryFont.getText("3", 3, ColorRGBA.White); //TODO: CHANGE LATER
+
         strikesTillParry.move(0, 0, 5f);
+
+        //background of strikesTillParry
         Material spMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         spMat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/general_ui/specialborder.png"));
         spMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
@@ -543,34 +531,28 @@ public class StatScreen extends Node {
         specialGeo.move(-65, -65, 0);
         ((TbtQuadBackgroundComponent)specialNode.getBackground()).setAlpha(0f);
         strikesTillParry.move(50f, -95f, 1f);
-        
-        nothing = new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"), 0, 0);
-        cursorColor = new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/hovered.png"));
-        
+        //END PARRY CIRCLE
+
+        //BEGIN TRANSITION ANIM
         sword = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         sword.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         transitionAnim.setMaterial(sword);
-        //attachChild(transitionAnim);
         sword.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
         transitionAnim.move(150f, -760f, 5f);
+        //END TRANSITION ANIM
         
         info = new Container();
         info.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/tab.png")));
         info.move(80, -300, 1f);
         
         defaultBGColor = ((TbtQuadBackgroundComponent)new Container().getBackground()).getColor();
-        //info.setPreferredSize(new Vector3f(0.3f, 0.5f, 1f));
     }
     
     //TODO: make all object declarations declared in the constructor or initialization or something
     public void startUnitViewGUI(TangibleUnit tu) {
         currentX = 0;
         currentY = 0;
-        //load styling
-        //Styles styles = GuiGlobals.getInstance().getStyles();
-        //Attributes atts;
-        
-        //currentUnit = tu;
+
         namedElements = new ArrayList<>();
         ArrayList<Cosa> 
                 col1 = new ArrayList<>(), 
@@ -580,64 +562,65 @@ public class StatScreen extends Node {
                 col5 = new ArrayList<>();
         
         switchedElements = new ArrayList<>();
-        
-        TrueTypeKeyBMP bitmap = new TrueTypeKeyBMP("Interface/Fonts/Montaga-Regular.ttf", Style.Plain, 28);
-        TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bitmap);
 
         //Create a panel for menu
         menu = new Container(new BoxLayout(Axis.X, FillMode.None));
-        //TbtQuadBackgroundComponent qb = new TbtQuadBackgroundComponent(new TbtQuad(1100f, 643.9f), assetManager.loadTexture("Textures/gui/unitwindowbg.jpg"));
-        QuadBackgroundComponent qb = new QuadBackgroundComponent(assetManager.loadTexture("Textures/gui/altbg.png"), 0, 0);
-        qb.setAlpha(0.88f);
+
         QuadBackgroundComponent qbtrans = new QuadBackgroundComponent(assetManager.loadTexture("Textures/gui/unitwindowbg.jpg"), 0, 0);
         qbtrans.setAlpha(0f);
-        //qb.setZOffset(-3f);
+
         menu.setBackground(qbtrans);
         
-        //horizontal layout
-        BoxLayout hl = new BoxLayout(Axis.X, FillMode.None); 
-        
         //Create a container
-        Container unitWindowX = new Container(hl);
+        Container unitWindowX = new Container(new BoxLayout(Axis.X, FillMode.None));
+
+        QuadBackgroundComponent qb = new QuadBackgroundComponent(assetManager.loadTexture("Textures/gui/altbg.png"), 0, 0);
+        qb.setAlpha(0.88f);
         unitWindowX.setBackground(qb);
-        
-        //horizonal layout attach
+
         menu.addChild(unitWindowX);
-        
+
+        //START COLUMN 1
         Container dontstretchportrait = new Container(new BoxLayout(Axis.Y, FillMode.None));
         dontstretchportrait.setInsets(new Insets3f(0, 0, 0, 35));
-        
+
+        //START PORTRAIT
         Panel portrait = new Panel(241.46f, 241.46f);
         portrait.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Textures/gui/portraitbg.png")));
         portrait.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Textures/portraits/" + tu.getName() + ".png")));
         portrait.setInsets(new Insets3f(0.1f, 0.1f, 0.1f, 0.1f));
         dontstretchportrait.addChild(portrait);
         dontstretchportrait.setBackground(qbtrans);
-        
+        //END PORTRAIT
+
+        //START CLASS AND STATUS
         TrueTypeKeyBMP statusload = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, 30);
         TrueTypeFont statusfont = (TrueTypeBMP)assetManager.loadAsset(statusload);
         statusfont.setScale(0.6f);
         EditedLabel extraInfo = new EditedLabel("    Class: " + tu.clName() + "\n    Status: " + tu.ustatus, statusfont);
         Container unitInfoEX = new Container(new BoxLayout(Axis.Y, FillMode.None));
         unitInfoEX.addChild(extraInfo);
-        unitInfoEX.addChild(new Label(" "));
         unitInfoEX.setInsets(new Insets3f(20, 15, 0, 15));
-        
-        ((TbtQuadBackgroundComponent)unitInfoEX.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
+        ((TbtQuadBackgroundComponent)unitInfoEX.getBackground()).setColor(new ColorRGBA(1, 1, 1, 0));
         
         dontstretchportrait.addChild(unitInfoEX);
         col1.add(new Cosa(unitInfoEX, "00", "The user's class determines the weapons they can wield, which stats are more likely to increase during a level up, possible skills, possible talents, possible abilities, has an effect on stats, and the user's general role in combat.\nTheir status takes status effects into account (such as being poisoned) and will display them accordingly."));
-        
-        
+        //END CLASS AND STATUS
+
+        //START BATTLE STATS TITLE
         Container bstats = new Container(new BoxLayout(Axis.Y, FillMode.None));
-        
+
         TrueTypeKeyBMP qrbmp2 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Bold.ttf", Style.Plain, 44);
         TrueTypeFont qrbmpfont2 = (TrueTypeBMP)assetManager.loadAsset(qrbmp2);
         qrbmpfont2.setScale(30f / 44f);
+
         EditedLabel battleStatTitle = new EditedLabel("Battle Stats", qrbmpfont2);
-        bstats.addChild(battleStatTitle);
         battleStatTitle.text.getTTFNode().move(15f, -15f, 0f);
-         
+
+        bstats.addChild(battleStatTitle);
+        //END BATTLE STATS TILE
+
+        //START BATTLE STATS
         TrueTypeKeyBMP qrbmp3 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, 43);
         TrueTypeFont qrbmpfont3 = (TrueTypeBMP)assetManager.loadAsset(qrbmp3);
         qrbmpfont3.setScale(25f / 43f);
@@ -647,38 +630,37 @@ public class StatScreen extends Node {
                 + "EVA: " + tu.getEvasion() + "\n"
                 + "CRIT: " + tu.getCrit() + "\n"
                 + "ADRENALINE: " + tu.getADRENALINE(), qrbmpfont3);
-        bstats.addChild(battleStats);
         battleStats.text.getTTFNode().move(15f, -29.5f, 0f);
-       
-       Label klabel = new Label(" ");
-       klabel.setInsets(new Insets3f(150f, 0, 0, 0));
-       bstats.addChild(klabel);
-       
-       bstats.setInsets(new Insets3f(15f, 3.5f, 0, 0));
-       //bstats.setBackground(nothing);
-       ((TbtQuadBackgroundComponent)bstats.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
-       bstats.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/default.png")));
-       
-       dontstretchportrait.addChild(bstats);
-       col1.add(new Cosa(bstats, "01", "ATK PWR: if attacking physically, calculated by STR + equippped weapon's Pow. If attacking with ether, calculated by ETHER + equipped formula's Pow.\nACC: base accuracy\nEVA: base evasion.\nCRIT: base chance of dealing a critical hit against an enemy.\nADRENALINE: slightly increases CRIT but mainly affects crit damage"));
-        
+        battleStats.setInsets(new Insets3f(160f, 0, 0, 0));
+
+        bstats.addChild(battleStats);
+        bstats.setInsets(new Insets3f(15f, 3.5f, 0, 0));
+        ((TbtQuadBackgroundComponent)bstats.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
+        bstats.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/default.png")));
+
+        dontstretchportrait.addChild(bstats);
+        col1.add(new Cosa(bstats, "01", "ATK PWR: if attacking physically, calculated by STR + equippped weapon's Pow. If attacking with ether, calculated by ETHER + equipped formula's Pow.\nACC: base accuracy\nEVA: base evasion.\nCRIT: base chance of dealing a critical hit against an enemy.\nADRENALINE: slightly increases CRIT but mainly affects crit damage"));
+        //END BATTLE STATS
+
+        //START FORMATION
         Container formationPanel = new Container(new BoxLayout(Axis.Y, FillMode.None));
-        formationPanel.setBackground(nothing);
+        ((TbtQuadBackgroundComponent)formationPanel.getBackground()).setColor(new ColorRGBA(1, 1, 1, 0));
         formationPanel.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/default.png")));
-        
+
+        //START FORMATION TITLE
         TrueTypeKeyBMP titleformation = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Bold.ttf", Style.Plain, 51);
         TrueTypeFont formationttf = (TrueTypeBMP)assetManager.loadAsset(titleformation);
         formationttf.setScale(30f / 51f);
         EditedLabel formationLabel = new EditedLabel("Formation", formationttf);
         formationLabel.text.getTTFNode().move(37.5f, -15f, 0f);
         formationPanel.addChild(formationLabel);
-        
+        //END FORMATION TITLE
+
         dontstretchportrait.addChild(formationPanel);
         formationPanel.setInsets(new Insets3f(15f, 5f, 0f, 0f));
-        if (tu.getFormations().get(0).doesExist()) {
+        if (!tu.getFormations().isEmpty()) {
             Container equippedFormation = new Container();
-            //equippedFormation.setBackground(nothing);
-            ((TbtQuadBackgroundComponent)equippedFormation.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
+            ((TbtQuadBackgroundComponent)equippedFormation.getBackground()).setColor(new ColorRGBA(1, 1, 1, 0));
             equippedFormation.setBorder(new QuadBackgroundComponent(assetManager.loadTexture(tu.getFormations().get(0).getPath())));
             equippedFormation.addChild(new Label("\n\n\n\n\n\n"));
             
@@ -688,12 +670,16 @@ public class StatScreen extends Node {
             
             col1.add(new Cosa(equippedFormation, "fm", tu.getFormations().get(0).getDescription()));
         } else { formationPanel.addChild(new Label("\n\n\n\n\n\n\n\n\n\n")); }
-        
+        //END FORMATION
+
         unitWindowX.addChild(dontstretchportrait);
-        
+        //END COLUMN 1
+
+        //START COLUMN 2
         Container cellB = new Container(new BoxLayout(Axis.Y, FillMode.None));
         cellB.setBackground(qbtrans);
-        
+
+        //START NAMETAG AND OUTLINE
         TrueTypeKeyBMP immortal = new TrueTypeKeyBMP("Interface/Fonts/Cinzel_Decorative/CinzelDecorative-Bold.ttf", Style.Plain, 28);
         TrueTypeFont immortalfont = (TrueTypeBMP)assetManager.loadAsset(immortal);
         
@@ -716,7 +702,9 @@ public class StatScreen extends Node {
         nametag.setFontSize(20f);
         
         cellB.addChild(nmtg);
-        
+        //END NAMETAG AND OUTLINE
+
+        //START HP AND TP BARS
         TrueTypeKeyBMP bars = new TrueTypeKeyBMP("Interface/Fonts/Montaga-Regular.ttf", Style.Bold, 28);
         TrueTypeFont barsfont = (TrueTypeBMP)assetManager.loadAsset(bars);
         barsfont.setScale(0.7f);
@@ -732,8 +720,8 @@ public class StatScreen extends Node {
                 
                 hpBar.setBarColor(new ColorRGBA(0, 0.76f, 0, 1));
                 tpBar.setBarColor(new ColorRGBA(0.85f, 0.36f, 0.83f, 1f));
-        
-        //atts = styles.getSelector("progress", "label", "glass");
+
+        //START HP AND TP BORDERS
         Container hpborder = new Container(new BoxLayout(Axis.Y, FillMode.None));
         ((TbtQuadBackgroundComponent)hpborder.getBackground()).setColor(ColorRGBA.Black);
         hpborder.addChild(hpBar);
@@ -743,6 +731,7 @@ public class StatScreen extends Node {
         ((TbtQuadBackgroundComponent)tpborder.getBackground()).setColor(ColorRGBA.Black);
         tpborder.addChild(tpBar);
         tpBar.setInsets(new Insets3f(3f, 3f, 3f, 3f));
+
         
         col2.add(new Cosa(hpborder, "hp", "The User's HP (Health Points). Once it reaches 0, they are dead."));
         col2.add(new Cosa(tpborder, "tp", "The User's TP (Tempo Points). Once it reaches 0, they are unable to use any formulas or skills that cost TP"));
@@ -751,24 +740,32 @@ public class StatScreen extends Node {
         switchedElements.add(new Cosa(tpborder, "tp", "The User's TP (Tempo Points). Once it reaches 0, they are unable to use any formulas or skills that cost TP"));
         
         cellB.addChild(hpborder);
-        Label nothing2 = new Label("  ");
+
+        Label nothing2 = new Label("  "); //spacer
         nothing2.setFontSize(3f);
         cellB.addChild(nothing2);
+
         cellB.addChild(tpborder);
+        //END HP AND TP BORDERS
+        //END HP AND TP BARS
         
-        //inventory/items
+        //START INVENTORY
         Container itemsPanel = new Container(new BoxLayout(Axis.Y, FillMode.None));
         ((TbtQuadBackgroundComponent)itemsPanel.getBackground()).setColor(new ColorRGBA(1f, 1f, 1f, 0f));
         itemsPanel.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/invborder3.png")));
         
         addItems(tu, itemsPanel, col2);
+        //END INVENTORY
         
-        //skills
+        //START SKILLS
         Container skillsPanel = new Container(new BoxLayout(Axis.Y, FillMode.None));
         ((TbtQuadBackgroundComponent)skillsPanel.getBackground()).setColor(new ColorRGBA(1f, 1f, 1f, 0f));
         skillsPanel.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/skillsbackdrop2.png")));
         addSkills(tu, skillsPanel, switchedElements);
-        
+        //END SKILLS
+
+        //START ITEM-SKILLS TABBEDPANEL
+        //itemsPanel
         itemsOrSkills = new TabbedPanel();
         itemsOrSkills.addTab("                   \n                     ", itemsPanel);
         itemsOrSkills.getSelectedTab().getTitleButton().setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/itemslogo.png")));
@@ -784,21 +781,26 @@ public class StatScreen extends Node {
         ((TbtQuadBackgroundComponent)itemsOrSkills.getSelectedTab().getTitleButton().getBorder()).setColor(new ColorRGBA(0, 0.839f, 0.871f, 1));
 
         cellB.addChild(itemsOrSkills);
-        
-        //formulas
+        //END ITEM-SKILLS TABBEDPANEL
+
+        //START FORMULAS
         Container formulasPanel = new Container(new BoxLayout(Axis.Y, FillMode.None));
         ((TbtQuadBackgroundComponent)formulasPanel.getBackground()).setColor(new ColorRGBA(1f, 1f, 1f, 0f));
         formulasPanel.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/formulaborder.png")));
         
         addFormulas(tu, formulasPanel, col2);
+        //END FORMULAS
         
-        //abilities
+        //START ABILITIES
         Container abilitiesPanel = new Container(new BoxLayout(Axis.Y, FillMode.None));
         ((TbtQuadBackgroundComponent)abilitiesPanel.getBackground()).setColor(new ColorRGBA(1f, 1f, 1f, 0f));
         abilitiesPanel.setBorder(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/default.png")));
         
         addAbilities(tu, abilitiesPanel, switchedElements);
-        
+        //END ABILITIES
+
+        //START FORMULAS-ABILITIES TABBEDPANEL
+        //formulasPanel
         formulasOrAbilities = new TabbedPanel();
         formulasOrAbilities.addTab("                        \n                                     ", formulasPanel);
         formulasOrAbilities.getSelectedTab().getTitleButton().setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/formulaslogo.png")));
@@ -814,12 +816,18 @@ public class StatScreen extends Node {
         ((TbtQuadBackgroundComponent)formulasOrAbilities.getSelectedTab().getTitleButton().getBorder()).setColor(new ColorRGBA(0, 0.839f, 0.871f, 1));
         
         cellB.addChild(formulasOrAbilities);
+        //END FORMULAS-ABILITIES TABBEDPANEL
         
         unitWindowX.addChild(cellB);
-        
+        //END COLUMN 2
+
+        //START COLUMN 3
         Container cellX = new Container(new BoxLayout(Axis.Y, FillMode.None));
         cellX.setBackground(qbtrans);
-        
+
+        //START BASE STATS
+        TrueTypeKeyBMP bitmap = new TrueTypeKeyBMP("Interface/Fonts/Montaga-Regular.ttf", Style.Plain, 28);
+        TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bitmap);
         ttf.setScale(0.77f);
 
             EditedLabel stats = new EditedLabel(
@@ -840,7 +848,9 @@ public class StatScreen extends Node {
                 Container statsCont = new Container();
                 statsCont.addChild(stats);
                 ((TbtQuadBackgroundComponent)statsCont.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
-        
+        //END BASE STATS
+
+        //START EXP BAR
         TrueTypeKeyBMP xp = new TrueTypeKeyBMP("Interface/Fonts/Neuton-Italic.ttf", Style.Plain, 25);
         TrueTypeFont xpfont = (TrueTypeBMP)assetManager.loadAsset(xp);
         TrueTypeNode xptext = xpfont.getText(" EXP:\n" + tu.currentEXP +"/100", 2, ColorRGBA.White);
@@ -849,7 +859,6 @@ public class StatScreen extends Node {
         expbar.setCirclePercent(tu.currentEXP / 100f);
         
         Container expCont = new Container();
-        //expCont.setBackground(nothing);
         ((TbtQuadBackgroundComponent)expCont.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
         expCont.attachChild(expbar);
         
@@ -868,31 +877,43 @@ public class StatScreen extends Node {
         cellX.addChild(statsCont);
         statsCont.addChild(new Label(" \n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")); //used to be cellX
         statsCont.setInsets(new Insets3f(5f, 5f, 5f, 135f));
-        unitWindowX.addChild(cellX);
-        
+
         col3.add(new Cosa(statsCont, "stats", "STR: physical strength.\nETHER: ether production.\nAGI: agility.\nCOMP: comprehension.\nDEX: dexterity.\nRSL: resilience (defense against ether)\nMOBILITY: how far the user can move\nPHYSIQUE: the user's available inventory space will decrease by 1 for every point of the inventory's combined weight - Physique."));
-        
+        //END EXP BAR
+
+        unitWindowX.addChild(cellX);
+        //END COLUMN 3
+
+        //START COLUMN 4
+        Container cellStrikes = new Container(new BoxLayout(Axis.Y, FillMode.None));
+        cellStrikes.setBackground(qbtrans);
+
+        //START PARRY COUNT
         Container strikesCont = new Container();
         strikesCont.attachChild(strikesTillParry);
         strikesCont.addChild(new Label("                                     \n\n\n\n\n\n                               "));
         ((TbtQuadBackgroundComponent)strikesCont.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
         
         col4.add(new Cosa(strikesCont, "pm", "The user's parry cooldown. Once this number reaches 0 the user will automatically parry the next attack they receive such that they only receive 1 damage, even if it is a critical hit. The lower the ratio of the amount of enemy units that start on the map to the unit's COMP stat, the lower the cooldown will be for parrying."));
-        
-        Container cellStrikes = new Container(new BoxLayout(Axis.Y, FillMode.None));
-        cellStrikes.setBackground(qbtrans);
-        cellStrikes.addChild(strikesCont);
+
         strikesCont.setInsets(new Insets3f(62.5f, 0f, 30f, 0f));
+        cellStrikes.addChild(strikesCont);
+        //END PARRY COUNT
+
         unitWindowX.addChild(cellStrikes);
-        
+        //END COLUMN 4
+
+        //START COLUMN 5
         Container cellSave = new Container(new BoxLayout(Axis.Y, FillMode.None));
         cellSave.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/talentborder2.png")));
+
+        //spacing
         Label control = new Label("                      ");
         control.setInsets(new Insets3f(3f, 80f, 0f, 0f));
-        cellSave.setInsets(new Insets3f(3f, 10f, 0f, 0f)); //used to be 300f on the left inset
-        
+        cellSave.setInsets(new Insets3f(3f, 10f, 0f, 0f));
         cellSave.addChild(control);
-        
+
+        //START TALENTS
         TrueTypeKeyBMP tlns = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Bold.ttf", Style.Plain, 48);
         TrueTypeFont tals = (TrueTypeBMP)assetManager.loadAsset(tlns);
         tals.setScale(5f/8f);
@@ -900,20 +921,20 @@ public class StatScreen extends Node {
         talentslabel.text.getTTFNode().move(0, 5, 0);
         cellSave.addChild(talentslabel);
         addTalents(tu, cellSave, col5);
+        //END TALENTS
         
         unitWindowX.addChild(cellSave);
+        //END COLUMN 5
+
+        //START CURSOR INITIALIZATION
+        namedElements.addAll(Arrays.asList(col1, col2, col3, col4, col5));
+        initializeSizes();
+        tryToggling(false);
+        //END CURSOR INITIALIZATION
         
-        namedElements.add(col1);
-        namedElements.add(col2);
-        namedElements.add(col3);
-        namedElements.add(col4);
-        namedElements.add(col5);
-        
-        attachChild(menu);
-        cellSave.attachChild(transitionAnim);
-        
+        //START INFO TAB
         menu.addChild(info);
-        
+
         stuff = new EditedTextField(namedElements.get(currentX).get(currentY).getDescription());
         stuff.setColor(ColorRGBA.White);
         stuff.setFont(assetManager.loadFont("Interface/Fonts/greco2.fnt"));
@@ -923,112 +944,115 @@ public class StatScreen extends Node {
         stuff.setPreferredWidth(240f); //used to be 240f
         stuff.setInsets(new Insets3f(40f, 35f, 0, 30));
         stuff.getTextEntryComponent().getTextComponent().setLineWrapMode(LineWrapMode.Word);
-        //stuff.setTextHAlignment(HAlignment.Center);
-        
-        initializeSizes();
-        
-        tryToggling(false);
+        //END INFO TAB  
+
+        cellSave.attachChild(transitionAnim);
+        attachChild(menu);
     }
-    
-    protected void addAbilities(TangibleUnit tu, Container abilitiesPanel, ArrayList<Cosa> block2) {
-        for (int i = 0; i < tu.getAbilities().size(); i++) {
-            if (!tu.getAbilities().get(i).doesExist()) {
-                Label placehold = new Label("                                                                                   ");
-                placehold.setFontSize(11f - (2 * tu.getAmountExistingFormulas())); //the moment a unit gets 6 or more abilities, this will fail. Make it a scrolling view later
-                abilitiesPanel.addChild(placehold);
-                
-                if (i == tu.getAbilities().size() - 1) {
-                    placehold.setInsets(new Insets3f(160f, 0, 0, 0));
-                }
-                
+
+    private void addAbilities(TangibleUnit tu, Container abilitiesPanel, ArrayList<Cosa> block2) {
+        int i = 0;
+        
+        while (i < tu.getAbilities().size()) {
+            TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular3.ttf", Style.Plain, (35 + i));
+            TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
+            ttf.setScale((20f / (35f + i)));
+
+            EditedLabel abilityName = new EditedLabel(tu.getInventory().getItems().get(i).getName(), ttf);
+            abilityName.text.getTTFNode().setHorizontalAlignment(StringContainer.Align.Center);
+            float xDisplace = 130f - (abilityName.text.getTTFNode().getWidth() / 2f);
+            abilityName.text.getTTFNode().move(xDisplace, 0f, 0); //the width of the container is 230f
+
+            Container master = new Container();
+            ((TbtQuadBackgroundComponent)master.getBackground()).setColor(new ColorRGBA(1, 1, 1, 0));
+            master.addChild(abilityName);
+            if (i == 0) {
+                master.setInsets(new Insets3f(26f, 10, 0, 10));
             } else {
-                TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular3.ttf", Style.Plain, (35 + i));
-                TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
-                ttf.setScale((20f / (35f + i)));
-            
-                EditedLabel abilityName = new EditedLabel(tu.getInventory().getItems().get(i).getName(), ttf);
-                abilityName.text.getTTFNode().setHorizontalAlignment(StringContainer.Align.Center);
-                float xDisplace = 130f - (abilityName.text.getTTFNode().getWidth() / 2f);
-                abilityName.text.getTTFNode().move(xDisplace, 0f, 0); //the width of the container is 230f
-            
-                Container master = new Container();
-                ((TbtQuadBackgroundComponent)master.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
-                master.addChild(abilityName);
-                if (i == 0) {
-                    master.setInsets(new Insets3f(26f, 10, 0, 10));
-                } else {
-                    master.setInsets(new Insets3f(8.5f, 10, 0, 10));
-                }
-            
-                block2.add(new Cosa(master, "aI" + i, tu.getInventory().getItems().get(i).getDescription()));
-            
-                abilitiesPanel.addChild(master);
+                master.setInsets(new Insets3f(8.5f, 10, 0, 10));
             }
+
+            block2.add(new Cosa(master, "aI" + i, tu.getInventory().getItems().get(i).getDescription()));
+
+            abilitiesPanel.addChild(master);
+
+            i++;
+        }
+
+        for (int k = i; k < 6; k++) {
+            Label placehold = new Label("                                                                                   ");
+            placehold.setInsets(new Insets3f(20f, 0, 0, 0));
+            abilitiesPanel.addChild(placehold);
+        }
+    }
+
+    private void addSkills(TangibleUnit tu, Container skillsPanel, ArrayList<Cosa> block1) {
+        int i = 0;
+        while (i < tu.getSkills().size()) {
+            TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular3.ttf", Style.Plain, (46 + i));
+            TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
+            ttf.setScale((20f / (46f + i)));
+
+            EditedLabel skillName = new EditedLabel(tu.getSkills().get(i).getName(), ttf);
+            skillName.text.getTTFNode().setHorizontalAlignment(StringContainer.Align.Center);
+            float xDisplace = 130f - (skillName.text.getTTFNode().getWidth() / 2f);
+            skillName.text.getTTFNode().move(xDisplace, 0f, 0); //the width of the container is 230f
+
+            Container master = new Container();
+            ((TbtQuadBackgroundComponent)master.getBackground()).setColor(new ColorRGBA(1, 1, 1, 0));
+            master.addChild(skillName);
+
+            block1.add(new Cosa(master, tu.getSkills().get(i).getPath(), tu.getSkills().get(i).getEffect().effectDescription()));
+
+            master.setInsets(new Insets3f(11.5f, 10, 0, 10));
+
+            skillsPanel.addChild(master);
+
+            Panel icon = new Panel(35f, 35f);
+            icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture(tu.getSkills().get(i).getPath())));
+            icon.move(10f + xDisplace * -1f, 10, 0);
+            skillName.text.getTTFNode().attachChild(icon);
+
+            TrueTypeKeyBMP bmp2 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular3.ttf", Style.Plain, (36 + i));
+            TrueTypeFont ttf2 = (TrueTypeBMP)assetManager.loadAsset(bmp2);
+            ttf2.setScale((20f / (36f + i)));
+
+            ColorRGBA colorType;
+            int cost;
+            switch (tu.getSkills().get(i).getToll().getType()) {
+                case TP:
+                    colorType = new ColorRGBA(0.85f, 0.36f, 0.83f, 1f);
+                    break;
+                case HP:
+                    colorType = new ColorRGBA(1, 0.76f, 0, 1);
+                    break;
+                default:
+                    //weapon durability
+                    colorType = ColorRGBA.White;
+                    break;
+            }
+            cost = tu.getSkills().get(i).getToll().getValue();
+
+            TrueTypeNode costValue = ttf2.getText("" + cost, 3, colorType);
+            costValue.move(skillName.text.getTTFNode().getWidth() + 15, 0f, 0);
+            skillName.text.getTTFNode().attachChild(costValue);
+
+            i++;
+        }
+
+        while (i < 5) {
+            Label placehold = new Label("                                                                                   ");
+            skillsPanel.addChild(placehold);
+
+            if (i == 4) {
+                placehold.setInsets(new Insets3f(140f, 0, 0, 0));
+            }
+
+            i++;
         }
     }
     
-    protected void addSkills(TangibleUnit tu, Container skillsPanel, ArrayList<Cosa> block1) {
-        for (int i = 0; i < tu.getSkills().size(); i++) {
-            if (tu.getSkills().get(i).doesExist()) {
-                TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular3.ttf", Style.Plain, (46 + i));
-                TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
-                ttf.setScale((20f / (46f + i)));
-                
-                EditedLabel skillName = new EditedLabel(tu.getSkills().get(i).getName(), ttf);
-                skillName.text.getTTFNode().setHorizontalAlignment(StringContainer.Align.Center);
-                float xDisplace = 130f - (skillName.text.getTTFNode().getWidth() / 2f);
-                skillName.text.getTTFNode().move(xDisplace, 0f, 0); //the width of the container is 230f
-                
-                Container master = new Container();
-                ((TbtQuadBackgroundComponent)master.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
-                master.addChild(skillName);
-                
-                block1.add(new Cosa(master, tu.getSkills().get(i).getPath(), tu.getSkills().get(i).getEffect().effectDescription()));
-                
-                master.setInsets(new Insets3f(11.5f, 10, 0, 10));
-                
-                skillsPanel.addChild(master);
-            
-                Panel icon = new Panel(35f, 35f);
-                icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture(tu.getSkills().get(i).getPath())));
-                icon.move(10f + xDisplace * -1f, 10, 0);
-                skillName.text.getTTFNode().attachChild(icon);
-                
-                TrueTypeKeyBMP bmp2 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular3.ttf", Style.Plain, (36 + i));
-                TrueTypeFont ttf2 = (TrueTypeBMP)assetManager.loadAsset(bmp2);
-                ttf2.setScale((20f / (36f + i)));
-                
-                ColorRGBA colorType;
-                int cost;
-                switch (tu.getSkills().get(i).getToll().getType()) {
-                    case TP:
-                        colorType = new ColorRGBA(0.85f, 0.36f, 0.83f, 1f);
-                        break;
-                    case HP:
-                        colorType = new ColorRGBA(1, 0.76f, 0, 1);
-                        break;
-                    default:
-                        //weapon durability
-                        colorType = ColorRGBA.White;
-                        break;
-                }
-                cost = tu.getSkills().get(i).getToll().getValue();
-                
-                TrueTypeNode costValue = ttf2.getText("" + cost, 3, colorType);
-                costValue.move(skillName.text.getTTFNode().getWidth() + 15, 0f, 0);
-                skillName.text.getTTFNode().attachChild(costValue);
-            } else {
-                Label placehold = new Label("                                                                                   ");
-                skillsPanel.addChild(placehold);
-                
-                if (i == tu.getSkills().size() - 1) {
-                    placehold.setInsets(new Insets3f(140f, 0, 0, 0));
-                }
-            }
-        }
-    }
-    
-    protected void addTalents(TangibleUnit tu, Container talentPanel, ArrayList<Cosa> col5) {
+    private void addTalents(TangibleUnit tu, Container talentPanel, ArrayList<Cosa> col5) {
         for (int i = 0; i < tu.getTalents().size(); i++) {
             Container talentIcon = new Container();
              if (tu.getTalents().get(i).doesExist()) {
@@ -1046,44 +1070,44 @@ public class StatScreen extends Node {
             col5.add(new Cosa(talentIcon, "t" + i, tu.getTalents().get(i).getDescription()));
         }
     }
-    
-    protected void addItems(TangibleUnit tu, Container itemPanel, ArrayList<Cosa> col2) {
-        for (int i = 0; i < tu.getInventory().getItems().size(); i++) {
+
+    //7 items displayed at a time
+    private void addItems(TangibleUnit tu, Container itemPanel, ArrayList<Cosa> col2) {
+        int i = 0;
+        while (i < tu.getInventory().getItems().size()) {
             TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, (35 + i));
             TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
             ttf.setScale((20f / (35f + i)));
-            
+
             EditedLabel itemName = new EditedLabel(tu.getInventory().getItems().get(i).getName(), ttf);
             itemName.text.getTTFNode().setHorizontalAlignment(StringContainer.Align.Center);
             float xDisplace = 130f - (itemName.text.getTTFNode().getWidth() / 2f);
             itemName.text.getTTFNode().move(xDisplace, 0f, 0); //the width of the container is 230f
-            
+
             Container master = new Container();
-            ((TbtQuadBackgroundComponent)master.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
+            ((TbtQuadBackgroundComponent)master.getBackground()).setColor(new ColorRGBA(1, 1, 1, 0));
             master.addChild(itemName);
             if (i == 0) {
                 master.setInsets(new Insets3f(26f, 10, 0, 10));
             } else {
                 master.setInsets(new Insets3f(8.5f, 10, 0, 10));
             }
-            
-            if (tu.getInventory().getItems().get(i).doesExist()) { 
-                col2.add(new Cosa
-                    (master, "i" + i, 
-                        tu.getInventory().getItems().get(i) instanceof Weapon ? ((Weapon)tu.getInventory().getItems().get(i)).getLoreDescription()
-                        : tu.getInventory().getItems().get(i).getDescription()
+
+            col2.add(new Cosa
+                    (master, "i" + i,
+                            tu.getInventory().getItems().get(i) instanceof Weapon ? ((Weapon)tu.getInventory().getItems().get(i)).getLoreDescription()
+                                    : tu.getInventory().getItems().get(i).getDescription()
                     )
-                ); 
-            }
-            
+            );
+
             itemPanel.addChild(master);
-            
+
             if (tu.getInventory().getItems().get(i) instanceof Weapon) {
                 Panel icon = new Panel(24f, 24f);
                 icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_icons/" + ((Weapon)tu.getInventory().getItems().get(i)).getWeaponData().getType() + ".png")));
                 icon.move(25 + xDisplace * -1f, 5f, 0);
                 itemName.text.getTTFNode().attachChild(icon);
-                
+
                 TrueTypeKeyBMP bmp2 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular2.ttf", Style.Plain, (25 + i));
                 TrueTypeFont ttf2 = (TrueTypeBMP)assetManager.loadAsset(bmp2);
                 ttf2.setScale((18f / (25f + i)));
@@ -1095,7 +1119,7 @@ public class StatScreen extends Node {
                 icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture(((ConsumableItem)tu.getInventory().getItems().get(i)).getPath())));
                 icon.move(25 + xDisplace * -1f, 5f, 0);
                 itemName.text.getTTFNode().attachChild(icon);
-                
+
                 TrueTypeKeyBMP bmp2 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular2.ttf", Style.Plain, (25 + i));
                 TrueTypeFont ttf2 = (TrueTypeBMP)assetManager.loadAsset(bmp2);
                 ttf2.setScale((18f / (25f + i)));
@@ -1103,79 +1127,95 @@ public class StatScreen extends Node {
                 uses.move((xDisplace * -1f) + 210, -2.5f, 0);
                 itemName.text.getTTFNode().attachChild(uses);
             }
+
+            i++;
         }
-        
-        //Label la = new Label("                                                                                   ");
-        //itemPanel.addChild(la);
+
+        while (i < 7) {
+            TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, i);
+            TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
+            ttf.setScale((20f / i));
+
+            EditedLabel itemName = new EditedLabel(" ", ttf);
+            itemName.text.getTTFNode().setHorizontalAlignment(StringContainer.Align.Center);
+            float xDisplace = 130f - (itemName.text.getTTFNode().getWidth() / 2f);
+            itemName.text.getTTFNode().move(xDisplace, 0f, 0); //the width of the container is 230f
+
+            Container master = new Container();
+            ((TbtQuadBackgroundComponent)master.getBackground()).setColor(new ColorRGBA(1, 1, 1, 0));
+            master.addChild(itemName);
+
+            master.setInsets(new Insets3f(8.5f, 10, 0, 10));
+            itemPanel.addChild(master);
+
+            i++;
+        }
     }
-    
-    protected void addFormulas(TangibleUnit tu, Container formulaPanel, ArrayList<Cosa> col2) {
-        for (int i = 0; i < tu.getFormulas().size(); i++) {
-            
-            if (tu.getFormulas().get(i).doesExist()) {
-                TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, (46 + i));
-                TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
-                ttf.setScale((20f / (46f + i)));
-                
-                EditedLabel formulaName = new EditedLabel(tu.getFormulas().get(i).getName(), ttf);
-                formulaName.text.getTTFNode().setHorizontalAlignment(StringContainer.Align.Center);
-                float xDisplace = 130f - (formulaName.text.getTTFNode().getWidth() / 2f);
-                formulaName.text.getTTFNode().move(xDisplace, 0f, 0); //the width of the container is 230f
-                
-                Container master = new Container();
-                ((TbtQuadBackgroundComponent)master.getBackground()).setTexture(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png"));
-                master.addChild(formulaName);
-                
-                col2.add(new Cosa(master, "f" + i, tu.getFormulas().get(i).getDescription()));
-                
-                if (i == 0) {
-                    master.setInsets(new Insets3f(30f, 10, 0, 10));
-                } else {
-                    master.setInsets(new Insets3f(8.5f, 10, 0, 10));
-                }
-                
-                formulaPanel.addChild(master);
-            
-                Panel icon = new Panel(20f, 20f);
-                icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_icons/" + (tu.getFormulas().get(i)).getFormulaData().getType() + ".png")));
-                icon.move(25f + xDisplace * -1f, 0, 0);
-                formulaName.text.getTTFNode().attachChild(icon);
-                
-                TrueTypeKeyBMP bmp2 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular2.ttf", Style.Plain, (36 + i));
-                TrueTypeFont ttf2 = (TrueTypeBMP)assetManager.loadAsset(bmp2);
-                ttf2.setScale((20f / (36f + i)));
-                
-                ColorRGBA colorType;
-                int cost;
-                if (tu.getFormulas().get(i).getTPUsage() > 0) {
-                    colorType = new ColorRGBA(0.85f, 0.36f, 0.83f, 1f);
-                    cost = tu.getFormulas().get(i).getTPUsage();
-                } else {
-                    colorType = new ColorRGBA(1, 0.76f, 0, 1);
-                    cost = tu.getFormulas().get(i).getHPUsage();
-                }
-                
-                TrueTypeNode costValue = ttf2.getText("" + cost, 3, colorType);
-                costValue.move(formulaName.text.getTTFNode().getWidth() + 15, 0f, 0);
-                formulaName.text.getTTFNode().attachChild(costValue);
-                
+
+    private void addFormulas(TangibleUnit tu, Container formulaPanel, ArrayList<Cosa> col2) {
+        int i = 0;
+        while (i < tu.getFormulas().size()) {
+            TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular.ttf", Style.Plain, (46 + i));
+            TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
+            ttf.setScale((20f / (46f + i)));
+
+            EditedLabel formulaName = new EditedLabel(tu.getFormulas().get(i).getName(), ttf);
+            formulaName.text.getTTFNode().setHorizontalAlignment(StringContainer.Align.Center);
+            float xDisplace = 130f - (formulaName.text.getTTFNode().getWidth() / 2f);
+            formulaName.text.getTTFNode().move(xDisplace, 0f, 0); //the width of the container is 230f
+
+            Container master = new Container();
+            ((TbtQuadBackgroundComponent)master.getBackground()).setColor(new ColorRGBA(1, 1, 1, 0));
+            master.addChild(formulaName);
+
+            col2.add(new Cosa(master, "f" + i, tu.getFormulas().get(i).getDescription()));
+
+            if (i == 0) {
+                master.setInsets(new Insets3f(30f, 10, 0, 10));
             } else {
-                Label placehold = new Label("                                                                                   ");
-                placehold.setFontSize(11f - (2 * tu.getAmountExistingFormulas())); //the moment a unit gets 6 or more formulas, this will fail. Make it a scrolling view later
-                formulaPanel.addChild(placehold);
+                master.setInsets(new Insets3f(8.5f, 10, 0, 10));
             }
-            
+
+            formulaPanel.addChild(master);
+
+            Panel icon = new Panel(20f, 20f);
+            icon.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_icons/" + (tu.getFormulas().get(i)).getActualFormulaData().getType() + ".png")));
+            icon.move(25f + xDisplace * -1f, 0, 0);
+            formulaName.text.getTTFNode().attachChild(icon);
+
+            TrueTypeKeyBMP bmp2 = new TrueTypeKeyBMP("Interface/Fonts/Quattrocento-Regular2.ttf", Style.Plain, (36 + i));
+            TrueTypeFont ttf2 = (TrueTypeBMP)assetManager.loadAsset(bmp2);
+            ttf2.setScale((20f / (36f + i)));
+
+            ColorRGBA colorType;
+            int cost;
+            if (tu.getFormulas().get(i).getTPUsage() > 0) {
+                colorType = new ColorRGBA(0.85f, 0.36f, 0.83f, 1f);
+                cost = tu.getFormulas().get(i).getTPUsage();
+            } else {
+                colorType = new ColorRGBA(1, 0.76f, 0, 1);
+                cost = tu.getFormulas().get(i).getHPUsage();
+            }
+
+            TrueTypeNode costValue = ttf2.getText("" + cost, 3, colorType);
+            costValue.move(formulaName.text.getTTFNode().getWidth() + 15, 0f, 0);
+            formulaName.text.getTTFNode().attachChild(costValue);
+
+            i++;
+        }
+
+        for (int k = i; k < 15; k++) {
+            Label placehold = new Label("                                                                                   ");
+            placehold.setFontSize(11f - (2 * i)); //the moment a unit gets 6 or more formulas, this will fail. Make it a scrolling view later
+            formulaPanel.addChild(placehold);
         }
     }
     
-    protected void styleStats(TangibleUnit tu, TrueTypeNode ttfnode) {
+    private void styleStats(TangibleUnit tu, TrueTypeNode ttfnode) {
         String statNames[] = {"STR", "ETHER", "AGI", "COMP", "DEX", "DEF", "RSL", "MOBILIT", "PHYSIQU"};
         //int[] stats = tu.getAllBaseStats();
         for (int i = 0; i < statNames.length; i++) {
             float strWidth = (((statNames[i].length() + 3f) / 10f) * ttfnode.getWidth()), strHeight = ttfnode.getHeight() / 10f;
-            /*statProgress[i].setSingleText("" + tu.getRawBaseStats()[i + 1]);
-            statProgress[i].setRotationPercent(100 * tu.getRawBaseStats()[i + 1] / ((double)tu.reorderStatsToFitGUI(tu.ClassMaxStats())[i + 1]));
-            statProgress[i].birthTranslation(strWidth + 30f, i * (-1.168f * strHeight) - 12f);*/
             
             TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Montaga-Regular.ttf", Style.Plain, (35 + i));
             TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
@@ -1298,7 +1338,7 @@ public class StatScreen extends Node {
                 master.scale(0.8f);
 
                 Panel icon = new Panel(20f, 20f);
-                icon.setBackground(new QuadBackgroundComponent(ass.loadTexture("Interface/GUI/general_icons/" + (tu.getFormulas().get(i)).getFormulaData().getType() + ".png")));
+                icon.setBackground(new QuadBackgroundComponent(ass.loadTexture("Interface/GUI/general_icons/" + (tu.getFormulas().get(i)).getActualFormulaData().getType() + ".png")));
                 icon.move(5f + xDisplace * -1f, 0, 0);
                 formulaName.text.getTTFNode().attachChild(icon);
                 
@@ -1381,38 +1421,37 @@ public class StatScreen extends Node {
         }
         return skls;
     }
+ 
+    private class Cosa {
+        private String block, description;
+        private Container cont;
+        private Geometry geo;
     
-}
-
-class Cosa {
-    private String block, description;
-    private Container cont;
-    private Geometry geo;
+        private GuiComponent defaultBG;
+        
+        public Cosa(Container C, String bl, String desc) {
+            cont = C;
+            block = bl;
+            description = desc;
+            defaultBG = C.getBackground();
+        }
+        
+        public Cosa(Geometry G, String tag, String desc) {
+            geo = G;
+            block = tag;
+            description = desc;
+        }
     
-    private GuiComponent defaultBG;
+        public Container getContainer() { return cont; }
+        public Geometry getGeometry() { return geo; }
+        public String getBlock() { return block; }
+        public String getDescription() { return description; }
     
-    public Cosa(Container C, String bl, String desc) {
-        cont = C;
-        block = bl;
-        description = desc;
-        defaultBG = C.getBackground();
+        public GuiComponent getDefaultBG() { return defaultBG; }
+    
+        public Spatial retrieveItem() {
+            return (cont != null) ? cont : ((geo != null) ? geo : null);
+        }
+    
     }
-    
-    public Cosa(Geometry G, String tag, String desc) {
-        geo = G;
-        block = tag;
-        description = desc;
-    }
-    
-    public Container getContainer() { return cont; }
-    public Geometry getGeometry() { return geo; }
-    public String getBlock() { return block; }
-    public String getDescription() { return description; }
-    
-    public GuiComponent getDefaultBG() { return defaultBG; }
-    
-    public Object retrieveItem() {
-        return (cont != null) ? cont : ((geo != null) ? geo : null);
-    }
-    
 }

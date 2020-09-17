@@ -5,6 +5,7 @@
  */
 package battle;
 
+import etherealtempest.info.Conveyer;
 import com.atr.jme.font.TrueTypeFont;
 import com.atr.jme.font.shape.TrueTypeNode;
 import com.destroflyer.jme3.effekseer.renderer.EffekseerControl;
@@ -15,14 +16,12 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.simsilica.lemur.ProgressBar;
-import general.GeneralUtils;
 import general.visual.VisualTransition;
 import general.visual.VisualTransition.Progress;
 import general.visual.RadialProgressBar;
 import java.util.Arrays;
 import java.util.HashMap;
 import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.BattleRole;
 
 /**
  *
@@ -54,6 +53,21 @@ public class Combatant {
     
     public boolean controlAdded = false;
     public TrueTypeNode expText;
+    
+    public enum BattleRole {
+        Initiator,
+        Receiver;
+        
+        private BattleRole opponent;
+        
+        static {
+            Initiator.setOpponent(Receiver);
+            Receiver.setOpponent(Initiator);
+        }
+        
+        public void setOpponent(BattleRole br) { opponent = br; }
+        public BattleRole getOpponent() { return opponent; }
+    }
     
     public enum AttackType {
         Weapon,
@@ -111,16 +125,6 @@ public class Combatant {
             value = val;
             id = identifier;
         }
-        
-        static {
-            for (BaseStat stat : BaseStat.values()) {
-                map.put(stat.value, stat);
-            }
-        }
-
-        public static BaseStat valueOf(int stat) {
-            return (BaseStat) map.get(stat);
-        }
 
         public int getValue() {
             return value;
@@ -138,21 +142,10 @@ public class Combatant {
         @SerializedName("AttackSpeed") AttackSpeed(5);
         
         private final int value;
-        private static HashMap map = new HashMap<>();
         private BattleStat(int val) {
             value = val;
         }
         
-        static {
-            for (BattleStat stat : BattleStat.values()) {
-                map.put(stat.value, stat);
-            }
-        }
-
-        public static BattleStat valueOf(int stat) {
-            return (BattleStat) map.get(stat);
-        }
-
         public int getValue() {
             return value;
         }
@@ -166,6 +159,43 @@ public class Combatant {
         } else {
             tu = info.getEnemyUnit();
         }
+        
+        if (tu.getEquippedFormula() != null) {
+            attackType = AttackType.Formula;
+        } else {
+            attackType = AttackType.Weapon;
+        }
+        
+        level = tu.getLVL();
+        maxhp = tu.getMaxHP();
+        hp = tu.currentHP;
+        tp = tu.currentTP;
+        maxtp = tu.getMaxTP();
+        strength = tu.getSTR();
+        ether = tu.getETHER();
+        agility = tu.getAGI();
+        comprehension = tu.getCOMP();
+        dexterity = tu.getDEX();
+        defense = tu.getDEF();
+        resilience = tu.getRSL();
+        mobility = tu.getMOBILITY();
+        physique = tu.getPHYSIQUE();
+        adrenaline = tu.getADRENALINE();
+        fullBaseStats = updateBaseStats();
+        
+        attackPower = tu.getATK();
+        evasion = tu.getEvasion();
+        crit = tu.getCrit();
+        critEvasion = tu.getCritEvasion(); //change later
+        attackSpeed = tu.getAS();
+        accuracy = tu.getAccuracy();
+        fullBattleStats = updateBattleStats();
+    }
+    
+    public Combatant(TangibleUnit unit, BattleRole role) {
+        BP = 1000;
+        battle_role = role;
+        tu = unit;
         
         if (tu.getEquippedFormula() != null) {
             attackType = AttackType.Formula;

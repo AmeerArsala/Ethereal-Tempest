@@ -5,7 +5,13 @@
  */
 package battle.item;
 
+import etherealtempest.MasterFsmState;
 import fundamental.DamageTool;
+import maps.layout.Coords;
+import maps.layout.TangibleUnit;
+import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.Tile;
+import maps.layout.VenturePeek;
 
 /**
  *
@@ -53,10 +59,30 @@ public class Weapon extends Item {
     if (durability < 99) { currentDurability -= amt; }
   }
   
+  public void restoreUses(int val) {
+      if (currentDurability + val > durability) {
+          currentDurability = durability;
+      } else { currentDurability += val; }
+  }
+  
   public void elementalPowerup(String element, int xtradmg) {
       poweredByElement = element;
       weaponData.extraDamage += xtradmg;
-      //maybe do more here
+      //do more here
+  }
+  
+  public boolean isAvailableAt(Coords pos, int layer, UnitStatus allegiance) {
+      Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
+      for (Integer range : weaponData.getRange()) {
+          for (Coords point : VenturePeek.coordsForTilesOfRange(range, pos, layer)) {
+              TangibleUnit occupier = layerTiles[point.getX()][point.getY()].getOccupier();
+              if (occupier != null && !allegiance.alliedWith(occupier.unitStatus)) {
+                  return true;
+              }
+          }
+      }
+      
+      return false;
   }
   
   public String getLoreDescription() { return desc; }

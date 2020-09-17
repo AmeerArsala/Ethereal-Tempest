@@ -5,6 +5,8 @@
  */
 package battle.talent;
 
+import fundamental.Tool.ToolType;
+
 /**
  *
  * @author night
@@ -15,12 +17,12 @@ public class PassiveTalent extends Talent {
     private TalentConcept wrapper2;
     
     public PassiveTalent(String talentname, String loredescription, String description, String imgPath, TalentConcept te) {
-        super(talentname, loredescription, description, imgPath);
+        super(talentname, ToolType.SupportSelf, loredescription, description, imgPath);
         wrapper = te;
     }
     
     public PassiveTalent(String talentname, String lore, String description, String imgPath, TalentConcept te, TalentConcept te2) {
-        super(talentname, lore, description, imgPath);
+        super(talentname, ToolType.SupportSelf, lore, description, imgPath);
         wrapper = te;
         wrapper2 = te2;
     }

@@ -40,8 +40,8 @@ public class NodeTree<V> {
     }
     
     public V getValueByOrigins(List<V> origins) {
-        String[] key = createPath(origins);
-        return tree.containsKey(key) ? tree.get(key) : null;
+        String[] key = getEquivalentKey(createPath(origins));
+        return key != null ? tree.get(key) : null;
     }
     
     public List<V> getBranchChildren(List<V> origins) {
@@ -68,8 +68,6 @@ public class NodeTree<V> {
     }
     
     private String[] createPath(List<V> origins) {
-        //String identifier = "";
-        //identifier = origins.stream().map((key) -> key.toString()).reduce(identifier, String::concat);
         String[] ids = new String[origins.size()];
         for (int i = 0; i < ids.length; i++) {
             ids[i] = origins.get(i).toString();
@@ -83,8 +81,6 @@ public class NodeTree<V> {
             return false;
         }
         
-        boolean has;
-        
         for (int i = 0; i < path.length; i++) {
             if (!path[i].equals(key[i])) {
                 return false;
@@ -92,6 +88,16 @@ public class NodeTree<V> {
         }
         
         return true;
+    }
+    
+    private String[] getEquivalentKey(String[] key) {
+        for (String[] k : keys) {
+            if (GeneralUtils.compareArrays(key, k)) {
+                return k;
+            }
+        }
+        
+        return null;
     }
     
     

@@ -5,8 +5,8 @@
  */
 package battle.formula;
 
-import battle.Toll;
-import battle.Toll.Exchange;
+import fundamental.Toll;
+import fundamental.Toll.Exchange;
 
 import com.destroflyer.jme3.effekseer.model.ParticleEffect;
 import com.destroflyer.jme3.effekseer.model.ParticleEffectSettings;
@@ -14,23 +14,32 @@ import com.destroflyer.jme3.effekseer.reader.EffekseerReader;
 import com.destroflyer.jme3.effekseer.renderer.EffekseerControl;
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
+import etherealtempest.MasterFsmState;
 import fundamental.DamageTool;
 import fundamental.FreelyAssociated;
+import fundamental.SupportTool;
+import fundamental.Tool;
+import fundamental.Tool.ToolType;
 import general.visual.ParticleEffectBeta;
 import general.visual.ParticleEffectInfoBeta;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import maps.layout.Coords;
+import maps.layout.TangibleUnit;
+import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.Tile;
+import maps.layout.VenturePeek;
 
 /**
  *
  * @author night
  */
 public class Formula extends FreelyAssociated {
-    private FormulaType formulaType;
+    private ToolType formulaType;
     private Toll cost;
-    private DamageTool formulaData;
+    private Tool formulaData;
     
     private FormulaAnimation jsonInfo;
     private EffekseerControl control;
@@ -41,13 +50,8 @@ public class Formula extends FreelyAssociated {
     
     private static int IDgen = 0;
     private final int ID;
-        
-    public enum FormulaType {
-        Attack,
-        Support
-    }
     
-    public Formula(FreelyAssociated template, DamageTool data, FormulaType FT, Toll usage) {
+    public Formula(FreelyAssociated template, Tool data, ToolType FT, Toll usage) {
         super(template.getName(), template.getDescription(), template.getExtraTalent(), template.getExtraSkill());
         formulaData = data;
         cost = usage;
@@ -59,7 +63,7 @@ public class Formula extends FreelyAssociated {
         IDgen++;
     }
     
-    private Formula(FreelyAssociated template, DamageTool data, FormulaType FT, Toll usage, int id) {
+    private Formula(FreelyAssociated template, Tool data, ToolType FT, Toll usage, int id) {
         super(template.getName(), template.getDescription(), template.getExtraTalent(), template.getExtraSkill());
         formulaData = data;
         cost = usage;
@@ -102,17 +106,35 @@ public class Formula extends FreelyAssociated {
         }
     }
     
-    public DamageTool getFormulaData() { return formulaData; }
-        
+    public DamageTool getOffensiveFormulaData() { return formulaType == ToolType.Attack ? ((DamageTool)formulaData) : null; }
+    public SupportTool getSupportiveFormulaData() { return formulaType.isSupportive() ? ((SupportTool)formulaData) : null; }
+    public Tool getActualFormulaData() { return formulaData; }
+    
     public int getHPUsage() { return cost.getType() == Exchange.HP ? cost.getValue() : 0; }
     public int getTPUsage() { return cost.getType() == Exchange.TP ? cost.getValue() : 0; }
         
-    public FormulaType getFormulaPurpose() {
+    public ToolType getFormulaPurpose() {
         return formulaType;
     }
     
     public FormulaAnimation getInfo() {
         return jsonInfo;
+    }
+    
+    public boolean isAvailableAt(Coords pos, int layer, UnitStatus allegiance, int currentHP, int currentTP) {
+        if (currentHP < getHPUsage() || currentTP < getTPUsage()) { return false; } 
+        
+        Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
+        for (Integer range : formulaData.getRange()) {
+            for (Coords point : VenturePeek.coordsForTilesOfRange(range, pos, layer)) {
+                TangibleUnit occupier = layerTiles[point.getX()][point.getY()].getOccupier();
+                if (occupier != null && ((formulaType.isSupportive() && allegiance.alliedWith(occupier.unitStatus)) || (!formulaType.isSupportive() && !allegiance.alliedWith(occupier.unitStatus)))) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
         
     @Override

@@ -5,7 +5,7 @@
  */
 package battle.talent;
 
-import battle.Unit;
+import fundamental.Tool.ToolType;
 
 /**
  *
@@ -15,7 +15,7 @@ public class BattleTalent extends Talent { //proc talent
     private BattleTalentEffect btalent;
     
     public BattleTalent(String talentname, String lore, String description, String imgPath, BattleTalentEffect D) {
-        super(talentname, lore, description, imgPath);
+        super(talentname, ToolType.Attack, lore, description, imgPath);
         btalent = D;
     }
     

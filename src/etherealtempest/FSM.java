@@ -33,6 +33,7 @@ public abstract class FSM {
         InMap,
         DialogueScene,
         WorldMap,
+        SaveScreen,
         Town,
         
         //TangibleUnit states

@@ -6,7 +6,7 @@
 package battle.talent;
 
 import battle.Combatant;
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 import battle.Strike;
 import java.util.List;
 

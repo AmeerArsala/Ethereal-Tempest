@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle;
+package etherealtempest.info;
 
 import com.jme3.asset.AssetManager;
-import etherealtempest.DataStructure;
+import etherealtempest.info.DataStructure;
 import java.util.ArrayList;
 import java.util.List;
+import maps.flow.Objective;
+import maps.layout.Coords;
 import maps.layout.Cursor;
 import maps.layout.Map;
 import maps.layout.MapEntity;
@@ -26,6 +28,9 @@ public class Conveyer extends DataStructure {
         private AssetManager assetmanager;
         private Cursor cursor;
         private int turnNumber;
+        private Objective currentObjective;
+        private Coords coords;
+        private int layer;
         
         public Conveyer() {}
         
@@ -67,6 +72,18 @@ public class Conveyer extends DataStructure {
         
         public int getCurrentTurn() {
             return turnNumber;
+        }
+        
+        public Objective getObjective() {
+            return currentObjective;
+        }
+        
+        public Coords getCoords() {
+            return coords;
+        }
+        
+        public int getLayer() {
+            return layer;
         }
         
         public Conveyer setUnit(TangibleUnit playerUnit) {
@@ -111,6 +128,21 @@ public class Conveyer extends DataStructure {
         
         public Conveyer setCurrentTurn(int current) {
             turnNumber = current;
+            return this;
+        }
+        
+        public Conveyer setObjective(Objective obje) {
+            currentObjective = obje;
+            return this;
+        }
+        
+        public Conveyer setCoords(Coords cds) {
+            coords = cds;
+            return this;
+        }
+        
+        public Conveyer setLayer(int l) {
+            layer = l;
             return this;
         }
 }

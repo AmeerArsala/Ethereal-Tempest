@@ -3,32 +3,28 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle;
+package battle.forecast;
 
+import battle.Combatant;
+import etherealtempest.info.Conveyer;
 import battle.Combatant.*;
-import battle.StatValue.StatType;
+import fundamental.Toll.Exchange;
 import battle.skill.Skill;
-import battle.talent.PrebattleTalent;
-import battle.talent.Talent;
-import maps.layout.TangibleUnit.BattleRole;
+import fundamental.DamageTool;
+import maps.layout.Cursor.Purpose;
 
 /**
  *
  * @author night
  */
-public class PrebattleForecast {
-    private SingularForecast initiatorForecast, receiverForecast;
-    private final Conveyer data;
-    
-    private final int range;
+public class PrebattleForecast extends Forecast {
+    private final SingularForecast initiatorForecast, receiverForecast;
     private final Skill skillBeingUsed;
     
     public PrebattleForecast(Combatant initiator, Combatant receiver, Conveyer data, int range, Skill skillBeingUsed) {
-        this.data = data;
-        this.range = range;
+        super(initiator, receiver, data, range, false);
         this.skillBeingUsed = skillBeingUsed;
         
-        applyBonuses(initiator, receiver);
         initiatorForecast = new SingularForecast(initiator);
         receiverForecast = new SingularForecast(receiver);
         initializeForecast();
@@ -36,36 +32,6 @@ public class PrebattleForecast {
         initiator.setDefaultDamage(initiatorForecast.displayedDamage);
         receiver.setDefaultDamage(receiverForecast.displayedDamage);
     }
-    
-    private void applyBonuses(Combatant initiator, Combatant receiver) {
-        for (Talent X : initiator.getUnit().getTalents()) {
-            if (X instanceof PrebattleTalent && ((PrebattleTalent)X).getCondition().checkCondition(data)) {
-                for (StatValue bonus : ((PrebattleTalent)X).getEffect().bonuses()) {
-                    if (bonus.getStatType() == StatType.Battle) {
-                        initiator.appendToBattleStat(bonus.getBattleStatValue().getStatName(), bonus.getBattleStatValue().getValue());
-                    } else if (bonus.getStatType() == StatType.Base) {
-                        initiator.appendToBaseStat(bonus.getBaseStatValue().getStatName(), bonus.getBaseStatValue().getValue());
-                    }
-                }
-                ((PrebattleTalent)X).getEffect().enactExtraEffect();
-            }
-        }
-        
-        for (Talent X : receiver.getUnit().getTalents()) {
-            if (X instanceof PrebattleTalent && ((PrebattleTalent)X).getCondition().checkCondition(data)) {
-                for (StatValue bonus : ((PrebattleTalent)X).getEffect().bonuses()) {
-                    if (bonus.getStatType() == StatType.Battle) {
-                        receiver.appendToBattleStat(bonus.getBattleStatValue().getStatName(), bonus.getBattleStatValue().getValue());
-                    } else if (bonus.getStatType() == StatType.Base) {
-                        receiver.appendToBaseStat(bonus.getBaseStatValue().getStatName(), bonus.getBaseStatValue().getValue());
-                    }
-                }
-                ((PrebattleTalent)X).getEffect().enactExtraEffect();
-            }
-        }
-    }
-    
-    public int getRange() { return range; }
     
     public SingularForecast getInitiatorForecast() { return initiatorForecast; }
     public SingularForecast getReceiverForecast() { return receiverForecast; }
@@ -77,7 +43,7 @@ public class PrebattleForecast {
         return receiverForecast;
     }
     
-    private void initializeForecast() {
+    protected final void initializeForecast() {
         initiatorForecast.canCounterattack = true;
         receiverForecast.canCounterattack = receiverForecast.getCombatant().getUnit().canCounterattackAgainst(range);
         //if receiver can't counterattack, damage = N/A
@@ -139,34 +105,70 @@ public class PrebattleForecast {
         
         initiatorForecast.displayedDamage = 
                 initiatorForecast.getCombatant().getBattleStat(BattleStat.AttackPower) - 
-                (initiatorForecast.getCombatant().getUnit().getEquippedWeapon().getDmgType().equals("ether") ? receiverForecast.getCombatant().getBaseStat(BaseStat.resilience) : receiverForecast.getCombatant().getBaseStat(BaseStat.defense));
+                (initiatorForecast.equippedTool.getDmgType().equals("ether") ? receiverForecast.getCombatant().getBaseStat(BaseStat.resilience) : receiverForecast.getCombatant().getBaseStat(BaseStat.defense));
         
         initiatorForecast.displayedDamage += initiatorForecast.getCombatant().getExtraDamage();
         
         receiverForecast.displayedDamage = receiverForecast.getCombatant().getBattleStat(BattleStat.AttackPower) 
-                    - (receiverForecast.getCombatant().getUnit().getEquippedWeapon().getDmgType().equals("ether") ? initiatorForecast.getCombatant().getBaseStat(BaseStat.resilience) 
+                    - (receiverForecast.equippedTool.getDmgType().equals("ether") ? initiatorForecast.getCombatant().getBaseStat(BaseStat.resilience) 
                     : initiatorForecast.getCombatant().getBaseStat(BaseStat.defense));
         
         receiverForecast.displayedDamage += receiverForecast.getCombatant().getExtraDamage();
     }
     
-}
-
-class SingularForecast {
-    private final Combatant combatant;
-    
-    public boolean canDouble, canCounterattack;
-    public float displayedAccuracy, displayedCrit;
-    public int displayedDamage, BPcostPerHit = 1000;
-    
-    public SingularForecast(Combatant C) {
-        combatant = C;
+    @Override
+    public int calculateDesirabilityToInitiate() { //desirability to be initiator
+        SingularForecast participant = initiatorForecast;
+        SingularForecast opponent = receiverForecast;
+        
+        int desirability = 
+                ((participant.displayedDamage * 15) * participant.getAmountOfHits()) //damage and hits
+                + (int)(participant.displayedAccuracy + participant.displayedCrit); //accuracy and crit
+        
+        desirability += (30 - opponent.displayedDamage >= 0 ? 30 - opponent.displayedDamage : 0);
+        desirability += 10 - (opponent.displayedAccuracy / 10);
+        desirability += 5 - (opponent.displayedCrit / 20);
+        
+        if (opponent.getCombatant().getUnit().currentHP - participant.displayedDamage <= 0) {
+            desirability += 500;
+        } else if (opponent.getCombatant().getUnit().currentHP - (participant.displayedDamage * participant.getAmountOfHits()) <= 0) {
+            desirability += 300;
+        }
+        
+        if (!opponent.canCounterattack) { desirability += 1000; }
+        
+        return desirability;
     }
     
-    public Combatant getCombatant() { return combatant; }
-    
-    public int getAmountOfHits() {
-        return 1000 / BPcostPerHit;
+    public static PrebattleForecast createForecast(Conveyer info, Purpose battlePurpose, int attackRange) {
+        Combatant initTemp = new Combatant(info, BattleRole.Initiator), receiverTemp = new Combatant(info, BattleRole.Receiver);
+        initTemp.setExtraDamage(((DamageTool)initTemp.getUnit().getEquippedTool()).extraDamage);
+        receiverTemp.setExtraDamage(((DamageTool)receiverTemp.getUnit().getEquippedTool()).extraDamage);
+        if (battlePurpose == Purpose.SkillAttack) {
+            int subtractHP = 0, subtractTP = 0;
+            if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.HP) {
+                subtractHP = info.getUnit().getToUseSkill().getToll().getValue();
+            } else if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.TP) {
+                subtractTP = info.getUnit().getToUseSkill().getToll().getValue();
+            }
+            
+            initTemp = new Combatant(info, BattleRole.Initiator);
+            initTemp.setHPtoSubtract(subtractHP);
+            initTemp.setTPtoSubtract(subtractTP);
+            initTemp.getUnit().getToUseSkill().getEffect().applyEffectsOnCombat(initTemp);
+            initTemp.setExtraDamage(initTemp.getUnit().getToUseSkill().getEffect().extraDamage() + ((DamageTool)initTemp.getUnit().getEquippedTool()).extraDamage);
+        } else if (battlePurpose == Purpose.EtherAttack) {
+            initTemp.setHPtoSubtract(info.getUnit().getEquippedFormula().getHPUsage());
+            initTemp.setTPtoSubtract(info.getUnit().getEquippedFormula().getTPUsage());
+        }
+        
+        return
+                new PrebattleForecast(
+                    initTemp,
+                    receiverTemp,
+                    info,
+                    attackRange,
+                    initTemp.getUnit().getToUseSkill()
+                );
     }
-
 }

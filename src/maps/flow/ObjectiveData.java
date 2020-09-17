@@ -5,15 +5,14 @@
  */
 package maps.flow;
 
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 import etherealtempest.FSM.EntityState;
+import etherealtempest.GameUtils;
 import etherealtempest.MasterFsmState;
-import java.util.ArrayList;
 import maps.layout.Map;
 import maps.layout.MapEntity;
 import maps.layout.TangibleUnit;
 import maps.layout.TangibleUnit.UnitStatus;
-import maps.layout.Tile;
 
 /**
  *
@@ -366,7 +365,7 @@ public class ObjectiveData {
         private Integer X_Number_Of_Allies_Die = null;
         private Integer X_Number_Of_Entities_Die = null;
         private Integer X_Number_Of_Turns_Pass = null;
-        private String[] X_Characters_Die = null; //can be player characters, enemy characters, ally characters, etc.
+        private String[] X_Characters_Die = null; //can only be player characters or ally characters
         private String[] X_Entities_Die = null;
         private String[] X_Enemies_Escape = null;
         
@@ -509,7 +508,7 @@ public class ObjectiveData {
         public boolean X_Number_Of_Turns_PassMet(Conveyer data) { return data.getCurrentTurn() > X_Number_Of_Turns_Pass; }
         
         public boolean X_Characters_DieMet(Conveyer data) {
-            for (TangibleUnit unit : data.getAllUnits()) {
+            for (TangibleUnit unit : GameUtils.calculateAlliedUnits(UnitStatus.Player, data)) {
                 for (String name : X_Characters_Die) {
                     if (unit.getName().equals(name) && unit.getFSM().getState().getEnum() != EntityState.Dead) {
                         return false;

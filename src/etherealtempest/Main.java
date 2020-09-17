@@ -76,15 +76,6 @@ public class Main extends SimpleApplication {
         //TODO: add render code
     }
     
-    public static <T> int getCountOfArray(T[] arr, T val) {
-        int f = 0;
-        for (T x : arr) {
-            if (x == val || x.equals(val)) { f++; }
-        }
-        
-        return f;
-    }
-    
     public static void setFramerate(int framerate) {
         set.setFrameRate(framerate);
         currentFramerate = framerate;

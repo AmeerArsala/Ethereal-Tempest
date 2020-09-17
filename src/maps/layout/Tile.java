@@ -5,22 +5,14 @@
  */
 package maps.layout;
 
-import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.VertexBuffer.Type;
-import com.jme3.scene.shape.Quad;
-import com.jme3.terrain.geomipmap.TerrainPatch;
-import com.jme3.texture.Texture;
-import com.jme3.texture.Texture.WrapMode;
 import com.jme3.util.BufferUtils;
 import general.GeneralUtils;
 import java.util.ArrayList;
@@ -46,7 +38,9 @@ public class Tile {
     private Geometry tgeometry;
     private Material patchMaterial;
     private Mesh patchMesh;
-    private TangibleUnit occupier;
+    
+    private TangibleUnit occupier = null;
+    private MapEntity structure = null;
     
     //public TerrainPatch tile;
     public boolean isOccupied = false;
@@ -77,6 +71,8 @@ public class Tile {
     public int getPosX() { return pX; }
     public int getPosY() { return pY; }
     public int getElevation() { return elevation; }
+    
+    public Coords coords() { return new Coords(pX, pY); }
     
     public Geometry getGeometry() { return tgeometry; }
     
@@ -505,10 +501,20 @@ public class Tile {
     public Mesh getTileMesh() { return patchMesh; }
     
     public TangibleUnit getOccupier() { return occupier; }
-    public void setOccupier(TangibleUnit u) { occupier = u; }
+    public void setOccupier(TangibleUnit u) { 
+        occupier = u;
+        isOccupied = true;
+    }
+    
+    public MapEntity getStructureOccupier() { return structure; }
+    public void setStructureOccupier(MapEntity ME) {
+        structure = ME;
+        isOccupied = true;
+    }
     
     public void resetOccupier() {
         occupier = null;
+        structure = null;
         isOccupied = false;
     }
 }

@@ -3,15 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package etherealtempest;
-
-import java.util.List;
+package fundamental;
 
 /**
  *
  * @author night
  */
-public interface Requestable {
-    public List<Request> getRequests();
-    public void attemptToResolveCurrentRequest(float tpf, DataStructure data);
+public class Entity {
+    protected final String name;
+    
+    public Entity(String name) {
+        this.name = name;
+    }
+    
+    public String getName() { return name; }
 }

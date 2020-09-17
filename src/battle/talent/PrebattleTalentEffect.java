@@ -6,8 +6,8 @@
 package battle.talent;
 
 import battle.Combatant;
-import battle.Conveyer;
-import battle.StatValue;
+import battle.value.StatValue;
+import etherealtempest.info.Conveyer;
 import java.util.List;
 
 /**
@@ -42,7 +42,6 @@ public abstract class PrebattleTalentEffect {
                 opponent = BattleRole.Receiver;
             }
         };
-    
     */
     
 }

@@ -5,7 +5,7 @@
  */
 package general.ui;
 
-import battle.Conveyer;
+import etherealtempest.info.Conveyer;
 import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 

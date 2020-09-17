@@ -5,6 +5,7 @@
  */
 package maps.layout;
 
+import etherealtempest.MasterFsmState;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,18 +26,36 @@ public class Path {
     
     private boolean succeeded;
     
-    public Path(Map map, int startPosX, int startPosY, int destX, int destY, int layer) {
+    public Path(Map map, int startPosX, int startPosY, int destX, int destY, int layer, int length) {
         this.map = map;
         this.startPosX = startPosX;
         this.startPosY = startPosY;
         this.destX = destX;
         this.destY = destY;
         this.layer = layer;
+        this.length = length;
         
         //length = Math.abs(destX - startPosX) + Math.abs(destY - startPosY);
 
         succeeded = generate(false);
         
+        if (!succeeded) {
+            pathSequence = new ArrayList<>();
+            succeeded = generate(true);
+        }
+    }
+    
+    public Path(Coords start, Coords end, int layer, int length) {
+        map = MasterFsmState.getCurrentMap();
+        startPosX = start.getX();
+        startPosY = start.getY();
+        destX = end.getX();
+        destY = end.getY();
+        
+        this.layer = layer;
+        this.length = length;
+        
+        succeeded = generate(false);
         if (!succeeded) {
             pathSequence = new ArrayList<>();
             succeeded = generate(true);
@@ -62,14 +81,20 @@ public class Path {
             return false;
         }
         
+        Coords elysium = new Coords(destX, destY);
+        
         boolean success;
         success = pathfind(flip);
-        while (!pathSequence.get(pathSequence.size() - 1).equals(new Coords(destX, destY))) {
-            success = pathfind(flip);
+        for (int i = 0; i < (pathSequence.size() > 0 ? length - 1 : length); i++) {
+            if (pathSequence.size() > 0) {
+                if (!pathSequence.get(pathSequence.size() - 1).equals(elysium)) {
+                    success = pathfind(flip);
+                } else { i = length; }
+            }
         }
         
         buildPath();
-        return success;
+        return success ? (pathSequence.size() > 0 && pathSequence.get(pathSequence.size() - 1).equals(elysium)) : false;
     }
     
     private boolean pathfind(boolean flipPriority) {
@@ -86,7 +111,7 @@ public class Path {
         
         if (nextCoords != null) {
             pathSequence.add(nextCoords);
-            return true;
+            return pathSequence.size() <= length;
         }
         
         return false;
@@ -125,6 +150,20 @@ public class Path {
             return tileCoords;
         }
         
+        if (flipPriority && prevX != destX && map.isWithinBounds(tileCoords, layer)) {
+            tileCoords.setX(prevX + xDiff);
+            
+            if (sequenceHasCoords(tileCoords) || map.fullmap[layer][tileCoords.getX()][tileCoords.getY()].isOccupied) { //reverts the change if it treads previous ground
+                tileCoords.setX(prevX);
+                tileCoords.setY(prevY + (yDiff != 0 ? yDiff : 1)); //1 is default newYdiff
+                
+                if (sequenceHasCoords(tileCoords) || map.fullmap[layer][tileCoords.getX()][tileCoords.getY()].isOccupied) { //inverts the change if it treads previous ground
+                    tileCoords.setY(prevY - (yDiff != 0 ? yDiff : 1)); //subtract 1
+                }
+            }
+            return tileCoords;
+        }
+        
         return null;
     }
     
@@ -140,6 +179,12 @@ public class Path {
         });
         //System.out.println();
         
+    }
+    
+    public void printPath() {
+        pathSequence.forEach((coord) -> {
+            System.out.println(coord.toString());
+        });
     }
     
 }

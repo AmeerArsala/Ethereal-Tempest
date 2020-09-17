@@ -3,10 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle;
+package battle.participants;
 
+import etherealtempest.info.Conveyer;
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;
+import fundamental.Toll;
 import battle.item.Item;
 import battle.item.Weapon;
 import battle.ability.Ability;
@@ -14,12 +16,13 @@ import battle.formation.Formation;
 import battle.formula.Formula;
 import battle.item.Inventory;
 import battle.skill.Skill;
-import battle.talent.PassiveTalent;
 import battle.talent.Talent;
 import fundamental.Bonus;
 import fundamental.DamageTool;
-import fundamental.FreelyAssociated;
 import fundamental.StatBundle;
+import fundamental.Tool;
+import fundamental.Tool.ToolType;
+import general.GeneralUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,11 +38,9 @@ public class Unit extends JobClass {
     //DISCLAIMER: maxTP (the BaseStat enum) does not actually refer to the Unit's maximum tp stat, but rather an accumulation of the amount of points it has grown through growth rate increases, the rest of the stat is calculated by other stats
     public static final ArrayList<BaseStat> baseStats = StatBundle.createBaseStats();
     public static final HashMap<BaseStat, Integer> DEFAULT_ENEMY_GROWTH_RATES = StatCanvas(100);
-
+    
     public int currentEXP = 0;
     public int currentHP, currentTP;
-
-    protected final String name;
     
     private HashMap<BaseStat, Integer> stats = new HashMap<>();
     private HashMap<BaseStat, Integer> personal_growth_rates = new HashMap<>();
@@ -59,11 +60,10 @@ public class Unit extends JobClass {
     private final boolean isBoss;
     
     public Unit(String name, JobClass jc, List<StatBundle> baseStatPackage, List<StatBundle> growthRatePackage, List<Item> inventory, List<Formula> formulas, List<Talent> talents, List<Ability> abilities, List<Skill> skills, List<Formation> formations, boolean isBoss) {
-        super(jc.clName(), jc.MovementType(), jc.UsableWeapons(), jc.ClassStatBonus(), jc.ClassBattleBonus(), jc.ClassMaxStats(), jc.clTier());
+        super(jc.clName(), name, jc.MovementType(), jc.UsableWeapons(), jc.ClassStatBonus(), jc.ClassBattleBonus(), jc.ClassMaxStats(), jc.clTier());
         stats = StatBundle.createBaseStatsFromBundles(baseStatPackage);
         personal_growth_rates = StatBundle.createBaseStatsFromBundles(growthRatePackage);
         
-        this.name = name;
         this.inventory = new Inventory(inventory);
         this.formulas = formulas;
         this.talents = talents;
@@ -79,11 +79,10 @@ public class Unit extends JobClass {
     }
     
     public Unit(String name, JobClass jc, HashMap<BaseStat, Integer> baseStatPackage, List<StatBundle> growthRatePackage, List<Item> inventory, List<Formula> formulas, List<Talent> talents, List<Ability> abilities, List<Skill> skills, List<Formation> formations, boolean isBoss) {
-        super(jc.clName(), jc.MovementType(), jc.UsableWeapons(), jc.ClassStatBonus(), jc.ClassBattleBonus(), jc.ClassMaxStats(), jc.clTier());
+        super(jc.clName(), name, jc.MovementType(), jc.UsableWeapons(), jc.ClassStatBonus(), jc.ClassBattleBonus(), jc.ClassMaxStats(), jc.clTier());
         stats = baseStatPackage;
         personal_growth_rates = StatBundle.createBaseStatsFromBundles(growthRatePackage);
         
-        this.name = name;
         this.inventory = new Inventory(inventory);
         this.formulas = formulas;
         this.talents = talents;
@@ -98,11 +97,10 @@ public class Unit extends JobClass {
         customSkillAnimations = jc.getCustomSkillAnimations();
     }
     public Unit(String name, JobClass jc, List<StatBundle> baseStatPackage, HashMap<BaseStat, Integer> growthRatePackage, List<Item> inventory, List<Formula> formulas, List<Talent> talents, List<Ability> abilities, List<Skill> skills, List<Formation> formations, boolean isBoss) {
-        super(jc.clName(), jc.MovementType(), jc.UsableWeapons(), jc.ClassStatBonus(), jc.ClassBattleBonus(), jc.ClassMaxStats(), jc.clTier());
+        super(jc.clName(), name, jc.MovementType(), jc.UsableWeapons(), jc.ClassStatBonus(), jc.ClassBattleBonus(), jc.ClassMaxStats(), jc.clTier());
         stats = StatBundle.createBaseStatsFromBundles(baseStatPackage);
         personal_growth_rates = growthRatePackage;
         
-        this.name = name;
         this.inventory = new Inventory(inventory);
         this.formulas = formulas;
         this.talents = talents;
@@ -117,11 +115,10 @@ public class Unit extends JobClass {
         customSkillAnimations = jc.getCustomSkillAnimations();
     }
     public Unit(String name, JobClass jc, HashMap<BaseStat, Integer> baseStatPackage, HashMap<BaseStat, Integer> growthRatePackage, List<Item> inventory, List<Formula> formulas, List<Talent> talents, List<Ability> abilities, List<Skill> skills, List<Formation> formations, boolean isBoss) {
-        super(jc.clName(), jc.MovementType(), jc.UsableWeapons(), jc.ClassStatBonus(), jc.ClassBattleBonus(), jc.ClassMaxStats(), jc.clTier());
+        super(jc.clName(), name, jc.MovementType(), jc.UsableWeapons(), jc.ClassStatBonus(), jc.ClassBattleBonus(), jc.ClassMaxStats(), jc.clTier());
         stats = baseStatPackage;
         personal_growth_rates = growthRatePackage;
         
-        this.name = name;
         this.inventory = new Inventory(inventory);
         this.formulas = formulas;
         this.talents = talents;
@@ -136,7 +133,6 @@ public class Unit extends JobClass {
         customSkillAnimations = jc.getCustomSkillAnimations();
     }
     
-    public String getName() { return name; }
     public boolean getIsBoss() { return isBoss; }
     
     public Inventory getInventory() { return inventory; }
@@ -151,6 +147,11 @@ public class Unit extends JobClass {
     
     public List<Bonus> getBonuses() { return bonuses; }
     
+    public void addBonus(Bonus B) {
+        bonuses.add(B);
+        Bonus.organizeList(bonuses);
+    }
+    
     public void setGrowthRates(HashMap<BaseStat, Integer> rates) { personal_growth_rates = rates; }
     
     public void setGrowthRate(int amt, BaseStat stat) {
@@ -158,8 +159,20 @@ public class Unit extends JobClass {
     }
     
     public void setStat(BaseStat statname, int amount) {
-        stats.replace(statname, amount);
+        switch (statname) {
+            case currentHP:
+                currentHP = amount;
+                break;
+            case currentTP:
+                currentTP = amount;
+                break;
+            default:
+                stats.replace(statname, amount);
+                break;
+        }
     }
+    
+    public Integer getStat(BaseStat statname) { return stats.get(statname); }
     
     public int simulateTP(int hpextra, int etherextra, int rslextra) {
         return (((hpextra + stats.get(BaseStat.maxHP)) + (((etherextra + stats.get(BaseStat.ether)) + (rslextra + stats.get(BaseStat.resilience))) * 2)) / 2) - calculateTPBody();
@@ -219,7 +232,7 @@ public class Unit extends JobClass {
     }
     
     public int getTotalBonus(BaseStat stat) { //for talent bonuses, on the enactEffect(), it will add to the Unit's bonus list
-        int bonusSum = getEquippedWeapon() != null ? getEquippedWeapon().getTotalBonus(stat) : 0;
+        int bonusSum = getEquippedTool() != null ? getEquippedTool().getTotalBonus(stat) : 0;
         for (Bonus bonus : bonuses) {
             if (bonus.getBaseStat() == stat) {
                 bonusSum += bonus.getValue();
@@ -230,7 +243,7 @@ public class Unit extends JobClass {
     }
     
     public int getTotalBonus(BattleStat stat) {
-        int bonusSum = getEquippedWeapon() != null ? getEquippedWeapon().getTotalBonus(stat) : 0;
+        int bonusSum = getEquippedTool() != null ? getEquippedTool().getTotalBonus(stat) : 0;
         for (Bonus bonus : bonuses) {
             if (bonus.getBattleStat() == stat) {
                 bonusSum += bonus.getValue();
@@ -242,16 +255,16 @@ public class Unit extends JobClass {
     
     //Battle Stats
     public int getATK() {
-        if (equippedFormula != null) {
-            return getETHER() + equippedFormula.getFormulaData().getPow() + getTotalBonus(BattleStat.AttackPower);
+        if (equippedFormula != null && equippedFormula.getOffensiveFormulaData() != null) {
+            return getETHER() + equippedFormula.getOffensiveFormulaData().getPow() + getTotalBonus(BattleStat.AttackPower);
         }
         
         return (equippedWeapon != null ? getSTR() + equippedWeapon.getWeaponData().getPow() : getSTR()) + getTotalBonus(BattleStat.AttackPower);
     }
     
     public int getAccuracy() {
-        if (getEquippedWeapon() != null) {
-            return getEquippedWeapon().getAcc() + (((getDEX() * 4) + getCOMP()) / 2) + ClassBattleBonus().get(BattleStat.Accuracy) + getTotalBonus(BattleStat.Accuracy);
+        if (getEquippedTool() != null) {
+            return ((DamageTool)getEquippedTool()).getAcc() + (((getDEX() * 4) + getCOMP()) / 2) + ClassBattleBonus().get(BattleStat.Accuracy) + getTotalBonus(BattleStat.Accuracy);
         }
         return getTotalBonus(BattleStat.Accuracy); 
     } //add commander bonus
@@ -259,8 +272,8 @@ public class Unit extends JobClass {
     public int getEvasion() { return (((getAGI() * 3) + getCOMP()) / 2) + ClassBattleBonus().get(BattleStat.Evasion) + getTotalBonus(BattleStat.Evasion); } //add terrain bonus
     
     public int getCrit() {
-        if (getEquippedWeapon() != null) {
-            return getEquippedWeapon().getCRIT() + (getDEX() / 2) + ClassBattleBonus().get(BattleStat.Crit) + getTotalBonus(BattleStat.Crit);
+        if (getEquippedTool() != null) {
+            return getEquippedTool().getCRIT() + (getDEX() / 2) + ClassBattleBonus().get(BattleStat.Crit) + getTotalBonus(BattleStat.Crit);
         }
         return 0;
     }
@@ -279,14 +292,35 @@ public class Unit extends JobClass {
         equippedWeapon = null;
     }
     
+    public void restore(Toll type) {
+        int value = type.getValue();
+        switch (type.getType()) {
+            case HP:
+                if (currentHP + value > stats.get(BaseStat.maxHP)) {
+                    currentHP = stats.get(BaseStat.maxHP);
+                } else { currentHP += value; }
+                break;
+            case TP:
+                if (currentTP + value > stats.get(BaseStat.maxTP)) {
+                    currentTP = stats.get(BaseStat.maxTP);
+                } else { currentTP += value; }
+                break;
+            case Durability: //only on the equipped weapon
+                if (equippedWeapon != null) {
+                    equippedWeapon.restoreUses(value);
+                }
+                break;
+        }
+    }
+    
     public Weapon getEquippedWPN() { return equippedWeapon; }
     public Formula getEquippedFormula() { return equippedFormula; }
     
     public Formation getEquippedFormation() { return formations.get(0); }
     
-    public DamageTool getEquippedWeapon() { 
+    public Tool getEquippedTool() { 
         if (equippedFormula != null) {
-            return equippedFormula.getFormulaData();
+            return equippedFormula.getActualFormulaData();
         }
         if (equippedWeapon != null) {
             return equippedWeapon.getWeaponData();
@@ -379,11 +413,8 @@ public class Unit extends JobClass {
     }
     
     public boolean canCounterattackAgainst(int range) {
-        return getEquippedWeapon() != null ? getEquippedWeapon().getRange().contains(range) : false;
+        return getEquippedTool() != null ? getEquippedTool().getRange().contains(range) : false;
     }
-    
-    @Override
-    public String toString() { return name; }
     
     public int getAmountExistingFormulas() {
         int count = 0;
@@ -393,4 +424,199 @@ public class Unit extends JobClass {
         return count;
     }
     
+    public int highestRange() {
+        int max = 0;
+        for (Item item : inventory.getItems()) {
+            if (item instanceof Weapon) {
+                int range = GeneralUtils.highestInt(((Weapon)item).getWeaponData().getRange());
+                if (range > max) {
+                    max = range;
+                }
+            }
+        }
+        
+        for (Formula formula : formulas) {
+            int range = GeneralUtils.highestInt(formula.getActualFormulaData().getRange());
+            if (range > max) {
+                max = range;
+            }
+        }
+        
+        return max;
+    }
+    
+    public List<Integer> getFullRange() {
+        List<Integer> fullRange = new ArrayList<>();
+        
+        for (Integer range : getFullOffensiveRange()) {
+            if (!fullRange.contains(range)) {
+                fullRange.add(range);
+            }
+        }
+        
+        for (Integer range : getFullSkillRange()) {
+            if (!fullRange.contains(range)) {
+                fullRange.add(range);
+            }
+        }
+        
+        formulas.forEach((formula) -> {
+            formula.getActualFormulaData().getRange().stream().filter((range) -> (!fullRange.contains(range))).forEachOrdered((range) -> {
+                fullRange.add(range);
+            });
+        });
+        
+        formations.forEach((formation) -> {
+            formation.getRange().stream().filter((range) -> (!fullRange.contains(range))).forEachOrdered((range) -> {
+                fullRange.add(range);
+            });
+        });
+        
+        return fullRange;
+    }
+    
+    public List<Integer> getFullOffensiveRange() {
+        List<Integer> fullRange = new ArrayList<>();
+        
+        inventory.getItems().stream().filter((item) -> (item instanceof Weapon)).forEachOrdered((item) -> {
+            ((Weapon)item).getWeaponData().getRange().stream().filter((range) -> (!fullRange.contains(range))).forEachOrdered((range) -> {
+                fullRange.add(range);
+            });
+        });
+        
+        for (Integer range : getPartialFormulaRange(false)) {
+            if (!fullRange.contains(range)) {
+                fullRange.add(range);
+            }
+        }
+        
+        for (Integer range : getPartialFormationRange(false)) {
+            if (!fullRange.contains(range)) {
+                fullRange.add(range);
+            }
+        }
+        
+        for (Integer range : getPartialSkillRange(false)) {
+            if (!fullRange.contains(range)) {
+                fullRange.add(range);
+            }
+        }
+        
+        return fullRange;
+    }
+    
+    public List<Integer> getFullAssistRange() {
+        List<Integer> fullRange = new ArrayList<>();
+        
+        for (Integer range : getPartialFormulaRange(true)) {
+            if (!fullRange.contains(range)) {
+                fullRange.add(range);
+            }
+        }
+        
+        for (Integer range : getPartialFormationRange(true)) {
+            if (!fullRange.contains(range)) {
+                fullRange.add(range);
+            }
+        }
+        
+        for (Integer range : getPartialSkillRange(true)) {
+            if (!fullRange.contains(range)) {
+                fullRange.add(range);
+            }
+        }
+        
+        return fullRange;
+    }
+    
+    public List<Integer> getPartialFormulaRange(boolean supportive) {
+        List<Integer> fullRange = new ArrayList<>();
+        
+        formulas.forEach((formula) -> {
+            if (formula.getFormulaPurpose().isSupportive() == supportive) {
+                formula.getActualFormulaData().getRange().stream().filter((range) -> (!fullRange.contains(range))).forEachOrdered((range) -> {
+                    fullRange.add(range);
+                });
+            }
+        });
+        
+        return fullRange;
+    }
+    
+    public List<Integer> getPartialFormationRange(boolean supportive) {
+        List<Integer> fullRange = new ArrayList<>();
+        
+        formations.forEach((formation) -> {
+            if (formation.getToolType().isSupportive() == supportive) {
+                formation.getRange().stream().filter((range) -> (!fullRange.contains(range))).forEachOrdered((range) -> {
+                    fullRange.add(range);
+                });
+            }
+        });
+        
+        return fullRange;
+    }
+    
+    public List<Integer> getPartialSkillRange(boolean supportive) {
+        List<Integer> fullRange = new ArrayList<>();
+        
+        skills.forEach((skill) -> {
+            if (skill.getType().isSupportive() == supportive) {
+                skill.getEffect().range().stream().filter((range) -> (!fullRange.contains(range))).forEachOrdered((range) -> {
+                    fullRange.add(range);
+                });
+            }
+        });
+        
+        return fullRange;
+    }
+    
+    public List<Integer> getFullWeaponRange() {
+        List<Integer> fullRange = new ArrayList<>();
+        
+        inventory.getItems().stream().filter((item) -> (item instanceof Weapon)).forEachOrdered((item) -> {
+            ((Weapon)item).getWeaponData().getRange().stream().filter((range) -> (!fullRange.contains(range))).forEachOrdered((range) -> {
+                fullRange.add(range);
+            });
+        });
+        
+        return fullRange;
+    }
+    
+    public List<Integer> getFullSkillRange() {
+        List<Integer> fullRange = new ArrayList<>();
+        
+        skills.forEach((skill) -> {
+            for (Integer range : skill.getEffect().range()) {
+                if (!fullRange.contains(range)) {
+                    fullRange.add(range);
+                }
+            }
+        });
+        
+        return fullRange;
+    }
+    
+    public boolean hasSupportingFormulas() {
+        return hasSelfSupportingFormulas() || hasAllySupportingFormulas();
+    }
+    
+    public boolean hasSelfSupportingFormulas() {
+        return formulas.stream().anyMatch((spell) -> (spell.getFormulaPurpose() == ToolType.SupportSelf));
+    }
+    
+    public boolean hasAllySupportingFormulas() {
+        return formulas.stream().anyMatch((spell) -> (spell.getFormulaPurpose() == ToolType.SupportAlly));
+    }
+    
+    public boolean hasAttackingFormulas() {
+        return formulas.stream().anyMatch((spell) -> (spell.getFormulaPurpose() == ToolType.Attack));
+    }
+    
+    public boolean anyAbilityAllowed(Conveyer conv) {
+        return abilities.stream().anyMatch((ability) -> (ability.canBeUsed(conv)));
+    }
+    
+    @Override
+    public String toString() { return name; }
 }

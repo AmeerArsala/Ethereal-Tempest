@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle;
+package battle.participants;
 
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;
@@ -11,6 +11,7 @@ import battle.parse.AttackConfig;
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Texture;
+import fundamental.Entity;
 import fundamental.StatBundle;
 import java.io.IOException;
 import java.io.Reader;
@@ -24,7 +25,7 @@ import misc.CustomAnimationSegment;
  *
  * @author Ameer Arsala
  */
-public class JobClass {
+public class JobClass extends Entity {
     protected String jobname = "";
     protected AttackConfig attackAnimation;
 
@@ -43,6 +44,15 @@ public class JobClass {
     private Texture combatSheet;
     
     public JobClass(String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, List<StatBundle> bonusStats, List<StatBundle> battleBonus, List<StatBundle> maxStats, int tier) {
+        this(jobname, jobname, mobilityTypes, wieldableWeaponTypes, bonusStats, battleBonus, maxStats, tier);
+    }
+    
+    public JobClass(String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, int tier) {
+        this(jobname, jobname, mobilityTypes, wieldableWeaponTypes, bonusStats, battleBonus, maxStats, tier);
+    }
+    
+    public JobClass(String jobname, String real, List<String> mobilityTypes, List<String> wieldableWeaponTypes, List<StatBundle> bonusStats, List<StatBundle> battleBonus, List<StatBundle> maxStats, int tier) {
+        super(real);
         this.jobname = jobname;
         this.mobilityTypes = mobilityTypes;
         this.wieldableWeaponTypes = wieldableWeaponTypes;
@@ -65,7 +75,8 @@ public class JobClass {
         }
     }
     
-    public JobClass(String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, int tier) {
+    public JobClass(String jobname, String real, List<String> mobilityTypes, List<String> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, int tier) {
+        super(real);
         this.jobname = jobname;
         this.mobilityTypes = mobilityTypes;
         this.wieldableWeaponTypes = wieldableWeaponTypes;

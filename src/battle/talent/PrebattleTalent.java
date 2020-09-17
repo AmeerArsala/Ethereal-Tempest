@@ -5,6 +5,8 @@
  */
 package battle.talent;
 
+import fundamental.Tool.ToolType;
+
 /**
  *
  * @author night
@@ -13,8 +15,8 @@ public class PrebattleTalent extends Talent {
     private final TalentCondition condition;
     private final PrebattleTalentEffect effect;
     
-    public PrebattleTalent(String talentname, String loredescription, String description, String imgPath, TalentCondition condition, PrebattleTalentEffect effect) {
-        super (talentname, loredescription, description, imgPath);
+    public PrebattleTalent(String talentname, ToolType type, String loredescription, String description, String imgPath, TalentCondition condition, PrebattleTalentEffect effect) {
+        super (talentname, type, loredescription, description, imgPath);
         this.condition = condition;
         this.effect = effect;
     }

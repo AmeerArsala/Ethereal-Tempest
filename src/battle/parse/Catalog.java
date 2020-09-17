@@ -3,10 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle;
+package battle.parse;
 
+import battle.participants.Unit;
+import battle.participants.JobClass;
+import etherealtempest.info.Conveyer;
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;
+import fundamental.Toll;
 import battle.item.Item;
 import battle.item.ConsumableItem;
 import battle.item.ItemEffect;
@@ -16,8 +20,7 @@ import battle.formation.Formation;
 import battle.formation.FormationTechnique;
 import battle.formula.Formula;
 import battle.skill.Skill;
-import battle.Toll.Exchange;
-import battle.formula.Formula.FormulaType;
+import fundamental.Toll.Exchange;
 import battle.skill.SkillEffect;
 import battle.talent.BattleTalent;
 import battle.talent.BattleTalentEffect;
@@ -26,26 +29,22 @@ import battle.talent.TalentCondition;
 import battle.talent.TalentConcept;
 import battle.talent.TalentEffect;
 import battle.talent.Talent;
-import com.jme3.asset.AssetManager;
-import com.jme3.material.Material;
 import com.jme3.math.Vector2f;
-import etherealtempest.DataStructure;
-import java.util.ArrayList;
+import etherealtempest.info.DataStructure;
 import java.util.Arrays;
 import java.util.List;
-import maps.layout.Map;
 import maps.layout.TangibleUnit;
 import maps.layout.Tile;
 import misc.CustomAnimationSegment;
 import misc.FrameDelay;
 import etherealtempest.MasterFsmState;
-import etherealtempest.Request;
-import etherealtempest.Request.RequestType;
+import etherealtempest.info.Request;
+import etherealtempest.info.Request.RequestType;
 import fundamental.Bonus;
 import fundamental.DamageTool;
 import fundamental.FreelyAssociated;
 import fundamental.StatBundle;
-import general.visual.VisualTransition;
+import fundamental.Tool.ToolType;
 import java.util.HashMap;
 import maps.layout.Coords;
 import maps.layout.TangibleUnit.UnitStatus;
@@ -55,7 +54,6 @@ import maps.layout.TangibleUnit.UnitStatus;
  */
 public class Catalog {
     //referring to weapons
-    public static final int[] noStatBonuses = {0, 0, 0, 0, 0, 0, 0};
     public static final String[] effAgainstNothing = {"None"};
     
     public static List<StatBundle> baseCav() {
@@ -103,12 +101,12 @@ public class Catalog {
         );
     }
     
-    public static List<Item> emptyInventory() { return Arrays.asList(new Item(false), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false)); } //7 items max
+    //public static List<Item> emptyInventory() { return Arrays.asList(new Item(false), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false)); } //7 items max
     public static List<Talent> emptyTalents() { return Arrays.asList(new Talent(false), new Talent(false), new Talent(false), new Talent(false), new Talent(false), new Talent(false)); } //6 Talents max
-    public static List<Skill> emptySkills() { return Arrays.asList(new Skill(false), new Skill(false), new Skill(false), new Skill(false), new Skill(false)); } //5 Skills max
-    public static final List<Formation> emptyFormations() { return Arrays.asList(new Formation(false), new Formation(false), new Formation(false)); } //3 formations max
-    public static final List<Ability> emptyAbilities() { return Arrays.asList(new Ability(false), new Ability(false), new Ability(false), new Ability(false), new Ability(false), new Ability(false)); } //6 abilities max
-    public static final List<Formula> emptyFormulas() { return Arrays.asList(new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula()); } //15 formulas max
+    //public static List<Skill> emptySkills() { return Arrays.asList(new Skill(false), new Skill(false), new Skill(false), new Skill(false), new Skill(false)); } //5 Skills max
+    //public static final List<Formation> emptyFormations() { return Arrays.asList(new Formation(false), new Formation(false), new Formation(false)); } //3 formations max
+    //public static final List<Ability> emptyAbilities() { return Arrays.asList(new Ability(false), new Ability(false), new Ability(false), new Ability(false), new Ability(false), new Ability(false)); } //6 abilities max
+    //public static final List<Formula> emptyFormulas() { return Arrays.asList(new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula()); } //15 formulas max
     
     //private static Map currentMap;
     
@@ -344,7 +342,7 @@ public class Catalog {
                         "wind",
                         effAgainstNothing
                 ),
-                FormulaType.Attack,
+                ToolType.Attack,
                 new Toll(Exchange.TP, 5)
         )
     };
@@ -578,7 +576,7 @@ public class Catalog {
     
     public static Skill[] SkillCatalog = 
     { // Skill(String name, String desc, String path, Toll info)
-        new Skill("Heavy Swing", "A mighty swing.", "Interface/GUI/skill_icons/heavy_swing.png", new Toll(Exchange.TP, 3), 
+        new Skill("Heavy Swing", "A mighty swing.", "Interface/GUI/skill_icons/heavy_swing.png", ToolType.Attack, new Toll(Exchange.TP, 3), 
                 new SkillEffect() {
                     @Override
                     public void setBattleStats() {
@@ -595,39 +593,38 @@ public class Catalog {
                     public int extraHits() {
                         return 0;
                     }
+                    
+                    @Override
+                    public List<Integer> range() {
+                        return Arrays.asList(1);
+                    }
                 }
             )
     };
     
     public static ItemEffect[] ItemEffectCatalog = 
     {
-        new ItemEffect() {
+        new ItemEffect(ToolType.SupportSelf, 100) {
             @Override
-            public int HPrestoration() {
-                return restoredHPValue;
+            public List<Toll> restoration(Unit unit) {
+                return Arrays.asList(new Toll(Exchange.HP, 5));
             }
 
             @Override
-            public int TPrestoration() {
-                return restoredTPValue;
+            public List<Bonus> bonuses() {
+                return Arrays.asList();
             }
 
             @Override
-            public int[] tempBonusStats(Conveyer C) {
-                return null;
+            public boolean canBeUsed(Conveyer C) {
+                return C.getUnit().currentHP < C.getUnit().getStat(BaseStat.maxHP);
             }
-
-            @Override
-            public int[] permanentBonusStats(Unit U) {
-                return null;
-            }
-
+            
             @Override
             public void enactEffect(Conveyer C) {
-                C.getUnit().currentHP += HPrestoration();
-                //do animation on map screen
-            } 
-        }.setHPrestoration(5)
+                //make a request to do animation on map screen
+            }
+        }
     };
     
     public static Item[] ItemCatalog = 
@@ -712,7 +709,7 @@ public class Catalog {
             @Override
             public boolean getCondition(Conveyer data) {
                  TangibleUnit user = data.getUnit(), target = data.getOtherUnit();
-                 if (!user.isAlliedWith(target)) { return false; }
+                 if (!user.isAlliedWith(target.unitStatus)) { return false; }
                  
                  for (int i = 0; i < 2; i++) {
                      Tile possibilityX = MasterFsmState.getCurrentMap().fullmap[user.getElevation()][user.getPosX() + ((int)Math.cos(Math.PI * i))][user.getPosY()];
@@ -723,13 +720,21 @@ public class Catalog {
                  }
                  return false;
             }
+
+            @Override
+            public int calculateDesirability(Conveyer data) {
+                return 230;
+            }
         }
     };
     
     public static Formation[] FormationCatalog = {
         //  Formation(String name, String desc, String type, boolean elite, int stars, String imageName, FormationTechnique[] techniques)
-        new Formation("Base Platoon", "A small platoon of guards from the Juclen Orphanage sent by the headmaster", "diamond", false, 2, "base_platoon.png",
-                      new FormationTechnique[]{FormationTechniqueCatalog[0]})
+        new Formation(
+                "Base Platoon", "A small platoon of guards from the Juclen Orphanage sent by the headmaster", "diamond", false, 2, "base_platoon.png",
+                ToolType.SupportAlly,
+                Arrays.asList(1),
+                new FormationTechnique[]{FormationTechniqueCatalog[0]})
     };
     
     public static Unit[] UnitCatalog = 
@@ -770,11 +775,11 @@ public class Catalog {
                     new StatBundle(BaseStat.physique, 15),  //physique
                     new StatBundle(BaseStat.adrenaline, 50)  //adrenaline
                 ),
-                Arrays.asList(WeaponCatalog[0].getNewWeaponInstance(), ConsumableItemCatalog[0].newItemInstance(), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false)), //base inventory
-                replaceArrSlotWith(emptyFormulas(), FormulaCatalog[0], 0), //base formulas
-                replaceArrSlotWith(emptyTalents(), PassiveTalentCatalog[0], 0), //base talents
-                emptyAbilities(), //base abilities
-                replaceArrSlotWith(emptySkills(), SkillCatalog[0].getNewSkillInstance(), 0), //base skills
+                Arrays.asList(WeaponCatalog[0].getNewWeaponInstance(), ConsumableItemCatalog[0].newItemInstance()), //base inventory
+                Arrays.asList(FormulaCatalog[0]), //base formulas
+                Catalog.replaceArrSlotWith(emptyTalents(), PassiveTalentCatalog[0], 0), //base talents
+                Arrays.asList(), //base abilities
+                Arrays.asList(SkillCatalog[0].getNewSkillInstance()), //base skills
                 Arrays.asList(FormationCatalog[0]), //base formations
                 false //isBoss
             ),
@@ -798,12 +803,12 @@ public class Catalog {
                     new StatBundle(BaseStat.adrenaline, 0)  //adrenaline
                 ),
                 ((HashMap<BaseStat, Integer>)Unit.DEFAULT_ENEMY_GROWTH_RATES.clone()),
-                Arrays.asList(WeaponCatalog[6].getNewWeaponInstance(), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false), new Item(false)), 
-                emptyFormulas(), 
+                Arrays.asList(WeaponCatalog[6].getNewWeaponInstance()), 
+                Arrays.asList(), 
                 emptyTalents(), 
-                emptyAbilities(), 
-                emptySkills(), 
-                emptyFormations(), 
+                Arrays.asList(), 
+                Arrays.asList(), 
+                Arrays.asList(), 
                 false
         )
     };

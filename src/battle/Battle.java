@@ -5,11 +5,16 @@
  */
 package battle;
 
+import battle.forecast.PrebattleForecast;
+import battle.forecast.SingularForecast;
+import battle.participants.JobClass;
+import etherealtempest.info.Conveyer;
 import battle.Battle.ImpactType;
 import battle.Combatant.BaseStat;
+import battle.Combatant.BattleRole;
 import battle.DamageNumber.VisibilityState;
 import battle.StatArrowGroup.ArrowStat;
-import battle.Toll.Exchange;
+import fundamental.Toll.Exchange;
 import battle.skill.Skill;
 import com.atr.jme.font.TrueTypeBMP;
 import com.atr.jme.font.TrueTypeFont;
@@ -44,9 +49,12 @@ import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import edited.EditedLabel;
+import fundamental.DamageTool;
 import general.GeneralUtils;
 import general.GeneralUtils.CenterAxis;
 import general.ResetProtocol;
+import general.ui.Submenu.TransitionState;
+import general.visual.RadialProgressBar;
 import general.visual.VisualTransition.Progress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,10 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import maps.layout.Cursor.Purpose;
 import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.BattleRole;
 import misc.CustomAnimationSegment;
-import general.ui.Submenu.TransitionState;
-import general.visual.RadialProgressBar;
 import misc.FrameDelay;
 
 /**
@@ -120,8 +125,8 @@ public class Battle {
         
         boolean skill = false;
         Combatant initTemp = new Combatant(info, BattleRole.Initiator), receiverTemp = new Combatant(info, BattleRole.Receiver);
-        initTemp.setExtraDamage(initTemp.getUnit().getEquippedWeapon().extraDamage);
-        receiverTemp.setExtraDamage(receiverTemp.getUnit().getEquippedWeapon().extraDamage);
+        initTemp.setExtraDamage(((DamageTool)initTemp.getUnit().getEquippedTool()).extraDamage);
+        receiverTemp.setExtraDamage(((DamageTool)receiverTemp.getUnit().getEquippedTool()).extraDamage);
         if (battlePurpose == Purpose.SkillAttack) {
             if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.HP) {
                 info.getUnit().currentHP -= info.getUnit().getToUseSkill().getToll().getValue();
@@ -132,7 +137,7 @@ public class Battle {
             initTemp = new Combatant(info, BattleRole.Initiator);
             skill = true;
             initTemp.getUnit().getToUseSkill().getEffect().applyEffectsOnCombat(initTemp);
-            initTemp.setExtraDamage(initTemp.getUnit().getToUseSkill().getEffect().extraDamage() + initTemp.getUnit().getEquippedWeapon().extraDamage);
+            initTemp.setExtraDamage(initTemp.getUnit().getToUseSkill().getEffect().extraDamage() + ((DamageTool)initTemp.getUnit().getEquippedTool()).extraDamage);
         } else if (battlePurpose == Purpose.EtherAttack) {
             //info.getUnit().currentHP -= info.getUnit().getToUseFormula().getHPUsage();
             //info.getUnit().currentTP -= info.getUnit().getToUseFormula().getTPUsage();
