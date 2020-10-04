@@ -7,7 +7,8 @@ package maps.state;
 
 import battle.Battle;
 import battle.Battle.BattleState;
-import battle.parse.Catalog;
+import battle.Combatant.BaseStat;
+import etherealtempest.info.Catalog;
 import etherealtempest.info.Conveyer;
 
 import com.atr.jme.font.asset.TrueTypeLoader;
@@ -70,9 +71,10 @@ import maps.layout.TangibleUnit;
 import maps.layout.TangibleUnit.UnitStatus;
 import misc.ViewPortAnimation;
 import etherealtempest.FSM;
-import etherealtempest.FSM.EntityState;
+import etherealtempest.FSM.CursorState;
+import etherealtempest.FSM.MapFlowState;
+import etherealtempest.FSM.UnitState;
 import etherealtempest.FsmState;
-import etherealtempest.Main;
 import etherealtempest.MasterFsmState;
 import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
@@ -115,11 +117,11 @@ public class TestMap extends AbstractAppState {
     
     private Savable savestate;
     
-    private final FSM fsm = new FSM() {
+    private final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState st) {
+        public void setNewStateIfAllowed(FsmState<MapFlowState> st) {
             state = st; //maybe change this if needed
-            if (st.getEnum() == EntityState.PostActionMenuOpened && postAction.getState().getEnum() == EntityState.GuiClosed) {
+            if (st.getEnum() == MapFlowState.PostActionMenuOpened && postAction.getState().getEnum() == MapFlowState.GuiClosed) {
                 localGuiNode.setLocalTranslation(10, 760, 0);
                 localGuiNode.attachChild(postAction);
                 
@@ -128,7 +130,6 @@ public class TestMap extends AbstractAppState {
                 postAction.setStateIfAllowed(
                         new MenuState(st.getEnum()).setConveyer(
                                 new Conveyer(pCursor.selectedUnit)
-                                        .setMap(map00)
                                         .setAllUnits(mapFlow.getUnits())
                                         .setCursor(pCursor)
                                         .setAssetManager(assetManager)
@@ -186,23 +187,26 @@ public class TestMap extends AbstractAppState {
                 int fps = (int)(1 / tpf);
                 
                 //stat screen action
-                if (stats.getState().getEnum() != EntityState.GuiClosed && keyPressed) {
+                if (stats.getState().getEnum() != MapFlowState.GuiClosed && keyPressed) {
                     stats.resolveInput(name, tpf);
-                    if (stats.getState().getEnum() == EntityState.GuiClosed) { 
+                    if (stats.getState().getEnum() == MapFlowState.GuiClosed) { 
                         fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
-                        pCursor.setStateIfAllowed(new FsmState(EntityState.CursorDefault));
+                        pCursor.setStateIfAllowed(CursorState.CursorDefault);
                     }
                 }
                 
                 //cursor action
-                if (pCursor.getState().getEnum() != EntityState.Idle && stats.getState().getEnum() == EntityState.GuiClosed && postAction.getState().getEnum() != EntityState.PostActionMenuOpened) {
-                    pCursor.resolveInput(name, tpf, keyPressed);
+                if (pCursor.getState().getEnum() != CursorState.Idle && stats.getState().getEnum() == MapFlowState.GuiClosed && postAction.getState().getEnum() != MapFlowState.PostActionMenuOpened) {
+                    MasterFsmState test = pCursor.resolveInput(name, tpf, keyPressed);
+                    if (test != null) {
+                        fsm.setNewStateIfAllowed(test.setAssetManager(assetManager));
+                    }
                 }
                 
                 //post action menu action
-                if (postAction.getState().getEnum() == EntityState.PostActionMenuOpened && keyPressed) { //postActionMenu
+                if (postAction.getState().getEnum() == MapFlowState.PostActionMenuOpened && keyPressed) { //postActionMenu
                     if (name.equals("select")) {
-                        pCursor.forceState(new FsmState(EntityState.Idle));
+                        pCursor.forceState(CursorState.Idle);
                     }
                     
                     MasterFsmState change = postAction.resolveInput(name, tpf);
@@ -212,19 +216,18 @@ public class TestMap extends AbstractAppState {
                 }
                 
                 //testing purposes w/ camera during battle
-                if (fsm.getState().getEnum() == EntityState.DuringBattle) {
+                if (fsm.getState().getEnum() == MapFlowState.DuringBattle) {
                     currentBattle.resolveInput(name, tpf, keyPressed);
                 }
                 
                 //opening stat screen
                 if (name.equals("open unit info menu") && keyPressed) {
-                    if (stats.getState().getEnum() != EntityState.StatScreenOpened && map00.fullmap[pCursor.getElevation()][pCursor.pX][pCursor.pY].getOccupier() != null) {
-                        fsm.setNewStateIfAllowed(new MasterFsmState(EntityState.Idle).setAssetManager(assetManager));
-                        stats.forceState(new FsmState(EntityState.StatScreenOpened));
-                        localGuiNode.setLocalTranslation(10, 760, 0);
+                    if (stats.getState().getEnum() != MapFlowState.StatScreenOpened && stats.getState().getEnum() != MapFlowState.StatScreenSelecting && map00.fullmap[pCursor.getElevation()][pCursor.pX][pCursor.pY].getOccupier() != null) {
+                        fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
+                        stats.forceState(MapFlowState.StatScreenOpened);
                         flCam.setEnabled(false);
                         stats.startUnitViewGUI(map00.fullmap[pCursor.getElevation()][pCursor.pX][pCursor.pY].getOccupier());
-                        pCursor.forceState(new FsmState(EntityState.Idle));
+                        pCursor.forceState(CursorState.Idle);
                     }
                 }
                 
@@ -280,19 +283,17 @@ public class TestMap extends AbstractAppState {
         mapscene = (TerrainQuad)(S.getChild("map"));
         localRootNode.attachChild(S);*/
         
+        localGuiNode.setLocalTranslation(10, 760, 0);
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
         
-        Catalog.FormulaCatalog[0].initializeAnimation(assetManager);
+        Catalog.FormulaCatalog[0].initializeAnimation(assetManager); //TODO: FIX THIS
         
         initMap();
         initMappers();
-    }   
+    }
     
     public void initMap() {
-        //TerrainQuad[] mobilitysquares = {mob};
-        //TerrainQuad[] mapsquares = {mapscene};
-        //map00 = new Map(16, 16, 1, assetManager, mapsquares, mobilitysquares, "terrain-testscene");
         map00 = new Map("test map", 16, 16, 1, assetManager);
         localRootNode.attachChild(map00.getMiscNode());
         localRootNode.attachChild(map00.getTileNode());
@@ -332,7 +333,7 @@ public class TestMap extends AbstractAppState {
         
         initializePostMoveMenu();
         
-        cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x + 8f - 32f, pCursor.geometry.getWorldTranslation().y + 200f, pCursor.geometry.getWorldTranslation().z + 8f));
+        cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x + 8f - 32f, pCursor.geometry.getWorldTranslation().y + 210f, pCursor.geometry.getWorldTranslation().z + 8f));
         cam.lookAt(pCursor.geometry.getWorldTranslation(), worldUpVector);
         Quaternion cameraRotation = new Quaternion();
         cameraRotation.fromAngles(FastMath.PI / 2, FastMath.PI / 2, 0);
@@ -382,7 +383,7 @@ public class TestMap extends AbstractAppState {
         postAction = new ActionMenu( new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"),
                 backdrop, attack, ability, aid, formation, inventory, skill, trade, annexAnimated, annexSelectedAnimated, escapeAnimated,
                 escapeSelectedAnimated, talkAnimated, talkSelectedAnimated, done, chainUnavailable, chainSelectedAvailable,
-                chainDeselectedAvailable, assetManager.loadTexture("Interface/GUI/general_ui/nothing.png")
+                chainDeselectedAvailable, assetManager.loadTexture("Interface/GUI/stat_screen/nothing.png")
         );
     }
     
@@ -451,7 +452,7 @@ public class TestMap extends AbstractAppState {
         super.cleanup();
     }
     
-    float accumulatedTPF = 0;
+    private float accumulatedTPF = 0;
     
     @Override
     public void update(float tpf) {
@@ -478,44 +479,40 @@ public class TestMap extends AbstractAppState {
         mapFlow.update(1f / 60f, fsm);
     }
     
-    int fc = 0;
-    float amassedTPF = 0;
+    private int fc = 0;
+    private float amassedTPF = 0;
     
     public void updateAI(float tpf) {
         //System.out.println(fsm.getState().getEnum());
         if (fc > 1000) { fc = 0; }
         
-        if (fsm.getState().getEnum() != EntityState.Idle) {
+        if (fsm.getState().getEnum() != MapFlowState.Idle) {
             cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x + 8f, cam.getLocation().y, pCursor.geometry.getWorldTranslation().z + 8f));
             
-            switch (fsm.getState().getEnum()) {
+            switch (fsm.getEnumState()) {
                 case MapDefault:
                     break;
                 case PostBattle:
                     //modify later
-                    if (pCursor.selectedUnit.currentHP <= 0 && pCursor.selectedUnit.getFSM().getState().getEnum() != EntityState.Dead) {
+                    if (pCursor.selectedUnit.getStat(BaseStat.currentHP) <= 0 && pCursor.selectedUnit.getFSM().getState().getEnum() != UnitState.Dead) {
                         localRootNode.detachChild(pCursor.selectedUnit.getGeometry());
                         map00.fullmap[pCursor.getElevation()][pCursor.selectedUnit.getPosX()][pCursor.selectedUnit.getPosY()].resetOccupier();
-                        pCursor.selectedUnit.getFSM().forceState(new FsmState(EntityState.Dead));
+                        pCursor.selectedUnit.getFSM().forceState(UnitState.Dead);
                     } else {
-                        pCursor.selectedUnit.getFSM().setNewStateIfAllowed(new FsmState(EntityState.Done));
+                        pCursor.selectedUnit.getFSM().setNewStateIfAllowed(UnitState.Done);
                     }
                     
-                    if (pCursor.receivingEnd.currentHP <= 0 && pCursor.receivingEnd.getFSM().getState().getEnum() != EntityState.Dead) { 
+                    if (pCursor.receivingEnd.getStat(BaseStat.currentHP) <= 0 && pCursor.receivingEnd.getFSM().getState().getEnum() != UnitState.Dead) { 
                         localRootNode.detachChild(pCursor.receivingEnd.getGeometry());
                         map00.fullmap[pCursor.getElevation()][pCursor.receivingEnd.getPosX()][pCursor.receivingEnd.getPosY()].resetOccupier();
-                        pCursor.receivingEnd.getFSM().forceState(new FsmState(EntityState.Dead));
+                        pCursor.receivingEnd.getFSM().forceState(UnitState.Dead);
                     }
                 
                     fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
-                    pCursor.setStateIfAllowed(new FsmState(EntityState.CursorDefault));
+                    pCursor.setStateIfAllowed(CursorState.CursorDefault);
                     pCursor.resetState(map00);
                     break;
                 case DuringBattle:
-                    
-                    /*if (fc % 2 == 0 || fc % 3 == 0 || fc % 5 == 0 || fc % 7 == 0 || fc % 9 == 0) {
-                        currentBattle.update(tpf);
-                    }*/
                     if (amassedTPF >= (1f / 65f)) {
                         currentBattle.allowUpdate = true;
                         amassedTPF = 0;
@@ -531,7 +528,8 @@ public class TestMap extends AbstractAppState {
                         guiNode.attachChild(localGuiNode);
                         //screenView = null;
                         fightCam.setViewPort(0.0f, 0.0f, 0.0f, 0.0f);
-                        fsm.setNewStateIfAllowed(new MasterFsmState(EntityState.PostBattle).setAssetManager(assetManager));
+                        fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.PostBattle).setAssetManager(assetManager));
+                        pCursor.setStateIfAllowed(CursorState.CursorDefault);
                         currentBattle = null;
                     }
                     break;
@@ -554,6 +552,7 @@ public class TestMap extends AbstractAppState {
                     cameraRotation.fromAngles(0, FastMath.PI, 0);
                     fightCam.setRotation(cameraRotation);
                     
+                    //TODO: FIX THIS
                     setTextures(
                             Arrays.asList((Geometry)battleScene.getChild("treeStump"), (Geometry)battleScene.getChild("treeTrunk"), (Geometry)battleScene.getChild("treeBranches"), (Geometry)battleScene.getChild("battleTerrain"), (Geometry)battleScene.getChild("rightRock"), (Geometry)battleScene.getChild("leftRock")),
                             Arrays.asList(assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/cliff.png"), assetManager.loadTexture("Textures/battle/test/cliff.png"), assetManager.loadTexture("Textures/battle/test/cliff.png")),
@@ -576,8 +575,8 @@ public class TestMap extends AbstractAppState {
                     //transitionToFight = ViewPortAnimation.cutOpen(fightCam);
                     //transitionToFight.beginTransitions();
                     
-                    pCursor.setStateIfAllowed(new FsmState(EntityState.Idle));
-                    fsm.setNewStateIfAllowed(new MasterFsmState(EntityState.DuringBattle).setAssetManager(assetManager));
+                    pCursor.forceState(CursorState.Idle);
+                    fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.DuringBattle).setAssetManager(assetManager));
                     break;
                 default:
                     break;
@@ -593,60 +592,5 @@ public class TestMap extends AbstractAppState {
             stuff.get(i).setMaterial(M);
         }
     }
-    
-    public void createT1() {
-        /** 1. Create terrain material and load four textures into it. */
-        mat_terrain = new Material(assetManager,"Common/MatDefs/Misc/Unshaded.j3md");
-
-    /** 1.1) Add ALPHA map (for red-blue-green coded splat textures) */
-        mat_terrain.setTexture("LightMap", assetManager.loadTexture("Textures/grassland0.jpg"));
-
-    /** 1.2) Add GRASS texture into the red layer (Tex1). */
-    //Texture grass = assetManager.loadTexture("Textures/Terrain/splat/grass.jpg");
-    //grass.setWrap(WrapMode.Repeat);
-    //mat_terrain.setTexture("Tex1", grass);
-    //mat_terrain.setFloat("Tex1Scale", 64f);
-
-    /** 1.3) Add DIRT texture into the green layer (Tex2) */
-    //Texture dirt = assetManager.loadTexture("Textures/dirt.jpg");
-    //dirt.setWrap(Texture.WrapMode.Repeat);
-    //mat_terrain.setTexture("Tex1", dirt);
-    //mat_terrain.setFloat("Tex1Scale", 64f);
-
-    /** 1.4) Add ROAD texture into the blue layer (Tex3) */
-    //Texture rock = assetManager.loadTexture("Textures/Terrain/splat/road.jpg");
-    //rock.setWrap(WrapMode.Repeat);
-    //mat_terrain.setTexture("Tex3", rock);
-    //mat_terrain.setFloat("Tex3Scale", 128f);
-
-    /** 2. Create the height map */
-    AbstractHeightMap heightmap = null;
-    Texture heightMapImage = assetManager.loadTexture("Textures/unfinished/aaa Height Map (Merged).png");
-    heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
-    heightmap.load();
-    
-
-    /** 3. We have prepared material and heightmap.
-     * Now we create the actual terrain:
-     * 3.1) Create a TerrainQuad and name it "my terrain".
-     * 3.2) A good value for terrain tiles is 64x64 -- so we supply 64+1=65.
-     * 3.3) We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
-     * 3.4) As LOD step scale we supply Vector3f(1,1,1).
-     * 3.5) We supply the prepared heightmap itself.
-     */
-    int patchSize = 65;
-    terrain = new TerrainQuad("my terrain", patchSize, 513, heightmap.getHeightMap());
-
-    /** 4. We give the terrain its material, position & scale it, and attach it. */
-    terrain.setMaterial(mat_terrain);
-    terrain.setLocalTranslation(0, -100, 0);
-    terrain.setLocalScale(2f, 1f, 2f);
-    rootNode.attachChild(terrain);
-    
-     TerrainLodControl control = new TerrainLodControl(terrain, cam);
-     terrain.addControl(control);
-    
-    }
-    
     
 }

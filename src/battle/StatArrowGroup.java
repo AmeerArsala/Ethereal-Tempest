@@ -5,7 +5,7 @@
  */
 package battle;
 
-import battle.participants.Unit;
+import etherealtempest.characters.Unit;
 import battle.Combatant.BaseStat;
 import com.atr.jme.font.shape.TrueTypeNode;
 import com.jme3.asset.AssetManager;

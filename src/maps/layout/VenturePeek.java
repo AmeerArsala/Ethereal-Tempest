@@ -5,6 +5,9 @@
  */
 package maps.layout;
 
+import maps.layout.tile.RangeDisplay;
+import maps.layout.tile.Path;
+import maps.layout.tile.Tile;
 import com.jme3.math.FastMath;
 import etherealtempest.MasterFsmState;
 import java.util.ArrayList;

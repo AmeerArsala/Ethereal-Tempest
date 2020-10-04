@@ -6,7 +6,7 @@
 package battle.forecast;
 
 import battle.Combatant;
-import fundamental.Tool;
+import fundamental.tool.Tool;
 
 /**
  *

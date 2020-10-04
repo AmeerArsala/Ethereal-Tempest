@@ -5,8 +5,8 @@
  */
 package fundamental;
 
-import battle.skill.Skill;
-import battle.talent.Talent;
+import fundamental.skill.Skill;
+import fundamental.talent.Talent;
 
 /**
  *

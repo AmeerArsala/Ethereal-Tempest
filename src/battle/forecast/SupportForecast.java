@@ -9,9 +9,9 @@ import battle.Combatant;
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleRole;
 import battle.Combatant.BattleStat;
-import battle.item.Weapon;
+import fundamental.item.Weapon;
 import etherealtempest.info.Conveyer;
-import fundamental.SupportTool;
+import fundamental.tool.SupportTool;
 
 /**
  *
@@ -67,11 +67,11 @@ public class SupportForecast extends Forecast {
         int desirability = 0;
         
         if (receiverForecast.hpRecovered > 0) {
-            desirability += Math.round(100f * receiverForecast.getCombatant().getBaseStat(BaseStat.maxHP) / receiverForecast.getCombatant().getUnit().currentHP);
+            desirability += Math.round(100f * receiverForecast.getCombatant().getBaseStat(BaseStat.maxHP) / receiverForecast.getCombatant().getUnit().getStat(BaseStat.currentHP));
         }
         
         if (receiverForecast.tpRecovered > 0) {
-            desirability += Math.round(100f * receiverForecast.getCombatant().getBaseStat(BaseStat.maxTP) / receiverForecast.getCombatant().getUnit().currentTP);
+            desirability += Math.round(100f * receiverForecast.getCombatant().getBaseStat(BaseStat.maxTP) / receiverForecast.getCombatant().getUnit().getStat(BaseStat.currentTP));
         }
         
         Weapon wpn = receiverForecast.getCombatant().getUnit().getEquippedWPN();

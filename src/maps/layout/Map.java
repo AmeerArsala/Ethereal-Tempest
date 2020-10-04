@@ -5,6 +5,8 @@
  */
 package maps.layout;
 
+import maps.layout.tile.Path;
+import maps.layout.tile.Tile;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -22,8 +24,8 @@ import com.jme3.terrain.geomipmap.TerrainPatch;
 import com.jme3.terrain.geomipmap.TerrainQuad;
 import etherealtempest.MasterFsmState;
 import java.util.LinkedList;
-import static maps.layout.RangeDisplay.shouldDisplayTile;
-import maps.layout.Tile.Spread;
+import static maps.layout.tile.RangeDisplay.shouldDisplayTile;
+import maps.layout.tile.Tile.Spread;
 
 /**
  *
@@ -184,7 +186,7 @@ public class Map {
         for (int l = 0; l < layers; l++) {
             for (int x = 0; x < tilesX; x++) {
                 for (int y = 0; y < tilesY; y++) {
-                    fullmap[l][x][y] = new Tile("Ground", x, y, l);
+                    fullmap[l][x][y] = new Tile(x, y, l);
                     movSet[l][x][y] = new Tile(x, y, l);
                     
                     Material grass = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -261,7 +263,7 @@ public class Map {
             }
         }
         
-    }*/
+    }
     
     private void printCoords(int l) {
         try {
@@ -294,7 +296,7 @@ public class Map {
         catch (Exception e) { return 1; }
         
         return 1;
-    }
+    }*/
     
     public String getMapString(int elv) { 
         String[] mapstrings = new String[layers]; // an array of map Strings, it's an array due to multiple elevations

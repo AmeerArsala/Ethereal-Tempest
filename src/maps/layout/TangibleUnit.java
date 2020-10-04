@@ -5,16 +5,17 @@
  */
 package maps.layout;
 
-import battle.Combatant;
-import battle.Combatant.BattleStat;
+import maps.layout.tile.RangeDisplay;
+import maps.layout.tile.Path;
+import maps.layout.tile.Tile;
 import etherealtempest.info.Conveyer;
-import battle.ability.Ability;
-import battle.formation.Formation;
-import battle.skill.Skill;
-import battle.participants.Unit;
-import battle.formula.Formula;
-import battle.item.Item;
-import battle.item.Weapon;
+import fundamental.ability.Ability;
+import fundamental.formation.Formation;
+import fundamental.skill.Skill;
+import etherealtempest.characters.Unit;
+import fundamental.formula.Formula;
+import fundamental.item.Item;
+import fundamental.item.Weapon;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
@@ -26,26 +27,30 @@ import com.jme3.math.Quaternion;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
-import etherealtempest.info.DataStructure;
+import com.jme3.texture.Texture;
+import com.jme3.texture.Texture.MagFilter;
 import java.util.ArrayList;
 import misc.DirFileExplorer;
 import etherealtempest.FSM;
-import etherealtempest.FSM.EntityState;
+import etherealtempest.FSM.MapFlowState;
+import etherealtempest.FSM.UnitState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import etherealtempest.ai.AI;
+import etherealtempest.ai.AI.Behavior;
+import etherealtempest.ai.AI.Condition;
 import etherealtempest.info.Request;
 import etherealtempest.info.RequestDealer;
-import etherealtempest.info.Requestable;
 import etherealtempest.ai.AllegianceRecognizer;
-import fundamental.DamageTool;
+import etherealtempest.ai.ConditionalBehavior;
 import general.Spritesheet;
 import etherealtempest.info.ActionInfo;
-import etherealtempest.info.ActionInfo.PostMoveAction;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import maps.layout.Cursor.Purpose;
 
@@ -54,22 +59,20 @@ import maps.layout.Cursor.Purpose;
  * @author night
  */
 public class TangibleUnit extends Unit {
-    //forest tileWeight = 15
-    //private final int INFANTRY_RESOLVE = 13, CAVALRY_RESOLVE = 11, ARMORED_RESOLVE = 15, MONSTER_RESOLVE = 14, MORPH_RESOLVE = 13, MECHANISM_RESOLVE = 12;
     private static final int DEFAULT_TRADE_DISTANCE = 1; //adjacent
     
     public int animVar = 0;
     public int currentParryCooldown;
     
     private int saveMaxParryCooldown; //max parry cd
+    
     private int posX, posY, elevation;
+    int prevX, prevY;
     
     private int tradeDistance = DEFAULT_TRADE_DISTANCE;
     
-    int prevX, prevY;
-    
+    private AI auto = null;
     private Skill inUse = null;
-    
     private List<String> namesOfUnitsToTalkTo = null;
     
     public String ustatus = "Healthy"; //status ailments, etc.
@@ -157,11 +160,12 @@ public class TangibleUnit extends Unit {
     private Spritesheet spritesheetInfo = null;
     private AnimationState animState = AnimationState.Idle;
     
-    protected Material defMat;
+    private Material defMat;
     
     private int commitsToAttack = 0;
     private int commitsToEther = 0;
     private int commitsToSkill = 0;
+    private int commitsToOther = 0;
     
     private static int IDgen = 0;
     
@@ -191,10 +195,10 @@ public class TangibleUnit extends Unit {
         Spritesheet
     }
     
-    private final FSM fsm = new FSM(){
+    private final FSM<UnitState> fsm = new FSM<UnitState>() {
         @Override
         public void setNewStateIfAllowed(FsmState st) {
-            if (state == null || (state.getEnum() != EntityState.Dead && state.getEnum() != EntityState.Done)) {
+            if (state == null || (state.getEnum() != UnitState.Dead && state.getEnum() != UnitState.Done)) {
                 state = st;
                 accumulatedMovTime = 0;
                 movLength = -1;
@@ -225,7 +229,7 @@ public class TangibleUnit extends Unit {
             new DirFileExplorer(silence[4]) 
         };
         
-        fsm.setNewStateIfAllowed(new FsmState(EntityState.Active));
+        fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
 
         stabilize();
         
@@ -253,7 +257,7 @@ public class TangibleUnit extends Unit {
             new DirFileExplorer(silence[4]) 
         };
         
-        fsm.setNewStateIfAllowed(new FsmState(EntityState.Active));
+        fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
         
         stabilize();
         
@@ -284,7 +288,7 @@ public class TangibleUnit extends Unit {
             new DirFileExplorer(silence[4]) 
         };
         
-        fsm.setNewStateIfAllowed(new FsmState(EntityState.Active));
+        fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
         
         stabilize();
         
@@ -302,8 +306,11 @@ public class TangibleUnit extends Unit {
         q = new Quad(25f, 25f);
         geo = new Geometry("character", q);
         
+        Texture tex = assetManager.loadTexture("Models/Sprites/map/" + name + "/" + spritesheetInfo.getSheetName());
+        tex.setMagFilter(MagFilter.Nearest);
+        
         defMat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
-        defMat.setTexture("ColorMap", assetManager.loadTexture("Models/Sprites/map/" + name + "/" + spritesheetInfo.getSheetName()));
+        defMat.setTexture("ColorMap", tex);
         defMat.setFloat("SizeX", spritesheetInfo.getColumns());
         defMat.setFloat("SizeY", spritesheetInfo.getRows());
         defMat.setFloat("Position", 0f);
@@ -316,7 +323,7 @@ public class TangibleUnit extends Unit {
         id = IDgen;
         IDgen++;
         
-        fsm.setNewStateIfAllowed(new FsmState(EntityState.Active));
+        fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
         
         dType = DeclarationType.Spritesheet;
     }
@@ -330,7 +337,7 @@ public class TangibleUnit extends Unit {
     
     public FSM getFSM() { return fsm; }
     
-    public void setStateIfAllowed(FsmState state) {
+    public void setStateIfAllowed(UnitState state) {
         fsm.setNewStateIfAllowed(state);
     }
     
@@ -477,7 +484,7 @@ public class TangibleUnit extends Unit {
     private int movLength = -1, pstartX = 0, pstartY = 0, frameCount = 0;
     
     public void updateAI(float tpf, FSM mapFSM) {
-            switch (fsm.getState().getEnum()) {
+            switch (fsm.getEnumState()) {
                 case Moving:
                 {
                     
@@ -501,8 +508,8 @@ public class TangibleUnit extends Unit {
                 
                     if (posX == ((MoveState)fsm.getState()).getCursor().pX && posY == ((MoveState)fsm.getState()).getCursor().pY || ((int)(accumulatedDistance / 16f)) >= movLength) {
                         //open menu
-                        if (mapFSM.getState().getEnum() != EntityState.PostActionMenuOpened) {
-                            mapFSM.setNewStateIfAllowed(((MasterFsmState)mapFSM.getState()).updateState(EntityState.PostActionMenuOpened)); //switch this if PostActionMenuOpened will need some extra stuff
+                        if (mapFSM.getState().getEnum() != MapFlowState.PostActionMenuOpened) {
+                            mapFSM.setNewStateIfAllowed(((MasterFsmState)mapFSM.getState()).updateState(MapFlowState.PostActionMenuOpened)); //switch this if PostActionMenuOpened will need some extra stuff
                         }
                     } else {
                         moveTo(pstartX, pstartY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation(), ((MoveState)fsm.getState()).getMap(), dpf, accumulatedDistance, prevAccumulatedDistance);
@@ -526,8 +533,8 @@ public class TangibleUnit extends Unit {
                 case Done:
                 {
                     isSelected = false;
-                    fsm.forceState(new FsmState().setEnum(EntityState.Active)); //this is temporary and just for testing purposes
-                    mapFSM.setNewStateIfAllowed(((MasterFsmState)mapFSM.getState()).updateState(EntityState.MapDefault));
+                    fsm.forceState(new FsmState().setEnum(UnitState.Active)); //this is temporary and just for testing purposes
+                    mapFSM.setNewStateIfAllowed(((MasterFsmState)mapFSM.getState()).updateState(MapFlowState.MapDefault));
                     break;
                 }
                 
@@ -536,18 +543,13 @@ public class TangibleUnit extends Unit {
                     break;
                 }
                 
-                case Paused:
-                {
-                    break;
-                }
-                
-                case SelectingTarget:
+                case Idle:
                 {
                     updateAnimation(((MasterFsmState)mapFSM.getState()));
                     break;
                 }
                 
-                case Idle:
+                case SelectingTarget:
                 {
                     updateAnimation(((MasterFsmState)mapFSM.getState()));
                     break;
@@ -601,8 +603,29 @@ public class TangibleUnit extends Unit {
     public Skill getToUseSkill() { return inUse; }
     public void setToUseSkill(Skill S) { inUse = S; }
     
-    public int getMobility() { //CHANGE THIS SO IT RESTRICTS MOVEMENT
+    public int getMobility() { //TODO: CHANGE THIS SO IT RESTRICTS/ADDS TO MOVEMENT ON TILES
         return getMOBILITY();
+    }
+    
+    public void subtractHP(int amt) {
+        currentHP -= amt;
+        
+        if (currentHP < 0) { currentHP = 0; }
+    }
+    
+    public void subtractTP(int amt) {
+        currentTP -= amt;
+        
+        if (currentTP < 0) { currentTP = 0; }
+    }
+    
+    public void subtractDurability(double amt) {
+        for (Item item : getInventory().getItems()) {
+            if (item instanceof Weapon) {
+                ((Weapon)item).used(amt);
+                return;
+            }
+        }
     }
     
     public VenturePeek venture() {
@@ -658,6 +681,7 @@ public class TangibleUnit extends Unit {
                 commitsToSkill++;
                 break;
             default:
+                commitsToOther++;
                 break;
         }
     }
@@ -698,7 +722,7 @@ public class TangibleUnit extends Unit {
         Tile[][] mapLayer = MasterFsmState.getCurrentMap().fullmap[elevation];
         for (Coords pos : VenturePeek.coordsForTilesOfRange(tradeDistance, position, elevation)) {
             TangibleUnit occupier = mapLayer[pos.getX()][pos.getY()].getOccupier();
-            if (occupier != null && namesOfUnitsToTalkTo.contains(occupier.getName())) {
+            if (occupier != null && namesOfUnitsToTalkTo != null && namesOfUnitsToTalkTo.contains(occupier.getName())) {
                 partners.add(occupier);
             }
         }
@@ -751,14 +775,19 @@ public class TangibleUnit extends Unit {
             }
         }
         
-        int highestCommitted = Math.max(Math.max(commitsToAttack, commitsToEther), commitsToSkill);
+        int highestCommitted = Math.max(Math.max(Math.max(commitsToAttack, commitsToEther), commitsToSkill), commitsToOther);
         Coords startingPosition;
-        if (highestCommitted == commitsToAttack) {
+        
+        if (highestCommitted == 0) {
+            startingPosition = ActionInfo.STARTING_POSITION;
+        } else if (highestCommitted == commitsToAttack) {
             startingPosition = ActionInfo.ATTACK_POSITION;
         } else if (highestCommitted == commitsToEther) {
             startingPosition = ActionInfo.ETHER_POSITION;
-        } else { //commitsToSkill
+        } else if (highestCommitted == commitsToSkill) {
             startingPosition = ActionInfo.SKILL_POSITION;
+        } else { //commitsToOther
+            startingPosition = ActionInfo.STARTING_POSITION;
         }
         
         return new ActionInfo(
@@ -771,11 +800,11 @@ public class TangibleUnit extends Unit {
         
         for (TangibleUnit tu : allUnits) {
             if (allegianceType.passesTest(tu)) {
-                if (venture().willReach(tu.coords()) && tu.getFSM().getState().getEnum() != EntityState.Dead) {
+                if (venture().willReach(tu.coords()) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                     inRange.add(tu);
                 } else {
                     for (Integer range : getFullRange()) {
-                        if (venture().addMobility(range).willReach(tu.coords()) && tu.getFSM().getState().getEnum() != EntityState.Dead) {
+                        if (venture().addMobility(range).willReach(tu.coords()) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                             inRange.add(tu);
                         }
                     }
@@ -786,14 +815,14 @@ public class TangibleUnit extends Unit {
         return inRange;
     }
     
-    public boolean anyUnitInOffensiveRange(AllegianceRecognizer allegianceType, List<TangibleUnit> allUnits) {
+    public boolean anyUnitInOffensiveRange(AllegianceRecognizer allegianceType, List<TangibleUnit> allUnits) { //cannot be allied
         for (TangibleUnit tu : allUnits) {
             if (!unitStatus.alliedWith(tu.unitStatus) && allegianceType.passesTest(tu)) {
-                if (venture().willReach(tu.coords()) && tu.getFSM().getState().getEnum() != EntityState.Dead) {
+                if (venture().willReach(tu.coords()) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                     return true;
                 } else {
                     for (Integer range : getFullOffensiveRange()) {
-                        if (venture().addMobility(range).willReach(tu.coords()) && tu.getFSM().getState().getEnum() != EntityState.Dead) {
+                        if (venture().addMobility(range).willReach(tu.coords()) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                             return true;
                         }
                     }
@@ -804,14 +833,14 @@ public class TangibleUnit extends Unit {
         return false;
     }
     
-    public boolean anyUnitInSupportRange(AllegianceRecognizer allegianceType, List<TangibleUnit> allUnits) {
+    public boolean anyUnitInSupportRange(AllegianceRecognizer allegianceType, List<TangibleUnit> allUnits) { //must be allied
         for (TangibleUnit tu : allUnits) {
             if (unitStatus.alliedWith(tu.unitStatus) && allegianceType.passesTest(tu)) {
-                if (venture().willReach(tu.coords()) && tu.getFSM().getState().getEnum() != EntityState.Dead) {
+                if (venture().willReach(tu.coords()) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                     return true;
                 } else {
                     for (Integer range : getFullAssistRange()) {
-                        if (venture().addMobility(range).willReach(tu.coords()) && tu.getFSM().getState().getEnum() != EntityState.Dead) {
+                        if (venture().addMobility(range).willReach(tu.coords()) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                             return true;
                         }
                     }
@@ -891,14 +920,30 @@ public class TangibleUnit extends Unit {
         return concentrationValue(leniency);
     }
     
+    public AI getAI() { return auto; }
+    
+    public void setAI(AI mind) {
+        auto = mind;
+    }
+    
+    public void setAI(List<ConditionalBehavior> brain) {
+        auto = new AI(this, brain);
+    }
+    
+    public void setAI(LinkedHashMap<Condition, Behavior> processes) {
+        auto = new AI(this, processes);
+    }
+    
+    
+    
     public RequestDealer getRequestDealer() {
         return requestDealer;
     }
     
     public void onPhaseBegin() {}
     
-    public int getID() {
-        return id;
+    public boolean is(TangibleUnit other) {
+        return id == other.id || equals(other);
     }
     
 }

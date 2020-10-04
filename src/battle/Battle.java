@@ -5,17 +5,18 @@
  */
 package battle;
 
+import battle.Battle.ImpactType;
 import battle.forecast.PrebattleForecast;
 import battle.forecast.SingularForecast;
-import battle.participants.JobClass;
+import etherealtempest.characters.JobClass;
 import etherealtempest.info.Conveyer;
-import battle.Battle.ImpactType;
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleRole;
 import battle.DamageNumber.VisibilityState;
 import battle.StatArrowGroup.ArrowStat;
-import fundamental.Toll.Exchange;
-import battle.skill.Skill;
+import fundamental.tool.DamageTool;
+import fundamental.stats.Toll.Exchange;
+import fundamental.skill.Skill;
 import com.atr.jme.font.TrueTypeBMP;
 import com.atr.jme.font.TrueTypeFont;
 import com.atr.jme.font.asset.TrueTypeKeyBMP;
@@ -49,7 +50,6 @@ import com.simsilica.lemur.component.IconComponent;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import edited.EditedLabel;
-import fundamental.DamageTool;
 import general.GeneralUtils;
 import general.GeneralUtils.CenterAxis;
 import general.ResetProtocol;
@@ -129,9 +129,9 @@ public class Battle {
         receiverTemp.setExtraDamage(((DamageTool)receiverTemp.getUnit().getEquippedTool()).extraDamage);
         if (battlePurpose == Purpose.SkillAttack) {
             if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.HP) {
-                info.getUnit().currentHP -= info.getUnit().getToUseSkill().getToll().getValue();
+                info.getUnit().subtractHP(info.getUnit().getToUseSkill().getToll().getValue());
             } else if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.TP) {
-                info.getUnit().currentTP -= info.getUnit().getToUseSkill().getToll().getValue();
+                info.getUnit().subtractTP(info.getUnit().getToUseSkill().getToll().getValue());
             }
             
             initTemp = new Combatant(info, BattleRole.Initiator);
@@ -251,7 +251,7 @@ public class Battle {
                     receiver.figure.getGeometry().move(0.275f, 0f, 0f);
                     
                     boolean indexResetS = true;
-                    if (strikes.get(strikeIndex).getStriker().getUnit().getID() == initiator.getUnit().getID()) {
+                    if (strikes.get(strikeIndex).getStriker().getUnit().is(initiator.getUnit())) {
                         switch (battlePurpose) {
                             case WeaponAttack:
                                 if (strikeIndex + 1 < strikes.size() && strikes.get(strikeIndex + 1).getStriker() == strikes.get(strikeIndex).getStriker() && !strikes.get(strikeIndex + 1).strikeIsCrit()) {
@@ -315,9 +315,9 @@ public class Battle {
                         dmgView = new DamageNumber("" + strikes.get(strikeIndex).getDamage(), gui, dmgFont);
                         dmgView.setTransitionState(TransitionState.TransitioningIn);
                         Vector3f localdims = gui.worldToLocal(new Vector3f(worldQuadWidth, worldQuadHeight, 1), null);
-                        if (strikes.get(strikeIndex).getVictim().getUnit().getID() == initiator.getUnit().getID()) {
+                        if (strikes.get(strikeIndex).getVictim().getUnit().is(initiator.getUnit())) {
                             dmgView.move(((50 - initiator.getUnit().getBattleConfig().getPercentWidth()) / -100f) * localdims.x, (initiator.getUnit().getBattleConfig().getPercentHeight() / 100f) * localdims.y, 1);
-                        } else if (strikes.get(strikeIndex).getVictim().getUnit().getID() == receiver.getUnit().getID()) {
+                        } else if (strikes.get(strikeIndex).getVictim().getUnit().is(receiver.getUnit())) {
                             dmgView.move(((50 - receiver.getUnit().getBattleConfig().getPercentWidth()) / 100f) * localdims.x, (receiver.getUnit().getBattleConfig().getPercentHeight() / 100f) * localdims.y, 1);
                         }
                         
@@ -393,7 +393,7 @@ public class Battle {
                 anonymousCount += tpf;
                 break;
             case AfterStrikes:
-                if (initiator.getUnit().currentHP <= 0) {
+                if (initiator.getUnit().getStat(BaseStat.currentHP) <= 0) {
                     if (anonymousCount >= 1f) {
                         anonymousCount = 0;
                         battleState = BattleState.ExpInit;
@@ -401,7 +401,7 @@ public class Battle {
                         initiator.figure.getGeometry().getMaterial().setColor("Color", new ColorRGBA(1, 1 - anonymousCount, 1 - anonymousCount, 1 - anonymousCount));
                         anonymousCount += 0.0325f;
                     }
-                } else if (receiver.getUnit().currentHP <= 0) {
+                } else if (receiver.getUnit().getStat(BaseStat.currentHP) <= 0) {
                     if (anonymousCount >= 1f) {
                         anonymousCount = 0;
                         battleState = BattleState.ExpInit;
@@ -424,7 +424,7 @@ public class Battle {
             case ExpGain:
                 boolean initiatorFullyDone = false, receiverFullyDone = false; //using these so it doesn't just use the initiator or receiver and ignore the other
                 boolean levelUpInit = false;
-                if (initiator.getUnit().currentHP > 0) {
+                if (initiator.getUnit().getStat(BaseStat.currentHP) > 0) {
                     if (initiator.figure.expGained > 0) {
                         initiator.gainExp();
                     } else if (initiator.getUnit().currentEXP >= 100) {
@@ -433,7 +433,7 @@ public class Battle {
                         initiatorFullyDone = true;
                     }
                 }
-                if (receiver.getUnit().currentHP > 0) {
+                if (receiver.getUnit().getStat(BaseStat.currentHP) > 0) {
                     if (receiver.figure.expGained > 0) {
                         receiver.gainExp();
                     } else if (receiver.getUnit().currentEXP >= 100) {
@@ -506,9 +506,9 @@ public class Battle {
         int baseKillValue = 40;
         int initiatorBountyCoefficient = initiator.getUnit().getIsBoss() ? 2 : 1, receiverBountyCoefficient = receiver.getUnit().getIsBoss() ? 2 : 1;
         if (difference == 0) {
-            if (initiator.getUnit().currentHP <= 0) { //initiator is dead (dumbass lol)
+            if (initiator.getUnit().getStat(BaseStat.currentHP) <= 0) { //initiator is dead (dumbass lol)
                 receiver.figure.expGained = baseKillValue;
-            } else if (receiver.getUnit().currentHP <= 0) { //receiver is dead
+            } else if (receiver.getUnit().getStat(BaseStat.currentHP) <= 0) { //receiver is dead
                 initiator.figure.expGained = baseKillValue;
             } else { //nobody's dead
                 initiator.figure.expGained = initiator.figure.totalDmgDone > 0 ? baseDamageValue : 1;
@@ -525,9 +525,9 @@ public class Battle {
                     receiverMultiplier = difference;
                 }
                 
-                if (initiator.getUnit().currentHP <= 0) { //initiator is dead (dumbass lol)
+                if (initiator.getUnit().getStat(BaseStat.currentHP) <= 0) { //initiator is dead (dumbass lol)
                     receiver.figure.expGained = (int)(baseKillValue * receiverMultiplier);
-                } else if (receiver.getUnit().currentHP <= 0) { //receiver is dead
+                } else if (receiver.getUnit().getStat(BaseStat.currentHP) <= 0) { //receiver is dead
                     initiator.figure.expGained = (int)(baseKillValue * initiatorMultiplier);
                 } else { //nobody's dead
                     initiator.figure.expGained = initiator.figure.totalDmgDone > 0 ? ((int)(baseDamageValue * initiatorMultiplier)) : 1;
@@ -578,9 +578,9 @@ public class Battle {
                 dmgView = new DamageNumber("" + strikes.get(strikeIndex).getDamage(), gui, dmgFont);
                 dmgView.setTransitionState(TransitionState.TransitioningIn);
                 Vector3f localdims = gui.worldToLocal(new Vector3f(worldQuadWidth, worldQuadHeight, 1), null);
-                if (strikes.get(strikeIndex).getVictim().getUnit().getID() == initiator.getUnit().getID()) {
+                if (strikes.get(strikeIndex).getVictim().getUnit().is(initiator.getUnit())) {
                     dmgView.move(((50 - initiator.getUnit().getBattleConfig().getPercentWidth()) / -100f) * localdims.x, (initiator.getUnit().getBattleConfig().getPercentHeight() / 100f) * localdims.y, 1);
-                } else if (strikes.get(strikeIndex).getVictim().getUnit().getID() == receiver.getUnit().getID()) {
+                } else if (strikes.get(strikeIndex).getVictim().getUnit().is(receiver.getUnit())) {
                      dmgView.move(((50 - receiver.getUnit().getBattleConfig().getPercentWidth()) / 100f) * localdims.x, (receiver.getUnit().getBattleConfig().getPercentHeight() / 100f) * localdims.y, 1);
                 }
             } else {
@@ -663,7 +663,7 @@ public class Battle {
         receiver.getExpFont().setScale(40f / 41f);
         
         Material levelUpText = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        levelUpText.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/general_ui/levelup.png"));
+        levelUpText.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/stat_screen/levelup.png"));
         levelUpText.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
         initiator.setLevelUpText(levelUpText.clone());
         receiver.setLevelUpText(levelUpText.clone());
@@ -1048,7 +1048,7 @@ public class Battle {
         content.addChild(hpborder);
         content.addChild(tpborder);
         
-        content.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png")));
+        content.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/stat_screen/nothing.png")));
         
         return content;
     }
@@ -1061,7 +1061,7 @@ public class Battle {
         name.setTextHAlignment(HAlignment.Center);
         name.setTextVAlignment(VAlignment.Center);
         name.setFontSize(42f);
-        name.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/general_ui/nothing.png")));
+        name.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Interface/GUI/stat_screen/nothing.png")));
         name.setColor(ColorRGBA.White);
         name.setInsets(new Insets3f(10, 10, 30, 10));
         
@@ -1107,16 +1107,14 @@ public class Battle {
                 info += strike.getStriker().getUnit().getName() + " doesn't crit\n";
             }
             
-            strike.getVictim().getUnit().currentHP -= strike.getDamage();
-            if (strike.getVictim().getUnit().currentHP < 0) { strike.getVictim().getUnit().currentHP = 0; }
-            
+            strike.getVictim().getUnit().subtractHP(strike.getDamage());
             
             info += strike.getStriker().getUnit().getName() + " does " + strike.getDamage() + " damage!\n";
         } else {
             info += " misses!\n";
         }
         
-        info += strike.getVictim().getUnit().getName() + " has " + strike.getVictim().getUnit().currentHP + " HP remaining!\n";
+        info += strike.getVictim().getUnit().getName() + " has " + strike.getVictim().getUnit().getStat(BaseStat.currentHP) + " HP remaining!\n";
         
         System.out.println(info);
     }
@@ -1437,7 +1435,7 @@ class ShownCombatant {
     
     public void generateLevelUpScreen(TangibleUnit character) {
         leveledStats = character.rollLevelUp();
-        character.setStat(BaseStat.level, character.getLVL() + 1);
+        //character.setStat(BaseStat.level, character.getLVL() + 1);
         
         lvlUpPanel = new Container();
         lvlUpPanel.setBackground(new QuadBackgroundComponent(asm.loadTexture("Interface/GUI/levelup_panel/bg.jpg"))); //panel background
@@ -1507,7 +1505,7 @@ class ShownCombatant {
         TrueTypeKeyBMP lvlbmp = new TrueTypeKeyBMP("Interface/Fonts/Montaga-Regular.ttf", Style.Plain, 37);
         TrueTypeFont lvlttf = (TrueTypeBMP)asm.loadAsset(lvlbmp);
         EditedLabel lvltag = new EditedLabel(
-                "LVL " + (character.getLVL() - 1) + " ->" + character.getLVL(),
+                "LVL " + character.getLVL() + " ->" + (character.getLVL() + 1),
                 lvlttf,
                 ColorRGBA.Black
         );

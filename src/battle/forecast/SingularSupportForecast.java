@@ -6,8 +6,8 @@
 package battle.forecast;
 
 import battle.Combatant;
-import fundamental.Bonus;
-import fundamental.Toll;
+import fundamental.stats.Bonus;
+import fundamental.stats.Toll;
 import java.util.List;
 
 /**

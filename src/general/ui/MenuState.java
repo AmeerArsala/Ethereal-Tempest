@@ -5,22 +5,22 @@
  */
 package general.ui;
 
+import etherealtempest.FSM.MapFlowState;
 import etherealtempest.info.Conveyer;
-import etherealtempest.FSM.EntityState;
 import etherealtempest.FsmState;
 
 /**
  *
  * @author night
  */
-public class MenuState extends FsmState {
+public class MenuState extends FsmState<MapFlowState> {
     private Conveyer info;
     
-    public MenuState(EntityState es) {
+    public MenuState(MapFlowState es) {
         super(es);
     }
     
-    public void updateEnum(EntityState es) {
+    public void updateEnum(MapFlowState es) {
         state = es;
     }
     

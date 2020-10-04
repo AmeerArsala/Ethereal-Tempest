@@ -35,8 +35,8 @@ public class Combatant {
     
     private final AttackType attackType;
     
-    private int level, maxhp, hp, tp, maxtp, strength, ether, agility, comprehension, dexterity, defense, resilience, mobility, physique, adrenaline; //raw base stats
-    private int attackPower, accuracy, evasion, crit, critEvasion, attackSpeed;
+    private final HashMap<BaseStat, Integer> combatBaseStats = new HashMap<>(); //raw base stats
+    private final HashMap<BattleStat, Integer> combatBattleStats = new HashMap<>();
     
     private int defaultDamage, extraDamage = 0;
     private int hpToSubtract = 0, tpToSubtract = 0;
@@ -54,6 +54,11 @@ public class Combatant {
     public boolean controlAdded = false;
     public TrueTypeNode expText;
     
+    public enum AttackType {
+        Weapon,
+        Formula
+    }
+    
     public enum BattleRole {
         Initiator,
         Receiver;
@@ -69,81 +74,62 @@ public class Combatant {
         public BattleRole getOpponent() { return opponent; }
     }
     
-    public enum AttackType {
-        Weapon,
-        Formula
-    }
-    
-    private int[] fullBaseStats = new int[] {
-            level, //level
-            maxhp, //max hp
-            strength, //str
-            ether, //ether
-            agility, //agi
-            comprehension, //comp
-            dexterity, //dex
-            defense, //def
-            resilience, //rsl
-            mobility, //mobility
-            physique, //physique
-            adrenaline, //charisma
-            hp, //current hp
-            tp, //current tp
-            maxtp //max tp
-    };
-    
-    private int[] fullBattleStats = new int[] {
-        attackPower,
-        accuracy,
-        evasion,
-        crit,
-        critEvasion,
-        attackSpeed
-    };
-    
     public enum BaseStat {
-        @SerializedName("Level") level(0, 'x'),
-        @SerializedName("Max HP") maxHP(1, 'a'),
-        @SerializedName("Strength") strength(2, 'b'),
-        @SerializedName("Ether") ether(3, 'c'),
-        @SerializedName("Agility") agility(4, 'd'),
-        @SerializedName("Comprehension") comprehension(5, 'e'),
-        @SerializedName("Dexterity") dexterity(6, 'f'),
-        @SerializedName("Defense") defense(7, 'h'),
-        @SerializedName("Resilience") resilience(8, 'i'),
-        @SerializedName("Mobility") mobility(9, 'j'),
-        @SerializedName("Physique") physique(10, 'k'),
-        @SerializedName("Base Adrenaline") adrenaline(11, 'l'),
-        currentHP(12, 'y'),
-        currentTP(13, 'z'),
-        @SerializedName("Max TP") maxTP(14, 'g');
+        @SerializedName("Level") level(0, 'x', "Level"),
+        @SerializedName("Max HP") maxHP(1, 'a', "Max HP"),
+        @SerializedName("Strength") strength(2, 'b', "STR"),
+        @SerializedName("Ether") ether(3, 'c', "ETHER"),
+        @SerializedName("Agility") agility(4, 'd', "AGI"),
+        @SerializedName("Comprehension") comprehension(5, 'e', "COMP"),
+        @SerializedName("Dexterity") dexterity(6, 'f', "DEX"),
+        @SerializedName("Defense") defense(7, 'h', "DEF"),
+        @SerializedName("Resilience") resilience(8, 'i', "RSL"),
+        @SerializedName("Mobility") mobility(9, 'j', "MOBILITY"),
+        @SerializedName("Physique") physique(10, 'k', "PHYSIQUE"),
+        @SerializedName("Base Adrenaline") adrenaline(11, 'l', "INIT. ADR"),
+        currentHP(12, 'y', "Current HP"),
+        currentTP(13, 'z', "Current TP"),
+        @SerializedName("Max TP") maxTP(14, 'g', "Max TP");
         
         private final int value;
         private final char id;
+        private final String name;
+        
         private static HashMap map = new HashMap<>();
-        private BaseStat(int val, char identifier) {
+        private BaseStat(int val, char identifier, String sname) {
             value = val;
             id = identifier;
+            name = sname;
         }
 
         public int getValue() {
             return value;
         }
         
+        public String getName() {
+            return name;
+        }
+        
         public char getID() { return id; }
     }
     
     public enum BattleStat {
-        @SerializedName("AttackPower") AttackPower(0),
-        @SerializedName("Accuracy") Accuracy(1),
-        @SerializedName("Evasion") Evasion(2),
-        @SerializedName("Crit") Crit(3),
-        @SerializedName("CritEvasion") CritEvasion(4),
-        @SerializedName("AttackSpeed") AttackSpeed(5);
+        @SerializedName("AttackPower") AttackPower(0, "ATK PWR"),
+        @SerializedName("Accuracy") Accuracy(1, "ACC"),
+        @SerializedName("Evasion") Evasion(2, "EVA"),
+        @SerializedName("Crit") Crit(3, "CRIT"),
+        @SerializedName("CritEvasion") CritEvasion(4, "CRIT EVA"),
+        @SerializedName("AttackSpeed") AttackSpeed(5, "SPD");
         
         private final int value;
-        private BattleStat(int val) {
+        private final String name;
+        private BattleStat(int val, String sname) {
             value = val;
+            name = sname;
+        }
+        
+        public String getName() {
+            return name;
         }
         
         public int getValue() {
@@ -166,30 +152,7 @@ public class Combatant {
             attackType = AttackType.Weapon;
         }
         
-        level = tu.getLVL();
-        maxhp = tu.getMaxHP();
-        hp = tu.currentHP;
-        tp = tu.currentTP;
-        maxtp = tu.getMaxTP();
-        strength = tu.getSTR();
-        ether = tu.getETHER();
-        agility = tu.getAGI();
-        comprehension = tu.getCOMP();
-        dexterity = tu.getDEX();
-        defense = tu.getDEF();
-        resilience = tu.getRSL();
-        mobility = tu.getMOBILITY();
-        physique = tu.getPHYSIQUE();
-        adrenaline = tu.getADRENALINE();
-        fullBaseStats = updateBaseStats();
-        
-        attackPower = tu.getATK();
-        evasion = tu.getEvasion();
-        crit = tu.getCrit();
-        critEvasion = tu.getCritEvasion(); //change later
-        attackSpeed = tu.getAS();
-        accuracy = tu.getAccuracy();
-        fullBattleStats = updateBattleStats();
+        initializeCombatant();
     }
     
     public Combatant(TangibleUnit unit, BattleRole role) {
@@ -203,61 +166,34 @@ public class Combatant {
             attackType = AttackType.Weapon;
         }
         
-        level = tu.getLVL();
-        maxhp = tu.getMaxHP();
-        hp = tu.currentHP;
-        tp = tu.currentTP;
-        maxtp = tu.getMaxTP();
-        strength = tu.getSTR();
-        ether = tu.getETHER();
-        agility = tu.getAGI();
-        comprehension = tu.getCOMP();
-        dexterity = tu.getDEX();
-        defense = tu.getDEF();
-        resilience = tu.getRSL();
-        mobility = tu.getMOBILITY();
-        physique = tu.getPHYSIQUE();
-        adrenaline = tu.getADRENALINE();
-        fullBaseStats = updateBaseStats();
+        initializeCombatant();
+    }
+    
+    private void initializeCombatant() {
+        combatBaseStats.put(BaseStat.level, tu.getLVL());
+        combatBaseStats.put(BaseStat.maxHP, tu.getMaxHP());
+        combatBaseStats.put(BaseStat.currentHP, tu.getStat(BaseStat.currentHP));
+        combatBaseStats.put(BaseStat.currentTP, tu.getStat(BaseStat.currentHP));
+        combatBaseStats.put(BaseStat.maxTP, tu.getMaxTP());
+        combatBaseStats.put(BaseStat.strength, tu.getSTR());
+        combatBaseStats.put(BaseStat.ether, tu.getETHER());
+        combatBaseStats.put(BaseStat.agility, tu.getAGI());
+        combatBaseStats.put(BaseStat.comprehension, tu.getCOMP());
+        combatBaseStats.put(BaseStat.dexterity, tu.getDEX());
+        combatBaseStats.put(BaseStat.defense, tu.getDEF());
+        combatBaseStats.put(BaseStat.resilience, tu.getRSL());
         
-        attackPower = tu.getATK();
-        evasion = tu.getEvasion();
-        crit = tu.getCrit();
-        critEvasion = tu.getCritEvasion(); //change later
-        attackSpeed = tu.getAS();
-        accuracy = tu.getAccuracy();
-        fullBattleStats = updateBattleStats();
-    }
-    
-    private int[] updateBaseStats() {
-        return new int[] {
-            level, //level
-            maxhp, //max hp
-            strength, //str
-            ether, //ether
-            agility, //agi
-            comprehension, //comp
-            dexterity, //dex
-            defense, //def
-            resilience, //rsl
-            mobility, //mobility
-            physique, //physique
-            adrenaline, //charisma
-            hp, //current hp
-            tp, //current tp
-            maxtp //max tp
-        };
-    }
-    
-    private int[] updateBattleStats() {
-        return new int[] {
-            attackPower,
-            accuracy,
-            evasion,
-            crit,
-            critEvasion,
-            attackSpeed
-        };
+        combatBaseStats.put(BaseStat.mobility, tu.getMobility());
+        combatBaseStats.put(BaseStat.physique, tu.getPHYSIQUE());
+        
+        combatBaseStats.put(BaseStat.adrenaline, tu.getADRENALINE());
+        
+        combatBattleStats.put(BattleStat.AttackPower, tu.getATK());
+        combatBattleStats.put(BattleStat.Evasion, tu.getEvasion());
+        combatBattleStats.put(BattleStat.Crit, tu.getCrit());
+        combatBattleStats.put(BattleStat.CritEvasion, tu.getCritEvasion());
+        combatBattleStats.put(BattleStat.AttackSpeed, tu.getAS());
+        combatBattleStats.put(BattleStat.Accuracy, tu.getAccuracy());
     }
     
     public TangibleUnit getUnit() { return tu; }
@@ -265,11 +201,11 @@ public class Combatant {
     public AttackType getAttackType() { return attackType; } 
 
     public int getBaseStat(BaseStat stat) {
-        return fullBaseStats[stat.getValue()];
+        return combatBaseStats.get(stat);
     }
     
     public int getBattleStat(BattleStat stat) {
-        return fullBattleStats[stat.getValue()];
+        return combatBattleStats.get(stat);
     }
     
     public int getDefaultDamage() { return defaultDamage; } //full damage including extra damage
@@ -291,11 +227,11 @@ public class Combatant {
     }
     
     public void appendToBaseStat(BaseStat stat, int value) {
-        fullBaseStats[stat.getValue()] += value;
+        combatBaseStats.replace(stat, combatBaseStats.get(stat) + value);
     }
     
     public void appendToBattleStat(BattleStat stat, int value) {
-        fullBattleStats[stat.getValue()] += value;
+        combatBattleStats.replace(stat, combatBattleStats.get(stat) + value);
     }
     
     public void setDefaultDamage(int dmg) { defaultDamage = dmg; }
@@ -325,31 +261,21 @@ public class Combatant {
     }
     
     public void applyAllStatsToUnit() {
-        tu.setStat(BaseStat.level, fullBaseStats[0]);
-        /*tu.setStats(statName.maxHP, fullBaseStats[1]);
-        tu.setStats(statName.strength, fullBaseStats[2]);
-        tu.setStats(statName.ether, fullBaseStats[3]);
-        tu.setStats(statName.agility, fullBaseStats[4]);
-        tu.setStats(statName.comprehension, fullBaseStats[5]);
-        tu.setStats(statName.dexterity, fullBaseStats[6]);
-        tu.setStats(statName.defense, fullBaseStats[7]);
-        tu.setStats(statName.resilience, fullBaseStats[8]);
-        tu.setStats(statName.mobility, fullBaseStats[9]);
-        tu.setStats(statName.physique, fullBaseStats[10]);*/
-        tu.setStat(BaseStat.adrenaline, fullBaseStats[11]); //adrenaline
+        tu.setStat(BaseStat.level, combatBaseStats.get(BaseStat.level));
+        tu.setStat(BaseStat.adrenaline, combatBaseStats.get(BaseStat.adrenaline)); //adrenaline
         
-        tu.currentHP = fullBaseStats[12];
-        tu.currentTP = fullBaseStats[13];
+        tu.setStat(BaseStat.currentHP, combatBaseStats.get(BaseStat.currentHP));
+        tu.setStat(BaseStat.currentTP, combatBaseStats.get(BaseStat.currentTP));
     }
 
     public void initializeExpCircle(Node actualGuiNode) {
-        if (tu.currentHP > 0) {
+        if (tu.getStat(BaseStat.currentHP) > 0) {
             figure.expbar = new RadialProgressBar(52.5f, 70.75f, tu.unitStatus.getAssociatedColor(), 2);
             figure.expbar.move(300, 560, 0);
 
             expText = expFont.getText("  EXP\n " + tu.currentEXP + "/100", 3, ColorRGBA.White);
             expText.move(-45, 45, 0);
-             expText.scale(0.7f);
+            expText.scale(0.7f);
             figure.expbar.getChildrenNode().attachChild(expText);
         
             actualGuiNode.attachChild(figure.expbar);
@@ -381,7 +307,7 @@ public class Combatant {
     public void attemptInitializeLevelUpVisual(Node actualGuiNode) {
         if (tu.currentEXP >= 100) {
             initializeLevelUpVisual();
-        } else if (tu.currentHP > 0) {
+        } else if (tu.getStat(BaseStat.currentHP) > 0) {
             actualGuiNode.detachChild(figure.expbar);
         }
     }
@@ -452,8 +378,8 @@ public class Combatant {
     
     private void updateHP() {
         if (hpToSubtract != 0) {
-            hpBar.setProgressPercent(((double)fullBaseStats[12]) / fullBaseStats[1]); //currentHP / maxHP
-            hpBar.setMessage("HP: " + fullBaseStats[12] + "/" + fullBaseStats[1]);
+            hpBar.setProgressPercent(((double)combatBaseStats.get(BaseStat.currentHP)) / combatBaseStats.get(BaseStat.maxHP)); //currentHP / maxHP
+            hpBar.setMessage("HP: " + combatBaseStats.get(BaseStat.currentHP) + "/" + combatBaseStats.get(BaseStat.maxHP));
             
             int modifier;
             if (hpToSubtract > 0) {
@@ -462,15 +388,15 @@ public class Combatant {
                 modifier = -1;
             }
             
-            fullBaseStats[12] -= modifier;
+            combatBaseStats.replace(BaseStat.currentHP, combatBaseStats.get(BaseStat.currentHP) - modifier);
             hpToSubtract -= modifier;
         }
     }
     
     private void updateTP() {
         if (tpToSubtract != 0) {
-            tpBar.setProgressPercent(((double)fullBaseStats[13]) / fullBaseStats[14]); //currentTP / maxTP
-            tpBar.setMessage("TP: " + fullBaseStats[13] + "/" + fullBaseStats[14]);
+            tpBar.setProgressPercent(((double)combatBaseStats.get(BaseStat.currentTP)) / combatBaseStats.get(BaseStat.maxTP)); //currentTP / maxTP
+            tpBar.setMessage("TP: " + combatBaseStats.get(BaseStat.currentTP) + "/" + combatBaseStats.get(BaseStat.maxTP));
             
             int modifier;
             if (tpToSubtract > 0) {
@@ -479,7 +405,7 @@ public class Combatant {
                 modifier = -1;
             }
             
-            fullBaseStats[13] -= modifier;
+            combatBaseStats.replace(BaseStat.currentTP, combatBaseStats.get(BaseStat.currentTP) - modifier);
             tpToSubtract -= modifier;
         }
     }

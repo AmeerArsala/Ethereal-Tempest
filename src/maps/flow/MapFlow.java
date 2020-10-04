@@ -17,7 +17,6 @@ import maps.layout.TangibleUnit;
  * @author night
  */
 public class MapFlow { //eventually make this the map controller
-    
     public enum Turn {
         Player,
         Enemy,

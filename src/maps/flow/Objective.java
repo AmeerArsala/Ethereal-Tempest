@@ -42,7 +42,7 @@ public class Objective {
     private ObjectiveData deserializeFromJSON() {
         try {
             Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\MapObjectives\\" + objectiveName + ".json"));
+            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\presets\\MapObjectives\\" + objectiveName + ".json"));
             return gson.fromJson(reader, ObjectiveData.class);
         }
         catch (IOException ex) {
