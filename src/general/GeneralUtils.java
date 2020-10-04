@@ -44,6 +44,10 @@ public class GeneralUtils {
         );
     }
     
+    public static Vector3f centerTTFNode(TrueTypeNode label, Vector3f backgroundDimensions, List<CenterAxis> centerAxes) {
+        return centerEntity(generateBoundsToCenter(label), backgroundDimensions, centerAxes);
+    }
+    
     public static boolean contain(String k, String s) {
         String str = s.toLowerCase();
         String j = k.toLowerCase();

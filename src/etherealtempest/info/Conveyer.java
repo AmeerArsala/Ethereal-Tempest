@@ -5,6 +5,7 @@
  */
 package etherealtempest.info;
 
+import battle.Combatant;
 import com.jme3.asset.AssetManager;
 import etherealtempest.info.DataStructure;
 import java.util.ArrayList;
@@ -12,7 +13,6 @@ import java.util.List;
 import maps.flow.Objective;
 import maps.layout.Coords;
 import maps.layout.Cursor;
-import maps.layout.Map;
 import maps.layout.MapEntity;
 import maps.layout.TangibleUnit;
 
@@ -22,7 +22,7 @@ import maps.layout.TangibleUnit;
  */
 public class Conveyer extends DataStructure {
         private TangibleUnit user, enemy, other;
-        private Map map;
+        private Combatant initiator, receiver;
         private ArrayList<TangibleUnit> allUnits;
         private List<MapEntity> mapEntities;
         private AssetManager assetmanager;
@@ -38,6 +38,20 @@ public class Conveyer extends DataStructure {
             user = unit;
         }
         
+        public void swapUnits() {
+            TangibleUnit temp = user;
+            user = enemy;
+            enemy = user;
+        }
+        
+        public Combatant getCombatantByUnit(TangibleUnit tu) {
+            if (tu.is(initiator.getUnit())) {
+                return initiator;
+            }
+            
+            return tu.is(receiver.getUnit()) ? receiver : null;
+        }
+        
         public TangibleUnit getUnit() {
             return user;
         }
@@ -50,8 +64,12 @@ public class Conveyer extends DataStructure {
             return other;
         }
         
-        public Map getMap() {
-            return map;
+        public Combatant getInitiator() {
+            return initiator;
+        }
+        
+        public Combatant getReceiver() {
+            return receiver;
         }
         
         public ArrayList<TangibleUnit> getAllUnits() {
@@ -101,8 +119,13 @@ public class Conveyer extends DataStructure {
             return this;
         }
         
-        public Conveyer setMap(Map current) {
-            map = current;
+        public Conveyer setInitiator(Combatant atkr) {
+            initiator = atkr;
+            return this;
+        }
+        
+        public Conveyer setReceiver(Combatant opsr) {
+            receiver = opsr;
             return this;
         }
         

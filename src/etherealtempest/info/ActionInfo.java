@@ -5,12 +5,12 @@
  */
 package etherealtempest.info;
 
-import battle.ability.Ability;
-import battle.formation.Formation;
-import battle.formula.Formula;
-import battle.item.Item;
-import battle.item.Weapon;
-import battle.skill.Skill;
+import fundamental.ability.Ability;
+import fundamental.formation.Formation;
+import fundamental.formula.Formula;
+import fundamental.item.Item;
+import fundamental.item.Weapon;
+import fundamental.skill.Skill;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -43,6 +43,8 @@ public class ActionInfo {
     private final List<PostMoveAction> availableActions;
     
     private Coords startingPosition = new Coords(0, 0);
+    
+    public static final Coords STARTING_POSITION = new Coords(0, 0);
     public static final Coords ATTACK_POSITION = new Coords(0, 2);
     public static final Coords ETHER_POSITION = new Coords(-1, 0);
     public static final Coords SKILL_POSITION = new Coords(-1, 1);

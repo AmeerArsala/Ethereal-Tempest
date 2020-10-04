@@ -5,10 +5,14 @@ import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.audio.AudioListenerState;
+import com.jme3.light.AmbientLight;
+import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.RenderManager;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.system.AppSettings;
 import edited.FlyCamera;
 import edited.state.FlyCamTrueAppState;
@@ -20,8 +24,6 @@ import maps.state.TestMap;
  * @author normenhansen
  */
 public class Main extends SimpleApplication {
-    private static AppSettings set;
-    private static int currentFramerate;
     
     public static final FSM GameFSM = new FSM() {
         @Override
@@ -41,13 +43,19 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        set = settings;
-        
         settings.setFrameRate(120);
-        currentFramerate = 120;
         //restart();
         debugFlyCam();
         flyCam.setMoveSpeed(350);
+        
+        /*Node forest = (Node)getAssetManager().loadModel("Models/Maps/forest.j3o");
+        getRootNode().attachChild(forest);
+        
+        DirectionalLight light = new DirectionalLight();
+        forest.addLight(light);
+        
+        AmbientLight ambient = new AmbientLight();
+        getRootNode().addLight(ambient);*/
         
         stateManager.attach(new TestMap(this, getCamera(), flyCam));
     }
@@ -74,15 +82,6 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleRender(RenderManager rm) {
         //TODO: add render code
-    }
-    
-    public static void setFramerate(int framerate) {
-        set.setFrameRate(framerate);
-        currentFramerate = framerate;
-    }
-    
-    public static int getCurrentFramerate() {
-        return currentFramerate;
     }
     
 }

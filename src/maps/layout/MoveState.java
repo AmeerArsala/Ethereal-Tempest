@@ -5,24 +5,24 @@
  */
 package maps.layout;
 
-import etherealtempest.FSM;
+import etherealtempest.FSM.UnitState;
 import etherealtempest.FsmState;
 
 /**
  *
  * @author night
  */
-public class MoveState extends FsmState {
+public class MoveState extends FsmState<UnitState> {
     
     private Map local;
     private Cursor lCursor;
     
     public MoveState() {
-        state = FSM.EntityState.Moving;
+        state = UnitState.Moving;
     }
     
     public MoveState(Map M, Cursor C) {
-        state = FSM.EntityState.Moving;
+        state = UnitState.Moving;
         local = M;
         lCursor = C;
     }

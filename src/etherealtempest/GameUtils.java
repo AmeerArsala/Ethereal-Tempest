@@ -5,6 +5,7 @@
  */
 package etherealtempest;
 
+import etherealtempest.FSM.UnitState;
 import etherealtempest.info.Conveyer;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,8 +13,8 @@ import maps.layout.Map;
 import maps.layout.MapEntity;
 import maps.layout.TangibleUnit;
 import maps.layout.TangibleUnit.UnitStatus;
-import maps.layout.Tile;
-import maps.layout.TileData.TileType;
+import maps.layout.tile.Tile;
+import maps.layout.tile.TileData.TileType;
 
 /**
  *
@@ -77,7 +78,7 @@ public class GameUtils {
             
             List<TangibleUnit> enemies = new ArrayList<>();
             for (TangibleUnit tu : info.getAllUnits()) {
-                if (!user.unitStatus.alliedWith(tu.unitStatus) && tu.getFSM().getState().getEnum() != FSM.EntityState.Dead) {
+                if (!user.unitStatus.alliedWith(tu.unitStatus) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                     enemies.add(tu);
                 }
             }
@@ -90,7 +91,7 @@ public class GameUtils {
             
             List<TangibleUnit> enemies = new ArrayList<>();
             for (TangibleUnit tu : info.getAllUnits()) {
-                if (user.getID() != tu.getID() && user.unitStatus.alliedWith(tu.unitStatus) && tu.getFSM().getState().getEnum() != FSM.EntityState.Dead) {
+                if (!user.is(tu) && user.unitStatus.alliedWith(tu.unitStatus) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                     enemies.add(tu);
                 }
             }
@@ -103,7 +104,7 @@ public class GameUtils {
             
             List<TangibleUnit> enemies = new ArrayList<>();
             for (TangibleUnit tu : info.getAllUnits()) {
-                if (allegiance.alliedWith(tu.unitStatus) && tu.getFSM().getState().getEnum() != FSM.EntityState.Dead) {
+                if (allegiance.alliedWith(tu.unitStatus) && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                     enemies.add(tu);
                 }
             }
@@ -114,7 +115,7 @@ public class GameUtils {
         public static List<TangibleUnit> calculateUnitsOfAllegiance(UnitStatus allegiance, Conveyer info) {
             List<TangibleUnit> enemies = new ArrayList<>();
             for (TangibleUnit tu : info.getAllUnits()) {
-                if (tu.unitStatus == allegiance && tu.getFSM().getState().getEnum() != FSM.EntityState.Dead) {
+                if (tu.unitStatus == allegiance && tu.getFSM().getState().getEnum() != UnitState.Dead) {
                     enemies.add(tu);
                 }
             }

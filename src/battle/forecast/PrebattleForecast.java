@@ -8,9 +8,9 @@ package battle.forecast;
 import battle.Combatant;
 import etherealtempest.info.Conveyer;
 import battle.Combatant.*;
-import fundamental.Toll.Exchange;
-import battle.skill.Skill;
-import fundamental.DamageTool;
+import fundamental.stats.Toll.Exchange;
+import fundamental.skill.Skill;
+import fundamental.tool.DamageTool;
 import maps.layout.Cursor.Purpose;
 
 /**
@@ -129,9 +129,9 @@ public class PrebattleForecast extends Forecast {
         desirability += 10 - (opponent.displayedAccuracy / 10);
         desirability += 5 - (opponent.displayedCrit / 20);
         
-        if (opponent.getCombatant().getUnit().currentHP - participant.displayedDamage <= 0) {
+        if (opponent.getCombatant().getUnit().getStat(BaseStat.currentHP) - participant.displayedDamage <= 0) {
             desirability += 500;
-        } else if (opponent.getCombatant().getUnit().currentHP - (participant.displayedDamage * participant.getAmountOfHits()) <= 0) {
+        } else if (opponent.getCombatant().getUnit().getStat(BaseStat.currentHP) - (participant.displayedDamage * participant.getAmountOfHits()) <= 0) {
             desirability += 300;
         }
         

@@ -5,28 +5,27 @@
  */
 package etherealtempest;
 
-import etherealtempest.FSM.EntityState;
-
 /**
  *
  * @author night
+ * @param <E> enum state
  */
-public class FsmState {
+public class FsmState<E> {
     
-    protected EntityState state;
+    protected E state;
     
-    public FsmState setEnum(EntityState st) {
+    public FsmState setEnum(E st) {
         state = st;
         return this;
     }
     
     public FsmState() {}
     
-    public FsmState(EntityState e) {
+    public FsmState(E e) {
         state = e;
     }
     
-    public EntityState getEnum() {
+    public E getEnum() {
         return state;
     }
     

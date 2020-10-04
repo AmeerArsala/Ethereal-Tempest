@@ -5,26 +5,26 @@
  */
 package etherealtempest.ai;
 
-import battle.Combatant.BaseStat;
 import etherealtempest.info.Conveyer;
 import battle.forecast.PrebattleForecast;
-import battle.ability.Ability;
+import fundamental.ability.Ability;
 import battle.forecast.SupportForecast;
-import battle.formation.Formation;
-import battle.formula.Formula;
-import battle.item.Item;
-import battle.item.Weapon;
-import battle.skill.Skill;
-import etherealtempest.FSM.EntityState;
+import etherealtempest.FSM.UnitState;
+import fundamental.formation.Formation;
+import fundamental.formula.Formula;
+import fundamental.item.Item;
+import fundamental.item.Weapon;
+import fundamental.skill.Skill;
 import etherealtempest.GameUtils;
 import etherealtempest.MasterFsmState;
 import etherealtempest.info.ActionInfo;
 import etherealtempest.info.ActionInfo.PostMoveAction;
 import fundamental.Associated;
-import fundamental.Tool.ToolType;
+import fundamental.tool.Tool.ToolType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import maps.flow.ObjectiveData;
 import maps.layout.Coords;
@@ -32,8 +32,8 @@ import maps.layout.Cursor.Purpose;
 import maps.layout.Map;
 import maps.layout.TangibleUnit;
 import maps.layout.TangibleUnit.UnitStatus;
-import maps.layout.Tile;
-import maps.layout.TileData.TileType;
+import maps.layout.tile.Tile;
+import maps.layout.tile.TileData.TileType;
 import maps.layout.VenturePeek;
 
 /**
@@ -72,6 +72,7 @@ public class AI {
     
     public enum Condition {
         Always,
+        EnemyUnitEntersRangeOnce,
         EnemyUnitEntersRange,
         AlliedUnitEntersRange,
     }
@@ -84,13 +85,23 @@ public class AI {
         Drugged; //chaos
     }
     
+    public static LinkedHashMap<Condition, Behavior> UntilEnemiesInRangeOnce(Behavior onEnemiesInRangeOnce, Behavior otherwise) {
+        LinkedHashMap<Condition, Behavior> priorities = new LinkedHashMap<>();
+        
+        priorities.put(Condition.EnemyUnitEntersRangeOnce, onEnemiesInRangeOnce);
+        priorities.put(Condition.Always, otherwise);
+        
+        return priorities;
+    }
+    
     private final TangibleUnit reference;
     
+    private boolean anEnemyHasOnceEnteredOffensiveRange = false;
     private UnitStatus allegiance;
     
     //the meat
     private Command givenCommand = null;
-    private HashMap<Condition, Behavior> behaviorMap = null;
+    private LinkedHashMap<Condition, Behavior> behaviorMap = null;
     private List<ConditionalBehavior> mindset = null; //lower index = higher priority; these are assessed in an orderly fashion; based on what matters most to the AI
     
     public static final AllegianceRecognizer ANY = new AllegianceRecognizer() {
@@ -110,7 +121,7 @@ public class AI {
         SAME = new AllegianceRecognizer() {
             @Override
             public boolean allows(TangibleUnit tu) {
-                return reference.getID() != tu.getID() && allegiance == tu.unitStatus;
+                return !reference.is(tu) && allegiance == tu.unitStatus;
             }
         };
         
@@ -134,9 +145,8 @@ public class AI {
         mindset = mind;
     }
     
-    public AI(TangibleUnit ref, HashMap<Condition, Behavior> processes) {
+    public AI(TangibleUnit ref, LinkedHashMap<Condition, Behavior> processes) {
         this(ref);
-        
         behaviorMap = processes;
     }
     
@@ -191,6 +201,11 @@ public class AI {
             case Always:
                 cause = true;
                 break;
+            case EnemyUnitEntersRangeOnce:
+                if (anEnemyHasOnceEnteredOffensiveRange) {
+                    cause = true;
+                    break;
+                }
             case EnemyUnitEntersRange:
                 cause = reference.anyUnitInOffensiveRange(ANY, data.getAllUnits());
                 break;
@@ -233,7 +248,7 @@ public class AI {
                     }
                 }
                 break;
-            default:
+            default: //works for Defiant as well
                 effect = DefaultBehavior(data);
                 break;
         }
@@ -330,7 +345,7 @@ public class AI {
         Coords scariest = null;
         int highestConcentration = 0;
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (!unit.isAlliedWith(reference.unitStatus) && unit.getFSM().getState().getEnum() != EntityState.Dead) {
+            if (!unit.isAlliedWith(reference.unitStatus) && unit.getFSM().getState().getEnum() != UnitState.Dead) {
                 int concentration = unit.calculateConcentrationValue(1);
                 if (scariest == null || concentration > highestConcentration) {
                     scariest = unit.coords();
@@ -466,7 +481,7 @@ public class AI {
         if (objective.getX_EnemiesEscapeForDefeat() != null) {
             List<TangibleUnit> escapees = GameUtils.retrieveCharacters(objective.getX_EnemiesEscapeForDefeat(), data);
             for (TangibleUnit escapee : escapees) {
-                if (escapee.getID() == reference.getID()) {
+                if (escapee.is(reference)) {
                     List<Tile> toEscapeIn = new ArrayList<>();
                     toEscapeIn.addAll(GameUtils.getSpecialTiles(TileType.Escape));
                     
@@ -793,14 +808,8 @@ public class AI {
                 }
             }
             
-            if (opciones.getAvailableActions().contains(PostMoveAction.Formation)) {
-                for (Formation frmn : opciones.getUsableFormations()) {
-                    if (frmn.getToolType() == ToolType.SupportSelf) {
-                        if (bestFormation == null || frmn.getMostDesiredTechnique(data).calculateDesirability(data) > bestFormation.getMostDesiredTechnique(data).calculateDesirability(data)) {
-                            bestFormation = frmn;
-                        }
-                    }
-                }
+            if (opciones.getAvailableActions().contains(PostMoveAction.Formation) && reference.equippedFormation().getToolType() == ToolType.SupportSelf) {
+                bestFormation = reference.equippedFormation();
             }
             
             if (opciones.getAvailableActions().contains(PostMoveAction.Item)) {
@@ -826,8 +835,8 @@ public class AI {
             action = PostMoveAction.Ability;
         }
         
-        if (bestFormation != null && bestFormation.getMostDesiredTechnique(data).calculateDesirability(data) > highestPriority) {
-            highestPriority = bestFormation.getMostDesiredTechnique(data).calculateDesirability(data);
+        if (bestFormation != null &&  bestFormation.getMostDesiredTechnique().getDesirability() > highestPriority) {
+            highestPriority = bestFormation.getMostDesiredTechnique().getDesirability();
             bestOption = bestFormation;
             purpose = Purpose.None;
             action = PostMoveAction.Formation;
@@ -924,15 +933,14 @@ public class AI {
                 }
             }
             
-            if (opciones.getAvailableActions().contains(PostMoveAction.Formation)) {
-                for (Formation frmn : opciones.getUsableFormations()) {
-                    if (frmn.getToolType() == ToolType.Attack && frmn.getRange().contains(range)) {
-                        if (bestFormation == null || frmn.getMostDesiredTechnique(data).calculateDesirability(data) > bestFormation.getMostDesiredTechnique(data).calculateDesirability(data)) {
-                            bestFormation = frmn;
-                            bestFormationCoords = spot;
-                        }
-                    }
-                }
+            if (
+                    opciones.getAvailableActions().contains(PostMoveAction.Formation) 
+                    && reference.equippedFormation().getToolType() == ToolType.Attack
+                    && reference.equippedFormation().getRange().contains(range)
+               ) 
+            {
+                bestFormation = reference.equippedFormation();
+                bestFormationCoords = spot;
             }
             
             if (opciones.getAvailableActions().contains(PostMoveAction.Item)) {
@@ -989,10 +997,10 @@ public class AI {
             action = PostMoveAction.Ability;
         }
         
-        if (bestFormation != null && bestFormation.getMostDesiredTechnique(data).calculateDesirability(data) > highestPriority) {
-            highestPriority = bestFormation.getMostDesiredTechnique(data).calculateDesirability(data);
-            bestCoords = bestFormationCoords;
+        if (bestFormation != null &&  bestFormation.getMostDesiredTechnique().getDesirability() > highestPriority) {
+            highestPriority = bestFormation.getMostDesiredTechnique().getDesirability();
             bestOption = bestFormation;
+            bestCoords = bestFormationCoords;
             purpose = Purpose.None;
             action = PostMoveAction.Formation;
         }
@@ -1052,15 +1060,14 @@ public class AI {
                 }
             }
             
-            if (opciones.getAvailableActions().contains(PostMoveAction.Formation)) {
-                for (Formation frmn : opciones.getUsableFormations()) {
-                    if (frmn.getToolType() == ToolType.SupportAlly && frmn.getRange().contains(range)) {
-                        if (bestFormation == null || frmn.getMostDesiredTechnique(data).calculateDesirability(data) > bestFormation.getMostDesiredTechnique(data).calculateDesirability(data)) {
-                            bestFormation = frmn;
-                            bestFormationCoords = spot;
-                        }
-                    }
-                }
+            if (
+                    opciones.getAvailableActions().contains(PostMoveAction.Formation) 
+                    && reference.equippedFormation().getToolType() == ToolType.SupportAlly
+                    && reference.equippedFormation().getRange().contains(range)
+               ) 
+            {
+                bestFormation = reference.equippedFormation();
+                bestFormationCoords = spot;
             }
             
             if (opciones.getAvailableActions().contains(PostMoveAction.Item)) {
@@ -1098,10 +1105,10 @@ public class AI {
             action = PostMoveAction.Ability;
         }
         
-        if (bestFormation != null && bestFormation.getMostDesiredTechnique(data).calculateDesirability(data) > highestPriority) {
-            highestPriority = bestFormation.getMostDesiredTechnique(data).calculateDesirability(data);
-            bestCoords = bestFormationCoords;
+        if (bestFormation != null &&  bestFormation.getMostDesiredTechnique().getDesirability() > highestPriority) {
+            highestPriority = bestFormation.getMostDesiredTechnique().getDesirability();
             bestOption = bestFormation;
+            bestCoords = bestFormationCoords;
             purpose = Purpose.None;
             action = PostMoveAction.Formation;
         }
@@ -1117,10 +1124,6 @@ public class AI {
         
         return new Option(action, purpose, bestOption, bestCoords, range, ally).setPriority(highestPriority);
     }
-    
-    /*public int favorabilityToAssist(TangibleUnit ally) {
-        return (int)(100 - (100 * ally.currentHP / ((float)ally.getStat(BaseStat.maxHP))));
-    }*/
     
     public Option calculateHighestPriorityAssistOption(Conveyer conv, AllegianceRecognizer condition) {
         List<TangibleUnit> inRangeUnits = reference.UnitsInRange(condition.addExtra(ALLIED), conv.getAllUnits());

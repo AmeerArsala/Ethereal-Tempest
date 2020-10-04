@@ -6,12 +6,11 @@
 package battle;
 
 import etherealtempest.info.Conveyer;
-import battle.Combatant.AttackType;
-import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;
-import battle.skill.Skill;
-import battle.talent.BattleTalent;
-import battle.talent.Talent;
+import fundamental.skill.Skill;
+import fundamental.talent.BattleTalent;
+import fundamental.talent.BattleTalentEffect;
+import fundamental.talent.Talent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +19,7 @@ import java.util.List;
  * @author night
  */
 public class Strike {
-    private Combatant striker, victim;
+    private final Combatant striker, victim;
     private Conveyer info;
     
     private boolean didHit, didCrit, isSkill;
@@ -31,8 +30,6 @@ public class Strike {
     
     public int strikeToken = 1;
     public boolean occurred = false;
-    
-    //private String strikeType = "";
     
     //strikePoints = BP lost = max BP / amount of strikes that will occur at first glance
     //strikePoints lost = max strikePoints / amount of strikes within a strike
@@ -59,7 +56,7 @@ public class Strike {
     
     public boolean strikeDidHit() { return didHit; }
     public boolean strikeIsCrit() { return didCrit; }
-    public boolean strikeWasParried() { return false; } //change after
+    public boolean strikeWasParried() { return false; } //TODO: change after
     public boolean strikeIsSkill() { return isSkill; }
     
     public int getDamage() { return damage; }
@@ -75,12 +72,13 @@ public class Strike {
     
     protected void applyBattleTalents() {
         for (Talent talent : striker.getUnit().getTalents()) {
-            if (talent instanceof BattleTalent && ((BattleTalent)talent).getEffect().doesTrigger()) {
-                talentTriggered = ((BattleTalent)talent);
-                ((BattleTalent)talent).getEffect().inputData(info, striker, victim);
-                damage = ((BattleTalent)talent).getEffect().modifyDamage(damage);
-                ((BattleTalent)talent).getEffect().applyExtraHits(extraStrikes);
-                return;
+            if (talent instanceof BattleTalent) {
+                BattleTalentEffect effect = ((BattleTalent)talent).getEffect();
+                if (effect.doesTrigger(info, striker, victim)) {
+                    damage = effect.modifyDamage(damage, info, striker, victim);
+                    effect.applyExtraHits(extraStrikes, info, striker, victim);
+                    return;
+                }
             }
         }
     }

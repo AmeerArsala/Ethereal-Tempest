@@ -8,7 +8,7 @@ package general.ui;
 import etherealtempest.info.ActionInfo;
 import general.visual.VisualTransition;
 import etherealtempest.info.Conveyer;
-import battle.item.Weapon;
+import fundamental.item.Weapon;
 import com.jme3.asset.AssetManager;
 import com.jme3.font.LineWrapMode;
 import com.jme3.material.Material;
@@ -36,10 +36,12 @@ import maps.layout.Map;
 import maps.ui.StatScreen;
 import maps.layout.TangibleUnit;
 import etherealtempest.FSM;
-import etherealtempest.FSM.EntityState;
+import etherealtempest.FSM.CursorState;
+import etherealtempest.FSM.MapFlowState;
+import etherealtempest.FSM.UnitState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
-import fundamental.Tool.ToolType;
+import fundamental.tool.Tool.ToolType;
 import general.ResetProtocol;
 import etherealtempest.info.ActionInfo.PostMoveAction;
 import maps.layout.Coords;
@@ -68,11 +70,11 @@ public class ActionMenu extends Container {
                        //mat_annex, mat_escape, mat_talk, //length 6 for this row (animated)
                        //mat_done, mat_chainUnavailable, //length 2 bc done and both cases of unavailable (selected and unselected)
     
-    private FSM fsm = new FSM() {
+    private FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState st) {
+        public void setNewStateIfAllowed(FsmState<MapFlowState> st) {
             state = st;
-            if (state.getEnum() == EntityState.PostActionMenuOpened) {
+            if (state.getEnum() == MapFlowState.PostActionMenuOpened) {
                 initialize(((MenuState)state).getConveyer());
             }
         }
@@ -97,7 +99,7 @@ public class ActionMenu extends Container {
                         public void retrieveData() {
                             //set the stuff from Conveyer
                             unit = data.getUnit();
-                            map = data.getMap();
+                            map = MasterFsmState.getCurrentMap();
                         }
                         
                         @Override
@@ -140,7 +142,7 @@ public class ActionMenu extends Container {
                                     @Override
                                     public void interpretData() {
                                         tu = info.getUnit();
-                                        current = info.getMap();
+                                        current = MasterFsmState.getCurrentMap();
                                     }
 
                                     @Override
@@ -177,7 +179,7 @@ public class ActionMenu extends Container {
                                         @Override
                                         public void interpretData() {
                                             tu = info.getUnit();
-                                            current = info.getMap();
+                                            current = MasterFsmState.getCurrentMap();
                                         }
 
                                         @Override
@@ -425,7 +427,7 @@ public class ActionMenu extends Container {
         scale(2f);
         windowChanger = new VisualTransition(geoBackdrop);
         
-        fsm.setNewStateIfAllowed(new FsmState(EntityState.GuiClosed));
+        fsm.setNewStateIfAllowed(MapFlowState.GuiClosed);
     }
     
     public int getPositionX() { return currentX; }
@@ -606,19 +608,19 @@ public class ActionMenu extends Container {
         if (name.equals("select") && getSelectedOption().isAvailable) {
             switch (getSelectedOption().name) {
                 case "attack":
-                    conv.getUnit().setStateIfAllowed(new FsmState(EntityState.SelectingTarget));
                     conv.getUnit().equip(((Weapon)conv.getUnit().getInventory().getItems().get(0)));
                     conv.getUnit().setToUseSkill(null);
-                    fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
-                    conv.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
-                    conv.getCursor().setPurpose(Purpose.WeaponAttack);
+                    conv.getUnit().setStateIfAllowed(UnitState.SelectingTarget);
                     conv.getUnit().incrementOption(Purpose.WeaponAttack);
+                    conv.getCursor().setPurpose(Purpose.WeaponAttack);
+                    conv.getCursor().setStateIfAllowed(CursorState.AnyoneSelectingTarget);
+                    fsm.setNewStateIfAllowed(new MenuState(MapFlowState.GuiClosed));
                     getParent().detachChild(this);
                     break;
                 case "done":
-                    conv.getCursor().resetState(conv.getMap());
+                    conv.getCursor().resetState(MasterFsmState.getCurrentMap());
                     returnable = new MasterFsmState();
-                    fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
+                    fsm.setNewStateIfAllowed(MapFlowState.GuiClosed);
                     getParent().detachChild(this);
                     break;
                 default:
@@ -630,7 +632,7 @@ public class ActionMenu extends Container {
         if (name.equals("deselect")) {
             returnable = new MasterFsmState();
             conv.getCursor().goBackFromMenu(conv.getAssetManager());
-            fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
+            fsm.setNewStateIfAllowed(new MenuState(MapFlowState.GuiClosed));
             getParent().detachChild(this);
         }
         
@@ -671,9 +673,9 @@ public class ActionMenu extends Container {
     
     public void updateAI(float tpf) {
         
-        if (fsm.getState().getEnum() == EntityState.PostActionMenuOpened) {
+        if (fsm.getState().getEnum() == MapFlowState.PostActionMenuOpened) {
             updateState(frameCount);
-        } else if (fsm.getState().getEnum() == EntityState.GuiClosed) {
+        } else if (fsm.getState().getEnum() == MapFlowState.GuiClosed) {
             
         }
         
@@ -702,7 +704,7 @@ public class ActionMenu extends Container {
             @Override
             public void retrieveData() {
                 tu = data.getUnit();
-                currentmap = data.getMap();
+                currentmap = MasterFsmState.getCurrentMap();
                 am = data.getAssetManager();
             }
 
@@ -717,7 +719,7 @@ public class ActionMenu extends Container {
                         @Override
                         public void interpretData() {
                             unit = info.getUnit();
-                            map = info.getMap();
+                            map = MasterFsmState.getCurrentMap();
                         }
 
                         @Override
@@ -782,7 +784,7 @@ public class ActionMenu extends Container {
                 ((TbtQuadBackgroundComponent)infoContainer.getBackground()).setColor(ColorRGBA.White);
                 
                 textContainer = new Container();
-                textContainer.setBackground(new QuadBackgroundComponent(am.loadTexture("Interface/GUI/general_ui/default.png")));
+                textContainer.setBackground(new QuadBackgroundComponent(am.loadTexture("Interface/GUI/stat_screen/default.png")));
                 ((QuadBackgroundComponent)textContainer.getBackground()).setColor(new ColorRGBA(1, 1, 1, 1));
                 
                 String dsc = tu.getInventory().getItems().get(currentIndex).getDescription();
@@ -854,7 +856,7 @@ public class ActionMenu extends Container {
             @Override
             public void retrieveData() {
                 tu = data.getUnit();
-                currentmap = data.getMap();
+                currentmap = MasterFsmState.getCurrentMap();
                 am = data.getAssetManager();
             }
 
@@ -870,15 +872,15 @@ public class ActionMenu extends Container {
                         @Override
                         public void interpretData() {
                             unit = info.getUnit();
-                            map = info.getMap();
+                            map = MasterFsmState.getCurrentMap();
                         }
 
                         @Override
                         public void select() {
                             //TODO
-                            info.getUnit().setStateIfAllowed(new FsmState(EntityState.SelectingTarget));
-                            fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
-                            info.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
+                            info.getUnit().setStateIfAllowed(UnitState.SelectingTarget);
+                            fsm.setNewStateIfAllowed(new MenuState(MapFlowState.GuiClosed));
+                            info.getCursor().setStateIfAllowed(CursorState.AnyoneSelectingTarget);
                             Purpose purpose = info.getUnit().getFormulas().get(index).getFormulaPurpose() == ToolType.Attack ? Purpose.EtherAttack : Purpose.EtherSupport;
                             info.getCursor().setPurpose(purpose);
                             info.getUnit().incrementOption(purpose);
@@ -956,7 +958,7 @@ public class ActionMenu extends Container {
                 ((TbtQuadBackgroundComponent)infoContainer.getBackground()).setColor(ColorRGBA.White);
                 
                 textContainer = new Container();
-                textContainer.setBackground(new QuadBackgroundComponent(am.loadTexture("Interface/GUI/general_ui/default.png")));
+                textContainer.setBackground(new QuadBackgroundComponent(am.loadTexture("Interface/GUI/stat_screen/default.png")));
                 ((QuadBackgroundComponent)textContainer.getBackground()).setColor(new ColorRGBA(1, 1, 1, 1));
                 
                 infoText = new EditedTextField(tu.getFormulas().get(currentIndex).getStatDescription());
@@ -1020,7 +1022,7 @@ public class ActionMenu extends Container {
             @Override
             public void retrieveData() {
                 tu = data.getUnit();
-                currentmap = data.getMap();
+                currentmap = MasterFsmState.getCurrentMap();
                 am = data.getAssetManager();
             }
 
@@ -1036,15 +1038,15 @@ public class ActionMenu extends Container {
                         @Override
                         public void interpretData() {
                             unit = info.getUnit();
-                            map = info.getMap();
+                            map = MasterFsmState.getCurrentMap();
                         }
 
                         @Override
                         public void select() {
                             //TODO
-                            info.getUnit().setStateIfAllowed(new FsmState(EntityState.SelectingTarget));
-                            fsm.setNewStateIfAllowed(new MenuState(EntityState.GuiClosed));
-                            info.getCursor().setStateIfAllowed(new FsmState(EntityState.AnyoneSelectingTarget));
+                            info.getUnit().setStateIfAllowed(UnitState.SelectingTarget);
+                            fsm.setNewStateIfAllowed(new MenuState(MapFlowState.GuiClosed));
+                            info.getCursor().setStateIfAllowed(CursorState.AnyoneSelectingTarget);
                             info.getCursor().setPurpose(Purpose.SkillAttack);
                             info.getUnit().incrementOption(Purpose.SkillAttack);
                             info.getUnit().setToUseSkill(info.getUnit().getSkills().get(index));
@@ -1124,7 +1126,7 @@ public class ActionMenu extends Container {
                 ((TbtQuadBackgroundComponent)infoContainer.getBackground()).setColor(ColorRGBA.White);
                 
                 textContainer = new Container();
-                textContainer.setBackground(new QuadBackgroundComponent(am.loadTexture("Interface/GUI/general_ui/default.png")));
+                textContainer.setBackground(new QuadBackgroundComponent(am.loadTexture("Interface/GUI/stat_screen/default.png")));
                 ((QuadBackgroundComponent)textContainer.getBackground()).setColor(new ColorRGBA(1, 1, 1, 1));
                 
                 infoText = new EditedTextField(tu.getSkills().get(currentIndex).getEffect().effectDescription());

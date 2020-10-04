@@ -94,6 +94,12 @@ public abstract class ComplexInputReader<E> {
         });
     }
     
+    public void clear() {
+        heldInputs.keySet().forEach((inputHeld) -> {
+            heldInputs.replace(inputHeld, 0f);
+        });
+    }
+    
     public boolean anyKeyHeldOver(float seconds) {
         return heldInputs.keySet().stream().anyMatch((pointer) -> (heldInputs.get(pointer) >= seconds));
     }

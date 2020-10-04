@@ -2,6 +2,10 @@
 ## JME3
 ##############################
 assets/
+!assets/GameInfo/
+!assets/MatDefs/custom/
+!assets/Materials/
+!assets/Shaders/
 
 ##############################
 ## Java

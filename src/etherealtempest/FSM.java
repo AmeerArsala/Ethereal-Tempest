@@ -8,46 +8,51 @@ package etherealtempest;
 /**
  *
  * @author night
+ * @param <T> enum type
  */
-public abstract class FSM {
+public abstract class FSM<T> {
+    protected FsmState<T> state;
     
-    protected FsmState state;
+    public abstract void setNewStateIfAllowed(FsmState<T> st);
     
-    public abstract void setNewStateIfAllowed(FsmState st);
-    
-    public FsmState getState() {
-        return state;
+    public void setNewStateIfAllowed(T st) {
+        setNewStateIfAllowed(new FsmState<>(st));
     }
     
-    public void forceState(FsmState st) {
+    public void forceState(FsmState<T> st) {
         state = st;
     }
     
-    public enum EntityState {
-        //Universal
+    public void forceState(T st) {
+        state = new FsmState<>(st);
+    }
+    
+    public FsmState<T> getState() {
+        return state;
+    }
+    
+    public <E> E getEnumState(Class<E> enumClassOfE) {
+        return enumClassOfE.cast(state.getEnum());
+    }
+    
+    public T getEnumState() {
+        return (T)state.getEnum();
+    }
+    
+    public enum LevelState {
+        StartingLevel,
+        Preparations,
+        DuringLevel,
+        Complete;
+    }
+    
+    public enum MapFlowState {
         Idle,
-        Paused,
         
-        //Main.java states (Game states)
-        TitleScreen,
-        InMap,
-        DialogueScene,
-        WorldMap,
-        SaveScreen,
-        Town,
-        
-        //TangibleUnit states
-        Moving,
-        Active,
-        Done,
-        Dead,
-        SelectingTarget,
-        
-        //Shared
-        GuiClosed,
-        
-        //Map states (not the class Map)
         MapDefault,
+        SwitchingTurn,
+        BeginningOfTurn,
+        
         PreBattle,
         DuringBattle,
         PostBattle,
@@ -59,6 +64,10 @@ public abstract class FSM {
         StatScreenOpened,
         StatScreenSelecting,
         
+        GuiClosed
+    }
+    
+    public enum CursorState {
         //Cursor states
         CursorDefault,
         AnyoneHovered,
@@ -66,29 +75,18 @@ public abstract class FSM {
         AnyoneMoving,
         AnyoneSelectingTarget,
         AnyoneTargeted,
-        
-        //MapFlow states
-        SwitchingTurn,
-        ApplyingEffects
-        
+        Idle
     }
     
-    /*public static <T> T fsmStateMethodReturn(FsmState fsmst) {
-        System.out.println("startreflection");
-        T result = null;
-        try {
-            Method get = fsmst.getClass().getMethod("getMap", null);
-            result = (T)get.invoke(fsmst);
-            System.out.println("works!");
-        }
-        catch (NoSuchMethodException e) {} catch (IllegalArgumentException ex) {
-            Logger.getLogger(FSM.class.getName()).log(Level.SEVERE, null, ex);
-            System.out.println("doesn't work");
-        } catch (IllegalAccessException | InvocationTargetException ex) {
-            Logger.getLogger(FSM.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        return result;
-    }*/
+    public enum UnitState {
+        //TangibleUnit states
+        Idle,
+        Moving,
+        Active,
+        Done,
+        Dead,
+        SelectingTarget,
+        ReceivingEffect //this is for aoe damage to the unit before/after combat, etc.
+    }
     
 }

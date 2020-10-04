@@ -6,11 +6,10 @@
 package battle.forecast;
 
 import battle.Combatant;
-import battle.Combatant.BattleRole;
-import battle.talent.PrebattleTalent;
-import battle.talent.Talent;
 import etherealtempest.info.Conveyer;
-import fundamental.Bonus.StatType;
+import fundamental.stats.Bonus.StatType;
+import fundamental.talent.TalentConcept;
+import fundamental.talent.TalentCondition.Occasion;
 
 /**
  *
@@ -21,7 +20,7 @@ public abstract class Forecast {
     protected final int range;
     
     protected Forecast(Combatant offender, Combatant retaliator, Conveyer info, int fromRange, boolean supportive) {
-        data = info;
+        data = info.setInitiator(offender).setReceiver(retaliator);
         range = fromRange;
         
         applyBonuses(offender, retaliator, supportive);
@@ -32,35 +31,45 @@ public abstract class Forecast {
     public abstract int calculateDesirabilityToInitiate();
     
     private void applyBonuses(Combatant initiator, Combatant receiver, boolean isForSupport) {
-        for (Talent X : initiator.getUnit().getTalents()) {
-            if (X instanceof PrebattleTalent && ((PrebattleTalent)X).getCondition().checkCondition(data)) {
-                ((PrebattleTalent)X).getEffect().bonuses().forEach((bonus) -> {
-                    if (bonus.getStatType() == StatType.Battle) {
-                        initiator.appendToBattleStat(bonus.getBattleStatValue().getStatName(), bonus.getBattleStatValue().getValue());
-                    } else if (bonus.getStatType() == StatType.Base) {
-                        initiator.appendToBaseStat(bonus.getBaseStatValue().getStatName(), bonus.getBaseStatValue().getValue());
+        initiator.getUnit().getTalents().forEach((T) -> {
+            for (TalentConcept X : T.getFullBody()) {
+                if (X.getTalentCondition().checkCondition(data, Occasion.BeforeCombat)) {
+                    X.getTalentEffect().getBuffsRaw().forEach((bonus) -> {
+                        if (bonus.getStatType() == StatType.Battle) {
+                            initiator.appendToBattleStat(bonus.getWhichBattleStat(), bonus.getValue());
+                        } else if (bonus.getStatType() == StatType.Base) {
+                            initiator.appendToBaseStat(bonus.getWhichBaseStat(), bonus.getValue());
+                        }
+                    });
+                    
+                    if (isForSupport == T.getToolType().isSupportive()) {
+                        X.getTalentEffect().enactEffect(data); //enact extra effect
                     }
-                });
-                if (isForSupport == ((PrebattleTalent)X).getToolType().isSupportive()) {
-                    ((PrebattleTalent)X).getEffect().enactExtraEffect();
                 }
             }
-        }
+        });
         
-        for (Talent X : receiver.getUnit().getTalents()) {
-            if (X instanceof PrebattleTalent && ((PrebattleTalent)X).getCondition().checkCondition(data)) {
-                ((PrebattleTalent)X).getEffect().bonuses().forEach((bonus) -> {
-                    if (bonus.getStatType() == StatType.Battle) {
-                        receiver.appendToBattleStat(bonus.getBattleStatValue().getStatName(), bonus.getBattleStatValue().getValue());
-                    } else if (bonus.getStatType() == StatType.Base) {
-                        receiver.appendToBaseStat(bonus.getBaseStatValue().getStatName(), bonus.getBaseStatValue().getValue());
+        data.swapUnits();
+        
+        receiver.getUnit().getTalents().forEach((T) -> {
+            for (TalentConcept X : T.getFullBody()) {
+                if (X.getTalentCondition().checkCondition(data, Occasion.BeforeCombat)) {
+                    X.getTalentEffect().getBuffsRaw().forEach((bonus) -> {
+                        if (bonus.getStatType() == StatType.Battle) {
+                            receiver.appendToBattleStat(bonus.getWhichBattleStat(), bonus.getValue());
+                        } else if (bonus.getStatType() == StatType.Base) {
+                            receiver.appendToBaseStat(bonus.getWhichBaseStat(), bonus.getValue());
+                        }
+                    });
+                    
+                    if (isForSupport == T.getToolType().isSupportive()) {
+                        X.getTalentEffect().enactEffect(data); //enact extra effect
                     }
-                });
-                if (isForSupport == ((PrebattleTalent)X).getToolType().isSupportive()) {
-                    ((PrebattleTalent)X).getEffect().enactExtraEffect();
                 }
             }
-        }
+        });
+        
+        data.swapUnits();
     }
     
 }

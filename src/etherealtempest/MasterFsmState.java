@@ -7,8 +7,8 @@ package etherealtempest;
 
 import etherealtempest.info.Conveyer;
 import com.jme3.asset.AssetManager;
+import etherealtempest.FSM.MapFlowState;
 import maps.layout.Map;
-import etherealtempest.FSM.EntityState;
 
 /**
  *
@@ -22,10 +22,10 @@ public class MasterFsmState extends FsmState {
     //private static Cursor currentCursor;
     
     public MasterFsmState() {
-        state = EntityState.MapDefault;
+        state = MapFlowState.MapDefault;
     }
     
-    public MasterFsmState(EntityState e) {
+    public MasterFsmState(MapFlowState e) {
         super(e);
         state = e;
     }
@@ -46,7 +46,7 @@ public class MasterFsmState extends FsmState {
         return local;
     }
     
-    public MasterFsmState updateState(EntityState es) {
+    public MasterFsmState updateState(MapFlowState es) {
         state = es;
         return this;
     }
