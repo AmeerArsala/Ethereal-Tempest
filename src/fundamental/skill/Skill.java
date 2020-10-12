@@ -11,10 +11,10 @@ import fundamental.Associated;
 import fundamental.tool.Tool;
 import fundamental.tool.Tool.ToolType;
 import maps.layout.Coords;
-import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
-import maps.layout.VenturePeek;
+import maps.layout.occupant.VenturePeek;
 
 /**
  *

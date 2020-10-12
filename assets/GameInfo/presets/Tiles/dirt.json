@@ -1,0 +1,10 @@
+{
+  "tileName": "Dirt",
+  "tileEffects": {
+    "buffsAndOrDebuffs": null
+  },
+  "tileVisuals": {
+    "groundType": "Dirt"
+  }
+}
+

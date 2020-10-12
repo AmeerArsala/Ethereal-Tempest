@@ -1,0 +1,6 @@
+{
+  "killAllEnemyUnits": true,
+  "defeatCondition": {
+    "leaderDies": true
+  }
+}

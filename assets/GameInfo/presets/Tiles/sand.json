@@ -1,0 +1,9 @@
+{
+  "tileName": "Sand",
+  "tileEffects": {
+    "buffsAndOrDebuffs": null
+  },
+  "tileVisuals": {
+    "groundType": "Sand"
+  }
+}

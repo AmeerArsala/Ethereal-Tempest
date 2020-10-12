@@ -62,13 +62,15 @@ import jme3tools.savegame.SaveGame;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.util.SkyFactory;
+import com.jme3.util.SkyFactory.EnvMapType;
 
-import maps.layout.Cursor;
+import maps.layout.occupant.Cursor;
 import maps.layout.Map;
-import maps.layout.MoveState;
+import maps.layout.occupant.MoveState;
 import maps.ui.StatScreen;
-import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.TangibleUnit.UnitStatus;
 import misc.ViewPortAnimation;
 import etherealtempest.FSM;
 import etherealtempest.FSM.CursorState;
@@ -80,6 +82,7 @@ import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
 import maps.flow.UnitPlacementInitiation;
 import maps.layout.Coords;
+import maps.layout.MapData;
 
 /**
  *
@@ -156,6 +159,8 @@ public class TestMap extends AbstractAppState {
         cam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
         flCam = fyCam;
         
+        flCam.setEnabled(false);
+        
         fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
         stats = new StatScreen(app.getAssetManager());
         //mapcatalog = new Catalog(app.getAssetManager(), new Material(assetManager,"Common/MatDefs/Misc/Unshaded.j3md"));
@@ -225,13 +230,16 @@ public class TestMap extends AbstractAppState {
                     if (stats.getState().getEnum() != MapFlowState.StatScreenOpened && stats.getState().getEnum() != MapFlowState.StatScreenSelecting && map00.fullmap[pCursor.getElevation()][pCursor.pX][pCursor.pY].getOccupier() != null) {
                         fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
                         stats.forceState(MapFlowState.StatScreenOpened);
-                        flCam.setEnabled(false);
                         stats.startUnitViewGUI(map00.fullmap[pCursor.getElevation()][pCursor.pX][pCursor.pY].getOccupier());
                         pCursor.forceState(CursorState.Idle);
                     }
                 }
                 
                 //all the below inputs are for testing purposes
+                if (name.equals("F")) {
+                    flCam.setEnabled(keyPressed);
+                }
+                
                 if (name.equals("S") && keyPressed) {
                     if (fightCam != null) {
                         fightCam.setLocation(fightCam.getLocation().add(0, 0, 1));
@@ -278,6 +286,14 @@ public class TestMap extends AbstractAppState {
         guiNode.attachChild(localGuiNode);
         guiNode.setLocalScale(cam.getWidth() / 1366f, cam.getHeight() / 768f, 1);
         
+        /*Texture up = assetManager.loadTexture("Textures/skybox/top.png");
+        Texture down = assetManager.loadTexture("Textures/skybox/bottom.png");
+        Texture north = assetManager.loadTexture("Textures/skybox/north.png");
+        Texture south = assetManager.loadTexture("Textures/skybox/south.png");
+        Texture east = assetManager.loadTexture("Textures/skybox/east.png");
+        Texture west = assetManager.loadTexture("Textures/skybox/west.png");
+        rootNode.attachChild(SkyFactory.createSky(assetManager, west, east, north, south, up, down));*/
+        
         /*Node S = (Node)assetManager.loadModel("Scenes/testscene.j3o");
         mob = (TerrainQuad)(S.getChild("movement"));
         mapscene = (TerrainQuad)(S.getChild("map"));
@@ -294,7 +310,7 @@ public class TestMap extends AbstractAppState {
     }
     
     public void initMap() {
-        map00 = new Map("test map", 16, 16, 1, assetManager);
+        map00 = new Map("test map", 16, 16, 1, MapData.deserializePreset("TestMap"), assetManager);
         localRootNode.attachChild(map00.getMiscNode());
         localRootNode.attachChild(map00.getTileNode());
         
@@ -307,36 +323,31 @@ public class TestMap extends AbstractAppState {
             units.get(0).hasStashAccess = true;
             units.get(0).isLeader = true;
             
-            units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
+            units.add(new TangibleUnit(Catalog.UnitCatalog[1], assetManager));
             units.get(1).unitStatus = UnitStatus.Enemy;
             
-            units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
+            units.add(new TangibleUnit(Catalog.UnitCatalog[1], assetManager));
             units.get(2).unitStatus = UnitStatus.Enemy;
             
-            units.add(new TangibleUnit(Catalog.UnitCatalog[1], new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md").clone()));
+            units.add(new TangibleUnit(Catalog.UnitCatalog[1], assetManager));
             units.get(3).unitStatus = UnitStatus.Enemy;
             
             for (int k = 0; k < units.size(); k++) {
-                localRootNode.attachChild(units.get(k).getGeometry());
+                localRootNode.attachChild(units.get(k).getNode());
                 units.get(k).remapPositions((int)(1 + (8 * Math.random())), (int)(1 + (10 * Math.random())), 0, map00);
             }
         });
         
-        pCursor = new Cursor(new Quad(24f, 24f));
-        Material pcs = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        pcs.setTexture("ColorMap", assetManager.loadTexture("Models/Sprites/unfinished/Map/tpCursor.png"));
-        pcs.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        pCursor.geometry.setMaterial(pcs);
-        pCursor.setPosition(5, 2, 0, map00); //change position later
+        pCursor = new Cursor(assetManager);
+        pCursor.setPosition(5, 2, 0); //change position later
         localRootNode.attachChild(pCursor.geometry);
-        //MasterFsmState.setCurrentDefaultCursor(pCursor);
         
         initializePostMoveMenu();
         
-        cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x + 8f - 32f, pCursor.geometry.getWorldTranslation().y + 210f, pCursor.geometry.getWorldTranslation().z + 8f));
+        cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x - 20f, pCursor.geometry.getWorldTranslation().y + 160f, pCursor.geometry.getWorldTranslation().z + 8f));
         cam.lookAt(pCursor.geometry.getWorldTranslation(), worldUpVector);
         Quaternion cameraRotation = new Quaternion();
-        cameraRotation.fromAngles(FastMath.PI / 2, FastMath.PI / 2, 0);
+        cameraRotation.fromAngles(FastMath.PI / 3, FastMath.PI / 2, 0);
         cam.setRotation(cameraRotation);
     }
     
@@ -417,6 +428,7 @@ public class TestMap extends AbstractAppState {
             inputManager.addMapping("D", new KeyTrigger(KeyInput.KEY_D));
             inputManager.addMapping("spacebar", new KeyTrigger(KeyInput.KEY_SPACE));
             inputManager.addMapping("lshift", new KeyTrigger(KeyInput.KEY_LSHIFT));
+            inputManager.addMapping("F", new KeyTrigger(KeyInput.KEY_F));
             
             inputManager.addListener(alU, "move up");
             inputManager.addListener(analogListener, "move up");
@@ -436,6 +448,8 @@ public class TestMap extends AbstractAppState {
             inputManager.addListener(alU, "D");
             inputManager.addListener(alU, "spacebar");
             inputManager.addListener(alU, "lshift");
+            
+            inputManager.addListener(alU, "F");
             
             inputManager.addListener(alU, "select");
             inputManager.addListener(alU, "deselect");
@@ -487,7 +501,7 @@ public class TestMap extends AbstractAppState {
         if (fc > 1000) { fc = 0; }
         
         if (fsm.getState().getEnum() != MapFlowState.Idle) {
-            cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x + 8f, cam.getLocation().y, pCursor.geometry.getWorldTranslation().z + 8f));
+            cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x - 70f, cam.getLocation().y, pCursor.geometry.getWorldTranslation().z + 8f));
             
             switch (fsm.getEnumState()) {
                 case MapDefault:
@@ -495,7 +509,7 @@ public class TestMap extends AbstractAppState {
                 case PostBattle:
                     //modify later
                     if (pCursor.selectedUnit.getStat(BaseStat.currentHP) <= 0 && pCursor.selectedUnit.getFSM().getState().getEnum() != UnitState.Dead) {
-                        localRootNode.detachChild(pCursor.selectedUnit.getGeometry());
+                        localRootNode.detachChild(pCursor.selectedUnit.getNode());
                         map00.fullmap[pCursor.getElevation()][pCursor.selectedUnit.getPosX()][pCursor.selectedUnit.getPosY()].resetOccupier();
                         pCursor.selectedUnit.getFSM().forceState(UnitState.Dead);
                     } else {
@@ -503,7 +517,7 @@ public class TestMap extends AbstractAppState {
                     }
                     
                     if (pCursor.receivingEnd.getStat(BaseStat.currentHP) <= 0 && pCursor.receivingEnd.getFSM().getState().getEnum() != UnitState.Dead) { 
-                        localRootNode.detachChild(pCursor.receivingEnd.getGeometry());
+                        localRootNode.detachChild(pCursor.receivingEnd.getNode());
                         map00.fullmap[pCursor.getElevation()][pCursor.receivingEnd.getPosX()][pCursor.receivingEnd.getPosY()].resetOccupier();
                         pCursor.receivingEnd.getFSM().forceState(UnitState.Dead);
                     }

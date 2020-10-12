@@ -10,7 +10,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 
 /**
  *
@@ -242,6 +242,15 @@ public class GeneralUtils {
         }
         
         return f;
+    }
+    
+    public static String valueDifference(int val) {
+        String str = "";
+        if (val > 0) {
+            str += "+";
+        }
+        
+        return str + val;
     }
 
 }

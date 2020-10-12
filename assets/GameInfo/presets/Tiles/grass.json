@@ -1,0 +1,9 @@
+{
+  "tileName": "Grass",
+  "tileEffects": {
+    "buffsAndOrDebuffs": null
+  },
+  "tileVisuals": {
+    "groundType": "Grass"
+  }
+}

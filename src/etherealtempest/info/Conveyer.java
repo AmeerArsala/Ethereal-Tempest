@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import maps.flow.Objective;
 import maps.layout.Coords;
-import maps.layout.Cursor;
-import maps.layout.MapEntity;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.Cursor;
+import maps.layout.occupant.MapEntity;
+import maps.layout.occupant.TangibleUnit;
 
 /**
  *

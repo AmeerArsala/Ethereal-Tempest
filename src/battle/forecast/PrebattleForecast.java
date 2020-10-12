@@ -11,7 +11,7 @@ import battle.Combatant.*;
 import fundamental.stats.Toll.Exchange;
 import fundamental.skill.Skill;
 import fundamental.tool.DamageTool;
-import maps.layout.Cursor.Purpose;
+import maps.layout.occupant.Cursor.Purpose;
 
 /**
  *

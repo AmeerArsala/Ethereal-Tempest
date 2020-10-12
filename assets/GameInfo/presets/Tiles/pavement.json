@@ -1,0 +1,9 @@
+{
+  "tileName": "Pavement",
+  "tileEffects": {
+    "buffsAndOrDebuffs": null
+  },
+  "tileVisuals": {
+    "groundType": "Mossy Stone"
+  }
+}

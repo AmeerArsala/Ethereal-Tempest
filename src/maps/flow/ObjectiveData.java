@@ -10,10 +10,10 @@ import etherealtempest.info.Conveyer;
 import etherealtempest.GameUtils;
 import etherealtempest.MasterFsmState;
 import maps.layout.Map;
-import maps.layout.MapEntity;
-import maps.layout.MapEntity.DamageLevel;
-import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.occupant.MapEntity;
+import maps.layout.occupant.MapEntity.DamageLevel;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.TangibleUnit.UnitStatus;
 
 /**
  *
@@ -240,7 +240,7 @@ public class ObjectiveData {
         for (int layer = 0; layer < stage.fullmap.length; layer++) {
             for (int x = 0; x < stage.fullmap[layer].length; x++) {
                 for (int y = 0; y < stage.fullmap[layer][x].length; y++) {
-                    if (stage.fullmap[layer][x][y].getTileData().getElegibleAllegiance() == UnitStatus.Player && !stage.fullmap[layer][x][y].hasBeenAnnexed()) {
+                    if (stage.fullmap[layer][x][y].getTileData().allegianceIsEligible(UnitStatus.Player) && !stage.fullmap[layer][x][y].hasBeenAnnexed()) {
                         return false;
                     }
                 }

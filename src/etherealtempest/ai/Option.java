@@ -9,8 +9,8 @@ import etherealtempest.info.ActionInfo.PostMoveAction;
 import fundamental.Associated;
 import fundamental.Entity;
 import maps.layout.Coords;
-import maps.layout.Cursor.Purpose;
-import maps.layout.MapEntity;
+import maps.layout.occupant.Cursor.Purpose;
+import maps.layout.occupant.MapEntity;
 
 /**
  *

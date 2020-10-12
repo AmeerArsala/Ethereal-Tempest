@@ -43,12 +43,11 @@ public abstract class TalentCondition {
         }
     }
     
-    private final String desc;
+    private String desc;
     private Occasion occasion;
     
     public TalentCondition(String desc, Occasion occasion) {
-        desc += occasion.getDesc();
-        this.desc = desc;
+        this.desc = occasion.getDesc() + desc;
         this.occasion = occasion;
     }
     
@@ -57,7 +56,8 @@ public abstract class TalentCondition {
     public Occasion getOccasion() { return occasion; }
     
     public TalentCondition occasion(Occasion O) { //set occasion
-        occasion = O; 
+        occasion = O;
+        desc = occasion.getDesc() + desc;
         return this;
     }
     

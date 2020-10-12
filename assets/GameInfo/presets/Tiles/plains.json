@@ -1,0 +1,9 @@
+{
+  "tileName": "Plains",
+  "tileEffects": {
+    "buffsAndOrDebuffs": null
+  },
+  "tileVisuals": {
+    "groundType": "Plains"
+  }
+}

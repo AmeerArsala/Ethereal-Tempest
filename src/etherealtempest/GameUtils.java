@@ -10,11 +10,11 @@ import etherealtempest.info.Conveyer;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.Map;
-import maps.layout.MapEntity;
-import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.occupant.MapEntity;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
-import maps.layout.tile.TileData.TileType;
+import maps.layout.tile.TileOptionData.TileType;
 
 /**
  *
@@ -46,7 +46,7 @@ public class GameUtils {
         for (int l = 0; l < current.getLayerCount(); l++) {
             for (int x = current.getMinimumX(l); x < current.getXLength(l); x++) {
                 for (int y = current.getMinimumY(l); y < current.getYLength(l); y++) {
-                    if (current.fullmap[l][x][y].getTileData().getType() == type && current.fullmap[l][x][y].getTileData().getElegibleAllegiance() == allegiance) {
+                    if (current.fullmap[l][x][y].getTileData().getType() == type && current.fullmap[l][x][y].getTileData().allegianceIsEligible(allegiance)) {
                         special.add(current.fullmap[l][x][y]);
                     }
                 }
@@ -63,7 +63,7 @@ public class GameUtils {
         for (int l = 0; l < current.getLayerCount(); l++) {
             for (int x = current.getMinimumX(l); x < current.getXLength(l); x++) {
                 for (int y = current.getMinimumY(l); y < current.getYLength(l); y++) {
-                    if (current.fullmap[l][x][y].getTileData().getType() == type && current.fullmap[l][x][y].getTileData().getElegibleAllegiance().alliedWith(allegiance) == alliedWith) {
+                    if (current.fullmap[l][x][y].getTileData().getType() == type && current.fullmap[l][x][y].getTileData().alliedAllegianceIsEligible(allegiance) == alliedWith) {
                         special.add(current.fullmap[l][x][y]);
                     }
                 }

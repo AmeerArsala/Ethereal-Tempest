@@ -10,7 +10,7 @@ import etherealtempest.FsmState;
 import general.GeneralUtils;
 import java.util.ArrayList;
 import java.util.List;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 
 /**
  *

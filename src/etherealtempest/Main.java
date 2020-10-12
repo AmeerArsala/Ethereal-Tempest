@@ -57,7 +57,7 @@ public class Main extends SimpleApplication {
         AmbientLight ambient = new AmbientLight();
         getRootNode().addLight(ambient);*/
         
-        stateManager.attach(new TestMap(this, getCamera(), flyCam));
+       stateManager.attach(new TestMap(this, getCamera(), flyCam));
     }
 
     @Override

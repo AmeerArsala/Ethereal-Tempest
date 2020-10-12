@@ -28,13 +28,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import maps.flow.ObjectiveData;
 import maps.layout.Coords;
-import maps.layout.Cursor.Purpose;
+import maps.layout.occupant.Cursor.Purpose;
 import maps.layout.Map;
-import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
-import maps.layout.tile.TileData.TileType;
-import maps.layout.VenturePeek;
+import maps.layout.occupant.VenturePeek;
+import maps.layout.tile.TileOptionData.TileType;
 
 /**
  *

@@ -6,7 +6,7 @@
 package maps.flow;
 
 import java.util.ArrayList;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 
 /**
  *
