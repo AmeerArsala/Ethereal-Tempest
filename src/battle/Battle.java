@@ -60,8 +60,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import maps.layout.Cursor.Purpose;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.Cursor.Purpose;
+import maps.layout.occupant.TangibleUnit;
 import misc.CustomAnimationSegment;
 import misc.FrameDelay;
 

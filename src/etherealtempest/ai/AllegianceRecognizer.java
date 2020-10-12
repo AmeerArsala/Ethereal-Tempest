@@ -5,7 +5,7 @@
  */
 package etherealtempest.ai;
 
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 
 /**
  *

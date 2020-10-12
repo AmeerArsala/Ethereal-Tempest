@@ -31,10 +31,10 @@ import general.ui.Submenu.TransitionType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import maps.layout.Cursor.Purpose;
+import maps.layout.occupant.Cursor.Purpose;
 import maps.layout.Map;
 import maps.ui.StatScreen;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 import etherealtempest.FSM;
 import etherealtempest.FSM.CursorState;
 import etherealtempest.FSM.MapFlowState;
@@ -631,7 +631,7 @@ public class ActionMenu extends Container {
         }
         if (name.equals("deselect")) {
             returnable = new MasterFsmState();
-            conv.getCursor().goBackFromMenu(conv.getAssetManager());
+            conv.getCursor().goBackFromMenu();
             fsm.setNewStateIfAllowed(new MenuState(MapFlowState.GuiClosed));
             getParent().detachChild(this);
         }

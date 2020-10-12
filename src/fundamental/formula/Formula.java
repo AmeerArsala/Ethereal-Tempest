@@ -28,10 +28,10 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import maps.layout.Coords;
-import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
-import maps.layout.VenturePeek;
+import maps.layout.occupant.VenturePeek;
 
 /**
  *

@@ -21,7 +21,7 @@ import general.visual.VisualTransition.Progress;
 import general.visual.RadialProgressBar;
 import java.util.Arrays;
 import java.util.HashMap;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 
 /**
  *

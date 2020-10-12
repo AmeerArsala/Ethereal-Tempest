@@ -47,23 +47,23 @@ public class DamageTool extends Tool {
     public int getAcc() { return Acc; }
     
     public String getDmgType() {
-      if (type.equals("sword") || type.equals("axe") || type.equals("polearm") || type.equals("knife") || type.equals("bow") || type.equals("whip") || type.equals("monster")) {
-        return "physical";
-      }
-      return "ether";
+        if (type.equals("sword") || type.equals("axe") || type.equals("polearm") || type.equals("knife") || type.equals("bow") || type.equals("whip") || type.equals("monster")) {
+          return "physical";
+        }
+        return "ether";
     }
     
     private String getEffString() {
-      String full = "";
+        String full = "";
       
-      for (int i = 0; i < effect.length; i++) {
-          full += effect[i];
-          if (i < effect.length - 1) {
-              full += ", ";
-          }
-      }
+        for (int i = 0; i < effect.length; i++) {
+            full += effect[i];
+            if (i < effect.length - 1) {
+                full += ", ";
+            }
+        }
       
-      return full;
+        return full;
     }
     
     @Override

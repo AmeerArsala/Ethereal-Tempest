@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import maps.layout.Coords;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 import maps.layout.tile.Tile;
 
 /**

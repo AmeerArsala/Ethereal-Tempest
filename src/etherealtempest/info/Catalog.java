@@ -24,7 +24,7 @@ import fundamental.skill.SkillEffect;
 import fundamental.talent.Talent;
 import java.util.Arrays;
 import java.util.List;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 import maps.layout.tile.Tile;
 import misc.CustomAnimationSegment;
 import misc.FrameDelay;
@@ -101,6 +101,13 @@ public class Catalog {
     
     //public static void setCurrentMap(Map M) { currentMap = M; }
     
+    public static <K> List<K> fillWith(List<K> arr, List<K> replacements) {
+        for (int i = 0; i < replacements.size(); i++) {
+            arr.set(i, replacements.get(i));
+        }
+        
+        return arr;
+    }
 
     
     public static <K> List<K> replaceArrSlotWith(List<K> arr, K replacement, int index) {
@@ -500,7 +507,7 @@ public class Catalog {
                         @Override
                         protected boolean update(DataStructure data, float tpf) {
                             Conveyer conv = (Conveyer)data;
-                            conv.getUnit().getGeometry().move(yDirection / 5f, 0, xDirection / 5f);
+                            conv.getUnit().getNode().move(yDirection / 5f, 0, xDirection / 5f);
                             xDistance += xDirection / 5f;
                             yDistance += yDirection / 5f;
                             
@@ -522,7 +529,7 @@ public class Catalog {
                         @Override
                         protected boolean update(DataStructure data, float tpf) {
                             Conveyer conv = (Conveyer)data;
-                            conv.getOtherUnit().getGeometry().move(yDirection / 5f, 0, xDirection / 5f);
+                            conv.getOtherUnit().getNode().move(yDirection / 5f, 0, xDirection / 5f);
                             xDistance += xDirection / 5f;
                             yDistance += yDirection / 5f;
                             
@@ -608,7 +615,7 @@ public class Catalog {
                 ),
                 Arrays.asList(WeaponCatalog[0].getNewWeaponInstance(), ConsumableItemCatalog[0].newItemInstance()), //base inventory
                 Arrays.asList(FormulaCatalog[0]), //base formulas
-                Catalog.replaceArrSlotWith(emptyTalents(), Talent.EyeOfTheStorm(), 0), //base talents
+                fillWith(emptyTalents(), Arrays.asList(Talent.EyeOfTheStorm(), Talent.Opportunist())), //base talents
                 Arrays.asList(), //base abilities
                 Arrays.asList(SkillCatalog[0]), //base skills
                 Arrays.asList(FormationCatalog[0]), //base formations

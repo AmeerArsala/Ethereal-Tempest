@@ -15,10 +15,10 @@ import fundamental.tool.Tool.ToolType;
 import java.util.HashMap;
 import java.util.List;
 import maps.layout.Coords;
-import maps.layout.TangibleUnit;
-import maps.layout.TangibleUnit.UnitStatus;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
-import maps.layout.VenturePeek;
+import maps.layout.occupant.VenturePeek;
 
 /**
  *

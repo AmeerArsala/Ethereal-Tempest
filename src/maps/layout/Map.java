@@ -9,23 +9,14 @@ import maps.layout.tile.Path;
 import maps.layout.tile.Tile;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import com.jme3.terrain.Terrain;
 import java.util.ArrayList;
 import java.util.List;
-import com.jme3.math.FastMath;
-import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.terrain.geomipmap.TerrainPatch;
-import com.jme3.terrain.geomipmap.TerrainQuad;
 import etherealtempest.MasterFsmState;
 import java.util.LinkedList;
-import static maps.layout.tile.RangeDisplay.shouldDisplayTile;
-import maps.layout.tile.Tile.Spread;
+import maps.layout.tile.TileData;
 
 /**
  *
@@ -33,22 +24,22 @@ import maps.layout.tile.Tile.Spread;
  */
 public class Map {
     private final int tilesX, tilesY, layers;
-    private Coords[][] layerBounds;
+    private final Coords[][] layerBounds;
+    
+    private final String terrainName;
+    private final Node tileNode = new Node("tile node for tiles and terrain");
+    private final Node extraMapStuff = new Node("extra map things");
     
     public Tile[][][] fullmap; // a 3d array of layers, it's a 3d array due to multiple elevations 
     public Tile[][][] movSet; // for movement squares
     
-    private String terrainName = "";
-    private Node tileNode = new Node("tile node for tiles and terrain");
-    private Node extraMapStuff = new Node("extra map things");
+    //public TerrainQuad[] mapscene;
+    //public TerrainQuad[] mov;
     
-    public TerrainQuad[] mapscene;
-    public TerrainQuad[] mov;
+    //protected Integer i, n = 0;
+    //private ArrayList<ArrayList<TerrainPatch>> realTiles, mobilityTiles;
     
-    protected Integer i, n = 0;
-    private ArrayList<ArrayList<TerrainPatch>> realTiles, mobilityTiles;
-    
-    public Map(String terrainName, int tilesX, int tilesY, int layers, AssetManager assetManager) {
+    public Map(String terrainName, int tilesX, int tilesY, int layers, MapData data, AssetManager assetManager) {
         this.terrainName = terrainName;
         this.tilesX = tilesX;
         this.tilesY = tilesY;
@@ -61,7 +52,7 @@ public class Map {
             layerBounds[l][1] = new Coords(0, tilesY); //y coordinate bounds [0, tilesY)
         }
         
-        generateTiles(assetManager);
+        generateTiles(assetManager, data);
     }
     
     /*public Map(int tilesX, int tilesY, int layers, AssetManager assetManager, TerrainQuad[] mapscene, TerrainQuad[] mov, String terrainName) {
@@ -179,30 +170,31 @@ public class Map {
         return tileNode;
     }
     
-    private void generateTiles(AssetManager assetManager) {
+    private void generateTiles(AssetManager assetManager, MapData info) {
+        List<TileData[][]> tileInfo = info.interpret(assetManager);
+        
         //make new instances
         fullmap = new Tile[layers][tilesX][tilesY];
         movSet = new Tile[layers][tilesX][tilesY];
         for (int l = 0; l < layers; l++) {
             for (int x = 0; x < tilesX; x++) {
                 for (int y = 0; y < tilesY; y++) {
-                    fullmap[l][x][y] = new Tile(x, y, l);
-                    movSet[l][x][y] = new Tile(x, y, l);
+                    TileData tile = tileInfo.get(l)[y][x];
+                    //System.out.println("(" + x + ", " + y + "): " + tile.getVisuals().getGroundType());
                     
-                    Material grass = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-                    grass.setTexture("ColorMap", assetManager.loadTexture("Textures/tiles/grass2.jpg"));
-                    fullmap[l][x][y].initializeGeometry(grass);
-                    //fullmap[l][x][y].initializeGeometry(grass, 3, 50, 1, true, Spread.Randomize); //maxHeight = 3, % random = 50%, smoothness = 1
+                    //for actual tiles
+                    fullmap[l][x][y] = new Tile(tile, assetManager, x, y, l);
                     fullmap[l][x][y].setLocalTranslation(tilesY * y, 50 * l, tilesX * x);
-                    tileNode.attachChild(fullmap[l][x][y].getGeometry());
+                    tileNode.attachChild(fullmap[l][x][y].getNode());
                     
-                    Material movsquare = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-                    movsquare.setTexture("ColorMap", assetManager.loadTexture("Textures/tiles/movsquare.png"));
-                    movsquare.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-                    movsquare.setColor("Color", new ColorRGBA(1, 1, 1, 0));
+                    //for move squares
+                    movSet[l][x][y] = new Tile(x, y, l);
+                    Material movsquare = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md"); //material
+                    movsquare.setTexture("ColorMap", assetManager.loadTexture("Textures/tiles/movsquare.png")); //texture
+                    movsquare.getAdditionalRenderState().setBlendMode(BlendMode.Alpha); //alpha
+                    movsquare.setColor("Color", new ColorRGBA(1, 1, 1, 0)); //we don't want to see this by itself
                     movSet[l][x][y].emulateOtherTile(movsquare, fullmap[l][x][y]);
-                    movSet[l][x][y].setLocalTranslation(tilesY * y, (50 * l), tilesX * x);
-                    movSet[l][x][y].getGeometry().setQueueBucket(RenderQueue.Bucket.Transparent);
+                    movSet[l][x][y].setLocalTranslation(tilesY * y, 50 * l, tilesX * x);
                     extraMapStuff.attachChild(movSet[l][x][y].getGeometry());
                 }
             }
@@ -303,7 +295,7 @@ public class Map {
         mapstrings[elv] = "";
         for (int x = 0; x < tilesX; x++) {
                 for (int y = 0; y < tilesY; y++) {
-                     mapstrings[elv] += fullmap[elv][x][y] + " ";
+                    mapstrings[elv] += fullmap[elv][x][y] + " ";
                 }
             mapstrings[elv] += "\n";
         }

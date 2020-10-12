@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.layout;
+package maps.layout.occupant;
 
 import maps.layout.tile.RangeDisplay;
 import maps.layout.tile.Path;
@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import maps.layout.Coords;
+import maps.layout.Map;
 
 /**
  *

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.layout;
+package maps.layout.occupant;
 
 import maps.layout.tile.RangeDisplay;
 import maps.layout.tile.Path;
@@ -26,11 +26,11 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.MagFilter;
 import java.util.ArrayList;
-import misc.DirFileExplorer;
 import etherealtempest.FSM;
 import etherealtempest.FSM.MapFlowState;
 import etherealtempest.FSM.UnitState;
@@ -45,6 +45,7 @@ import etherealtempest.ai.AllegianceRecognizer;
 import etherealtempest.ai.ConditionalBehavior;
 import general.Spritesheet;
 import etherealtempest.info.ActionInfo;
+import general.Spritesheet.AnimationState;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -52,7 +53,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import maps.layout.Cursor.Purpose;
+import maps.layout.Coords;
+import maps.layout.occupant.Cursor.Purpose;
+import maps.layout.Map;
 
 /**
  *
@@ -61,9 +64,7 @@ import maps.layout.Cursor.Purpose;
 public class TangibleUnit extends Unit {
     private static final int DEFAULT_TRADE_DISTANCE = 1; //adjacent
     
-    public int animVar = 0;
     public int currentParryCooldown;
-    
     private int saveMaxParryCooldown; //max parry cd
     
     private int posX, posY, elevation;
@@ -148,19 +149,20 @@ public class TangibleUnit extends Unit {
         }
     }
     
-    private Quad q = new Quad(20f, 20f);
-    private Geometry geo = new Geometry("Quad", q);
+    private final Node node = new Node();
+    
+    private Material defMat;
+    private Quad q;
+    private Geometry geo;
+    
+    private Material outlineMat;
+    private Quad outlineQuad;
+    private Geometry outline;
     
     private Path pathway = null;
     
-    private String filepath, fpath2;
-    private String[] silence, load;
-    private DirFileExplorer[] dfes;
-    
-    private Spritesheet spritesheetInfo = null;
+    private final Spritesheet spritesheetInfo;
     private AnimationState animState = AnimationState.Idle;
-    
-    private Material defMat;
     
     private int commitsToAttack = 0;
     private int commitsToEther = 0;
@@ -172,131 +174,18 @@ public class TangibleUnit extends Unit {
     private final int id;
     private final RequestDealer requestDealer = new RequestDealer();
     
-    private final DeclarationType dType; //temporary
-    
-    enum AnimationState {
-        MovingDown(0),
-        MovingRight(1),
-        MovingLeft(2),
-        MovingUp(3),
-        Idle(4),
-        Idle2(5);
-        
-        final int row;
-        private AnimationState(int r) {
-            row = r;
-        }
-        
-        public int getValue() { return row; }
-    }
-    
-    private enum DeclarationType {
-        Frames,
-        Spritesheet
-    }
-    
     private final FSM<UnitState> fsm = new FSM<UnitState>() {
         @Override
         public void setNewStateIfAllowed(FsmState st) {
-            if (state == null || (state.getEnum() != UnitState.Dead && state.getEnum() != UnitState.Done)) {
+            if (state == null || (state.getEnum() != UnitState.Dead && state.getEnum() != UnitState.Done)) { //you can forceState() to forcefully change it
                 state = st;
                 accumulatedMovTime = 0;
                 movLength = -1;
                 prevX = posX;
                 prevY = posY;
-            } //you can forceState() to forcefully change it
+            } 
         }
-        
     };
-    
-    public TangibleUnit(Unit X, int posX, int posY) {
-        super(X.getName(), X, X.getStats(), X.getGrowthRates(), X.getInventory().getItems(), X.getFormulas(), X.getTalents(), X.getAbilities(), X.getSkills(), X.getFormations(), X.getIsBoss());
-        this.posX = posX;
-        this.posY = posY;
-        
-        filepath = "assets\\Models\\Sprites\\map\\" + name + "\\";
-        fpath2 = "Models/Sprites/map/" + name + "/";
-        
-        silence = new String[]{filepath + "idle", filepath + "up", filepath + "left", filepath + "right", filepath + "down"};
-        load = new String[]{fpath2 + "idle/", fpath2 + "up/", fpath2 + "left/", fpath2 + "right/", fpath2 + "down/"};
-        
-        dfes = new DirFileExplorer[]
-        {
-            new DirFileExplorer(silence[0]), 
-            new DirFileExplorer(silence[1]), 
-            new DirFileExplorer(silence[2]), 
-            new DirFileExplorer(silence[3]),
-            new DirFileExplorer(silence[4]) 
-        };
-        
-        fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
-
-        stabilize();
-        
-        id = IDgen;
-        IDgen++;
-        
-        dType = DeclarationType.Frames;
-    }
-    
-    public TangibleUnit(Unit X) {
-        super(X.getName(), X, X.getStats(), X.getGrowthRates(), X.getInventory().getItems(), X.getFormulas(), X.getTalents(), X.getAbilities(), X.getSkills(), X.getFormations(), X.getIsBoss());
-        
-        filepath = "assets\\Models\\Sprites\\map\\" + X.getName() + "\\";
-        fpath2 = "Models/Sprites/map/" + X.getName() + "/";
-       
-        silence = new String[]{filepath + "idle", filepath + "up", filepath + "left", filepath + "right", filepath + "down"};
-        load = new String[]{fpath2 + "idle/", fpath2 + "up/", fpath2 + "left/", fpath2 + "right/", fpath2 + "down/"};
-        
-        dfes = new DirFileExplorer[]
-        {
-            new DirFileExplorer(silence[0]), 
-            new DirFileExplorer(silence[1]), 
-            new DirFileExplorer(silence[2]), 
-            new DirFileExplorer(silence[3]),
-            new DirFileExplorer(silence[4]) 
-        };
-        
-        fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
-        
-        stabilize();
-        
-        id = IDgen;
-        IDgen++;
-        
-        dType = DeclarationType.Frames;
-    }
-    
-    public TangibleUnit(Unit X, Material defaultMat) {
-        super(X.getName(), X, X.getStats(), X.getGrowthRates(), X.getInventory().getItems(), X.getFormulas(), X.getTalents(), X.getAbilities(), X.getSkills(), X.getFormations(), X.getIsBoss());
-        
-        filepath = "assets\\Models\\Sprites\\map\\" + X.getName() + "\\";
-        fpath2 = "Models/Sprites/map/" + X.getName() + "/";
-        
-        silence = new String[]{filepath + "idle", filepath + "up", filepath + "left", filepath + "right", filepath + "down"};
-        load = new String[]{fpath2 + "idle/", fpath2 + "up/", fpath2 + "left/", fpath2 + "right/", fpath2 + "down/"};
-        
-        defMat = defaultMat;
-        geo.setMaterial(defMat);
-        
-        dfes = new DirFileExplorer[]
-        {
-            new DirFileExplorer(silence[0]), 
-            new DirFileExplorer(silence[1]), 
-            new DirFileExplorer(silence[2]), 
-            new DirFileExplorer(silence[3]),
-            new DirFileExplorer(silence[4]) 
-        };
-        
-        fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
-        
-        stabilize();
-        
-        id = IDgen;
-        IDgen++;
-        
-        dType = DeclarationType.Frames;
-    }
     
     public TangibleUnit(Unit X, AssetManager assetManager) { //hasExtraIdleAnimation = hasSixthRow
         super(X.getName(), X, X.getStats(), X.getGrowthRates(), X.getInventory().getItems(), X.getFormulas(), X.getTalents(), X.getAbilities(), X.getSkills(), X.getFormations(), X.getIsBoss());
@@ -311,28 +200,41 @@ public class TangibleUnit extends Unit {
         
         defMat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
         defMat.setTexture("ColorMap", tex);
-        defMat.setFloat("SizeX", spritesheetInfo.getColumns());
-        defMat.setFloat("SizeY", spritesheetInfo.getRows());
+        defMat.setFloat("SizeX", spritesheetInfo.getMaxColumnCount());
+        defMat.setFloat("SizeY", spritesheetInfo.getRowCount());
         defMat.setFloat("Position", 0f);
         defMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         geo.setQueueBucket(RenderQueue.Bucket.Transparent);
         geo.setMaterial(defMat);
         
-        stabilize();
+        Quaternion rotation = new Quaternion();
+        rotation.fromAngles((FastMath.PI / -3f), (FastMath.PI / -2f), 0);
+        geo.setLocalRotation(rotation);
         
-        id = IDgen;
-        IDgen++;
+        outlineQuad = new Quad(25f, 25f);
+        outline = new Geometry("outline", outlineQuad);
+        
+        Texture outlineTexture = assetManager.loadTexture("Models/Sprites/map/" + name + "/" + spritesheetInfo.getOutlineSheet());
+        outlineTexture.setMagFilter(MagFilter.Nearest);
+        
+        outlineMat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
+        outlineMat.setTexture("ColorMap", outlineTexture);
+        outlineMat.setFloat("SizeX", spritesheetInfo.getMaxColumnCount());
+        outlineMat.setFloat("SizeY", spritesheetInfo.getRowCount());
+        outlineMat.setFloat("Position", 0f);
+        outlineMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        outline.setQueueBucket(RenderQueue.Bucket.Transparent);
+        outline.setMaterial(outlineMat);
+        outline.setLocalRotation(rotation);
+        outline.move(0, -0.1f, 0);
+        
+        node.attachChild(geo);
+        node.attachChild(outline);
         
         fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
         
-        dType = DeclarationType.Spritesheet;
-    }
-    
-    private void stabilize() {
-        Quaternion rotation = new Quaternion();
-        rotation.fromAngles((FastMath.PI / -2f), (FastMath.PI / -2f), 0);
-        
-        geo.setLocalRotation(rotation);
+        id = IDgen;
+        IDgen++;
     }
     
     public FSM getFSM() { return fsm; }
@@ -354,8 +256,7 @@ public class TangibleUnit extends Unit {
         posY = y;
         elevation = layer;
         
-        geo.setLocalTranslation(map.fullmap[layer][x][y].getGeometry().getWorldTranslation());
-        geo.setLocalTranslation(geo.getLocalTranslation().x - 6.25f, map.fullmap[layer][x][y].getHighestPointHeight() + 1, geo.getLocalTranslation().z - 3f);
+        node.setLocalTranslation(map.fullmap[layer][x][y].getGeometry().getWorldTranslation().add(-1f, 1, -5.5f));
     }
     
     public void remapPositions(int x, int y, int layer, Map map) {
@@ -365,7 +266,10 @@ public class TangibleUnit extends Unit {
     }
     
     public Quad getQuad() { return q; }
-    public Geometry getGeometry() { return geo; }
+    public Quad getOutlineQuad() { return outlineQuad; } 
+    //public Geometry getGeometry() { return geo; }
+    
+    public Node getNode() { return node; }
     
     public int getEnemyAmount(ArrayList<TangibleUnit> allUnits) {
         int count = 0;
@@ -389,82 +293,28 @@ public class TangibleUnit extends Unit {
         saveMaxParryCooldown = currentParryCooldown;
     }
     
-    private float totalDistanceX = 0, totalDistanceY = 0;
+    //private float totalDistanceX = 0, totalDistanceY = 0;
     
     public void moveTo(int stposX, int stposY, int destinationX, int destinationY, int layer, Map map, float distanceperframe, float accumulatedDistance, float prevaccumulatedDistance) { //distanceperframe must be a power of 2 and <= 16
         if (destinationX == posX && destinationY == posY) {
-            animVar = 0;
-            animState = AnimationState.Idle2;
-            totalDistanceX = 0;
-            totalDistanceY = 0;
+            animState = hasExtraIdle() ? AnimationState.Idle2 : AnimationState.Idle;
+            //totalDistanceX = 0;
+            //totalDistanceY = 0;
         } else {
             int i = (int)(accumulatedDistance / 16f);
             List<Tile> path = pathway.getPath();
             
-            if (i > 0) {
-                //horizontal
-                if (path.get(i).getPosX() - path.get(i - 1).getPosX() < 0) {
-                    //left
-                    geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
-                    animVar = 2;
-                    animState = AnimationState.MovingLeft;
-                    totalDistanceX -= distanceperframe;
-                } else if (path.get(i).getPosX() - path.get(i - 1).getPosX() > 0) {
-                    //right
-                    geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
-                    animVar = 3;
-                    animState = AnimationState.MovingRight;
-                    totalDistanceX += distanceperframe;
-                } else {
-                    //vertical
-                    if (path.get(i).getPosY() - path.get(i - 1).getPosY() > 0) {
-                        //up
-                        geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                        animVar = 1;
-                        animState = AnimationState.MovingUp;
-                        totalDistanceY += distanceperframe;
-                    } else if (path.get(i).getPosY() - path.get(i - 1).getPosY() < 0) {
-                        //down
-                        geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                        animVar = 4;
-                        animState = AnimationState.MovingDown;
-                        totalDistanceY -= distanceperframe;
-                    }
-                }
-                geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
-                return;
-            }
-            //horizontal
-            if (path.get(i).getPosX() - stposX < 0) {
-                //left
-                geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z - distanceperframe);
-                animVar = 2;
-                animState = AnimationState.MovingLeft;
-                totalDistanceX -= distanceperframe;
-            } else if (path.get(i).getPosX() - stposX > 0) {
-                //right
-                geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, geo.getLocalTranslation().z + distanceperframe);
-                animVar = 3;
-                animState = AnimationState.MovingRight;
-                totalDistanceX += distanceperframe;
-            } else {
-                //vertical
-                if (path.get(i).getPosY() - stposY > 0) {
-                    //up
-                    geo.setLocalTranslation(geo.getLocalTranslation().x + distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                    animVar = 1;
-                    animState = AnimationState.MovingUp;
-                    totalDistanceY += distanceperframe;
-                } else if (path.get(i).getPosY() - stposY < 0) {
-                    //down
-                    geo.setLocalTranslation(geo.getLocalTranslation().x - distanceperframe, geo.getLocalTranslation().y, geo.getLocalTranslation().z);
-                    animVar = 4;
-                    animState = AnimationState.MovingDown;
-                    totalDistanceY -= distanceperframe;
-                }
-            }
-            geo.setLocalTranslation(geo.getLocalTranslation().x, map.fullmap[layer][stposX + ((int)(totalDistanceX / 16f))][stposY + ((int)(totalDistanceY / 16f))].getHighestPointHeight() + 1, geo.getLocalTranslation().z);
-            //rewritePos(map, layer);
+            int lastX = i > 0 ? path.get(i - 1).getPosX() : stposX;
+            int lastY = i > 0 ? path.get(i - 1).getPosY() : stposY;
+            
+            //these will always be 1, 0, or -1
+            int deltaX = path.get(i).getPosX() - lastX;
+            int deltaY = path.get(i).getPosY() - lastY;
+            
+            animState = AnimationState.directionalValueOf(deltaX, deltaY);
+            node.move(deltaY * distanceperframe, 0, deltaX * distanceperframe);
+            //totalDistanceX += deltaX * distanceperframe;
+            //totalDistanceY += deltaY * distanceperframe;
         }
     }
     
@@ -477,106 +327,104 @@ public class TangibleUnit extends Unit {
         
         frameCount++;
         previoustpf = tpf;
-        accumulatedTime += tpf;
+        //accumulatedTime += tpf;
     }
     
-    private float accumulatedTime = 0, accumulatedMovTime = 0, previoustpf;
+    private float accumulatedMovTime = 0, previoustpf;
     private int movLength = -1, pstartX = 0, pstartY = 0, frameCount = 0;
     
     public void updateAI(float tpf, FSM mapFSM) {
-            switch (fsm.getEnumState()) {
-                case Moving:
-                {
+        switch (fsm.getEnumState()) {
+            case Moving:
+            {            
+                defMat.setFloat("Position", calculateSpritesheetPosition());
+                updateOutline();
                     
-                    updateAnimation(((MasterFsmState)mapFSM.getState()));
-                    
-                    float dpf = 160 * tpf; //160 distance per second; THE COEFFICIENT MUST BE A MULTIPLE OF 40
-                    float accumulatedDistance = (accumulatedMovTime * 160);
-                    float previousmovtime = accumulatedMovTime - previoustpf;
-                    float prevAccumulatedDistance = (previousmovtime * 160);
+                float dpf = 160 * tpf; //160 distance per second; THE COEFFICIENT MUST BE A MULTIPLE OF 40
+                float accumulatedDistance = (accumulatedMovTime * 160);
+                float previousmovtime = accumulatedMovTime - previoustpf;
+                float prevAccumulatedDistance = (previousmovtime * 160);
                 
-                    if (movLength < 0) { //is only called at the start
-                        //movLength = ((MoveState)fsm.getState()).getMap().generatePath(posX, posY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation()).size();
-                        pstartX = posX;
-                        pstartY = posY;
-                        totalDistanceX = 0;
-                        totalDistanceY = 0;
-                        pathway = new Path(((MoveState)fsm.getState()).getMap(), pstartX, pstartY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation(), getMobility());
-                        //pathway.printPath();
-                        movLength = pathway.getPath().size();
-                    }   
+                if (movLength < 0) { //is only called at the start
+                    pstartX = posX;
+                    pstartY = posY;
+                    //totalDistanceX = 0;
+                    //totalDistanceY = 0;
+                    pathway = new Path(((MoveState)fsm.getState()).getMap(), pstartX, pstartY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation(), getMobility());
+                    movLength = pathway.getPath().size();
+                }   
                 
-                    if (posX == ((MoveState)fsm.getState()).getCursor().pX && posY == ((MoveState)fsm.getState()).getCursor().pY || ((int)(accumulatedDistance / 16f)) >= movLength) {
-                        //open menu
-                        if (mapFSM.getState().getEnum() != MapFlowState.PostActionMenuOpened) {
-                            mapFSM.setNewStateIfAllowed(((MasterFsmState)mapFSM.getState()).updateState(MapFlowState.PostActionMenuOpened)); //switch this if PostActionMenuOpened will need some extra stuff
-                        }
-                    } else {
-                        moveTo(pstartX, pstartY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation(), ((MoveState)fsm.getState()).getMap(), dpf, accumulatedDistance, prevAccumulatedDistance);
-                    }   
-                
-                    accumulatedMovTime += tpf;
-                    break;
-                }
-                
-                case Active:
-                {   
-                    if (isSelected && dType == DeclarationType.Spritesheet && hasExtraIdle()) {
-                        animState = AnimationState.Idle2;
-                    } else if (animState == AnimationState.Idle2) {
-                        animState = AnimationState.Idle;
+                if (posX == ((MoveState)fsm.getState()).getCursor().pX && posY == ((MoveState)fsm.getState()).getCursor().pY || ((int)(accumulatedDistance / 16f)) >= movLength) {
+                    //open menu
+                    if (mapFSM.getState().getEnum() != MapFlowState.PostActionMenuOpened) {
+                        mapFSM.setNewStateIfAllowed(((MasterFsmState)mapFSM.getState()).updateState(MapFlowState.PostActionMenuOpened)); //switch this if PostActionMenuOpened will need some extra stuff
                     }
-                    updateAnimation(((MasterFsmState)mapFSM.getState()));
-                    break;
-                }
+                } else {
+                    moveTo(pstartX, pstartY, ((MoveState)fsm.getState()).getCursor().pX, ((MoveState)fsm.getState()).getCursor().pY, ((MoveState)fsm.getState()).getCursor().getElevation(), ((MoveState)fsm.getState()).getMap(), dpf, accumulatedDistance, prevAccumulatedDistance);
+                }   
                 
-                case Done:
-                {
-                    isSelected = false;
-                    fsm.forceState(new FsmState().setEnum(UnitState.Active)); //this is temporary and just for testing purposes
-                    mapFSM.setNewStateIfAllowed(((MasterFsmState)mapFSM.getState()).updateState(MapFlowState.MapDefault));
-                    break;
-                }
-                
-                case Dead:
-                {
-                    break;
-                }
-                
-                case Idle:
-                {
-                    updateAnimation(((MasterFsmState)mapFSM.getState()));
-                    break;
-                }
-                
-                case SelectingTarget:
-                {
-                    updateAnimation(((MasterFsmState)mapFSM.getState()));
-                    break;
-                }
-                
-                default:
-                    break;
+                accumulatedMovTime += tpf;
+                break;
             }
+                
+            case Active:
+            {   
+                if (isSelected && hasExtraIdle()) {
+                    animState = AnimationState.Idle2;
+                } else if (animState == AnimationState.Idle2) {
+                    animState = AnimationState.Idle;
+                }
+                
+                defMat.setFloat("Position", calculateSpritesheetPosition());
+                updateOutline();
+                break;
+            }
+                
+            case Done:
+            {
+                isSelected = false;
+                fsm.forceState(new FsmState().setEnum(UnitState.Active)); //this is temporary and just for testing purposes
+                mapFSM.setNewStateIfAllowed(((MasterFsmState)mapFSM.getState()).updateState(MapFlowState.MapDefault));
+                break;
+            }
+            
+            case Dead:
+            {
+                break;
+            }
+                
+            case Idle:
+            {
+                defMat.setFloat("Position", calculateSpritesheetPosition());
+                updateOutline();
+                break;
+            }
+            
+            case SelectingTarget:
+            {
+                defMat.setFloat("Position", calculateSpritesheetPosition());
+                updateOutline();
+                break;
+            }
+                
+            default:
+                break;
+        }
     }
     
-    public String animationOnFrameUpdate(int x, int index) { //x: 0 = idle, 1 = up, 2 = left, 3 = right, 4 = down
-        return load[x] + index + ".png";
-    }
-    
-    void setAnimationState(AnimationState state) {
+    public void setAnimationState(AnimationState state) {
         animState = state;
     }
     
     boolean hasExtraIdle() {
-        return spritesheetInfo != null && spritesheetInfo.getRows() > 5;
+        return spritesheetInfo.hasAnimation(AnimationState.Idle2);
     }
     
     private Spritesheet deserializeFromJSON() {
         try {
             Gson gson = new Gson();
             Reader reader = Files.newBufferedReader(Paths.get("assets\\Models\\Sprites\\map\\" + name + "\\info.json"));
-            return gson.fromJson(reader, Spritesheet.class);
+            return gson.fromJson(reader, Spritesheet.class).setAnimations();
         }
         catch (IOException ex) {
             ex.printStackTrace();
@@ -584,20 +432,17 @@ public class TangibleUnit extends Unit {
         }
     }
     
-    private void updateAnimation(MasterFsmState mapState) {
-        if (dType == DeclarationType.Spritesheet) {
-            defMat.setFloat("Position", calculateSpritesheetPosition());
-        } else {
-            //animate sprite
-            int frameIndex = ((int)(frameCount * 0.1) + dfes[animVar].getFileCount("png")) % dfes[animVar].getFileCount("png");
-            geo.getMaterial().setTexture("ColorMap", mapState.getAssetManager().loadTexture(animationOnFrameUpdate(animVar, (int)(frameIndex))));
-            geo.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-            geo.setQueueBucket(RenderQueue.Bucket.Transparent);
-        }
+    private int calculateSpritesheetPosition() { //value is row
+        return (spritesheetInfo.startingPositions.get(animState) + (((int)(frameCount * 0.1)) % spritesheetInfo.getColumnCount(animState)));
     }
     
-    private int calculateSpritesheetPosition() { //value is row
-        return ((animState.getValue() * spritesheetInfo.getColumns()) + (((int)(frameCount * 0.1)) % spritesheetInfo.getColumns()));
+    private float outlineGradient(float omega) {
+        return 0.075f * FastMath.cos(omega * frameCount) + 0.925f; 
+    }
+    
+    private void updateOutline() {
+        outlineMat.setFloat("Position", calculateSpritesheetPosition());
+        outlineMat.setColor("Color", unitStatus.getAssociatedColor().mult(outlineGradient(0.08f)));
     }
     
     public Skill getToUseSkill() { return inUse; }

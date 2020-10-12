@@ -53,7 +53,7 @@ import general.GeneralUtils;
 import general.GeneralUtils.CenterAxis;
 import general.visual.RadialProgressBar;
 import java.util.Arrays;
-import maps.layout.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
 
 /**
  *
