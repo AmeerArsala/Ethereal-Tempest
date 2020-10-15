@@ -7,15 +7,20 @@ package maps.layout.tile;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
+import com.jme3.material.RenderState.BlendMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.util.BufferUtils;
+import fundamental.stats.Bonus;
 import general.GeneralUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -133,11 +138,17 @@ public class Tile {
         node.attachChild(tgeometry);
     }
     
-    public void emulateOtherTile(Material mat, Tile other) {
+    public void emulateOtherTileAsMoveSquare(AssetManager assetManager, Tile other) {
         patchMesh = other.getTileMesh().deepClone();
         tgeometry = new Geometry("tile: (" + pX + ", " + pY + ")", patchMesh);
-        tgeometry.setMaterial(mat);
-        tgeometry.setQueueBucket(RenderQueue.Bucket.Opaque);
+        
+        Material movsquare = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        movsquare.setTexture("ColorMap", assetManager.loadTexture("Textures/tiles/movsquare.png"));
+        movsquare.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        movsquare.setColor("Color", new ColorRGBA(1, 1, 1, 0)); //we don't want to see this by itself
+        
+        tgeometry.setMaterial(movsquare);
+        tgeometry.setQueueBucket(Bucket.Opaque);
     }
     
     private Mesh createMesh() {

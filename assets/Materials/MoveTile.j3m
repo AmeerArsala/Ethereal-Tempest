@@ -1,0 +1,5 @@
+Material Move Tile : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+		ColorMap: Textures/tiles/movsquare.png
+     }
+}

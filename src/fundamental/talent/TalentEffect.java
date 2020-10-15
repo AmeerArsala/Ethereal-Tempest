@@ -110,7 +110,7 @@ public abstract class TalentEffect {
         return new TalentEffect("does area-of-effect damage = " + percent + "% of user's " + stat.getName() + " stat to enemies within " + range + " spaces of the targeted enemy.") {
             @Override
             public HashMap<TangibleUnit, Toll> calculateLoss(Conveyer data) {
-                int statValue = new Combatant(data.getUnit(), BattleRole.Initiator).getBaseStat(stat); //using a new Combatant just so i dont have to type all that stuff from the Constructor
+                int statValue = new Combatant(data.getUnit(), BattleRole.Initiator).getBaseStat(stat); //using a new Combatant just so i dont have to type all that stuff from the constructor
                 Toll penalty = new Toll(lossType, (int)((percent / 100f) * statValue));
                 
                 HashMap<TangibleUnit, Toll> loss = new HashMap<>();

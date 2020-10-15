@@ -6,7 +6,10 @@
 package maps.layout.tile;
 
 import fundamental.stats.Bonus;
+import fundamental.stats.Bonus.BonusType;
 import fundamental.talent.Talent;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -14,7 +17,7 @@ import fundamental.talent.Talent;
  */
 public class TileStatisticalData { //USE GSON FOR THIS
     private int tileWeight = 10; //10 is default tileWeight
-    private Bonus[] buffsAndOrDebuffs; //gson
+    private Bonus[] buffsAndOrDebuffs = null; //gson
     private Talent givenTalent = null; //gives unit a specific talent when standing on tile
     
     public TileStatisticalData(int tileWeight, Bonus[] buffsAndOrDebuffs, Talent givenTalent) {
@@ -51,5 +54,18 @@ public class TileStatisticalData { //USE GSON FOR THIS
     
     public void setGivenTalent(Talent tal) {
         givenTalent = tal;
+    }
+    
+    public Talent convertRawBonuses(int x, int y, int layer) {
+        List<Bonus> eligible = new ArrayList<>();
+        if (buffsAndOrDebuffs != null) {
+            for (Bonus B : buffsAndOrDebuffs) {
+                if (B.getType() == BonusType.Raw) {
+                    eligible.add(B);
+                }
+            }
+        }
+        
+        return Talent.RawTileBonus(x, y, layer, eligible);
     }
 }

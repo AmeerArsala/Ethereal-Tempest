@@ -42,9 +42,9 @@ import maps.layout.tile.TileOptionData.TileType;
  */
 public class AI {
     public enum Command { //these would be issued by commanders and would override the default conditional behaviors
-        Charge(0), 
-        Regroup(1), 
-        Run(2), 
+        Charge(0),
+        Regroup(1),
+        Run(2),
         HoldPosition(3);
         
         private final int value;

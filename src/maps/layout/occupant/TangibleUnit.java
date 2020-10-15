@@ -5,6 +5,9 @@
  */
 package maps.layout.occupant;
 
+import battle.Combatant;
+import battle.Combatant.BaseStat;
+import battle.Combatant.BattleStat;
 import maps.layout.tile.RangeDisplay;
 import maps.layout.tile.Path;
 import maps.layout.tile.Tile;
@@ -45,6 +48,13 @@ import etherealtempest.ai.AllegianceRecognizer;
 import etherealtempest.ai.ConditionalBehavior;
 import general.Spritesheet;
 import etherealtempest.info.ActionInfo;
+import fundamental.stats.Bonus;
+import fundamental.stats.Bonus.StatType;
+import fundamental.stats.StatBundle;
+import fundamental.talent.Talent;
+import fundamental.talent.TalentConcept;
+import fundamental.talent.TalentCondition.Occasion;
+import fundamental.talent.TalentEffect;
 import general.Spritesheet.AnimationState;
 import java.io.IOException;
 import java.io.Reader;
@@ -56,6 +66,7 @@ import java.util.List;
 import maps.layout.Coords;
 import maps.layout.occupant.Cursor.Purpose;
 import maps.layout.Map;
+import maps.layout.tile.TileStatisticalData;
 
 /**
  *
@@ -260,14 +271,18 @@ public class TangibleUnit extends Unit {
     }
     
     public void remapPositions(int x, int y, int layer, Map map) {
+        map.fullmap[elevation][posX][posY].resetOccupier();
         setPos(x, y, layer, map);
-        map.fullmap[layer][x][y].isOccupied = true;
         map.fullmap[layer][x][y].setOccupier(this);
+    }
+    
+    public void remapPositions(int x, int y, int layer) {
+        remapPositions(x, y, layer, MasterFsmState.getCurrentMap());
     }
     
     public Quad getQuad() { return q; }
     public Quad getOutlineQuad() { return outlineQuad; } 
-    //public Geometry getGeometry() { return geo; }
+    public Geometry getGeometry() { return geo; }
     
     public Node getNode() { return node; }
     
@@ -450,6 +465,83 @@ public class TangibleUnit extends Unit {
     
     public int getMobility() { //TODO: CHANGE THIS SO IT RESTRICTS/ADDS TO MOVEMENT ON TILES
         return getMOBILITY();
+    }
+    
+    @Override
+    public List<Talent> getTalents() {
+        List<Talent> all = super.getTalents();
+        
+        Tile onTile = MasterFsmState.getCurrentMap().fullmap[elevation][posX][posY];
+        TileStatisticalData TSD = onTile.getTileData().getEffects();
+        all.add(TSD.convertRawBonuses(posX, posY, elevation));
+        
+        return all;
+    }
+    
+    @Override
+    public int getTotalBonus(BaseStat stat) {
+        return getTotalBonus(stat, Occasion.Indifferent, new Conveyer(this));
+    }
+    
+    public int getTotalBonus(BaseStat stat, Occasion occasion) {
+        return getTotalBonus(stat, occasion, new Conveyer(this));
+    }
+    
+    public int getTotalBonus(BaseStat stat, Occasion occasion, Conveyer conv) { //call this version of the method whenever possible
+        int total = super.getTotalBonus(stat);
+        
+        for (Talent talent : getTalents()) {
+            if (talent.doesExist()) {
+                for (TalentConcept concept : talent.getFullBody()) {
+                    try {
+                        TalentEffect effect = concept.getTalentEffect();
+                        if (concept.getTalentCondition().checkCondition(conv, occasion)) {
+                            for (StatBundle SB : effect.getBuffsRaw()) {
+                                if (SB.getStatType() == StatType.Base && SB.getWhichBaseStat() == stat) {
+                                    total += SB.getValue();
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e) {}
+                }
+            }
+        }
+        
+        return total;
+    }
+    
+    @Override
+    public int getTotalBonus(BattleStat stat) {
+        return getTotalBonus(stat, Occasion.Indifferent, new Conveyer(this));
+    }
+    
+    public int getTotalBonus(BattleStat stat, Occasion occasion) {
+        return getTotalBonus(stat, occasion, new Conveyer(this));
+    }
+    
+    public int getTotalBonus(BattleStat stat, Occasion occasion, Conveyer conv) {
+        int total = super.getTotalBonus(stat);
+        
+        for (Talent talent : getTalents()) {
+            if (talent.doesExist()) {
+                for (TalentConcept concept : talent.getFullBody()) {
+                    try {
+                        TalentEffect effect = concept.getTalentEffect();
+                        if (concept.getTalentCondition().checkCondition(conv, occasion)) {
+                            for (StatBundle SB : effect.getBuffsRaw()) {
+                                if (SB.getStatType() == StatType.Battle && SB.getWhichBattleStat() == stat) {
+                                    total += SB.getValue();
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e) {}
+                }
+            }
+        }
+        
+        return total;
     }
     
     public void subtractHP(int amt) {
@@ -778,8 +870,6 @@ public class TangibleUnit extends Unit {
     public void setAI(LinkedHashMap<Condition, Behavior> processes) {
         auto = new AI(this, processes);
     }
-    
-    
     
     public RequestDealer getRequestDealer() {
         return requestDealer;
