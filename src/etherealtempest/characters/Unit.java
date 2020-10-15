@@ -21,6 +21,8 @@ import fundamental.stats.Bonus;
 import fundamental.stats.Bonus.StatType;
 import fundamental.tool.DamageTool;
 import fundamental.stats.StatBundle;
+import fundamental.talent.TalentConcept;
+import fundamental.talent.TalentCondition;
 import fundamental.tool.Tool;
 import fundamental.tool.Tool.ToolType;
 import general.GeneralUtils;
@@ -39,6 +41,11 @@ public class Unit extends JobClass {
     //DISCLAIMER: maxTP (the BaseStat enum) does not actually refer to the Unit's maximum tp stat, but rather an accumulation of the amount of points it has grown through growth rate increases, the rest of the stat is calculated by other stats
     public static final ArrayList<BaseStat> baseStats = StatBundle.createBaseStats();
     public static final HashMap<BaseStat, Integer> DEFAULT_ENEMY_GROWTH_RATES = StatCanvas(100);
+
+    public Unit(boolean isBoss, String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, String desc, int tier) {
+        super(jobname, mobilityTypes, wieldableWeaponTypes, bonusStats, battleBonus, maxStats, desc, tier);
+        this.isBoss = isBoss;
+    }
     
     public int currentEXP = 0;
     protected int currentHP, currentTP;

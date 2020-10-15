@@ -16,6 +16,7 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import etherealtempest.FSM;
 import etherealtempest.FSM.CursorState;
@@ -33,7 +34,7 @@ import maps.layout.Map;
  *
  * @author night
  */
-public class Cursor {
+public class Cursor extends Node {
     static final HashMap<CursorState, ColorRGBA> cursorColor = new HashMap<>();
     
     static final ColorRGBA DEFAULT_COLOR = new ColorRGBA(0.9176f, 0.8509f, 0, 1f);
@@ -59,11 +60,17 @@ public class Cursor {
     }
     
     private int elv = 0;
+    public int pX, pY;
     
-    public final Geometry geometry;
+    private final Node pointerParent = new Node();
+    private final Node pointerParentParent = new Node();
+    private final Node pointer;
+    private final Geometry geometry;
     private final Quad quad;
     
-    public int pX, pY;
+    private final float desiredPointerRotY, desiredPointerPosY;
+    
+    private Material pointerMat;
     
     private float toTraverseX = 0, toTraverseY = 0;
     private float cursorSpeed = 1.5f;
@@ -107,6 +114,31 @@ public class Cursor {
         pcs.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         geometry.setMaterial(pcs);
         
+        attachChild(geometry);
+        
+        pointer = (Node)assetManager.loadModel("Models/General/pointer.gltf");
+        pointerMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        pointerMat.setColor("Color", DEFAULT_COLOR);
+        pointerMat.getAdditionalRenderState().setWireframe(true);
+        pointer.setMaterial(pointerMat);
+        pointer.move(0.5f * (1f / 0.85f), 0, -0.13f);
+        
+        pointerParent.scale(2.75f);
+        pointerParent.move(5.2f, 0, 9.411f);
+        pointerParentParent.move(0, 45, 0);
+        pointerParentParent.scale(0.85f);
+        
+        desiredPointerRotY = pointerParent.getLocalRotation().getY();
+        desiredPointerPosY = pointerParent.getLocalTranslation().y;
+        
+        Quaternion rot = new Quaternion();
+        rot.fromAngles(0, 0, FastMath.PI / -3f);
+        pointerParentParent.setLocalRotation(rot);
+        
+        pointerParentParent.attachChild(pointerParent);
+        pointerParent.attachChild(pointer);
+        attachChild(pointerParentParent);
+        
         fsm.forceState(CursorState.CursorDefault);
     }
     
@@ -149,6 +181,7 @@ public class Cursor {
             if (st.getEnum() != CursorState.AnyoneHovered || (st.getEnum() == CursorState.AnyoneHovered && state.getEnum() == CursorState.CursorDefault)) {
                 state = st; //maybe change this if needed
                 geometry.getMaterial().setColor("Color", cursorColor.get(state.getEnum()));
+                pointerMat.setColor("Color", cursorColor.get(state.getEnum()));
                 
                 if (st.getEnum() == CursorState.AnyoneSelectingTarget) {
                     selectionDifferenceX = 0;
@@ -171,7 +204,7 @@ public class Cursor {
             pY = y;
             elv = layer;
         
-            geometry.setLocalTranslation(map.fullmap[layer][x][y].getWorldTranslation().x, 0.01f, map.fullmap[layer][x][y].getWorldTranslation().z);
+            setLocalTranslation(map.fullmap[layer][x][y].getWorldTranslation().x, 0.01f, map.fullmap[layer][x][y].getWorldTranslation().z);
         }
     }
     
@@ -181,15 +214,9 @@ public class Cursor {
     
     public Coords coords() { return new Coords(pX, pY); }
     
-    public int selectionDifferenceX = 0, selectionDifferenceY = 0;
-    
-    public void resetCursorPositionFromSelection() {
-        pX -= selectionDifferenceX;
-        pY -= selectionDifferenceY;
-        geometry.setLocalTranslation(geometry.getLocalTranslation().x - (16f * selectionDifferenceY), geometry.getLocalTranslation().y, geometry.getLocalTranslation().z - (16f * selectionDifferenceX));
-        selectionDifferenceX = 0;
-        selectionDifferenceY = 0;
-    }
+    public Node getPointer() { return pointer; }
+    public Geometry getCursorGeometry() { return geometry; }
+    public Quad getQuad() { return quad; }
     
     public void translate(Direction dir, int spaces) {
         switch (dir) {
@@ -210,7 +237,7 @@ public class Cursor {
     
     public void translateX(int spaces) { //negative spaces for left, positive spaces for right
         if (pX + spaces >= MasterFsmState.getCurrentMap().getMinimumX(elv) && pX + spaces < MasterFsmState.getCurrentMap().getXLength(elv)) {
-            geometry.setLocalTranslation(geometry.getLocalTranslation().x, 1.5f, geometry.getLocalTranslation().z);
+            setLocalTranslation(getLocalTranslation().x, 1.5f, getLocalTranslation().z);
             translatingX = true;
             toTraverseX += spaces;
             
@@ -220,7 +247,7 @@ public class Cursor {
     
     public void translateY(int spaces) { //negative spaces for down, positive spaces for up
         if (pY + spaces >= MasterFsmState.getCurrentMap().getMinimumY(elv) && pY + spaces < MasterFsmState.getCurrentMap().getYLength(elv)) {
-            geometry.setLocalTranslation(geometry.getLocalTranslation().x, 1.5f, geometry.getLocalTranslation().z);
+            setLocalTranslation(getLocalTranslation().x, 1.5f, getLocalTranslation().z);
             translatingY = true;
             toTraverseY += spaces;
             
@@ -230,19 +257,9 @@ public class Cursor {
     
     public void updateAI(float tpf) {
         switch (fsm.getState().getEnum()) {
-            case CursorDefault: 
-            {
-                rangeDisplay.tileOpacity = 0;
-                break;
-            }
             case AnyoneHovered: 
             {
                 rangeDisplay.tileOpacity = 0.5f;
-                break;
-            }
-            case AnyoneMoving: 
-            {
-                rangeDisplay.tileOpacity = 0;
                 break;
             }
             case AnyoneSelected:
@@ -250,17 +267,8 @@ public class Cursor {
                 rangeDisplay.tileOpacity = 0.85f;
                 break;
             }
-            case AnyoneSelectingTarget: 
-            {
-                rangeDisplay.tileOpacity = 0;
-                break;
-            }
-            case AnyoneTargeted: 
-            {
-                rangeDisplay.tileOpacity = 0;
-                break;
-            }
             default:
+                rangeDisplay.tileOpacity = 0;
                 break;
         }
     }
@@ -274,11 +282,12 @@ public class Cursor {
     
     public void update(float tpf, MasterFsmState mapFSM) {
         preferredLocation = new Vector3f(MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getWorldTranslation().x, 0.01f, MasterFsmState.getCurrentMap().fullmap[elv][pX][pY].getWorldTranslation().z);
-        geometry.setLocalTranslation(geometry.getLocalTranslation().x, preferredLocation.y, geometry.getLocalTranslation().z);
-        if ((geometry.getLocalTranslation().x != preferredLocation.x || geometry.getLocalTranslation().z != preferredLocation.z)) {
-            geometry.move(((preferredLocation.x - geometry.getLocalTranslation().x) / 10f), 0, ((preferredLocation.z - geometry.getLocalTranslation().z) / 10f));
+        
+        setLocalTranslation(getLocalTranslation().x, preferredLocation.y, getLocalTranslation().z);
+        if ((getLocalTranslation().x != preferredLocation.x || getLocalTranslation().z != preferredLocation.z)) {
+            move(((preferredLocation.x - getLocalTranslation().x) / 10f), 0, ((preferredLocation.z - getLocalTranslation().z) / 10f));
             
-            isCorrected = ((Math.abs(preferredLocation.x - geometry.getLocalTranslation().x) < 2f) && Math.abs(preferredLocation.z - geometry.getLocalTranslation().z) < 2f);
+            isCorrected = ((Math.abs(preferredLocation.x - getLocalTranslation().x) < 2f) && Math.abs(preferredLocation.z - getLocalTranslation().z) < 2f);
             if (isCorrected) { isBacking = false; }
         }
         
@@ -289,7 +298,7 @@ public class Cursor {
             accumulatedCursorDistanceX = 0;
             toTraverseX = 0;
         } else if (translatingX) {
-            geometry.move(0, 0, cursorSpeed * 2 * getSign(toTraverseX));
+            move(0, 0, cursorSpeed * 2 * getSign(toTraverseX));
             accumulatedCursorDistanceX += cursorSpeed * 2 * FastMath.abs(getSign(toTraverseX));
         }
         
@@ -300,7 +309,7 @@ public class Cursor {
             accumulatedCursorDistanceY = 0;
             toTraverseY = 0;
         } else if (translatingY) {
-            geometry.move(cursorSpeed * 2 * getSign(toTraverseY), 0, 0);
+            move(cursorSpeed * 2 * getSign(toTraverseY), 0, 0);
             accumulatedCursorDistanceY += cursorSpeed * 2 * FastMath.abs(getSign(toTraverseY));
         }
         
@@ -317,9 +326,20 @@ public class Cursor {
             interpreter.update(tpf);
         }
         
+        Quaternion pointerRotation = new Quaternion();
+        if (selectedUnit != null) {
+            float factor = 0.035f * frameCount;
+            pointerRotation.fromAngles(0, factor, 0);
+        } else {
+            pointerRotation.fromAngles(0, desiredPointerRotY, 0);
+        }
+        
+        pointerParent.setLocalRotation(pointerRotation);
+        pointerParent.setLocalTranslation(pointerParent.getLocalTranslation().x, desiredPointerPosY + (2 * FastMath.sin(0.035f * frameCount)), pointerParent.getLocalTranslation().z);
+        
         geometry.getMaterial().setColor("Color", updateLighting(0.0375f));
         
-        if (frameCount > 1000) { frameCount = 0; }
+        if (frameCount == Integer.MAX_VALUE) { frameCount = 0; }
         
         frameCount++;
     }
@@ -402,6 +422,7 @@ public class Cursor {
                                 fsm.setNewStateIfAllowed(CursorState.AnyoneTargeted);
                                 //start a battle
                                 interpreter.clear();
+                                selectedUnit.remapPositions(pX - selectionDifferenceX, pY - selectionDifferenceY, elv);
                                 return new MasterFsmState(MapFlowState.PreBattle).setConveyer(new Conveyer(selectedUnit).setEnemyUnit(receivingEnd));
                             } else { //selection
                                 tu.isSelected = true;
@@ -451,22 +472,31 @@ public class Cursor {
         fsm.forceState(cs);
     }
     
-    public void resetState(Map M) {
+    private int selectionDifferenceX = 0, selectionDifferenceY = 0;
+    
+    public void resetCursorPositionFromSelection() {
+        pX -= selectionDifferenceX;
+        pY -= selectionDifferenceY;
+        setLocalTranslation(getLocalTranslation().x - (16f * selectionDifferenceY), getLocalTranslation().y, getLocalTranslation().z - (16f * selectionDifferenceX));
+        selectionDifferenceX = 0;
+        selectionDifferenceY = 0;
+    }
+    
+    public void resetState(Map M) { //after battle
+        rangeDisplay.cancelRange(elv);
         M.fullmap[elv][selectedUnit.getPosX()][selectedUnit.getPosY()].resetOccupier();
         resetCursorPositionFromSelection();
         selectedUnit.remapPositions(pX, pY, elv, M);
         selectedUnit.setAnimationState(AnimationState.Idle);
-        rangeDisplay.cancelRange(elv);
-        M.fullmap[elv][selectedUnit.getPosX()][selectedUnit.getPosY()].setOccupier(selectedUnit);
-        selectedUnit.isSelected = false;
         selectedUnit.setStateIfAllowed(UnitState.Done);
+        selectedUnit.isSelected = false;
         selectedUnit = null;
         fsm.forceState(CursorState.CursorDefault);
     }
     
     public void goBackFromMenu() {
         fsm.forceState(CursorState.AnyoneSelected);
-        selectedUnit.remapPositions(selectedUnit.prevX, selectedUnit.prevY, elv, MasterFsmState.getCurrentMap());
+        selectedUnit.remapPositions(selectedUnit.prevX, selectedUnit.prevY, elv);
         selectedUnit.setAnimationState(AnimationState.Idle);
         selectedUnit.setStateIfAllowed(UnitState.Active);
         rangeDisplay.tileOpacity = 0.85f;

@@ -1,0 +1,71 @@
+{
+  "tileName": "Forest",
+  "tileEffects": {
+    "tileWeight": 15,
+    "buffsAndOrDebuffs": [
+      {
+        "value": 30,
+        "bonusType": "Raw",
+        "battleStatBonus": "Evasion"
+      }
+    ]
+  },
+  "tileVisuals": {
+    "groundType": "Dirt",
+    "modelPath": "Models/Maps/forest.j3o",
+    "clones": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "xAddedRandomness": 2,
+        "zAddedRandomness": 2,
+        "scaleX": 160,
+        "scaleY": 160,
+        "scaleZ": 160,
+        "scaleXAddedRandomness": 25,
+        "scaleYAddedRandomness": 25,
+        "scaleZAddedRandomness": 25
+      },
+      {
+        "x": 10,
+        "y": 0,
+        "z": 0,
+        "xAddedRandomness": 2,
+        "zAddedRandomness": 2,
+        "scaleX": 160,
+        "scaleY": 160,
+        "scaleZ": 160,
+        "scaleXAddedRandomness": 25,
+        "scaleYAddedRandomness": 25,
+        "scaleZAddedRandomness": 25
+      },
+      {
+        "x": 0,
+        "y": 0,
+        "z": 10,
+        "xAddedRandomness": 2,
+        "zAddedRandomness": 2,
+        "scaleX": 160,
+        "scaleY": 160,
+        "scaleZ": 160,
+        "scaleXAddedRandomness": 25,
+        "scaleYAddedRandomness": 25,
+        "scaleZAddedRandomness": 25
+      },
+      {
+        "x": 10,
+        "y": 0,
+        "z": 10,
+        "xAddedRandomness": 2,
+        "zAddedRandomness": 2,
+        "scaleX": 160,
+        "scaleY": 160,
+        "scaleZ": 160,
+        "scaleXAddedRandomness": 25,
+        "scaleYAddedRandomness": 25,
+        "scaleZAddedRandomness": 25
+      }
+    ]
+  }
+}

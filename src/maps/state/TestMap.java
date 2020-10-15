@@ -30,7 +30,6 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.Light;
 
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
@@ -38,13 +37,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Quad;
 import com.jme3.scene.Spatial.CullHint;
-
-import com.jme3.terrain.geomipmap.TerrainLodControl;
-import com.jme3.terrain.geomipmap.TerrainQuad;
-import com.jme3.terrain.heightmap.AbstractHeightMap;
-import com.jme3.terrain.heightmap.ImageBasedHeightMap;
 import com.jme3.texture.Texture;
 
 import com.simsilica.lemur.GuiGlobals;
@@ -55,8 +48,6 @@ import general.ui.MenuState;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import jme3tools.optimize.LodGenerator;
 
 import jme3tools.savegame.SaveGame;
 import com.jme3.export.JmeExporter;
@@ -67,7 +58,6 @@ import com.jme3.util.SkyFactory.EnvMapType;
 
 import maps.layout.occupant.Cursor;
 import maps.layout.Map;
-import maps.layout.occupant.MoveState;
 import maps.ui.StatScreen;
 import maps.layout.occupant.TangibleUnit;
 import maps.layout.occupant.TangibleUnit.UnitStatus;
@@ -80,7 +70,6 @@ import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
 import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
-import maps.flow.UnitPlacementInitiation;
 import maps.layout.Coords;
 import maps.layout.MapData;
 
@@ -102,13 +91,8 @@ public class TestMap extends AbstractAppState {
     private ViewPort screenView;
     
     private FlyByCamera flCam;
-    //private TerrainQuad mob, atkrange, mapscene;
     private Map map00;
-    //private ArrayList<TangibleUnit> units = new ArrayList<>();
     private Node battleScene;
-    
-    private Material mat_terrain;
-    private TerrainQuad terrain; //remove later
     
     protected Cursor pCursor;
     protected ActionMenu postAction;
@@ -340,12 +324,12 @@ public class TestMap extends AbstractAppState {
         
         pCursor = new Cursor(assetManager);
         pCursor.setPosition(5, 2, 0); //change position later
-        localRootNode.attachChild(pCursor.geometry);
+        localRootNode.attachChild(pCursor);
         
         initializePostMoveMenu();
         
-        cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x - 20f, pCursor.geometry.getWorldTranslation().y + 160f, pCursor.geometry.getWorldTranslation().z + 8f));
-        cam.lookAt(pCursor.geometry.getWorldTranslation(), worldUpVector);
+        cam.setLocation(new Vector3f(pCursor.getWorldTranslation().x - 20f, pCursor.getWorldTranslation().y + 160f, pCursor.getWorldTranslation().z + 8f));
+        cam.lookAt(pCursor.getWorldTranslation(), worldUpVector);
         Quaternion cameraRotation = new Quaternion();
         cameraRotation.fromAngles(FastMath.PI / 3, FastMath.PI / 2, 0);
         cam.setRotation(cameraRotation);
@@ -501,7 +485,7 @@ public class TestMap extends AbstractAppState {
         if (fc > 1000) { fc = 0; }
         
         if (fsm.getState().getEnum() != MapFlowState.Idle) {
-            cam.setLocation(new Vector3f(pCursor.geometry.getWorldTranslation().x - 70f, cam.getLocation().y, pCursor.geometry.getWorldTranslation().z + 8f));
+            cam.setLocation(new Vector3f(pCursor.getWorldTranslation().x - 70f, cam.getLocation().y, pCursor.getWorldTranslation().z + 8f));
             
             switch (fsm.getEnumState()) {
                 case MapDefault:

@@ -14,7 +14,7 @@ import etherealtempest.info.Conveyer;
  */
 public abstract class TalentCondition {
     public enum Occasion {
-        BeforeCombat("Before combat, "),
+        BeforeCombat("At the start of combat, "),
         AfterCombat("After combat, "),
         DuringCombat("During combat, "),
         StartOfTurn("At the start of their turn, "), 

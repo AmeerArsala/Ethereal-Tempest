@@ -7,7 +7,9 @@ package maps.layout.tile;
 
 import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
+import com.jme3.light.AmbientLight;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 
 /**
@@ -34,16 +36,21 @@ public class TileVisualData { //TODO: Add Shaders to this
     }
     
     private Node modelTemplateForAssimilation; // DO NOT GSON THIS
-    private final Node root = new Node(); //the root node but configured for json; DO NOT GSON THIS
+    public Node root; //the root node but configured for json; DO NOT GSON THIS
+    
+    private Float xDisplace, yDisplace, zDisplace; //of the entire node
     
     private String modelPath = null;
-    private DistinctOccupantModel[] models = null; // a group of trees would be one example
+    private DistinctOccupantModel[] clones = null; // a group of trees would be one example; if you wanted 4 trees you would make 3 of these
     private GroundType groundType;
     
-    public TileVisualData(String modelPath, DistinctOccupantModel[] models, GroundType groundType) {
+    public TileVisualData(String modelPath, DistinctOccupantModel[] clones, GroundType groundType, Float xDisplace, Float yDisplace, Float zDisplace) {
         this.modelPath = modelPath;
-        this.models = models;
+        this.clones = clones;
         this.groundType = groundType;
+        this.xDisplace = xDisplace;
+        this.yDisplace = yDisplace;
+        this.zDisplace = zDisplace;
     }
     
     public Node getRootNode() { return root; }
@@ -51,14 +58,19 @@ public class TileVisualData { //TODO: Add Shaders to this
     public GroundType getGroundType() { return groundType; }
     public String getTileTexturePath() { return groundType.path; }
     
+    private float xDisplace() { return xDisplace != null ? xDisplace : 0; }
+    private float yDisplace() { return yDisplace != null ? yDisplace : 0; }
+    private float zDisplace() { return zDisplace != null ? zDisplace : 0; }
+    
+    Vector3f Displacement() { return new Vector3f(xDisplace(), yDisplace(), zDisplace()); }
+    
     private class DistinctOccupantModel {
-        private final Node modelRoot = new Node(); //the parent of actual thing
+        public Node modelRoot; //the parent of actual thing
         
         //gson this area
         private Float x = 0f, y = 0f, z = 0f; // relative/local; this would apply to model
         private Float rotX = 0f, rotY = 0f, rotZ = 0f; // this would apply to modelRoot
         private Float scaleX = 1f, scaleY = 1f, scaleZ = 1f; // relative/local; this would apply to model
-        
         
         //all below would go from -(input) to (input) EXCLUSIVE NOT INCLUSIVE in terms of the RNG; also gson this area
         private Float xAddedRandomness = 0f, yAddedRandomness = 0f, zAddedRandomness = 0f; // relative/local; this would apply to model
@@ -100,26 +112,37 @@ public class TileVisualData { //TODO: Add Shaders to this
             return modelRoot;
         }
         
-        private float randomize(float factor) { //EXCLUSIVE NOT INCLUSIVE
-            return (float)(( (2 * factor) * Math.random() ) - factor);
+        private float randomize(Float factor) { //EXCLUSIVE NOT INCLUSIVE
+            return factor != null ? (float)(( (2 * factor) * Math.random() ) - factor) : 0;
         }
+        
+        private float x() { return x != null ? x : 0; }
+        private float y() { return y != null ? y : 0; }
+        private float z() { return z != null ? z : 0; }
+        
+        private float rotX() { return rotX != null ? rotX : 0; }
+        private float rotY() { return rotY != null ? rotY : 0; }
+        private float rotZ() { return rotZ != null ? rotZ : 0; }
+        
+        private float scaleX() { return scaleX != null ? scaleX / 100f : 1; }
+        private float scaleY() { return scaleY != null ? scaleY / 100f : 1; }
+        private float scaleZ() { return scaleZ != null ? scaleZ / 100f : 1; }
         
         public void integrate(Node tileVisualDataRootNode, Node structure) {
             Node model = structure.clone(true);
             
-            Float x2 = x + randomize(xAddedRandomness), y2 = y + randomize(yAddedRandomness), z2 = z + randomize(zAddedRandomness);
-            Float rotX2 = rotX + randomize(rotXAddedRandomness), rotY2 = rotY + randomize(rotYAddedRandomness), rotZ2 = rotZ + randomize(rotZAddedRandomness);
-            Float scaleX2 = scaleX + randomize(scaleXAddedRandomness), scaleY2 = scaleY + randomize(scaleYAddedRandomness), scaleZ2 = scaleZ + randomize(scaleZAddedRandomness);
-            
+            Float x2 = x() + randomize(xAddedRandomness), y2 = y() + randomize(yAddedRandomness), z2 = z() + randomize(zAddedRandomness);
             model.setLocalTranslation(x2, y2, z2);
+            
+            Float scaleX2 = scaleX() + randomize(scaleXAddedRandomness / 100f), scaleY2 = scaleY() + randomize(scaleYAddedRandomness / 100f), scaleZ2 = scaleZ() + randomize(scaleZAddedRandomness / 100f);
             model.setLocalScale(scaleX2, scaleY2, scaleZ2);
             
-            modelRoot.attachChild(model);
-            
+            Float rotX2 = rotX() + randomize(rotXAddedRandomness), rotY2 = rotY() + randomize(rotYAddedRandomness), rotZ2 = rotZ() + randomize(rotZAddedRandomness);
             Quaternion rotation = new Quaternion();
             rotation.fromAngles(rotX2, rotY2, rotZ2);
             modelRoot.setLocalRotation(rotation);
             
+            modelRoot.attachChild(model);
             tileVisualDataRootNode.attachChild(modelRoot);
         }
     }
@@ -131,14 +154,18 @@ public class TileVisualData { //TODO: Add Shaders to this
     
     //All the methods below are for breaking up the process into pieces
     public void lightAssimilate(AssetManager assetManager) {
+        root = new Node();
+        root.addLight(new AmbientLight());
+        root.move(Displacement());
         if (modelPath != null) {
             modelTemplateForAssimilation = (Node)assetManager.loadModel(modelPath);
         }
     }
     
     public void finishAssimilation(Node tileRootNode) {
-        if (models != null) {
-            for (DistinctOccupantModel dom : models) {
+        if (clones != null) {
+            for (DistinctOccupantModel dom : clones) {
+                dom.modelRoot = new Node();
                 dom.integrate(root, modelTemplateForAssimilation);
             }
             tileRootNode.attachChild(root);

@@ -11,6 +11,7 @@ import battle.Combatant.BattleRole;
 import etherealtempest.info.Conveyer;
 import fundamental.Associated;
 import fundamental.skill.Skill;
+import fundamental.stats.Bonus;
 import fundamental.stats.Toll.Exchange;
 import fundamental.talent.TalentCondition.Occasion;
 import fundamental.tool.Tool;
@@ -18,6 +19,7 @@ import fundamental.tool.Tool.ToolType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import maps.layout.occupant.TangibleUnit;
 
 /**
  *
@@ -127,6 +129,32 @@ public class Talent extends Associated {
                         Exchange.HP, //penalty type
                         3 //range
                     ) 
+                )
+            )
+        );
+    }
+    
+    public static final Talent RawTileBonus(int x, int y, int l, List<Bonus> bonuses) {
+        return new Talent(
+            "", ToolType.SupportSelf, "", "",
+            Arrays.asList(
+                new TalentConcept(
+                    new TalentCondition("", Occasion.Indifferent) {
+                        @Override
+                        protected boolean getCondition(Conveyer data) {
+                            TangibleUnit unit = data.getUnit();
+                            return unit.getPosX() == x && unit.getPosY() == y && unit.getElevation() == l;
+                        }
+                    },
+                    new TalentEffect("") {
+                        @Override
+                        public List<Bonus> Buffs() {
+                            return bonuses;
+                        }
+                        
+                        @Override
+                        public void enactEffect(Conveyer info) {}
+                    }     
                 )
             )
         );
