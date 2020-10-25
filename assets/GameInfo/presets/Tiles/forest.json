@@ -11,8 +11,9 @@
     ]
   },
   "tileVisuals": {
-    "groundType": "Dirt",
-    "modelPath": "Models/Maps/forest.j3o",
+    "groundType": "Grass",
+    "modelPath": "Models/Map/forest.j3o",
+    "wangTexture": false,
     "clones": [
       {
         "x": 0,
@@ -28,7 +29,7 @@
         "scaleZAddedRandomness": 25
       },
       {
-        "x": 10,
+        "x": 12,
         "y": 0,
         "z": 0,
         "xAddedRandomness": 2,
@@ -43,7 +44,7 @@
       {
         "x": 0,
         "y": 0,
-        "z": 10,
+        "z": 12,
         "xAddedRandomness": 2,
         "zAddedRandomness": 2,
         "scaleX": 160,
@@ -54,9 +55,9 @@
         "scaleZAddedRandomness": 25
       },
       {
-        "x": 10,
+        "x": 12,
         "y": 0,
-        "z": 10,
+        "z": 12,
         "xAddedRandomness": 2,
         "zAddedRandomness": 2,
         "scaleX": 160,

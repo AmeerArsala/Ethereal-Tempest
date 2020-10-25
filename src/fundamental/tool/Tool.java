@@ -11,7 +11,10 @@ import fundamental.ability.Ability;
 import fundamental.skill.Skill;
 import fundamental.talent.Talent;
 import fundamental.stats.Bonus;
+import fundamental.stats.Bonus.BonusType;
 import fundamental.stats.RawBroadBonus;
+import fundamental.talent.TalentConcept;
+import fundamental.talent.TalentCondition.Occasion;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +25,6 @@ import java.util.List;
 public class Tool {
     protected int CRIT;
     protected List<Integer> ranges = new ArrayList<>();
-    protected List<Bonus> passiveBonusesOnEquip = new ArrayList<>(); //applies to both base and battle stats
     protected String attribute = "None";
     protected String type;
     
@@ -47,32 +49,23 @@ public class Tool {
         }
     }
     
-    public Tool(int crt, List<Integer> toolRanges, List<Bonus> bonuses, String attr, String toolType) { //with neither skill nor talent nor ability
+    public Tool(int crt, List<Integer> toolRanges, RawBroadBonus adv, String attr, String toolType) {
         CRIT = crt;
         ranges = toolRanges;
-        passiveBonusesOnEquip = bonuses;
-        attribute = attr;
-        type = toolType;
-    }
-    
-    public Tool(int crt, List<Integer> toolRanges, List<Bonus> bonuses, String attr, String toolType, RawBroadBonus adv) { //does NOT take into account stat bonus on RawBroadBonus
-        CRIT = crt;
-        ranges = toolRanges;
-        passiveBonusesOnEquip = bonuses;
         attribute = attr;
         type = toolType;
         
-        onEquipTalent = adv.getBonusTalent();
-        onEquipSkill = adv.getBonusSkill();
-        onEquipAbility = adv.getBonusAbility();
-        
-        effects += "\nEffects: \n" + adv.toString();
+        if (adv != null) {
+            onEquipTalent = adv.getBonusTalent();
+            onEquipSkill = adv.getBonusSkill();
+            onEquipAbility = adv.getBonusAbility();
+            effects += "\nEffects: \n" + adv.toString();
+        }
     }
     
     public int getCRIT() { return CRIT; }
     
     public List<Integer> getRange() { return ranges; }
-    public List<Bonus> getBonuses() { return passiveBonusesOnEquip; }
     
     public String getAttribute() { return attribute; } //element
     
@@ -104,25 +97,41 @@ public class Tool {
         return rngstr;
     }
     
-    public int getTotalBonus(BaseStat stat) {
+    public int getTotalBonus(BaseStat stat, Occasion occasion, BonusType filterBy, boolean include) {
         int statBonus = 0;
-        for (Bonus bonus : passiveBonusesOnEquip) {
-            if (bonus.getBaseStat() == stat) {
-                statBonus += bonus.getValue();
+        
+        if (onEquipTalent != null) {
+            for (TalentConcept TC : onEquipTalent.getFullBody()) {
+                if (TC.getTalentCondition().checkCondition(null, occasion)) {
+                    List<Bonus> bonuses = TC.getTalentEffect().retrieveBuffs(null);
+                    for (Bonus bonus : bonuses) {
+                        if (bonus.getBaseStat() == stat && (filterBy == null || (bonus.getType() == filterBy) == include)) {
+                            statBonus += bonus.getValue();
+                        }
+                    }
+                }
             }
         }
         
         return statBonus;
     }
     
-    public int getTotalBonus(BattleStat stat) {
+    public int getTotalBonus(BattleStat stat, Occasion occasion, BonusType filterBy, boolean include) {
         int statBonus = 0;
-        for (Bonus bonus : passiveBonusesOnEquip) {
-            if (bonus.getBattleStat() == stat) {
-                statBonus += bonus.getValue();
+        
+        if (onEquipTalent != null) {
+            for (TalentConcept TC : onEquipTalent.getFullBody()) {
+                if (TC.getTalentCondition().checkCondition(null, occasion)) {
+                    List<Bonus> bonuses = TC.getTalentEffect().retrieveBuffs(null);
+                    for (Bonus bonus : bonuses) {
+                        if (bonus.getBattleStat() == stat && (filterBy == null || (bonus.getType() == filterBy) == include)) {
+                            statBonus += bonus.getValue();
+                        }
+                    }
+                }
             }
         }
         
         return statBonus;
-    }
+    } 
 }

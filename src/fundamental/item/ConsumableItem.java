@@ -5,6 +5,8 @@
  */
 package fundamental.item;
 
+import fundamental.stats.Toll.Exchange;
+
 /**
  *
  * @author night
@@ -13,7 +15,7 @@ public class ConsumableItem extends Item {
     private int maxUses, currentUses;
     private String iconPath = "Interface/GUI/general_icons/";
     
-    public ConsumableItem(String consumableName, String description, int weight, int worth, int maxUses, ItemEffect effect, String iconPath) {
+    public ConsumableItem(String consumableName, String description, String iconPath, int weight, int worth, int maxUses, ItemEffect effect) {
         super(consumableName, description, weight, worth, effect);
         this.maxUses = maxUses;
         this.iconPath += iconPath;
@@ -29,8 +31,8 @@ public class ConsumableItem extends Item {
     
     public String getPath() { return iconPath; }
     
-    public ConsumableItem newItemInstance() {
-        return new ConsumableItem(name, desc, Weight, worth, maxUses, useEffect, iconPath.substring(28));
+    public static ConsumableItem Apple() {
+        return new ConsumableItem("Apple", "Restores 10 health\nWeight: 1", "apple.png", 1, 15, 3, ItemEffect.Restore(Exchange.HP, 10));
     }
     
 }

@@ -19,9 +19,10 @@ public abstract class Forecast {
     protected final Conveyer data;
     protected final int range;
     
-    protected Forecast(Combatant offender, Combatant retaliator, Conveyer info, int fromRange, boolean supportive) {
+    protected Forecast(Combatant offender, Combatant retaliator, Conveyer info, boolean supportive) {
         data = info.setInitiator(offender).setReceiver(retaliator);
-        range = fromRange;
+        
+        range = Math.abs(offender.getUnit().getPosX() - retaliator.getUnit().getPosX()) + Math.abs(offender.getUnit().getPosY() - retaliator.getUnit().getPosY());
         
         applyBonuses(offender, retaliator, supportive);
     }
@@ -34,7 +35,7 @@ public abstract class Forecast {
         initiator.getUnit().getTalents().forEach((T) -> {
             for (TalentConcept X : T.getFullBody()) {
                 if (X.getTalentCondition().checkCondition(data, Occasion.BeforeCombat)) {
-                    X.getTalentEffect().getBuffsRaw().forEach((bonus) -> {
+                    X.getTalentEffect().getBuffsRaw(data).forEach((bonus) -> {
                         if (bonus.getStatType() == StatType.Battle) {
                             initiator.appendToBattleStat(bonus.getWhichBattleStat(), bonus.getValue());
                         } else if (bonus.getStatType() == StatType.Base) {
@@ -54,7 +55,7 @@ public abstract class Forecast {
         receiver.getUnit().getTalents().forEach((T) -> {
             for (TalentConcept X : T.getFullBody()) {
                 if (X.getTalentCondition().checkCondition(data, Occasion.BeforeCombat)) {
-                    X.getTalentEffect().getBuffsRaw().forEach((bonus) -> {
+                    X.getTalentEffect().getBuffsRaw(data).forEach((bonus) -> {
                         if (bonus.getStatType() == StatType.Battle) {
                             receiver.appendToBattleStat(bonus.getWhichBattleStat(), bonus.getValue());
                         } else if (bonus.getStatType() == StatType.Base) {

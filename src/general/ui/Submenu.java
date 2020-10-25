@@ -177,7 +177,7 @@ public abstract class Submenu extends Container {
         return descendants;
     }
     
-    public void updateDefault() {
+    public void updateDefault(float tpf) {
         if (active) {
             if (state == TransitionState.Standby) {
                 if (options().size() > 1 || !autoSelectOnOneOption) {
@@ -187,15 +187,15 @@ public abstract class Submenu extends Container {
                 }
             } else {
                 if (transitionEvent != null && transitionEvent.getTransitionProgress() != Progress.Finished) {
-                    transitionEvent.updateTransitions();
+                    transitionEvent.updateTransitions(tpf);
                 }
             }
         } else if (transitionEvent != null && transitionEvent.getTransitionProgress() == Progress.Progressing) {
-            transitionEvent.updateTransitions();
+            transitionEvent.updateTransitions(tpf);
         }
         
         for (Submenu sub : getDescendantSubmenus()) {
-            sub.updateDefault();
+            sub.updateDefault(tpf);
         }
     }
     

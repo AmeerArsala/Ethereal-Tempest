@@ -14,6 +14,7 @@ repositories {
     mavenCentral()
     jcenter()
     maven { url "https://jitpack.io" }
+    maven { url  "https://dl.bintray.com/riccardo/effekseer" }
 }
 
 // NetBeans will automatically add "run" and "debug" tasks relying on the
@@ -68,7 +69,8 @@ dependencies {
     implementation "com.atr:jme-ttf:2.2.2"
     implementation "org.jmonkeyengine:jme3-terrain:3.3.2-stable"
     
-    implementation "com.github.destroflyer.jme3-effekseer:jme3-effekseer:44aff53"
+    implementation "com.github.riccardobl:jme-effekseerNative:-SNAPSHOT"
+    implementation 'com.github.destroflyer.jme3-effekseer:jme3-effekseer:44aff53'
     
     //compile "com.simsilica:sim-fx:1.0.+"
     //runtime "com.simsilica:sim-fx:1.0.+:assets"

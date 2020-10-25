@@ -18,17 +18,12 @@ import java.util.List;
  */
 public class SupportTool extends Tool {
     private final Calculation<Conveyer, Toll> healCalculator;
-    private Calculation<Conveyer, Bonus> buffCalculator = null;
+    private final Calculation<Conveyer, Bonus> buffCalculator = null;
     
     public Toll extraHeals = null;
     
-    public SupportTool(int crt, List<Integer> toolRanges, List<Bonus> bonuses, String attr, String toolType, Calculation<Conveyer, Toll> healCalculator) { //with neither skill nor talent
-        super(crt, toolRanges, bonuses, attr, toolType);
-        this.healCalculator = healCalculator;
-    }
-    
-    public SupportTool(int crt, List<Integer> toolRanges, List<Bonus> bonuses, String attr, String toolType, RawBroadBonus adv, Calculation<Conveyer, Toll> healCalculator) { //with both skill and talent
-        super(crt, toolRanges, bonuses, attr, toolType, adv);
+    public SupportTool(int crt, List<Integer> toolRanges, String attr, String toolType, RawBroadBonus adv, Calculation<Conveyer, Toll> healCalculator) { //with both skill and talent
+        super(crt, toolRanges, adv, attr, toolType);
         this.healCalculator = healCalculator;
     }
     

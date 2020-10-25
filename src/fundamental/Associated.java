@@ -12,7 +12,8 @@ package fundamental;
 public class Associated {
     protected final String name;
     protected final String desc;
-    protected final boolean exists;
+    
+    private final boolean exists;
     
     public Associated(String name, String desc) {
         this.name = name;

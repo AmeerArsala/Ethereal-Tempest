@@ -396,7 +396,7 @@ public class ActionMenu extends Container {
         this.escape.geo.move(41f - 16.283f, 18, 2f);
         this.escape.setBirthMove(41 - 16.283f, 18, 2f);
         
-        updateState(0);
+        updateState(0, 0);
         
         addChild(geoBackdrop);
         
@@ -473,7 +473,7 @@ public class ActionMenu extends Container {
             }
         }
         
-        setPos(info.getStartingPosition());
+        setPos(info.getStartingPosition(), 0);
     }
     
     private void initializeTier1Submenus(Conveyer C) {
@@ -507,26 +507,26 @@ public class ActionMenu extends Container {
         return getOptionByCoordinates(currentX, currentY);
     }
     
-    public void updateState(int univIndex) {
+    public void updateState(int univIndex, float tpf) {
         int frame = (int)(((univIndex) + 103) % 103);
         int frame2 = (int)(((univIndex * 0.1) + 5) % 5);
         
         ((QuadBackgroundComponent)geoBackdrop.getBackground()).setTexture(bd[(int)frame]);
-        eye.updateState(frame2);
-        inventory.updateState(frame2);
-        attack.updateState(frame2);
-        done.updateState(frame2);
-        aid.updateState(frame2);
-        ability.updateState(frame2);
-        skill.updateState(frame2);
-        formation.updateState(frame2);
-        trade.updateState(frame2);
-        talk.updateState(frame2);
-        annex.updateState(frame2);
-        escape.updateState(frame2);
+        eye.updateState(frame2, tpf);
+        inventory.updateState(frame2, tpf);
+        attack.updateState(frame2, tpf);
+        done.updateState(frame2, tpf);
+        aid.updateState(frame2, tpf);
+        ability.updateState(frame2, tpf);
+        skill.updateState(frame2, tpf);
+        formation.updateState(frame2, tpf);
+        trade.updateState(frame2, tpf);
+        talk.updateState(frame2, tpf);
+        annex.updateState(frame2, tpf);
+        escape.updateState(frame2, tpf);
         
         if (windowChanger != null) {
-            windowChanger.updateTransitions();
+            windowChanger.updateTransitions(tpf);
         }
     }
     
@@ -618,7 +618,7 @@ public class ActionMenu extends Container {
                     getParent().detachChild(this);
                     break;
                 case "done":
-                    conv.getCursor().resetState(MasterFsmState.getCurrentMap());
+                    conv.getCursor().resetState();
                     returnable = new MasterFsmState();
                     fsm.setNewStateIfAllowed(MapFlowState.GuiClosed);
                     getParent().detachChild(this);
@@ -653,12 +653,12 @@ public class ActionMenu extends Container {
         getSelectedOption().selectOption();
     }
     
-    public void setPos(Coords pos) {
-        getOptionByCoordinates(currentX, currentY).deselect();
+    public void setPos(Coords pos, float tpf) {
+        getOptionByCoordinates(currentX, currentY).deselect(tpf);
         currentX = pos.getX();
         currentY = pos.getY();
         getOptionByCoordinates(currentX, currentY).isSelected = true;
-        getOptionByCoordinates(currentX, currentY).updateState(0);
+        getOptionByCoordinates(currentX, currentY).updateState(0, tpf);
     }
     
     private int frameCount = 0;
@@ -674,7 +674,7 @@ public class ActionMenu extends Container {
     public void updateAI(float tpf) {
         
         if (fsm.getState().getEnum() == MapFlowState.PostActionMenuOpened) {
-            updateState(frameCount);
+            updateState(frameCount, tpf);
         } else if (fsm.getState().getEnum() == MapFlowState.GuiClosed) {
             
         }

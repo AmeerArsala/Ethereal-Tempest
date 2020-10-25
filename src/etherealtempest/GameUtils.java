@@ -6,13 +6,13 @@
 package etherealtempest;
 
 import etherealtempest.FSM.UnitState;
+import etherealtempest.characters.Unit.UnitAllegiance;
 import etherealtempest.info.Conveyer;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.Map;
 import maps.layout.occupant.MapEntity;
 import maps.layout.occupant.TangibleUnit;
-import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
 import maps.layout.tile.TileOptionData.TileType;
 
@@ -39,7 +39,7 @@ public class GameUtils {
         return special;
     }
     
-    public static List<Tile> getSpecialTiles(TileType type, UnitStatus allegiance) {
+    public static List<Tile> getSpecialTiles(TileType type, UnitAllegiance allegiance) {
         List<Tile> special = new ArrayList<>();
         Map current = MasterFsmState.getCurrentMap();
         
@@ -56,7 +56,7 @@ public class GameUtils {
         return special;
     }
     
-    public static List<Tile> getSpecialTiles(TileType type, UnitStatus allegiance, boolean alliedWith) {
+    public static List<Tile> getSpecialTiles(TileType type, UnitAllegiance allegiance, boolean alliedWith) {
         List<Tile> special = new ArrayList<>();
         Map current = MasterFsmState.getCurrentMap();
         
@@ -99,7 +99,7 @@ public class GameUtils {
             return enemies;
         }
         
-        public static List<TangibleUnit> calculateAlliedUnits(UnitStatus allegiance, Conveyer info) {
+        public static List<TangibleUnit> calculateAlliedUnits(UnitAllegiance allegiance, Conveyer info) {
             if (allegiance == null) { return null; }
             
             List<TangibleUnit> enemies = new ArrayList<>();
@@ -112,7 +112,7 @@ public class GameUtils {
             return enemies;
         }
         
-        public static List<TangibleUnit> calculateUnitsOfAllegiance(UnitStatus allegiance, Conveyer info) {
+        public static List<TangibleUnit> calculateUnitsOfAllegiance(UnitAllegiance allegiance, Conveyer info) {
             List<TangibleUnit> enemies = new ArrayList<>();
             for (TangibleUnit tu : info.getAllUnits()) {
                 if (tu.unitStatus == allegiance && tu.getFSM().getState().getEnum() != UnitState.Dead) {

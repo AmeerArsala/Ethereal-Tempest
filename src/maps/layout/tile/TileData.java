@@ -7,11 +7,11 @@ package maps.layout.tile;
 
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
+import etherealtempest.characters.Unit.UnitAllegiance;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.TileOptionData.TileType;
 
 /**
@@ -73,14 +73,13 @@ public class TileData {
         return tileFunction != null ? tileFunction.getFunctionType() : TileType.Normal;
     }
     
-    public boolean allegianceIsEligible(UnitStatus allegiance) {
+    public boolean allegianceIsEligible(UnitAllegiance allegiance) {
         return tileFunction != null ? tileFunction.allegianceIsEligible(allegiance) : true;
     }
     
-    public boolean alliedAllegianceIsEligible(UnitStatus allegiance) {
+    public boolean alliedAllegianceIsEligible(UnitAllegiance allegiance) {
         return tileFunction != null ? tileFunction.alliedAllegianceIsEligible(allegiance) : true;
     }
-    
     
     public static TileData loadPreset(AssetManager assetManager, String presetName) {
         try {

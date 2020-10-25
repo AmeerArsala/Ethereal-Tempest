@@ -4,6 +4,7 @@
     "buffsAndOrDebuffs": null
   },
   "tileVisuals": {
-    "groundType": "Plains"
+    "groundType": "Plains",
+    "wangTexture": true
   }
 }

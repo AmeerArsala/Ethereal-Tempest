@@ -20,17 +20,16 @@ import fundamental.tool.SupportTool;
 public class SupportForecast extends Forecast {
     private final SingularSupportForecast initiatorForecast, receiverForecast;
     
-    public SupportForecast(Conveyer data, int fromRange) {
+    public SupportForecast(Conveyer data) {
         this(
                 new Combatant(data.getUnit(), BattleRole.Initiator),
                 new Combatant(data.getOtherUnit(), BattleRole.Receiver),
-                data,
-                fromRange
+                data
         );
     }
     
-    public SupportForecast(Combatant supporter, Combatant supported, Conveyer data, int range) {
-        super(supporter, supported, data, range, true);
+    public SupportForecast(Combatant supporter, Combatant supported, Conveyer data) {
+        super(supporter, supported, data, true);
         
         supporter.setHPtoSubtract(data.getUnit().getEquippedFormula().getHPUsage());
         supporter.setTPtoSubtract(data.getUnit().getEquippedFormula().getTPUsage());

@@ -16,6 +16,7 @@ import com.destroflyer.jme3.effekseer.renderer.EffekseerControl;
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
 import etherealtempest.MasterFsmState;
+import etherealtempest.characters.Unit.UnitAllegiance;
 import fundamental.tool.DamageTool;
 import fundamental.FreelyAssociated;
 import fundamental.tool.SupportTool;
@@ -29,7 +30,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import maps.layout.Coords;
 import maps.layout.occupant.TangibleUnit;
-import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
 import maps.layout.occupant.VenturePeek;
 
@@ -122,7 +122,7 @@ public class Formula extends FreelyAssociated {
         return jsonInfo;
     }
     
-    public boolean isAvailableAt(Coords pos, int layer, UnitStatus allegiance, int currentHP, int currentTP) {
+    public boolean isAvailableAt(Coords pos, int layer, UnitAllegiance allegiance, int currentHP, int currentTP) {
         if (currentHP < getHPUsage() || currentTP < getTPUsage()) { return false; } 
         
         Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];

@@ -46,7 +46,7 @@ public abstract class FSM<T> {
         Complete;
     }
     
-    public enum MapFlowState {
+    public enum MapFlowState { //used for actual map flow, the map opening gui, and gui
         Idle,
         
         MapDefault,

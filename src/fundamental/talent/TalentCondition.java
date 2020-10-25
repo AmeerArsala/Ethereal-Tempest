@@ -5,6 +5,7 @@
  */
 package fundamental.talent;
 
+import com.google.gson.annotations.SerializedName;
 import etherealtempest.FSM.MapFlowState;
 import etherealtempest.info.Conveyer;
 
@@ -14,11 +15,12 @@ import etherealtempest.info.Conveyer;
  */
 public abstract class TalentCondition {
     public enum Occasion {
-        BeforeCombat("At the start of combat, "),
-        AfterCombat("After combat, "),
-        DuringCombat("During combat, "),
-        StartOfTurn("At the start of their turn, "), 
-        Indifferent("");
+        @SerializedName("BeforeCombat") BeforeCombat("At the start of combat, "),
+        @SerializedName("AfterCombat") AfterCombat("After combat, "),
+        @SerializedName("DuringCombat") DuringCombat("During combat, "),
+        @SerializedName("StartOfTurn") StartOfTurn("At the start of their turn, "), 
+        @SerializedName("StartOfEnemyTurn") StartOfEnemyTurn("At the start of an enemy turn, "),
+        @SerializedName("Indifferent") Indifferent("");
         
         private final String descr;
         private Occasion(String description) {
@@ -80,6 +82,15 @@ public abstract class TalentCondition {
             return true;
         }
     };
+    
+    public static final TalentCondition AlwaysTriggersOnOccasion(Occasion o) { 
+        return new TalentCondition("", o) {
+            @Override
+            protected boolean getCondition(Conveyer data) {
+                return true;
+            }
+        };
+    }
     
     //triggers if user's equipped weapon is powered by an element after combat
     public static final TalentCondition POWERED_BY_ELEMENT = new TalentCondition("if user's equipped weapon is powered by an element, ", Occasion.AfterCombat) {

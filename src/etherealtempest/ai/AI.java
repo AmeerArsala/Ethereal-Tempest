@@ -17,6 +17,7 @@ import fundamental.item.Weapon;
 import fundamental.skill.Skill;
 import etherealtempest.GameUtils;
 import etherealtempest.MasterFsmState;
+import etherealtempest.characters.Unit.UnitAllegiance;
 import etherealtempest.info.ActionInfo;
 import etherealtempest.info.ActionInfo.PostMoveAction;
 import fundamental.Associated;
@@ -31,7 +32,6 @@ import maps.layout.Coords;
 import maps.layout.occupant.Cursor.Purpose;
 import maps.layout.Map;
 import maps.layout.occupant.TangibleUnit;
-import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
 import maps.layout.occupant.VenturePeek;
 import maps.layout.tile.TileOptionData.TileType;
@@ -97,7 +97,7 @@ public class AI {
     private final TangibleUnit reference;
     
     private boolean anEnemyHasOnceEnteredOffensiveRange = false;
-    private UnitStatus allegiance;
+    private UnitAllegiance allegiance;
     
     //the meat
     private Command givenCommand = null;
@@ -152,7 +152,7 @@ public class AI {
     
     public List<ConditionalBehavior> getMindset() { return mindset; }
     
-    public UnitStatus getAllegiance() { return allegiance; }
+    public UnitAllegiance getAllegiance() { return allegiance; }
     public Command getCommand() { return givenCommand; }
     
     public void issueCommand(Command cmd) {
@@ -161,7 +161,7 @@ public class AI {
     
     public void cancelCommand() { givenCommand = null; }
     
-    public void setAllegiance(UnitStatus us) {
+    public void setAllegiance(UnitAllegiance us) {
         allegiance = us;
     }
     
@@ -220,7 +220,7 @@ public class AI {
         //effect
         switch (behavior) {
             case DefaultMindset:
-                if (reference.unitStatus == UnitStatus.Ally) {
+                if (reference.unitStatus == UnitAllegiance.Ally) {
                     effect = ObjectivePriorityAsAlly(data);
                 } else { //enemy
                     effect = ObjectivePriorityAsEnemy(data);
@@ -309,7 +309,7 @@ public class AI {
         ObjectiveData objective = data.getObjective().getCriteria();
         
         //play objective it that is it
-        if (allegiance == UnitStatus.Ally && objective.getEscape()) {
+        if (allegiance == UnitAllegiance.Ally && objective.getEscape()) {
             List<Tile> escTiles = MasterFsmState.getCurrentMap().reorderTheseTilesByClosestTo(
                     reference.getPosX(), 
                     reference.getPosY(), 
@@ -325,7 +325,7 @@ public class AI {
             return mostFavorableMiscOption(reference.movementTileFurthestOnPathTowards(escTiles.get(0).coords()).coords(), data);
         }
         
-        if (allegiance == UnitStatus.Enemy && objective.getX_EnemiesEscapeForDefeat() != null) {
+        if (allegiance == UnitAllegiance.Enemy && objective.getX_EnemiesEscapeForDefeat() != null) {
             List<Tile> escTiles = MasterFsmState.getCurrentMap().reorderTheseTilesByClosestTo(
                     reference.getPosX(), 
                     reference.getPosY(), 
@@ -1039,7 +1039,7 @@ public class AI {
                 for (Formula fma : opciones.getUsableFormulas()) {
                     if (fma.getFormulaPurpose().isSupportive() && fma.getActualFormulaData().getRange().contains(range)) {
                         reference.equip(fma);
-                        SupportForecast forecast = new SupportForecast(new Conveyer(reference).setOtherUnit(ally), range);
+                        SupportForecast forecast = new SupportForecast(new Conveyer(reference).setOtherUnit(ally));
                         if (bestEtherForecast == null || forecast.calculateDesirabilityToInitiate() > bestEtherForecast.calculateDesirabilityToInitiate()) {
                             bestEtherForecast = forecast;
                             bestFormula = fma;

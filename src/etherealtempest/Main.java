@@ -1,21 +1,17 @@
 package etherealtempest;
 
-import battle.Battle;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.audio.AudioListenerState;
-import com.jme3.light.AmbientLight;
-import com.jme3.light.DirectionalLight;
-import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.RenderManager;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import com.jme3.system.AppSettings;
+import com.jme3.texture.Image;
+import com.jme3.texture.TextureArray;
 import edited.FlyCamera;
 import edited.state.FlyCamTrueAppState;
+import java.util.ArrayList;
+import java.util.List;
+import maps.layout.Map;
 import maps.state.TestMap;
 
 /**
@@ -43,21 +39,26 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        settings.setFrameRate(120);
-        //restart();
-        debugFlyCam();
-        flyCam.setMoveSpeed(350);
+       settings.setFrameRate(120);
+       
+       debugFlyCam();
+       flyCam.setMoveSpeed(350);
+       
+       tilesInitialization();
         
-        /*Node forest = (Node)getAssetManager().loadModel("Models/Maps/forest.j3o");
-        getRootNode().attachChild(forest);
+       stateManager.attach(new TestMap(this, getCamera(), flyCam, settings));
+    }
+    
+    public void tilesInitialization() {
+        final String prefix = "Textures/tiles/";
+        String[] names = {"grass.jpg", "dirt.jpg", "rock.jpg", "plains.jpg", "sand.jpg", "mossystone.jpg"};
+        List<Image> textures = new ArrayList<>();
+        for (String name : names) {
+            textures.add(assetManager.loadTexture(prefix + name).getImage());
+        }
         
-        DirectionalLight light = new DirectionalLight();
-        forest.addLight(light);
-        
-        AmbientLight ambient = new AmbientLight();
-        getRootNode().addLight(ambient);*/
-        
-       stateManager.attach(new TestMap(this, getCamera(), flyCam));
+        Map.tileTextures = new TextureArray(textures);
+        Map.OverflowBlendMap = assetManager.loadTexture(prefix + "BlendMap.png");
     }
 
     @Override
