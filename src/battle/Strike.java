@@ -56,7 +56,6 @@ public class Strike {
     
     public boolean strikeDidHit() { return didHit; }
     public boolean strikeIsCrit() { return didCrit; }
-    public boolean strikeWasParried() { return false; } //TODO: change after
     public boolean strikeIsSkill() { return isSkill; }
     
     public int getDamage() { return damage; }
@@ -168,6 +167,32 @@ public class Strike {
             didCrit = false;
             durabilityChange = -0.5f;
         }
+    }
+    
+    public static void strikelog(Strike strike) {
+        String info = "";
+        
+        info += strike.getStriker().getUnit().getName() + " attacks!\n" + strike.getStriker().getUnit().getName();
+        
+        if (strike.strikeDidHit()) {
+            info += " hits!\n";
+            
+            if (strike.strikeIsCrit()) {
+                info += strike.getStriker().getUnit().getName() + " crits!\n";
+            } else {
+                info += strike.getStriker().getUnit().getName() + " doesn't crit\n";
+            }
+            
+            strike.getVictim().getUnit().subtractHP(strike.getDamage());
+            
+            info += strike.getStriker().getUnit().getName() + " does " + strike.getDamage() + " damage!\n";
+        } else {
+            info += " misses!\n";
+        }
+        
+        info += strike.getVictim().getUnit().getName() + " has " + strike.getVictim().getUnit().getStat(Combatant.BaseStat.currentHP) + " HP remaining!\n";
+        
+        System.out.println(info);
     }
     
 }

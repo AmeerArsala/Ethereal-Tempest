@@ -8,9 +8,7 @@ package battle.forecast;
 import battle.Combatant;
 import etherealtempest.info.Conveyer;
 import battle.Combatant.*;
-import fundamental.stats.Toll.Exchange;
 import fundamental.skill.Skill;
-import fundamental.tool.DamageTool;
 import maps.layout.occupant.Cursor.Purpose;
 
 /**
@@ -19,11 +17,29 @@ import maps.layout.occupant.Cursor.Purpose;
  */
 public class PrebattleForecast extends Forecast {
     private final SingularForecast initiatorForecast, receiverForecast;
-    private final Skill skillBeingUsed;
+    private final Skill skillBeingUsed, receiverSkillBeingUsed;
     
-    public PrebattleForecast(Combatant initiator, Combatant receiver, Conveyer data, int range, Skill skillBeingUsed) {
-        super(initiator, receiver, data, range, false);
-        this.skillBeingUsed = skillBeingUsed;
+    private int customRange = -1;
+    
+    public PrebattleForecast(Combatant initiator, Combatant receiver, Conveyer data) {
+        super(initiator, receiver, data, false);
+        skillBeingUsed = initiator.getUnit().getToUseSkill();
+        receiverSkillBeingUsed = receiver.getUnit().getToUseSkill();
+        
+        initiatorForecast = new SingularForecast(initiator);
+        receiverForecast = new SingularForecast(receiver);
+        initializeForecast();
+        
+        initiator.setDefaultDamage(initiatorForecast.displayedDamage);
+        receiver.setDefaultDamage(receiverForecast.displayedDamage);
+    }
+    
+    private PrebattleForecast(Combatant initiator, Combatant receiver, Conveyer data, int customRange) {
+        super(initiator, receiver, data, false);
+        this.customRange = customRange;
+        
+        skillBeingUsed = initiator.getUnit().getToUseSkill();
+        receiverSkillBeingUsed = receiver.getUnit().getToUseSkill();
         
         initiatorForecast = new SingularForecast(initiator);
         receiverForecast = new SingularForecast(receiver);
@@ -45,7 +61,7 @@ public class PrebattleForecast extends Forecast {
     
     protected final void initializeForecast() {
         initiatorForecast.canCounterattack = true;
-        receiverForecast.canCounterattack = receiverForecast.getCombatant().getUnit().canCounterattackAgainst(range);
+        receiverForecast.canCounterattack = receiverForecast.getCombatant().getUnit().canCounterattackAgainst(customRange > 0 ? customRange : range);
         //if receiver can't counterattack, damage = N/A
         
         if (initiatorForecast.getCombatant().getBattleStat(BattleStat.AttackSpeed) - receiverForecast.getCombatant().getBattleStat(BattleStat.AttackSpeed) >= 3) {
@@ -60,18 +76,15 @@ public class PrebattleForecast extends Forecast {
             receiverForecast.canDouble = false;
         } else if (receiverForecast.getCombatant().getBattleStat(BattleStat.AttackSpeed) - initiatorForecast.getCombatant().getBattleStat(BattleStat.AttackSpeed) >= 3) {
             //receiver doubles initiator
-            receiverForecast.canDouble = true;
-            initiatorForecast.canDouble = false;
-            receiverForecast.BPcostPerHit = 500;
+            if (receiverSkillBeingUsed != null) {
+                receiverForecast.canDouble = false;
+                receiverForecast.BPcostPerHit = 1000 / (receiverSkillBeingUsed.getEffect().extraHits() + 1);
+            } else {
+                receiverForecast.canDouble = true;
+                initiatorForecast.canDouble = false;
+                receiverForecast.BPcostPerHit = 500;
+            }
         }
-        
-        //stabilization
-        /*if (rCanCounterattack == 0.0) {
-            rCrit = 0.0;
-            rDisplayedAcc = 0.0;
-            receiverDouble = 0.0;
-            rdisplayedDMG = 0;
-        }*/
         
         initiatorForecast.displayedAccuracy = initiatorForecast.getCombatant().getBattleStat(BattleStat.Accuracy) - receiverForecast.getCombatant().getBattleStat(BattleStat.Evasion);
         receiverForecast.displayedAccuracy = receiverForecast.getCombatant().getBattleStat(BattleStat.Accuracy) - initiatorForecast.getCombatant().getBattleStat(BattleStat.Evasion);
@@ -140,35 +153,23 @@ public class PrebattleForecast extends Forecast {
         return desirability;
     }
     
-    public static PrebattleForecast createForecast(Conveyer info, Purpose battlePurpose, int attackRange) {
-        Combatant initTemp = new Combatant(info, BattleRole.Initiator), receiverTemp = new Combatant(info, BattleRole.Receiver);
-        initTemp.setExtraDamage(((DamageTool)initTemp.getUnit().getEquippedTool()).extraDamage);
-        receiverTemp.setExtraDamage(((DamageTool)receiverTemp.getUnit().getEquippedTool()).extraDamage);
-        if (battlePurpose == Purpose.SkillAttack) {
-            int subtractHP = 0, subtractTP = 0;
-            if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.HP) {
-                subtractHP = info.getUnit().getToUseSkill().getToll().getValue();
-            } else if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.TP) {
-                subtractTP = info.getUnit().getToUseSkill().getToll().getValue();
-            }
-            
-            initTemp = new Combatant(info, BattleRole.Initiator);
-            initTemp.setHPtoSubtract(subtractHP);
-            initTemp.setTPtoSubtract(subtractTP);
-            initTemp.getUnit().getToUseSkill().getEffect().applyEffectsOnCombat(initTemp);
-            initTemp.setExtraDamage(initTemp.getUnit().getToUseSkill().getEffect().extraDamage() + ((DamageTool)initTemp.getUnit().getEquippedTool()).extraDamage);
-        } else if (battlePurpose == Purpose.EtherAttack) {
-            initTemp.setHPtoSubtract(info.getUnit().getEquippedFormula().getHPUsage());
-            initTemp.setTPtoSubtract(info.getUnit().getEquippedFormula().getTPUsage());
-        }
+    public static PrebattleForecast createForecast(Conveyer info, Purpose battlePurpose, int fromRange) { //simulated battle
+        Combatant initiator = new Combatant(info, BattleRole.Initiator), receiver = new Combatant(info, BattleRole.Receiver);
+        initiator.prebattleInitialization();
+        receiver.prebattleInitialization();
         
-        return
-                new PrebattleForecast(
-                    initTemp,
-                    receiverTemp,
-                    info,
-                    attackRange,
-                    initTemp.getUnit().getToUseSkill()
-                );
+        return new PrebattleForecast(initiator, receiver, info, fromRange);
+    }
+    
+    public static PrebattleForecast createForecast(Conveyer info, Purpose battlePurpose) { //regular battle; does the same thing as the one below
+        return createForecast(info, battlePurpose, -1);
+    }
+    
+    public static PrebattleForecast createBattleForecast(Conveyer info) {
+        Combatant initiator = new Combatant(info, BattleRole.Initiator), receiver = new Combatant(info, BattleRole.Receiver);
+        initiator.prebattleInitialization();
+        receiver.prebattleInitialization();
+        
+        return new PrebattleForecast(initiator, receiver, info);
     }
 }

@@ -4,6 +4,7 @@
     "buffsAndOrDebuffs": null
   },
   "tileVisuals": {
-    "groundType": "Mossy Stone"
+    "groundType": "Mossy Stone",
+    "wangTexture": false
   }
 }

@@ -72,7 +72,7 @@ public class MenuOption {
         //geo.setQueueBucket(Bucket.Translucent);
     }
     
-    public void deselect() {
+    public void deselect(float tpf) {
         if (name.equals("done")) {
             optionmat.setTexture("ColorMap", matclassic[1]);
             geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, ogY);
@@ -80,11 +80,11 @@ public class MenuOption {
         } else {
             geo.setLocalTranslation(geo.getLocalTranslation().x, geo.getLocalTranslation().y, ogY);
             isSelected = false;
-            updateState(0);
+            updateState(0, tpf);
         }
     }
     
-    public void updateState(int index) {
+    public void updateState(int index, float tpf) {
         if (!init) { 
             optionmat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
             init = true;
@@ -124,7 +124,7 @@ public class MenuOption {
             }
         } else { //transition is occuring
             if (transitionEffect.getTransitionProgress() != Progress.Finished) {
-                transitionEffect.updateTransitions();
+                transitionEffect.updateTransitions(tpf);
             } else {
                 //after the transition is over
                 if (transition == TransitionState.TransitioningIn) {
@@ -136,7 +136,7 @@ public class MenuOption {
         }
         
         if (submenu != null) {
-            submenu.updateDefault();
+            submenu.updateDefault(tpf);
         }
         
         /*if (submenu != null && (submenu.isActive() || submenu.getTransitionState() != TransitionState.Standby)) {
@@ -200,7 +200,7 @@ class AnimOption extends MenuOption {
     }
     
     @Override
-    public void updateState(int index) {
+    public void updateState(int index, float tpf) {
         if (!init) { 
             optionmat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha); 
             init = true;
@@ -227,7 +227,7 @@ class AnimOption extends MenuOption {
             }
         } else { //Half second transition
             if (transitionEffect.getTransitionProgress() != Progress.Finished) {
-                transitionEffect.updateTransitions();
+                transitionEffect.updateTransitions(tpf);
             } else {
                 //after the transition is over
                 if (transition == TransitionState.TransitioningIn) {
@@ -239,7 +239,7 @@ class AnimOption extends MenuOption {
         }
         
         if (submenu != null) {
-            submenu.updateDefault();
+            submenu.updateDefault(tpf);
         }
         
     }
@@ -257,7 +257,7 @@ class Centerpiece extends AnimOption {
     }
     
     @Override
-    public void updateState(int index) {
+    public void updateState(int index, float tpf) {
         if (!init) {
             optionmat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
             init = true;
@@ -290,7 +290,7 @@ class Centerpiece extends AnimOption {
             }
         } else {
             if (transitionEffect.getTransitionProgress() != Progress.Finished) {
-                transitionEffect.updateTransitions();
+                transitionEffect.updateTransitions(tpf);
             } else {
                 //after the transition is over
                 if (transition == TransitionState.TransitioningIn) {
@@ -302,7 +302,7 @@ class Centerpiece extends AnimOption {
         }
         
         if (submenu != null) {
-            submenu.updateDefault();
+            submenu.updateDefault(tpf);
         }
         
     }

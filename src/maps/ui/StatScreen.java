@@ -124,7 +124,6 @@ public class StatScreen extends Node {
     }
     
     public void resolveInput(String name, float tpf) {
-        System.out.println(fsm.getState().getEnum());
         if (name.equals("deselect")) {
             if (fsm.getState().getEnum() == MapFlowState.StatScreenOpened) {
                 expbar.getChildrenNode().detachAllChildren();
@@ -1309,15 +1308,30 @@ public class StatScreen extends Node {
     private void styleStat(TangibleUnit tu, TrueTypeNode individualStat, ArrayList<Cosa> col3, String statDescription, int i) {
         final String statNames[] = {"STR", "ETHER", "AGI", "COMP", "DEX", "DEF", "RSL", "MOBILIT", "PHYSIQU"};
         
-        StatBundle sb = tu.getRawBaseStats().get(i + 1);
+        StatBundle sb = tu.getRawBaseStatsWithTempBuffs().get(i + 1);
+        StatBundle baseSB = tu.getRawBaseStats().get(i + 1);
         
         TrueTypeKeyBMP bmp = new TrueTypeKeyBMP("Interface/Fonts/Montaga-Regular.ttf", Style.Plain, (37 + i));
         TrueTypeFont ttf = (TrueTypeBMP)assetManager.loadAsset(bmp);
         ttf.setScale(26.5f / (37f + i));
+        
+        ColorRGBA numberColor;
+        int difference = sb.getValue() - baseSB.getValue();
+        if (difference > 0) { //buff
+            numberColor = new ColorRGBA(0, 0.97f, 1, 1);
+            statDescription += " \nBonus: +" + difference;
+        } else if (difference < 0) { //debuff
+            numberColor = new ColorRGBA((217f / 255f), 0, 0, 1);
+            statDescription += " \nBonus: " + difference;
+        } else { //nothing
+            numberColor = ColorRGBA.White;
+        }
             
-        TrueTypeNode ttn = ttf.getText("" + sb.getValue(), 2, ColorRGBA.White);
+        TrueTypeNode ttn = ttf.getText("" + sb.getValue(), 2, numberColor);
         if (sb.getValue() >= 10) {
             ttn.move(-14.5f, 15f, 0);
+        } else if (sb.getValue() == 1) {
+            ttn.move(-6.5f, 15f, 0);
         } else {
             ttn.move(-8.5f, 15f, 0);
         }

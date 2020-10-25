@@ -26,7 +26,7 @@ import maps.layout.tile.Tile;
  *
  * @author night
  */
-public abstract class TalentEffect {
+public abstract class TalentEffect { //NOTE: ON ALL CONVEYER: UNIT MUST BE SET TO THE USER
     private final String desc;
     
     public TalentEffect(String desc) {
@@ -34,13 +34,18 @@ public abstract class TalentEffect {
     }
     
     //OVERRIDE THIS WHEN NEEDED
-    public Coords userTranslation() {  // (x, y)
+    public Coords userTranslation(Conveyer data) {  // (x, y)
         return null;
     }
     
     //OVERRIDE THIS WHEN NEEDED
-    public List<Bonus> Buffs() { //buffs to self
+    protected List<Bonus> userBuffs(Conveyer data) { //buffs to self
         return new ArrayList<>();
+    }
+    
+    //OVERRIDE THIS WHEN NEEDED
+    public Toll userRestoration(Conveyer data) {
+        return null;
     }
     
     //OVERRIDE THIS WHEN NEEDED
@@ -58,8 +63,19 @@ public abstract class TalentEffect {
         return new HashMap<>();
     }
     
-    public List<StatBundle> getBuffsRaw() {
-        List<Bonus> buffs = Buffs();
+    //OVERRIDE THIS WHEN NEEDED
+    public void enactEffect(Conveyer info) { //this means visually
+    
+    }
+    
+    public final List<Bonus> retrieveBuffs(Conveyer data) {
+        List<Bonus> bonuses = userBuffs(data);
+        Bonus.organizeList(bonuses);
+        return bonuses;
+    }
+    
+    public final List<StatBundle> getBuffsRaw(Conveyer data) {
+        List<Bonus> buffs = retrieveBuffs(data);
         List<StatBundle> raw = new ArrayList<>();
         
         buffs.stream().filter((buff) -> (buff.getType() == BonusType.Raw)).forEachOrdered((buff) -> { //for each buff in buffs, if buff.getType() == BonusType.Raw, then raw.add(buff.toStatBundle());
@@ -68,29 +84,6 @@ public abstract class TalentEffect {
         
         return raw;
     }
-    
-    public abstract void enactEffect(Conveyer info);
-    
-    public void enactLoss(Conveyer info) {
-        HashMap<TangibleUnit, Toll> loss = calculateLoss(info);
-        for (TangibleUnit afflicted : loss.keySet()) {
-            Toll harm = loss.get(afflicted);
-            int val = harm.getValue();
-            switch (harm.getType()) {
-                case HP:
-                    afflicted.subtractHP(val);
-                    break;
-                case TP:
-                    afflicted.subtractTP(val);
-                    break;
-                case Durability:
-                    afflicted.subtractDurability(val);
-                    break;
-                default: 
-                    break;
-            }
-        }
-    } 
     
     @Override
     public String toString() {
@@ -105,7 +98,6 @@ public abstract class TalentEffect {
      * @param range this is an int > 0. It represents the N in the equation above
      * @return the TalentEffect
      */
-    
     public static TalentEffect PercentageStatBasedAOE(int percent, BaseStat stat, Exchange lossType, int range) {
         return new TalentEffect("does area-of-effect damage = " + percent + "% of user's " + stat.getName() + " stat to enemies within " + range + " spaces of the targeted enemy.") {
             @Override
@@ -129,10 +121,14 @@ public abstract class TalentEffect {
                     
                 return loss;
             }
-
+        };
+    }
+    
+    public static TalentEffect Heal(Toll value) {
+        return new TalentEffect("restores " + value.getValue() + " " + value.getType().toString() + ".") {
             @Override
-            public void enactEffect(Conveyer info) {
-                enactLoss(info);
+            public Toll userRestoration(Conveyer data) {
+                return value;
             }
         };
     }

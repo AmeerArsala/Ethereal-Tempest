@@ -8,6 +8,8 @@ package etherealtempest.characters;
 import etherealtempest.info.Conveyer;
 import battle.Combatant.BaseStat;
 import battle.Combatant.BattleStat;
+import com.google.gson.annotations.SerializedName;
+import com.jme3.math.ColorRGBA;
 import fundamental.stats.Toll;
 import fundamental.item.Item;
 import fundamental.item.Weapon;
@@ -18,11 +20,10 @@ import fundamental.item.Inventory;
 import fundamental.skill.Skill;
 import fundamental.talent.Talent;
 import fundamental.stats.Bonus;
+import fundamental.stats.Bonus.BonusType;
 import fundamental.stats.Bonus.StatType;
 import fundamental.tool.DamageTool;
 import fundamental.stats.StatBundle;
-import fundamental.talent.TalentConcept;
-import fundamental.talent.TalentCondition;
 import fundamental.tool.Tool;
 import fundamental.tool.Tool.ToolType;
 import general.GeneralUtils;
@@ -41,11 +42,74 @@ public class Unit extends JobClass {
     //DISCLAIMER: maxTP (the BaseStat enum) does not actually refer to the Unit's maximum tp stat, but rather an accumulation of the amount of points it has grown through growth rate increases, the rest of the stat is calculated by other stats
     public static final ArrayList<BaseStat> baseStats = StatBundle.createBaseStats();
     public static final HashMap<BaseStat, Integer> DEFAULT_ENEMY_GROWTH_RATES = StatCanvas(100);
+    
+    public enum UnitAllegiance {
+        @SerializedName("Player") Player(0),
+        @SerializedName("Ally") Ally(-1),
+        @SerializedName("Enemy") Enemy(1),
+        @SerializedName("ThirdParty") ThirdParty(2),
+        @SerializedName("FourthParty") FourthParty(3),
+        @SerializedName("FifthParty") FifthParty(4);
+        
+        private final int value;
+        
+        private static HashMap map = new HashMap<>();
+        private UnitAllegiance(int val) {
+            value = val;
+        }
+        
+        static {
+            for (UnitAllegiance stat : UnitAllegiance.values()) {
+                map.put(stat.value, stat);
+            }
+        }
 
-    public Unit(boolean isBoss, String jobname, List<String> mobilityTypes, List<String> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, String desc, int tier) {
-        super(jobname, mobilityTypes, wieldableWeaponTypes, bonusStats, battleBonus, maxStats, desc, tier);
-        this.isBoss = isBoss;
+        public static UnitAllegiance valueOf(int stat) {
+            return (UnitAllegiance) map.get(stat);
+        }
+
+        public int getValue() {
+            return value;
+        }
+        
+        public ColorRGBA getAssociatedColor() {
+            ColorRGBA barColor;
+        
+            switch (value) {
+                case 0: //blue (Player)
+                    barColor = new ColorRGBA(0.012f, 0.58f, 0.988f, 1f);
+                    break;
+                case 1: //red (Enemy)
+                    barColor = new ColorRGBA(0.839f, 0, 0, 1f);
+                    break;
+                case -1: //yellow (Ally)
+                    barColor = new ColorRGBA(1f, 0.851f, 0, 1f);
+                    break;
+                case 2: //green (ThirdParty)
+                    barColor = new ColorRGBA(0, 1f, 0, 1f);
+                    break;
+                case 3: //purple (FourthParty)
+                    barColor = new ColorRGBA(0.784f, 0, 1f, 1f);
+                    break;
+                case 4: //white (FifthParty)
+                    barColor = ColorRGBA.White;
+                    break;
+                default:
+                    barColor = new ColorRGBA(0.012f, 0.58f, 0.988f, 1f); //blue
+                    break;
+            }
+        
+            return barColor;
+        }
+        
+        public boolean alliedWith(UnitAllegiance otherAllegiance) {
+            return value == otherAllegiance.getValue() || value + otherAllegiance.getValue() == -1;
+        }
     }
+    
+    public UnitAllegiance unitStatus; //allegiance
+    
+    public String ustatus = "Healthy"; //status ailments, etc.
     
     public int currentEXP = 0;
     protected int currentHP, currentTP;
@@ -53,17 +117,17 @@ public class Unit extends JobClass {
     private HashMap<BaseStat, Integer> stats = new HashMap<>();
     private HashMap<BaseStat, Integer> personal_growth_rates = new HashMap<>();
     
-    private Inventory inventory; //7 items max in inventory
-    private List<Formula> formulas; //15 formulas max
-    private List<Talent> talents; //6 max
-    private List<Skill> skills; //5 max
-    private List<Ability> abilities; //7 max
-    private List<Formation> formations; //triangle, circle, square, diamond, or none?
+    private final Inventory inventory; //7 items max in inventory
+    private final List<Formula> formulas; //15 formulas max
+    private final List<Talent> talents; //6 max
+    private final List<Skill> skills; //5 max
+    private final List<Ability> abilities; //7 max
+    private final List<Formation> formations; //triangle, circle, square, diamond, or none?
     
     protected Formula equippedFormula = null;
     protected Weapon equippedWeapon = null;
-    
-    private List<Bonus> bonuses = new ArrayList<>();
+
+    protected final List<Bonus> bonuses = new ArrayList<>(); //NOT RAW BONUSES
     
     private final boolean isBoss;
     
@@ -156,12 +220,7 @@ public class Unit extends JobClass {
         List<Talent> full = new ArrayList<>();
         full.addAll(talents);
         
-        Formation forma = equippedFormation();
         Tool tool = getEquippedTool();
-        
-        if (forma != null && forma.getBonusEffects() != null && forma.getBonusEffects().getBonusTalent() != null) {
-            full.add(forma.getBonusEffects().getBonusTalent());
-        }
         
         if (tool != null && tool.getOnEquipSkill() != null) {
             full.add(tool.getOnEquipTalent());
@@ -174,12 +233,7 @@ public class Unit extends JobClass {
         List<Skill> full = new ArrayList<>();
         full.addAll(skills);
         
-        Formation forma = equippedFormation();
         Tool tool = getEquippedTool();
-        
-        if (forma != null && forma.getBonusEffects() != null && forma.getBonusEffects().getBonusSkill() != null) {
-            full.add(forma.getBonusEffects().getBonusSkill());
-        }
         
         if (tool != null && tool.getOnEquipSkill() != null) {
             full.add(tool.getOnEquipSkill());
@@ -192,12 +246,7 @@ public class Unit extends JobClass {
         List<Ability> full = new ArrayList<>();
         full.addAll(abilities);
         
-        Formation forma = equippedFormation();
         Tool tool = getEquippedTool();
-        
-        if (forma != null && forma.getBonusEffects() != null && forma.getBonusEffects().getBonusAbility() != null) {
-            full.add(forma.getBonusEffects().getBonusAbility());
-        }
         
         if (tool != null && tool.getOnEquipSkill() != null) {
             full.add(tool.getOnEquipAbility());
@@ -211,7 +260,7 @@ public class Unit extends JobClass {
     
     public List<Bonus> getBonuses() { return bonuses; }
     
-    public void addBonus(Bonus B) {
+    public void addBonus(Bonus B) { //apply this ON an Occasion
         bonuses.add(B);
         Bonus.organizeList(bonuses);
     }
@@ -240,6 +289,14 @@ public class Unit extends JobClass {
         if (statname == BaseStat.currentHP) { return currentHP; }
         
         return statname == BaseStat.currentTP ? currentTP : stats.get(statname); 
+    }
+    
+    public float getCurrentToMaxHPratio() {
+        return ((float)currentHP) / getMaxHP();
+    }
+    
+    public float getCurrentToMaxTPratio() {
+        return ((float)currentTP) / getMaxTP();
     }
     
     public int simulateTP(int hpextra, int etherextra, int rslextra) {
@@ -284,60 +341,99 @@ public class Unit extends JobClass {
         );
     }
     
+    public List<StatBundle> getRawBaseStatsWithTempBuffs() { //except hp and tp
+        return Arrays.asList(
+            new StatBundle(BaseStat.level, stats.get(BaseStat.level)), //level
+            new StatBundle(BaseStat.strength, stats.get(BaseStat.strength) + ClassStatBonus().get(BaseStat.strength) + getTotalBonus(BaseStat.strength, BonusType.Raw, false)), //str
+            new StatBundle(BaseStat.ether, stats.get(BaseStat.ether) + ClassStatBonus().get(BaseStat.ether) + getTotalBonus(BaseStat.ether, BonusType.Raw, false)), //ether
+            new StatBundle(BaseStat.agility, stats.get(BaseStat.agility) +  + ClassStatBonus().get(BaseStat.agility) + getTotalBonus(BaseStat.agility, BonusType.Raw, false)), //agi
+            new StatBundle(BaseStat.comprehension, stats.get(BaseStat.comprehension) + ClassStatBonus().get(BaseStat.comprehension) + getTotalBonus(BaseStat.comprehension, BonusType.Raw, false)), //comp
+            new StatBundle(BaseStat.dexterity, stats.get(BaseStat.dexterity) + ClassStatBonus().get(BaseStat.dexterity) + getTotalBonus(BaseStat.dexterity, BonusType.Raw, false)), //dex
+            new StatBundle(BaseStat.defense, stats.get(BaseStat.defense) + ClassStatBonus().get(BaseStat.defense) + getTotalBonus(BaseStat.defense, BonusType.Raw, false)), //def
+            new StatBundle(BaseStat.resilience, stats.get(BaseStat.resilience) + ClassStatBonus().get(BaseStat.resilience) + getTotalBonus(BaseStat.resilience, BonusType.Raw, false)), //rsl
+            new StatBundle(BaseStat.mobility, stats.get(BaseStat.mobility) + ClassStatBonus().get(BaseStat.mobility) + getTotalBonus(BaseStat.mobility, BonusType.Raw, false)), //mobility
+            new StatBundle(BaseStat.physique, stats.get(BaseStat.physique) + ClassStatBonus().get(BaseStat.physique) + getTotalBonus(BaseStat.physique, BonusType.Raw, false)), //physique
+            new StatBundle(BaseStat.adrenaline, stats.get(BaseStat.adrenaline) + ClassStatBonus().get(BaseStat.adrenaline) + getTotalBonus(BaseStat.adrenaline, BonusType.Raw, false)) //adrenaline
+        );
+    }
+    
     public int[] getAllRawBonuses() {
         return new int[] {
-            getTotalBonus(BaseStat.strength),      //str
-            getTotalBonus(BaseStat.ether),         //ether
-            getTotalBonus(BaseStat.agility),       //agi
-            getTotalBonus(BaseStat.comprehension), //comp
-            getTotalBonus(BaseStat.dexterity),     //dex
-            getTotalBonus(BaseStat.defense),       //def
-            getTotalBonus(BaseStat.resilience),    //rsl
-            getTotalBonus(BaseStat.mobility),      //mobility
-            getTotalBonus(BaseStat.physique),      //physique
-            getTotalBonus(BaseStat.adrenaline)     //adrenaline
+            getTotalBonus(BaseStat.strength, BonusType.Raw, true),      //str
+            getTotalBonus(BaseStat.ether, BonusType.Raw, true),         //ether
+            getTotalBonus(BaseStat.agility, BonusType.Raw, true),       //agi
+            getTotalBonus(BaseStat.comprehension, BonusType.Raw, true), //comp
+            getTotalBonus(BaseStat.dexterity, BonusType.Raw, true),     //dex
+            getTotalBonus(BaseStat.defense, BonusType.Raw, true),       //def
+            getTotalBonus(BaseStat.resilience, BonusType.Raw, true),    //rsl
+            getTotalBonus(BaseStat.mobility, BonusType.Raw, true),      //mobility
+            getTotalBonus(BaseStat.physique, BonusType.Raw, true)       //physique
         };
     }
     
-    public int getTotalBonus(BaseStat stat) { //for talent bonuses, on the enactEffect(), it will add to the Unit's bonus list
-        int bonusSum = getEquippedTool() != null ? getEquippedTool().getTotalBonus(stat) : 0;
+    public int[] getAllNonRawBonuses() {
+        return new int[] {
+            getTotalBonus(BaseStat.strength, BonusType.Raw, false),      //str
+            getTotalBonus(BaseStat.ether, BonusType.Raw, false),         //ether
+            getTotalBonus(BaseStat.agility, BonusType.Raw, false),       //agi
+            getTotalBonus(BaseStat.comprehension, BonusType.Raw, false), //comp
+            getTotalBonus(BaseStat.dexterity, BonusType.Raw, false),     //dex
+            getTotalBonus(BaseStat.defense, BonusType.Raw, false),       //def
+            getTotalBonus(BaseStat.resilience, BonusType.Raw, false),    //rsl
+            getTotalBonus(BaseStat.mobility, BonusType.Raw, false),      //mobility
+            getTotalBonus(BaseStat.physique, BonusType.Raw, false)       //physique
+        };
+    }
+    
+    public int getTotalBonus(BaseStat stat) {
+        return getTotalBonus(stat, null, true);
+    }
+    
+    public int getTotalBonus(BattleStat stat) {
+        return getTotalBonus(stat, null, true);
+    }
+    
+    public int getTotalBonus(BaseStat stat, BonusType filterBy, boolean include) {
+        int bonusSum = 0;
         for (Bonus bonus : bonuses) {
-            if (bonus.getBaseStat() == stat) {
+            if (bonus.getBaseStat() == stat && (filterBy == null || ((filterBy == bonus.getType()) == include))) {
                 bonusSum += bonus.getValue();
             }
         }
         
         Formation equipped = equippedFormation();
         if (
-                equipped != null 
-                && equipped.getBonusEffects().getStatBonus() != null 
-                && equipped.getBonusEffects().getStatBonus().getStatType() == StatType.Base 
-                && equipped.getBonusEffects().getStatBonus().getWhichBaseStat()  == stat
+                (filterBy == null || ((filterBy == BonusType.Raw) == include))
+                && equipped != null 
+                && equipped.getPassiveStatBonus() != null 
+                && equipped.getPassiveStatBonus().getStatType() == StatType.Base 
+                && equipped.getPassiveStatBonus().getWhichBaseStat() == stat
             ) 
         {
-            return bonusSum + equipped.getBonusEffects().getStatBonus().getValue();
+            bonusSum += equipped.getPassiveStatBonus().getValue();
         }
         
         return bonusSum;
     }
     
-    public int getTotalBonus(BattleStat stat) {
-        int bonusSum = getEquippedTool() != null ? getEquippedTool().getTotalBonus(stat) : 0;
+    public int getTotalBonus(BattleStat stat, BonusType filterBy, boolean include) {
+        int bonusSum = 0;
         for (Bonus bonus : bonuses) {
-            if (bonus.getBattleStat() == stat) {
+            if (bonus.getBattleStat() == stat && (filterBy == null || ((filterBy == bonus.getType()) == include))) {
                 bonusSum += bonus.getValue();
             }
         }
         
         Formation equipped = equippedFormation();
         if (
-                equipped != null 
-                && equipped.getBonusEffects().getStatBonus() != null 
-                && equipped.getBonusEffects().getStatBonus().getStatType() == StatType.Battle
-                && equipped.getBonusEffects().getStatBonus().getWhichBattleStat()  == stat
+                (filterBy == null || ((filterBy == BonusType.Raw) == include))
+                && equipped != null 
+                && equipped.getPassiveStatBonus() != null 
+                && equipped.getPassiveStatBonus().getStatType() == StatType.Battle
+                && equipped.getPassiveStatBonus().getWhichBattleStat()  == stat
             ) 
         {
-            return bonusSum + equipped.getBonusEffects().getStatBonus().getValue();
+            bonusSum += equipped.getPassiveStatBonus().getValue();
         }
         
         return bonusSum;
@@ -346,18 +442,18 @@ public class Unit extends JobClass {
     //Battle Stats
     public int getATK() {
         if (equippedFormula != null && equippedFormula.getOffensiveFormulaData() != null) {
-            return getETHER() + equippedFormula.getOffensiveFormulaData().getPow() + getTotalBonus(BattleStat.AttackPower);
+            return getETHER() + equippedFormula.getOffensiveFormulaData().getPow() + getTotalBonus(BattleStat.AttackPower) + ClassBattleBonus().get(BattleStat.AttackPower);
         }
         
-        return (equippedWeapon != null ? getSTR() + equippedWeapon.getWeaponData().getPow() : getSTR()) + getTotalBonus(BattleStat.AttackPower);
+        return (equippedWeapon != null ? getSTR() + equippedWeapon.getWeaponData().getPow() : getSTR()) + getTotalBonus(BattleStat.AttackPower) + ClassBattleBonus().get(BattleStat.AttackPower);
     }
     
-    public int getAccuracy() {
+    public int getAccuracy() { //add commander bonus
         if (getEquippedTool() != null) {
             return ((DamageTool)getEquippedTool()).getAcc() + (((getDEX() * 4) + getCOMP()) / 2) + ClassBattleBonus().get(BattleStat.Accuracy) + getTotalBonus(BattleStat.Accuracy);
         }
         return getTotalBonus(BattleStat.Accuracy); 
-    } //add commander bonus
+    }
     
     public int getEvasion() { return (((getAGI() * 3) + getCOMP()) / 2) + ClassBattleBonus().get(BattleStat.Evasion) + getTotalBonus(BattleStat.Evasion); } //add terrain bonus
     
@@ -444,7 +540,8 @@ public class Unit extends JobClass {
         
         baseStats.forEach((based) -> {
             int growth = personal_growth_rates.get(based) / 100;
-            if (1 + (int)(100 * Math.random()) <= personal_growth_rates.get(based) % 100) {
+            int remainderGrowth = personal_growth_rates.get(based) - (growth * 100);
+            if ((int)(100 * Math.random()) <= remainderGrowth) {
                 growth++;
             }
             
@@ -463,7 +560,7 @@ public class Unit extends JobClass {
         });
     }
     
-    public void levelUp(HashMap<BaseStat, Integer> additions) {
+    public void levelUp(HashMap<BaseStat, Integer> additions) { //manual level up
         baseStats.forEach((based) -> {
             stats.replace(based, stats.get(based) + additions.get(based));
         });

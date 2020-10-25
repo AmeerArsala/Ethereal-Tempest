@@ -6,7 +6,7 @@
 package maps.layout.tile;
 
 import com.google.gson.annotations.SerializedName;
-import maps.layout.occupant.TangibleUnit.UnitStatus;
+import etherealtempest.characters.Unit.UnitAllegiance;
 
 /**
  *
@@ -23,18 +23,18 @@ public class TileOptionData {
     }
     
     private TileType type;
-    private UnitStatus[] forAllegiances;
+    private UnitAllegiance[] forAllegiances;
         
-    public TileOptionData(TileType type, UnitStatus forAllegiances[]) {
+    public TileOptionData(TileType type, UnitAllegiance forAllegiances[]) {
         this.type = type;
         this.forAllegiances = forAllegiances;
     }
     
     public TileType getFunctionType() { return type; }
-    public UnitStatus[] getEligibleAllegiances() { return forAllegiances; }
+    public UnitAllegiance[] getEligibleAllegiances() { return forAllegiances; }
     
-    public boolean allegianceIsEligible(UnitStatus allegiance) {
-        for (UnitStatus st : forAllegiances) {
+    public boolean allegianceIsEligible(UnitAllegiance allegiance) {
+        for (UnitAllegiance st : forAllegiances) {
             if (st == allegiance) {
                 return true;
             }
@@ -43,8 +43,8 @@ public class TileOptionData {
         return false;
     }
     
-    public boolean alliedAllegianceIsEligible(UnitStatus allegiance) {
-        for (UnitStatus st : forAllegiances) {
+    public boolean alliedAllegianceIsEligible(UnitAllegiance allegiance) {
+        for (UnitAllegiance st : forAllegiances) {
             if (st.alliedWith(allegiance)) {
                 return true;
             }

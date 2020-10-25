@@ -1,0 +1,10 @@
+{
+  "template": {
+    "name": "Svardstav",
+    "desc": "A lance-like sword designed to combat cavalry foes.",
+    "Weight": 10,
+    "worth": 1000
+  },
+  "durability": 30.0,
+  "requiredLevel": 5
+}

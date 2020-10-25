@@ -1,5 +1,6 @@
 {
   "objectiveName": "Battle of Annihilation",
+  "weatherAndEffects": [ "Map\\FlameSparkField.json" ],
   "translations": [
     {
       "shorthand": "g",

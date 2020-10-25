@@ -14,7 +14,6 @@ import battle.Combatant.BaseStat;
 import battle.Combatant.BattleRole;
 import battle.DamageNumber.VisibilityState;
 import battle.StatArrowGroup.ArrowStat;
-import fundamental.tool.DamageTool;
 import fundamental.stats.Toll.Exchange;
 import fundamental.skill.Skill;
 import com.atr.jme.font.TrueTypeBMP;
@@ -101,12 +100,10 @@ public class Battle {
     private final PrebattleForecast forecast;
     private final List<Strike> strikes;
     
+    private List<Strike> actualStrikes;
+    
     private Combatant initiator, receiver;
     private Progress battleProgress;
-    
-    //private EffekseerControl effectControlInitiator, effectControlReceiver;
-    //private boolean initiatorControlAdded = false, receiverControlAdded = false;
-    //private final Node initiatorEffects = new Node(), receiverEffects = new Node();
     
     private Node gui, masterNode, actualGuiNode;
     private int strikeIndex = 0;
@@ -114,62 +111,23 @@ public class Battle {
     
     private float worldQuadWidth, worldQuadHeight;
     private DamageNumber dmgView = null;
-    private TrueTypeFont dmgFont;//, expFont, expFont2;
-    //private TrueTypeNode expTextInitiator, expTextReceiver;
+    private TrueTypeFont dmgFont;
     
-    public Battle(Conveyer data, int attackRange, Camera cam, Purpose P) {
+    public Battle(Conveyer data, PrebattleForecast battleForecast, Camera cam, Purpose P) {
         battleProgress = Progress.Fresh;
         info = data;
+        forecast = battleForecast;
         battleCamera = cam;
         battlePurpose = P;
         
-        boolean skill = false;
-        Combatant initTemp = new Combatant(info, BattleRole.Initiator), receiverTemp = new Combatant(info, BattleRole.Receiver);
-        initTemp.setExtraDamage(((DamageTool)initTemp.getUnit().getEquippedTool()).extraDamage);
-        receiverTemp.setExtraDamage(((DamageTool)receiverTemp.getUnit().getEquippedTool()).extraDamage);
-        if (battlePurpose == Purpose.SkillAttack) {
-            if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.HP) {
-                info.getUnit().subtractHP(info.getUnit().getToUseSkill().getToll().getValue());
-            } else if (info.getUnit().getToUseSkill().getToll().getType() == Exchange.TP) {
-                info.getUnit().subtractTP(info.getUnit().getToUseSkill().getToll().getValue());
-            }
-            
-            initTemp = new Combatant(info, BattleRole.Initiator);
-            skill = true;
-            initTemp.getUnit().getToUseSkill().getEffect().applyEffectsOnCombat(initTemp);
-            initTemp.setExtraDamage(initTemp.getUnit().getToUseSkill().getEffect().extraDamage() + ((DamageTool)initTemp.getUnit().getEquippedTool()).extraDamage);
-        } else if (battlePurpose == Purpose.EtherAttack) {
-            //info.getUnit().currentHP -= info.getUnit().getToUseFormula().getHPUsage();
-            //info.getUnit().currentTP -= info.getUnit().getToUseFormula().getTPUsage();
-            
-            initTemp.setHPtoSubtract(info.getUnit().getEquippedFormula().getHPUsage());
-            initTemp.setTPtoSubtract(info.getUnit().getEquippedFormula().getTPUsage());
-            
-            initTemp.setEffectControl(info.getUnit().getEquippedFormula().getControl());
-        }
+        Combatant c_initiator = forecast.getInitiatorForecast().getCombatant(), c_receiver = forecast.getReceiverForecast().getCombatant();
+        initiator = c_initiator;
+        receiver = c_receiver;
         
-        try {
-            receiverTemp.setHPtoSubtract(info.getEnemyUnit().getEquippedFormula().getHPUsage());
-            receiverTemp.setTPtoSubtract(info.getEnemyUnit().getEquippedFormula().getTPUsage());
-            
-            receiverTemp.setEffectControl(info.getEnemyUnit().getEquippedFormula().getControl());
-        }
-        catch (NullPointerException e) {}
+        boolean initiatorUsingSkill = initializeCombatant(initiator);
+        boolean receiverUsingSkill = initializeCombatant(receiver);
         
-        particleNode.attachChild(initTemp.getEffectsNode());
-        particleNode.attachChild(receiverTemp.getEffectsNode());
         particleNode.move(0, 0, 5.5f);
-        
-        forecast = 
-                new PrebattleForecast(
-                    initTemp,
-                    receiverTemp,
-                    info,
-                    attackRange,
-                    initTemp.getUnit().getToUseSkill()
-                );
-        initiator = forecast.getInitiatorForecast().getCombatant();
-        receiver = forecast.getReceiverForecast().getCombatant();
         
         if (!forecast.getReceiverForecast().canCounterattack) {
             receiver.BP = 0;
@@ -179,20 +137,40 @@ public class Battle {
         for (int k = 0; initiator.BP > 0 || receiver.BP > 0; k++) {
             if (k % 2 == 0) { //even; initiator's strike
                 if (initiator.BP > 0) {
-                    Strike event = new Strike(initiator, receiver, info, skill);
+                    Strike event = new Strike(initiator, receiver, info, initiatorUsingSkill);
                     strikes.add(event);
                     event.getExtraStrikes().forEach((S) -> { strikes.add(S); });
                     initiator.BP -= forecast.getInitiatorForecast().BPcostPerHit;
                 }
             } else { //odd; receiver's strike
                 if (receiver.BP > 0) {
-                    Strike event = new Strike(receiver, initiator, info, false);
+                    Strike event = new Strike(receiver, initiator, info, receiverUsingSkill);
                     strikes.add(event);
                     event.getExtraStrikes().forEach((S) -> { strikes.add(S); });
                     receiver.BP -= forecast.getReceiverForecast().BPcostPerHit;
                 }
             }
         }
+    }
+    
+    private boolean initializeCombatant(Combatant C) { //returns whether this combatant is using a skill in combat
+        if (C.getUnit().getToUseSkill() != null) {
+            if (C.getUnit().getToUseSkill().getToll().getType() == Exchange.HP) {
+                C.appendToBaseStat(BaseStat.currentHP, -C.getUnit().getToUseSkill().getToll().getValue());
+            } else if (C.getUnit().getToUseSkill().getToll().getType() == Exchange.TP) {
+                C.appendToBaseStat(BaseStat.currentTP, -C.getUnit().getToUseSkill().getToll().getValue());
+            }
+
+            return true;
+        } 
+        
+        if (C.getUnit().getEquippedFormula() != null) {
+            C.EtherInitialize();
+        }
+        
+        particleNode.attachChild(C.getEffectsNode());
+        
+        return false;
     }
     
     private int nextIndex() {
@@ -224,6 +202,7 @@ public class Battle {
         }
         
         if (battleProgress == Progress.Progressing && allowUpdate) {
+            //next
             if (strikes.get(strikeIndex).occurred || (strikes.get(strikeIndex).getStriker().figure.getProgress() == Progress.Finished && strikes.get(strikeIndex).getVictim().figure.getProgress() == Progress.Finished)) {
                 strikes.get(strikeIndex).occurred = true;
                 
@@ -235,7 +214,7 @@ public class Battle {
                 
                 strikeIndex++;
                 
-                if (strikeIndex >= strikes.size() || initiator.getBaseStat(BaseStat.currentHP) <= 0 || receiver.getBaseStat(BaseStat.currentHP) <= 0) {
+                if (strikeIndex >= strikes.size() || initiator.getBaseStat(BaseStat.currentHP) <= 0 || receiver.getBaseStat(BaseStat.currentHP) <= 0) { ///end
                     battleProgress = Progress.Finished;
                     battleState = BattleState.AfterStrikes;
                     initiator.applyAllStatsToUnit();
@@ -243,8 +222,9 @@ public class Battle {
                     initiator.getUnit().setToUseSkill(null);
                     initiator.figure.allowEffectUpdate = false;
                     receiver.figure.allowEffectUpdate = false;
+                    actualStrikes = strikes.subList(0, strikeIndex);
                     System.out.println("finished");
-                } else {
+                } else { //start strike
                     strikes.get(strikeIndex).getStriker().figure.getGeometry().setLocalTranslation(0, 0, 0.005f);
                     strikes.get(strikeIndex).getVictim().figure.getGeometry().setLocalTranslation(0, 0, 0f);
                     initiator.figure.getGeometry().move(-0.275f, 0f, 0f);
@@ -324,18 +304,15 @@ public class Battle {
                         if (!strikes.get(strikeIndex).strikeDidHit()) {
                             dmgView.setColor(ColorRGBA.White);
                             dmgView.setText("Miss!");
-                        } else if (strikes.get(strikeIndex).strikeWasParried()) {
-                            dmgView.setColor(new ColorRGBA(0.4f, 0.941f, 1f, 1f));
-                            dmgView.setText("Parry!");
                         }
                     }
                     
                     if (strikes.get(strikeIndex).strikeDidHit()) {
-                        strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, true, strikes.get(strikeIndex).strikeWasParried());
+                        strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, true);
                     } else {
                         if (strikeIndex + 1 < strikes.size() && strikes.get(strikeIndex + 1).getStriker().getUnit().getEquippedFormula() == null && !strikes.get(strikeIndex + 1).strikeIsCrit() && strikes.get(strikeIndex + 1).getStriker() != strikes.get(strikeIndex).getStriker()) {
                             if (strikes.get(strikeIndex).getVictim().figure.sInterlude.getProgress() != Progress.Finished) {
-                                strikes.get(strikeIndex).getVictim().figure.interlude(tpf, "dodge", false, false); //miss animation
+                                strikes.get(strikeIndex).getVictim().figure.interlude(tpf, "dodge", false); //miss animation
                             } else {
                                 if (!strikes.get(strikeIndex + 1).occurred) {
                                     strikes.get(strikeIndex + 1).getStriker().figure.setOnStrike(() -> {
@@ -354,7 +331,7 @@ public class Battle {
                                 
                             }
                         } else {
-                            strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, false, false); //miss frame
+                            strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, false); //miss frame
                         }
                     }
                     //add sound later
@@ -461,8 +438,8 @@ public class Battle {
                 }
                 
                 boolean initiatorDone, receiverDone;
-                initiatorDone = initiator.attemptLevelUpTransition();
-                receiverDone = receiver.attemptLevelUpTransition();
+                initiatorDone = initiator.attemptLevelUpTransition(tpf);
+                receiverDone = receiver.attemptLevelUpTransition(tpf);
                 
                 if (initiatorDone && receiverDone) {
                     battleState = BattleState.TransitionToLevelUp;
@@ -585,47 +562,21 @@ public class Battle {
                 }
             } else {
                 if (strikes.get(strikeIndex).strikeDidHit()) {
-                    if (strikes.get(strikeIndex).strikeWasParried()) {
-                        dmgView.setColor(new ColorRGBA(0.4f, 0.941f, 1f, 1f));
-                        dmgView.setText("Parry!");
-                    } else {
-                        dmgView.setColor(ColorRGBA.Red);
-                        dmgView.setText("" + strikes.get(strikeIndex).getDamage());
-                    }
+                    dmgView.setColor(ColorRGBA.Red);
+                    dmgView.setText("" + strikes.get(strikeIndex).getDamage());
                 } else {
                     dmgView.setColor(ColorRGBA.White);
                     dmgView.setText("Miss!");
                 }
             }
             
-            /*if (dmgView != null) {
-                dmgView.update(tpf);
-            } else {
-                dmgView = new DamageNumber("" + strikes.get(strikeIndex).getDamage(), gui, dmgFont);
-                dmgView.setTransitionState(TransitionState.TransitioningIn);
-                Vector3f localdims = gui.worldToLocal(new Vector3f(worldQuadWidth, worldQuadHeight, 1), null);
-                if (strikes.get(strikeIndex).getVictim().getUnit().getID() == initiator.getUnit().getID()) {
-                    dmgView.move(((50 - initiator.getUnit().getBattleConfig().getPercentWidth()) / -100f) * localdims.x, (initiator.getUnit().getBattleConfig().getPercentHeight() / 100f) * localdims.y, 1);
-                } else if (strikes.get(strikeIndex).getVictim().getUnit().getID() == receiver.getUnit().getID()) {
-                     dmgView.move(((50 - receiver.getUnit().getBattleConfig().getPercentWidth()) / 100f) * localdims.x, (receiver.getUnit().getBattleConfig().getPercentHeight() / 100f) * localdims.y, 1);
-                }
-                
-                if (!strikes.get(strikeIndex).strikeDidHit()) {
-                    dmgView.setColor(ColorRGBA.White);
-                    dmgView.setText("Miss!");
-                } else if (strikes.get(strikeIndex).strikeWasParried()) {
-                    dmgView.setColor(new ColorRGBA(0.4f, 0.941f, 1f, 1f));
-                    dmgView.setText("Parry!");
-                }
-            }*/
-            
             if (strikes.get(strikeIndex).strikeDidHit()) {
-                strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, true, strikes.get(strikeIndex).strikeWasParried());
+                strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, true);
             } else {
                 if (strikeIndex + 1 < strikes.size() && !strikes.get(strikeIndex + 1).strikeIsCrit() && strikes.get(strikeIndex + 1).getStriker() != strikes.get(strikeIndex).getStriker()) {
-                    strikes.get(strikeIndex).getVictim().figure.interlude(tpf, "dodge", false, false); //miss animation
+                    strikes.get(strikeIndex).getVictim().figure.interlude(tpf, "dodge", false); //miss animation
                 } else {
-                    strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, false, false); //miss frame
+                    strikes.get(strikeIndex).getVictim().figure.interlude(tpf, null, false); //miss frame
                 }
             }
             //add sound later
@@ -644,6 +595,8 @@ public class Battle {
     
     public PrebattleForecast getForecast() { return forecast; }
     public List<Strike> getStrikes() { return strikes; }
+    
+    public List<Strike> getActualStrikes() { return actualStrikes; }
     
     public Combatant getInitiator() { return initiator; }
     public Combatant getReceiver() { return receiver; }
@@ -1092,33 +1045,6 @@ public class Battle {
         return content;
     }
 
-    
-    public static void strikelog(Strike strike) {
-        String info = "";
-        
-        info += strike.getStriker().getUnit().getName() + " attacks!\n" + strike.getStriker().getUnit().getName();
-        
-        if (strike.strikeDidHit()) {
-            info += " hits!\n";
-            
-            if (strike.strikeIsCrit()) {
-                info += strike.getStriker().getUnit().getName() + " crits!\n";
-            } else {
-                info += strike.getStriker().getUnit().getName() + " doesn't crit\n";
-            }
-            
-            strike.getVictim().getUnit().subtractHP(strike.getDamage());
-            
-            info += strike.getStriker().getUnit().getName() + " does " + strike.getDamage() + " damage!\n";
-        } else {
-            info += " misses!\n";
-        }
-        
-        info += strike.getVictim().getUnit().getName() + " has " + strike.getVictim().getUnit().getStat(BaseStat.currentHP) + " HP remaining!\n";
-        
-        System.out.println(info);
-    }
-
 }
 
 class ShownCombatant {
@@ -1352,7 +1278,7 @@ class ShownCombatant {
         }
     }
     
-    public void interlude(float tpf, String impactType, boolean gotHit, boolean parried) {
+    public void interlude(float tpf, String impactType, boolean gotHit) {
         //System.out.println("interlude");
         
         if (gotHit && update2 && !update1 && sInterlude.getBarProgress() == Progress.Finished) {
@@ -1592,6 +1518,8 @@ class ShownCombatant {
         });
         
         character.levelUp(leveledStats); //apply those stats
+    
+        System.out.println(character.getMaxTP());
     }
     
     public boolean updateArrows(float tpf) {

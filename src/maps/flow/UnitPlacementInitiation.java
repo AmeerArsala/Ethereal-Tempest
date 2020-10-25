@@ -6,6 +6,9 @@
 package maps.flow;
 
 import java.util.ArrayList;
+import java.util.List;
+import maps.layout.occupant.Cursor;
+import maps.layout.occupant.MapEntity;
 import maps.layout.occupant.TangibleUnit;
 
 /**
@@ -13,5 +16,5 @@ import maps.layout.occupant.TangibleUnit;
  * @author night
  */
 public interface UnitPlacementInitiation {
-    public void initiation(ArrayList<TangibleUnit> units);
+    public void initiation(ArrayList<TangibleUnit> units, List<MapEntity> mapEntities);
 }

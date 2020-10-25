@@ -16,10 +16,8 @@ import java.util.List;
  * @author night
  */
 public class Bonus {
-    public enum BonusType {
+    public enum BonusType { //how long it lasts
         @SerializedName("Raw") Raw, //always active
-        @SerializedName("StartOfPlayerTurn") StartOfPlayerTurn,
-        @SerializedName("StartOfEnemyTurn") StartOfEnemyTurn,
         @SerializedName("FullTurn") FullTurn, //like a rally
         @SerializedName("ThroughNextAction") ThroughNextAction
     }
@@ -57,6 +55,10 @@ public class Bonus {
     public BonusType getType() { return bonusType; }
     public BaseStat getBaseStat() { return baseStatBonus; }
     public BattleStat getBattleStat() { return battleStatBonus; }
+    
+    public StatType getStatType() {
+        return baseStatBonus != null ? StatType.Base : StatType.Battle;
+    }
     
     public StatBundle toStatBundle() {
         if (baseStatBonus != null) { //base

@@ -12,9 +12,7 @@ import battle.Combatant.BattleStat;
 import fundamental.stats.Toll;
 import fundamental.item.Item;
 import fundamental.item.ConsumableItem;
-import fundamental.item.ItemEffect;
 import fundamental.item.Weapon;
-import fundamental.ability.Ability;
 import fundamental.formation.Formation;
 import fundamental.formation.FormationTechnique;
 import fundamental.formula.Formula;
@@ -97,10 +95,6 @@ public class Catalog {
     //public static final List<Ability> emptyAbilities() { return Arrays.asList(new Ability(false), new Ability(false), new Ability(false), new Ability(false), new Ability(false), new Ability(false)); } //6 abilities max
     //public static final List<Formula> emptyFormulas() { return Arrays.asList(new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula(), new Formula()); } //15 formulas max
     
-    //private static Map currentMap;
-    
-    //public static void setCurrentMap(Map M) { currentMap = M; }
-    
     public static <K> List<K> fillWith(List<K> arr, List<K> replacements) {
         for (int i = 0; i < replacements.size(); i++) {
             arr.set(i, replacements.get(i));
@@ -108,7 +102,6 @@ public class Catalog {
         
         return arr;
     }
-
     
     public static <K> List<K> replaceArrSlotWith(List<K> arr, K replacement, int index) {
         List<K> arr2 = arr;
@@ -131,183 +124,6 @@ public class Catalog {
         return furthest;
     }
     
-    public static final Weapon[] WeaponCatalog = 
-    { //  Weapon(String name, String description, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, double durability, String[] eff, int[] bonus, int requiredLevel, String prf, int worth)
-      new Weapon(
-              new Item("Firangi", //weapon name
-                      "An extremely rare offensive sword of unknown origin. Many are found lying on the ground or at the bottom of a pond.",  //description
-                      6, //weight 
-                      5000 //worth
-              ), 
-              new DamageTool(
-                      8,  //pow
-                      95, //acc
-                      15, //crit 
-                      Arrays.asList(1), //range
-                      Arrays.asList( //bonuses when equipped
-                              new Bonus(1, BaseStat.ether),
-                              new Bonus(5, BaseStat.comprehension),
-                              new Bonus(1, BaseStat.dexterity),
-                              new Bonus(1, BaseStat.defense),
-                              new Bonus(1, BaseStat.resilience)
-                      ),
-                      "sword", //type
-                      "metal", //attribute
-                      new String[]{"cavalry", "mechanism"} //what it is effective against
-              ),
-              45.0, //durability
-              0, //required level
-              "Morva" //prf
-        ),
-      new Weapon(
-              new Item("Cutlass", //weapon name
-                      "An amateur sword designed for close-quarters fighting that is cheap to make. Favored in naval battles.",  //description
-                      5, //weight 
-                      500 //worth
-              ), 
-              new DamageTool(
-                      7,  //pow
-                      90, //acc
-                      0, //crit 
-                      Arrays.asList(1), //range
-                      Arrays.asList( //bonuses when equipped
-                      ),
-                      "sword", //type
-                      "metal", //attribute
-                      effAgainstNothing //what it is effective against
-              ),
-              40.0, //durability
-              0, //required level
-              "None" //prf
-        ),
-      new Weapon(
-              new Item("Rebel Pike", //weapon name
-                      "A pike that becomes stronger when the user's HP is less than or equal to half.",  //description
-                      9, //weight 
-                      1000 //worth
-              ), 
-              new DamageTool(
-                      11,  //pow
-                      75, //acc
-                      5, //crit 
-                      Arrays.asList(1), //range
-                      Arrays.asList( //bonuses when equipped
-                      ),
-                      "polearm", //type
-                      "metal", //attribute
-                      effAgainstNothing //what it is effective against
-              ),
-              35.0, //durability
-              5, //required level
-              "None" //prf
-        ),
-      new Weapon(
-              new Item("Copper Shortsword", //weapon name
-                      "A basic shortsword designed for quick cuts and maneuvers.",  //description
-                      3, //weight 
-                      300 //worth
-              ), 
-              new DamageTool(
-                      5,  //pow
-                      100, //acc
-                      0, //crit 
-                      Arrays.asList(1), //range
-                      Arrays.asList( //bonuses when equipped
-                      ),
-                      "sword", //type
-                      "metal", //attribute
-                      effAgainstNothing //what it is effective against
-              ),
-              40.0, //durability
-              0, //required level
-              "None" //prf
-        ),
-      new Weapon(
-              new Item("Steel Broadsword", //weapon name
-                      "A strong sword considered an essential by skilled swordsman.",  //description
-                      8, //weight 
-                      700 //worth
-              ), 
-              new DamageTool(
-                      9,  //pow
-                      85, //acc
-                      3, //crit 
-                      Arrays.asList(1), //range
-                      Arrays.asList( //bonuses when equipped
-                      ),
-                      "sword", //type
-                      "metal", //attribute
-                      effAgainstNothing //what it is effective against
-              ),
-              35.0, //durability
-              2, //required level
-              "None" //prf
-        ),
-      new Weapon(
-              new Item("Svardstav", //weapon name
-                      "A lance-like sword designed to combat cavalry foes.",  //description
-                      10, //weight 
-                      1000 //worth
-              ), 
-              new DamageTool(
-                      8,  //pow
-                      75, //acc
-                      0, //crit 
-                      Arrays.asList(1), //range
-                      Arrays.asList( //bonuses when equipped
-                      ),
-                      "sword", //type
-                      "metal", //attribute
-                      new String[]{"cavalry"} //what it is effective against
-              ),
-              30.0, //durability
-              5, //required level
-              "None" //prf
-        ),
-      new Weapon(
-              new Item("Francisca", //weapon name
-                      "An axe that is extremely popular amongst peasants, as it is both cheap and effective.",  //description
-                      11, //weight 
-                      300 //worth
-              ), 
-              new DamageTool(
-                      9,  //pow
-                      70, //acc
-                      0, //crit 
-                      Arrays.asList(1), //range
-                      Arrays.asList( //bonuses when equipped
-                      ),
-                      "axe", //type
-                      "metal", //attribute
-                      effAgainstNothing //what it is effective against
-              ),
-              35.0, //durability
-              0, //required level
-              "None" //prf
-        ),
-        new Weapon(
-              new Item("Glaive", //weapon name
-                      "A powerful lance used for cutting down foes.",  //description
-                      9, //weight 
-                      1500 //worth
-              ), 
-              new DamageTool(
-                      12,  //pow
-                      80, //acc
-                      5, //crit 
-                      Arrays.asList(1), //range
-                      Arrays.asList( //bonuses when equipped
-                      ),
-                      "polearm", //type
-                      "metal", //attribute
-                      effAgainstNothing //what it is effective against
-              ),
-              40.0, //durability
-              10, //required level
-              "None" //prf
-        )
-    };
-    
     public static Formula[] FormulaCatalog = 
     { //    Formula(String name, String description, FormulaType FT, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, String[] eff, int[] bonus, int requiredLevel, int hpUsage, int tpUsage)
       //    Formula(String name, String description, FormulaType FT, String type, String attr, int mt, int hit, int wt, int crt, boolean[] rng, String[] eff, int[] bonus, int requiredLevel, int hpUsage, int tpUsage, Talent extraEffect)  
@@ -321,10 +137,10 @@ public class Catalog {
                         80, //acc
                         5, //crit
                         Arrays.asList(1, 2), //range
-                        Arrays.asList(), //bonuses
                         "delta ether",
                         "wind",
-                        effAgainstNothing
+                        effAgainstNothing,
+                        null
                 ),
                 ToolType.Attack,
                 new Toll(Exchange.TP, 5)
@@ -443,52 +259,12 @@ public class Catalog {
             )
     };
     
-    public static final ItemEffect[] ItemEffectCatalog = 
-    {
-        new ItemEffect(ToolType.SupportSelf, 100) {
-            @Override
-            public List<Toll> restoration(Unit unit) {
-                return Arrays.asList(new Toll(Exchange.HP, 5));
-            }
-
-            @Override
-            public List<Bonus> bonuses() {
-                return Arrays.asList();
-            }
-
-            @Override
-            public boolean canBeUsed(Conveyer C) {
-                return C.getUnit().getStat(BaseStat.currentHP) < C.getUnit().getStat(BaseStat.maxHP);
-            }
-            
-            @Override
-            public void enactEffect(Conveyer C) {
-                //make a request to do animation on map screen
-            }
-        }
-    };
-    
-    public static final Item[] ItemCatalog = 
-    {
-        
-    };
-    
-    public static final ConsumableItem[] ConsumableItemCatalog = 
-    { //    ConsumableItem(String consumableName, String description, int weight, int worth, int maxUses, ItemEffect effect, String iconPath)
-        new ConsumableItem("Apple", "Restores 5 health\nWeight: 1", 1, 15, 3, ItemEffectCatalog[0], "apple.png")
-    };
-    
-    public static final Ability[] AbilityCatalog = 
-    {
-    
-    };
-    
     public static final FormationTechnique[] FormationTechniqueCatalog = {
         new FormationTechnique
             (
                 "Fall Back", 
                 "Both the user and its targeted ally, who is adjacent to the user, move one space backwards (in other words, one space in the direction of the user)",
-                230 //priority for AI i think
+                230 //priority for AI
             ) 
         {                 
             @Override
@@ -566,9 +342,9 @@ public class Catalog {
         //  Formation(String name, String desc, int tier, RawBroadBonus bonus, ToolType toolType, List<Integer> ranges, List<FormationTechnique> techniques)
         new Formation(
                 "Trigonal Planar", 
-                "A basic 3-point formation", 
+                "A basic 3-point formation",
                 1, //tier 1
-                new RawBroadBonus(new StatBundle(BaseStat.mobility, 1)), //boosts mobility by 1; Sagittarius
+                new StatBundle(BaseStat.mobility, 1), //boosts mobility by 1; Sagittarius
                 ToolType.SupportAlly,
                 Arrays.asList(1), //1 range
                 Arrays.asList(FormationTechniqueCatalog[0])
@@ -613,9 +389,9 @@ public class Catalog {
                     new StatBundle(BaseStat.physique, 15),  //physique
                     new StatBundle(BaseStat.adrenaline, 50)  //adrenaline
                 ),
-                Arrays.asList(WeaponCatalog[0].getNewWeaponInstance(), ConsumableItemCatalog[0].newItemInstance()), //base inventory
+                Arrays.asList(Weapon.Firangi(), ConsumableItem.Apple()), //base inventory
                 Arrays.asList(FormulaCatalog[0]), //base formulas
-                fillWith(emptyTalents(), Arrays.asList(Talent.EyeOfTheStorm(), Talent.Opportunist())), //base talents
+                fillWith(emptyTalents(), Arrays.asList(Talent.EyeOfTheStorm(), Talent.Opportunist(), Talent.Optimism())), //base talents
                 Arrays.asList(), //base abilities
                 Arrays.asList(SkillCatalog[0]), //base skills
                 Arrays.asList(FormationCatalog[0]), //base formations
@@ -641,7 +417,7 @@ public class Catalog {
                     new StatBundle(BaseStat.adrenaline, 0)  //adrenaline
                 ),
                 ((HashMap<BaseStat, Integer>)Unit.DEFAULT_ENEMY_GROWTH_RATES.clone()),
-                Arrays.asList(WeaponCatalog[6].getNewWeaponInstance()), 
+                Arrays.asList(Weapon.Francisca()), 
                 Arrays.asList(), 
                 emptyTalents(), 
                 Arrays.asList(), 
@@ -650,16 +426,5 @@ public class Catalog {
                 false
         )
     };
-    
-    //TODO: add an arraylist catalog for maps too
-    
-    public static <T> T findSlotByName(String s, T[] search) {
-        for (T slot : search) {
-            if (s.equalsIgnoreCase(slot.toString())) {
-                return slot;
-            }
-        }
-        return search[0];
-    }
 }
 

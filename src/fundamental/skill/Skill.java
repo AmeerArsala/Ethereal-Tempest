@@ -7,12 +7,12 @@ package fundamental.skill;
 
 import fundamental.stats.Toll;
 import etherealtempest.MasterFsmState;
+import etherealtempest.characters.Unit.UnitAllegiance;
 import fundamental.Associated;
 import fundamental.tool.Tool;
 import fundamental.tool.Tool.ToolType;
 import maps.layout.Coords;
 import maps.layout.occupant.TangibleUnit;
-import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
 import maps.layout.occupant.VenturePeek;
 
@@ -45,7 +45,7 @@ public class Skill extends Associated {
     
     public Toll getToll() { return info; }
     
-    public boolean isAvailableAt(Coords pos, int layer, UnitStatus allegiance, Tool tool) { 
+    public boolean isAvailableAt(Coords pos, int layer, UnitAllegiance allegiance, Tool tool) { 
         Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
         for (Integer range : tool.getRange()) {
             for (Coords point : VenturePeek.coordsForTilesOfRange(range, pos, layer)) {

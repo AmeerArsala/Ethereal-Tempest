@@ -5,12 +5,7 @@
  */
 package general.visual;
 
-import com.jme3.math.FastMath;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.simsilica.lemur.Container;
-import com.simsilica.lemur.Panel;
 import general.visual.VisualTransition.Progress;
 
 /**
@@ -20,30 +15,25 @@ import general.visual.VisualTransition.Progress;
 public abstract class Transition {
     protected Progress trProgress = Progress.Fresh;
     protected Spatial target;
-    protected float endVal = -1, penny = 0, maxFrame = 30, scaled = 0, coefficient; //half a second by default
+    protected float endVal = -1, scaled = 0, counter = 0, maxLength, coefficient; //half a second by default
     
     public abstract int getID();
-    public abstract void update();
+    public abstract void update(float tpf);
     
-    public void update(Spatial focus) {
+    public void update(Spatial focus, float tpf) {
         if (trProgress == Progress.Progressing) {
             if (target != focus) {
                 target = focus;
             }
-            update();
-            penny++;
-            if (endVal > 0) {
-                if (penny == maxFrame /*|| coefficient == endVal * maxFrame * scaled*/) {
-                    trProgress = Progress.Finished;
-                    penny = 0;
-                }
-            } else {
-                if (coefficient % maxFrame == 0) {
-                    trProgress = Progress.Finished;
-                    penny = 0;
-                    //System.out.println("transition finished");
-                }
+            
+            update(tpf);
+            
+            if (counter >= maxLength) {
+                trProgress = Progress.Finished;
+                //System.out.println("Transition Finished.");
             }
+            
+            counter += tpf;
         }
     }
     
@@ -53,7 +43,7 @@ public abstract class Transition {
     }
     
     public Transition setLength(float seconds) {
-        maxFrame = seconds * 60f;
+        maxLength = seconds;
         return this;
     }
     
@@ -68,19 +58,17 @@ public abstract class Transition {
     }
     
     public float getLength() {
-        return maxFrame / 60f;
+        return maxLength;
     }
     
     public float getNextScale() {
-        return coefficient * (1f / maxFrame);
+        return coefficient * maxLength;
     }
-    
-    public void setMaxFrame(float max) { maxFrame = max; }
     
     public void setProgress(Progress P) {
         trProgress = P;
         if (P == Progress.Progressing) {
-            coefficient = maxFrame * scaled;
+            coefficient = maxLength * scaled;
         }
     }
     

@@ -19,15 +19,8 @@ public class DamageTool extends Tool {
     
     public int extraDamage = 0;
     
-    public DamageTool(int pwr, int accuracy, int crt, List<Integer> range, List<Bonus> bonuses, String toolType, String attr, String[] eff) { //with neither skill nor talent
-        super(crt, range, bonuses, attr, toolType);
-        Pow = pwr;
-        Acc = accuracy;
-        effect = eff;
-    }
-    
-    public DamageTool(int pwr, int accuracy, int crt, List<Integer> range, List<Bonus> bonuses, String toolType, String attr, String[] eff, RawBroadBonus adv) { //with both skill and talent
-        super(crt, range, bonuses, attr, toolType, adv);
+    public DamageTool(int pwr, int accuracy, int crt, List<Integer> range, String toolType, String attr, String[] eff, RawBroadBonus adv) { //with both skill and talent
+        super(crt, range, adv, attr, toolType);
         Pow = pwr;
         Acc = accuracy;
         effect = eff;
@@ -39,7 +32,7 @@ public class DamageTool extends Tool {
     }
     
     public DamageTool getNewInstance() {
-        return new DamageTool(Pow, Acc, CRIT, ranges, passiveBonusesOnEquip, type, attribute, effect, new RawBroadBonus(onEquipTalent, onEquipSkill, onEquipAbility)).setExtraDamage(extraDamage);
+        return new DamageTool(Pow, Acc, CRIT, ranges, type, attribute, effect, new RawBroadBonus(onEquipTalent, onEquipSkill, onEquipAbility)).setExtraDamage(extraDamage);
     }
     
     public String[] effective() { return effect; }

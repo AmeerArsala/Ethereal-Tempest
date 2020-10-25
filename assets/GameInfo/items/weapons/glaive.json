@@ -1,0 +1,10 @@
+{
+  "template": {
+    "name": "Glaive",
+    "desc": "A powerful lance used for cutting down foes.",
+    "Weight": 9,
+    "worth": 1500
+  },
+  "durability": 40.0,
+  "requiredLevel": 10
+}

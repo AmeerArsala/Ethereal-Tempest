@@ -1,0 +1,11 @@
+{
+  "template": {
+    "name": "Firangi",
+    "desc": "An extremely rare offensive sword of unknown origin. Many are found lying on the ground or at the bottom of a pond.",
+    "Weight": 6,
+    "worth": 5000
+  },
+  "durability": 45.0,
+  "requiredLevel": 0,
+  "prf": "Morva"
+}

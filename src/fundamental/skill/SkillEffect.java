@@ -6,14 +6,12 @@
 package fundamental.skill;
 
 import battle.Combatant;
-import battle.Combatant.BattleStat;
 import etherealtempest.info.Conveyer;
 import battle.Strike;
-import fundamental.stats.Bonus;
 import fundamental.stats.Bonus.StatType;
 import fundamental.stats.StatBundle;
+import fundamental.talent.TalentConcept;
 import fundamental.talent.TalentCondition.Occasion;
-import fundamental.talent.TalentEffect;
 import fundamental.tool.Tool;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,8 +24,7 @@ public abstract class SkillEffect {
     protected Conveyer conv;
     protected Combatant user, opponent;
     
-    protected final Occasion occasion;
-    protected final TalentEffect effect;
+    protected final TalentConcept effect;
     
     private final List<Integer> extraRange;
     private final List<StatBundle> buffs;
@@ -38,7 +35,6 @@ public abstract class SkillEffect {
         this.extraRange = extraRange;
         this.buffs = buffs;
         
-        occasion = null;
         effect = null;
     }
     
@@ -49,20 +45,17 @@ public abstract class SkillEffect {
             extraRange.add(i);
         }
         
-        occasion = null;
         effect = null;
     }
     
-    public SkillEffect(List<Integer> extraRange, List<StatBundle> buffs, Occasion occasion, TalentEffect effect) {
+    public SkillEffect(List<Integer> extraRange, List<StatBundle> buffs, TalentConcept effect) {
         this.extraRange = extraRange;
         this.buffs = buffs;
-        this.occasion = occasion;
         this.effect = effect;
     }
     
-    public SkillEffect(int extra_range, List<StatBundle> buffs, Occasion occasion, TalentEffect effect) {
+    public SkillEffect(int extra_range, List<StatBundle> buffs, TalentConcept effect) {
         this.buffs = buffs;
-        this.occasion = occasion;
         this.effect = effect;
         
         extraRange = new ArrayList<>();
@@ -74,6 +67,10 @@ public abstract class SkillEffect {
     public SkillEffect setExtraHitsDescription(String extraHitsDesc) {
         this.extraHitsDesc = extraHitsDesc;
         return this;
+    }
+    
+    public TalentConcept getTalentConcept() {
+        return effect;
     }
     
     //OVERRIDE THIS WHEN NEEDED
@@ -136,12 +133,14 @@ public abstract class SkillEffect {
             description += "Extra Damage: " + extradmg;
         }
         
-        String extraHits;
+        String extraHits = "";
         if (extraHitsDesc.length() > 0) {
             extraHits = extraHitsDesc;
         } else {
             int extra = extraHits();
-            extraHits = extra > 0 ? ("Strikes " + (extra + 1) + " times in succession.") : "";
+            if (extra > 0) {
+                extraHits = extra > 0 ? ("Strikes " + (extra + 1) + " times in succession.") : "";
+            }
         }
         
         return description + extraHits;

@@ -7,16 +7,17 @@ package fundamental.formation;
 
 import battle.Combatant.BaseStat;
 import etherealtempest.MasterFsmState;
+import etherealtempest.characters.Unit.UnitAllegiance;
 import etherealtempest.info.Conveyer;
 import fundamental.Associated;
 import fundamental.stats.Bonus.StatType;
 import fundamental.stats.RawBroadBonus;
+import fundamental.stats.StatBundle;
 import fundamental.tool.Tool.ToolType;
 import java.util.HashMap;
 import java.util.List;
 import maps.layout.Coords;
 import maps.layout.occupant.TangibleUnit;
-import maps.layout.occupant.TangibleUnit.UnitStatus;
 import maps.layout.tile.Tile;
 import maps.layout.occupant.VenturePeek;
 
@@ -44,22 +45,22 @@ public class Formation extends Associated {
     
     private String formationType;
     private int tier;
-    private RawBroadBonus bonus;
+    private StatBundle statBonus;
     
     private List<FormationTechnique> techniques;
     private List<Integer> ranges;
     
     private ToolType toolType;
     
-    public Formation(String name, String desc, int tier, RawBroadBonus bonus, ToolType toolType, List<Integer> ranges, List<FormationTechnique> techniques) {
+    public Formation(String name, String desc, int tier, StatBundle statBonus, ToolType toolType, List<Integer> ranges, List<FormationTechnique> techniques) {
         super(name, desc);
         this.tier = tier;
         this.techniques = techniques;
         this.toolType = toolType;
         this.ranges = ranges;
-        this.bonus = bonus;
-        if (bonus.getStatBonus() != null && bonus.getStatBonus().getStatType() == StatType.Base) {
-            formationType = typeMap.get(bonus.getStatBonus().getWhichBaseStat());
+        this.statBonus = statBonus;
+        if (statBonus != null && statBonus.getStatType() == StatType.Base) {
+            formationType = typeMap.get(statBonus.getWhichBaseStat());
         } else {
             formationType = "Wildcard";
         }
@@ -73,7 +74,7 @@ public class Formation extends Associated {
     
     public int getTier() { return tier; }
     
-    public RawBroadBonus getBonusEffects() { return bonus; }
+    public StatBundle getPassiveStatBonus() { return statBonus; }
     
     public ToolType getToolType() { return toolType; }
     
@@ -92,7 +93,7 @@ public class Formation extends Associated {
         return highest;
     }
     
-    public boolean isAvailableAt(Coords pos, int layer, UnitStatus allegiance) { 
+    public boolean isAvailableAt(Coords pos, int layer, UnitAllegiance allegiance) { 
         Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
         for (Integer range : ranges) {
             for (Coords point : VenturePeek.coordsForTilesOfRange(range, pos, layer)) {
@@ -108,12 +109,7 @@ public class Formation extends Associated {
     
     @Override
     public String toString() {
-        String description = name + "\n \n" + desc + "\n \n";
-        if (bonus != null) {
-            return description + bonus.toString();
-        }
-        
-        return description;
+        return name + "\n \n" + desc + "\n \n";
     }
     
 }

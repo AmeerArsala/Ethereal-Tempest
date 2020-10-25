@@ -8,31 +8,32 @@ package maps.state;
 import battle.Battle;
 import battle.Battle.BattleState;
 import battle.Combatant.BaseStat;
+import battle.forecast.PrebattleForecast;
 import etherealtempest.info.Catalog;
 import etherealtempest.info.Conveyer;
 
 import com.atr.jme.font.asset.TrueTypeLoader;
+import com.jme.effekseer.EffekseerRenderer;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
-import com.jme3.input.FlyByCamera;
+import com.jme3.system.AppSettings;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
 import com.jme3.export.Savable;
+import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
-import com.jme3.light.Light;
 
 import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
@@ -52,7 +53,8 @@ import java.util.List;
 import jme3tools.savegame.SaveGame;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
-import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.texture.Image;
+import com.jme3.texture.TextureArray;
 import com.jme3.util.SkyFactory;
 import com.jme3.util.SkyFactory.EnvMapType;
 
@@ -60,7 +62,6 @@ import maps.layout.occupant.Cursor;
 import maps.layout.Map;
 import maps.ui.StatScreen;
 import maps.layout.occupant.TangibleUnit;
-import maps.layout.occupant.TangibleUnit.UnitStatus;
 import misc.ViewPortAnimation;
 import etherealtempest.FSM;
 import etherealtempest.FSM.CursorState;
@@ -68,10 +69,13 @@ import etherealtempest.FSM.MapFlowState;
 import etherealtempest.FSM.UnitState;
 import etherealtempest.FsmState;
 import etherealtempest.MasterFsmState;
+import etherealtempest.characters.Unit.UnitAllegiance;
 import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
+import maps.flow.Objective;
 import maps.layout.Coords;
 import maps.layout.MapData;
+import maps.layout.occupant.MapEntity;
 
 /**
  *
@@ -84,11 +88,14 @@ public class TestMap extends AbstractAppState {
     private final InputManager inputManager;
     private final ActionListener alU;
     private final AnalogListener analogListener;
+    private final AppSettings settings;
     private Camera cam, fightCam;
     private AssetManager assetManager;
     private AppStateManager stManager;
     private RenderManager renderManager;
-    private ViewPort screenView;
+    private ViewPort screenView, mapView;
+    
+    private EffekseerRenderer effekseerRenderer;
     
     private FlyByCamera flCam;
     private Map map00;
@@ -98,7 +105,7 @@ public class TestMap extends AbstractAppState {
     protected ActionMenu postAction;
     protected StatScreen stats;
     protected Battle currentBattle;
-    protected MapFlow mapFlow = new MapFlow(Arrays.asList(Turn.Player, Turn.Enemy));
+    protected MapFlow mapFlow;
     protected ViewPortAnimation transitionToFight;
     protected Vector3f worldUpVector = new Vector3f(0, 1, 0);
     
@@ -112,7 +119,7 @@ public class TestMap extends AbstractAppState {
                 localGuiNode.setLocalTranslation(10, 760, 0);
                 localGuiNode.attachChild(postAction);
                 
-                postAction.setPos(new Coords(0, 0)); //remove later
+                postAction.setPos(new Coords(0, 0), 0); //remove later
                 postAction.setLocalTranslation((cam.getWidth() / 8) + 600, -150, postAction.getNode().getLocalTranslation().z);
                 postAction.setStateIfAllowed(
                         new MenuState(st.getEnum()).setConveyer(
@@ -124,12 +131,22 @@ public class TestMap extends AbstractAppState {
                 );
                 
                 state = new MasterFsmState().setAssetManager(assetManager);
-            } 
+            } else if (st.getEnum() != MapFlowState.PostActionMenuOpened && st.getEnum() != MapFlowState.GuiClosed) {
+                mapFlow.getFSM().setNewStateIfAllowed(st);
+                
+                switch (st.getEnum()) {
+                    case PreBattle:
+                        initializeBattle();
+                        break;
+                    default:
+                        break;
+                }
+            }
         }
         
     };
     
-    public TestMap(SimpleApplication app, Camera cm, FlyByCamera fyCam) {
+    public TestMap(SimpleApplication app, Camera cm, FlyByCamera fyCam, AppSettings appSettings) {
         app0 = app;
         
         rootNode = app.getRootNode();
@@ -139,15 +156,17 @@ public class TestMap extends AbstractAppState {
         inputManager = app.getInputManager();
         renderManager = app.getRenderManager();
         
+        settings = appSettings;
+        
         cam = cm;
         cam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
+        
         flCam = fyCam;
         
         flCam.setEnabled(false);
         
-        fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
         stats = new StatScreen(app.getAssetManager());
-        //mapcatalog = new Catalog(app.getAssetManager(), new Material(assetManager,"Common/MatDefs/Misc/Unshaded.j3md"));
+
         //audioRenderer = app.getAudioRenderer();
         
         //initialize gui
@@ -161,6 +180,10 @@ public class TestMap extends AbstractAppState {
         GuiGlobals.getInstance().setCursorEventsEnabled(false);
         
         assetManager.registerLoader(TrueTypeLoader.class, "ttf");
+        
+        /*mapView = renderManager.createMainView("Map View", cam);
+        cam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
+        mapView.setClearFlags(true, true, true);*/
         
         this.analogListener = new AnalogListener() {
             @Override
@@ -287,44 +310,63 @@ public class TestMap extends AbstractAppState {
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
         
+        effekseerRenderer = EffekseerRenderer.addToViewPort(stManager, app0.getViewPort(), assetManager, settings.isGammaCorrection());
+        
         Catalog.FormulaCatalog[0].initializeAnimation(assetManager); //TODO: FIX THIS
         
-        initMap();
         initMappers();
+        initMap();
+        
+        pCursor.setPosition(mapFlow.getUnits().get(0).getPosX(), mapFlow.getUnits().get(0).getPosY(), 0); //change position later
     }
     
     public void initMap() {
-        map00 = new Map("test map", 16, 16, 1, MapData.deserializePreset("TestMap"), assetManager);
+        MapData mapData = MapData.deserializePreset("TestMap");
+        
+        map00 = new Map("test map", 16, 16, 1, mapData, assetManager);
         localRootNode.attachChild(map00.getMiscNode());
         localRootNode.attachChild(map00.getTileNode());
-        
         MasterFsmState.setCurrentDefaultMap(map00);
         
-        //add units
-        mapFlow.initialize((ArrayList<TangibleUnit> units) -> {
+        mapFlow = new MapFlow(Arrays.asList(Turn.Player, Turn.Enemy), mapData.retrieveObjective(), localGuiNode, assetManager);
+        
+        pCursor = mapFlow.getCursor();
+        map00.generateExtra(assetManager, mapData, pCursor);
+        localRootNode.attachChild(pCursor);
+        
+        //initialize what's going on in the map
+        mapFlow.initialize((ArrayList<TangibleUnit> units, List<MapEntity> mapEntities) -> {
             units.add(new TangibleUnit(Catalog.UnitCatalog[0], assetManager));
-            units.get(0).unitStatus = UnitStatus.Player;
+            units.get(0).unitStatus = UnitAllegiance.Player;
             units.get(0).hasStashAccess = true;
             units.get(0).isLeader = true;
             
             units.add(new TangibleUnit(Catalog.UnitCatalog[1], assetManager));
-            units.get(1).unitStatus = UnitStatus.Enemy;
+            units.get(1).unitStatus = UnitAllegiance.Enemy;
             
             units.add(new TangibleUnit(Catalog.UnitCatalog[1], assetManager));
-            units.get(2).unitStatus = UnitStatus.Enemy;
+            units.get(2).unitStatus = UnitAllegiance.Enemy;
             
             units.add(new TangibleUnit(Catalog.UnitCatalog[1], assetManager));
-            units.get(3).unitStatus = UnitStatus.Enemy;
+            units.get(3).unitStatus = UnitAllegiance.Enemy;
+            
+            units.add(new TangibleUnit(Catalog.UnitCatalog[1], assetManager));
+            units.get(4).unitStatus = UnitAllegiance.Player;
             
             for (int k = 0; k < units.size(); k++) {
                 localRootNode.attachChild(units.get(k).getNode());
-                units.get(k).remapPositions((int)(1 + (8 * Math.random())), (int)(1 + (10 * Math.random())), 0, map00);
+                
+                int x = (int)(16 * Math.random());
+                int y = (int)(16 * Math.random());
+                
+                while (map00.fullmap[0][x][y].isOccupied) { //no spawning in the same tile
+                    x = (int)(16 * Math.random());
+                    y = (int)(16 * Math.random());
+                }
+                
+                units.get(k).remapPositions(x, y, 0, map00);
             }
         });
-        
-        pCursor = new Cursor(assetManager);
-        pCursor.setPosition(5, 2, 0); //change position later
-        localRootNode.attachChild(pCursor);
         
         initializePostMoveMenu();
         
@@ -333,6 +375,9 @@ public class TestMap extends AbstractAppState {
         Quaternion cameraRotation = new Quaternion();
         cameraRotation.fromAngles(FastMath.PI / 3, FastMath.PI / 2, 0);
         cam.setRotation(cameraRotation);
+        
+        fsm.setNewStateIfAllowed(new MasterFsmState());
+        mapFlow.goToNextPhase();
     }
     
     public void initializePostMoveMenu() {
@@ -456,7 +501,7 @@ public class TestMap extends AbstractAppState {
     public void update(float tpf) {
         int fps = (int)(1 / tpf);
         
-        postAction.update(1f / 60f);
+        postAction.update(tpf);
         pCursor.update(tpf, ((MasterFsmState)fsm.getState()));
         
         if (accumulatedTPF >= (1f / 60f)) {
@@ -472,9 +517,7 @@ public class TestMap extends AbstractAppState {
         
         stats.update(1f / 60f);
         
-        //pCursor.update(1f / 60f, ((MasterFsmState)fsm.getState()));
-        
-        mapFlow.update(1f / 60f, fsm);
+        mapFlow.update(1f / 60f, fsm, cam);
     }
     
     private int fc = 0;
@@ -508,7 +551,7 @@ public class TestMap extends AbstractAppState {
                 
                     fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
                     pCursor.setStateIfAllowed(CursorState.CursorDefault);
-                    pCursor.resetState(map00);
+                    pCursor.resetState();
                     break;
                 case DuringBattle:
                     if (amassedTPF >= (1f / 65f)) {
@@ -528,59 +571,62 @@ public class TestMap extends AbstractAppState {
                         fightCam.setViewPort(0.0f, 0.0f, 0.0f, 0.0f);
                         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.PostBattle).setAssetManager(assetManager));
                         pCursor.setStateIfAllowed(CursorState.CursorDefault);
+                        mapFlow.setLastStrikes(currentBattle.getActualStrikes());
                         currentBattle = null;
                     }
-                    break;
-                case PreBattle:
-                    //pCursor.setStateIfAllowed(new FsmState(EntityState.CursorDefault));
-                    fightCam = cam.clone();
-                    fightCam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
-                    screenView = renderManager.createMainView("Fight", fightCam);
-                    screenView.setClearFlags(true, true, true);
-                    
-                    battleScene = (Node)assetManager.loadModel("Scenes/Battle/battletest5.j3o");
-                    Node master = new Node("master"), gui = new Node("battlegui");
-                    master.attachChild(battleScene);
-                    master.attachChild(gui);
-                    
-                    screenView.attachScene(master);
-                    
-                    fightCam.setLocation(new Vector3f(battleScene.getChild("FullPlane").getWorldTranslation().x, battleScene.getChild("FullPlane").getWorldTranslation().y + 2.5f, battleScene.getChild("FullPlane").getWorldTranslation().z + 13.25f));
-                    Quaternion cameraRotation = new Quaternion();
-                    cameraRotation.fromAngles(0, FastMath.PI, 0);
-                    fightCam.setRotation(cameraRotation);
-                    
-                    //TODO: FIX THIS
-                    setTextures(
-                            Arrays.asList((Geometry)battleScene.getChild("treeStump"), (Geometry)battleScene.getChild("treeTrunk"), (Geometry)battleScene.getChild("treeBranches"), (Geometry)battleScene.getChild("battleTerrain"), (Geometry)battleScene.getChild("rightRock"), (Geometry)battleScene.getChild("leftRock")),
-                            Arrays.asList(assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/cliff.png"), assetManager.loadTexture("Textures/battle/test/cliff.png"), assetManager.loadTexture("Textures/battle/test/cliff.png")),
-                            "LightMap",
-                            new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md")
-                    );
-                    
-                    battleScene.setCullHint(CullHint.Never);
-
-                    currentBattle = new Battle(((MasterFsmState)fsm.getState()).getConveyer(), 1, fightCam, pCursor.getPurpose());
-                    currentBattle.initializeVisuals(master, battleScene, gui, assetManager, guiNode);
-                    gui.scale(0.005f);
-                    gui.move(0, 4, 10);
-                    
-                    master.updateLogicalState(tpf);
-                    master.updateGeometricState();
-                    
-                    rootNode.detachChild(localRootNode);
-                    amassedTPF = 0;
-                    //transitionToFight = ViewPortAnimation.cutOpen(fightCam);
-                    //transitionToFight.beginTransitions();
-                    
-                    pCursor.forceState(CursorState.Idle);
-                    fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.DuringBattle).setAssetManager(assetManager));
                     break;
                 default:
                     break;
             }
         }
         fc++;
+    }
+    
+    private void initializeBattle() {
+        fightCam = cam.clone();
+        fightCam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
+        screenView = renderManager.createMainView("Fight", fightCam);
+        screenView.setClearFlags(true, true, true);
+                    
+        battleScene = (Node)assetManager.loadModel("Scenes/Battle/battletest5.j3o");
+        Node master = new Node("master"), gui = new Node("battlegui"); //TODO: fix this
+        master.attachChild(battleScene);
+        master.attachChild(gui);
+        
+        screenView.attachScene(master);
+        
+        fightCam.setLocation(new Vector3f(battleScene.getChild("FullPlane").getWorldTranslation().x, battleScene.getChild("FullPlane").getWorldTranslation().y + 2.5f, battleScene.getChild("FullPlane").getWorldTranslation().z + 13.25f));
+        Quaternion cameraRotation = new Quaternion();
+        cameraRotation.fromAngles(0, FastMath.PI, 0);
+        fightCam.setRotation(cameraRotation);
+                    
+        //TODO: FIX THIS
+        setTextures(
+                Arrays.asList((Geometry)battleScene.getChild("treeStump"), (Geometry)battleScene.getChild("treeTrunk"), (Geometry)battleScene.getChild("treeBranches"), (Geometry)battleScene.getChild("battleTerrain"), (Geometry)battleScene.getChild("rightRock"), (Geometry)battleScene.getChild("leftRock")),
+                Arrays.asList(assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/branches.png"), assetManager.loadTexture("Textures/battle/test/cliff.png"), assetManager.loadTexture("Textures/battle/test/cliff.png"), assetManager.loadTexture("Textures/battle/test/cliff.png")),
+                "LightMap",
+                new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md")
+        );
+        
+        battleScene.setCullHint(CullHint.Never);
+        
+        Conveyer battleData = ((MasterFsmState)fsm.getState()).getConveyer();
+        
+        currentBattle = new Battle(battleData, PrebattleForecast.createBattleForecast(battleData), fightCam, pCursor.getPurpose());
+        currentBattle.initializeVisuals(master, battleScene, gui, assetManager, guiNode);
+        gui.scale(0.005f);
+        gui.move(0, 4, 10);
+        
+        master.updateLogicalState(1f / 60f);
+        master.updateGeometricState();
+        
+        rootNode.detachChild(localRootNode);
+        amassedTPF = 0;
+        //transitionToFight = ViewPortAnimation.cutOpen(fightCam);
+        //transitionToFight.beginTransitions();
+
+        pCursor.forceState(CursorState.Idle);
+        fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.DuringBattle).setAssetManager(assetManager));
     }
     
     protected void setTextures(List<Geometry> stuff, List<Texture> textures, String texType, Material template) {

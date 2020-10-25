@@ -7,6 +7,7 @@ package maps.layout;
 
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
+import general.visual.DeserializedParticleEffect;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -25,12 +26,13 @@ public class MapData { // use gson
     private String objectiveName; //case sensitive
     private Translation[] translations;
     private MapLayerData[] layers;
+    private String[] weatherAndEffects; //PATH TO JSONS
     
-    
-    public MapData(String objectiveName, Translation[] translations, MapLayerData[] layers) {
+    public MapData(String objectiveName, Translation[] translations, MapLayerData[] layers, String[] weatherAndEffects) {
         this.objectiveName = objectiveName;
         this.translations = translations;
         this.layers = layers;
+        this.weatherAndEffects = weatherAndEffects;
     }
     
     private class MapLayerData {
@@ -100,8 +102,17 @@ public class MapData { // use gson
         return new Objective(objectiveName);
     }
     
-    MapDataPackage pack(AssetManager assetManager) {
-        return new MapDataPackage(interpret(assetManager), retrieveObjective());
+    public DeserializedParticleEffect[] retrieveMapEffects(AssetManager assetManager) {
+        if (weatherAndEffects != null) {
+            DeserializedParticleEffect[] effects = new DeserializedParticleEffect[weatherAndEffects.length];
+            for (int i = 0; i < effects.length; i++) {
+                effects[i] = DeserializedParticleEffect.loadEffect(weatherAndEffects[i], assetManager);
+            }
+            
+            return effects;
+        }
+        
+        return null;
     }
     
     public static MapData deserializePreset(String presetName) {
@@ -116,19 +127,5 @@ public class MapData { // use gson
             return null;
         }
     }
-    
-}
-
-class MapDataPackage {
-    private final List<TileData[][]> mapTiles;
-    private final Objective mapObjective;
-    
-    public MapDataPackage(List<TileData[][]> tiles, Objective objective) { //TODO: ADD WEATHER, LIGHTING, ETC.
-        mapTiles = tiles;
-        mapObjective = objective;
-    }
-    
-    public List<TileData[][]> getTiles() { return mapTiles; }
-    public Objective getObjective() { return mapObjective; }
     
 }

@@ -5,6 +5,7 @@
  */
 package battle;
 
+import battle.Battle.ImpactType;
 import etherealtempest.info.Conveyer;
 import com.atr.jme.font.TrueTypeFont;
 import com.atr.jme.font.shape.TrueTypeNode;
@@ -16,6 +17,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.simsilica.lemur.ProgressBar;
+import fundamental.tool.DamageTool;
 import general.visual.VisualTransition;
 import general.visual.VisualTransition.Progress;
 import general.visual.RadialProgressBar;
@@ -173,7 +175,7 @@ public class Combatant {
         combatBaseStats.put(BaseStat.level, tu.getLVL());
         combatBaseStats.put(BaseStat.maxHP, tu.getMaxHP());
         combatBaseStats.put(BaseStat.currentHP, tu.getStat(BaseStat.currentHP));
-        combatBaseStats.put(BaseStat.currentTP, tu.getStat(BaseStat.currentHP));
+        combatBaseStats.put(BaseStat.currentTP, tu.getStat(BaseStat.currentTP));
         combatBaseStats.put(BaseStat.maxTP, tu.getMaxTP());
         combatBaseStats.put(BaseStat.strength, tu.getSTR());
         combatBaseStats.put(BaseStat.ether, tu.getETHER());
@@ -194,6 +196,16 @@ public class Combatant {
         combatBattleStats.put(BattleStat.CritEvasion, tu.getCritEvasion());
         combatBattleStats.put(BattleStat.AttackSpeed, tu.getAS());
         combatBattleStats.put(BattleStat.Accuracy, tu.getAccuracy());
+    }
+    
+    public void prebattleInitialization() {
+        int extradmg = ((DamageTool)tu.getEquippedTool()).extraDamage;
+        if (tu.getToUseSkill() != null) {
+            tu.getToUseSkill().getEffect().applyEffectsOnCombat(this);
+            extradmg += tu.getToUseSkill().getEffect().extraDamage();
+        }
+        
+        setExtraDamage(extradmg);
     }
     
     public TangibleUnit getUnit() { return tu; }
@@ -262,7 +274,7 @@ public class Combatant {
     
     public void applyAllStatsToUnit() {
         tu.setStat(BaseStat.level, combatBaseStats.get(BaseStat.level));
-        tu.setStat(BaseStat.adrenaline, combatBaseStats.get(BaseStat.adrenaline)); //adrenaline
+        tu.setStat(BaseStat.adrenaline, combatBaseStats.get(BaseStat.adrenaline));
         
         tu.setStat(BaseStat.currentHP, combatBaseStats.get(BaseStat.currentHP));
         tu.setStat(BaseStat.currentTP, combatBaseStats.get(BaseStat.currentTP));
@@ -323,9 +335,9 @@ public class Combatant {
         levelUpTransition.beginTransitions();
     }
     
-    public boolean attemptLevelUpTransition() {
+    public boolean attemptLevelUpTransition(float tpf) {
         if (levelUpTransition != null) {
-            levelUpTransition.updateTransitions();
+            levelUpTransition.updateTransitions(tpf);
             return levelUpTransition.getTransitionProgress() == Progress.Finished;
         }
         
@@ -357,7 +369,7 @@ public class Combatant {
             }
             effectControl.update(tpf);
             if (figure.effIndex == tu.getEquippedFormula().getInfo().getImpactFrame()) {
-                figure.impactStatus = Battle.ImpactType.All;
+                figure.impactStatus = ImpactType.All;
             } else if (figure.effIndex == tu.getEquippedFormula().getInfo().getFrames()) {
                 figure.index++; //take it off freeze
                 figure.amassingTPF = 0;
@@ -374,6 +386,13 @@ public class Combatant {
     void updateBars(float tpf) {
         updateHP();
         updateTP();
+    }
+    
+    void EtherInitialize() {
+        setHPtoSubtract(tu.getEquippedFormula().getHPUsage());
+        setTPtoSubtract(tu.getEquippedFormula().getTPUsage());
+   
+        setEffectControl(tu.getEquippedFormula().getControl());
     }
     
     private void updateHP() {
@@ -410,5 +429,31 @@ public class Combatant {
         }
     }
     
+    @Override
+    public String toString() {
+        return 
+                  tu + "\n"
+                + "Max HP: " + combatBaseStats.get(BaseStat.maxHP) + "\n"
+                + "Max TP: " + combatBaseStats.get(BaseStat.maxTP) + "\n"
+                + "Current HP: " + combatBaseStats.get(BaseStat.currentTP) + "\n"
+                + "Current TP: " + combatBaseStats.get(BaseStat.currentTP) + "\n"
+                + "STR: " + combatBaseStats.get(BaseStat.strength) + "\n"
+                + "ETHER: " + combatBaseStats.get(BaseStat.ether) + "\n"
+                + "AGI: " + combatBaseStats.get(BaseStat.agility) + "\n"
+                + "COMP: " + combatBaseStats.get(BaseStat.comprehension) + "\n"
+                + "DEX: " + combatBaseStats.get(BaseStat.dexterity) + "\n"
+                + "DEF: " + combatBaseStats.get(BaseStat.defense) + "\n"
+                + "RSL: " + combatBaseStats.get(BaseStat.resilience) + "\n"
+                + "MOBILITY: " + combatBaseStats.get(BaseStat.mobility) + "\n"
+                + "PHYSIQUE: " + combatBaseStats.get(BaseStat.physique) + "\n"
+                + "Initial Adrenaline: " + combatBaseStats.get(BaseStat.adrenaline) + "\n"
+                + "ATK PWR: " + combatBattleStats.get(BattleStat.AttackPower) + "\n"
+                + "ACC: " + combatBattleStats.get(BattleStat.Accuracy) + "\n"
+                + "EVA: " + combatBattleStats.get(BattleStat.Evasion) + "\n"
+                + "CRIT: " + combatBattleStats.get(BattleStat.Crit) + "\n"
+                + "CRIT EVA: " + combatBattleStats.get(BattleStat.CritEvasion) + "\n"
+                + "AS: " + combatBattleStats.get(BattleStat.AttackSpeed) + "\n";
+                
+    }
     
 }

@@ -6,6 +6,7 @@
 package etherealtempest.info;
 
 import battle.Combatant;
+import battle.Combatant.BattleRole;
 import com.jme3.asset.AssetManager;
 import etherealtempest.info.DataStructure;
 import java.util.ArrayList;
@@ -21,14 +22,14 @@ import maps.layout.occupant.TangibleUnit;
  * @author night
  */
 public class Conveyer extends DataStructure {
-        private TangibleUnit user, enemy, other;
-        private Combatant initiator, receiver;
-        private ArrayList<TangibleUnit> allUnits;
-        private List<MapEntity> mapEntities;
+        private TangibleUnit user, enemy, other; //at least one of these is usually required
+        private Combatant initiator, receiver; //usually required in mapFlow
+        private ArrayList<TangibleUnit> allUnits; //required in mapFlow
+        private List<MapEntity> mapEntities; //required in mapFlow
         private AssetManager assetmanager;
-        private Cursor cursor;
-        private int turnNumber;
-        private Objective currentObjective;
+        private Cursor cursor; //required in mapFlow
+        private int turnNumber; //required in mapFlow
+        private Objective currentObjective; //required in mapFlow
         private Coords coords;
         private int layer;
         
@@ -44,12 +45,31 @@ public class Conveyer extends DataStructure {
             enemy = user;
         }
         
+        public Conveyer createCombatants() {
+            initiator = new Combatant(user, BattleRole.Initiator);
+            receiver = new Combatant(enemy, BattleRole.Receiver);
+            
+            return this;
+        }
+        
+        public BattleRole battleRoleFor(TangibleUnit tu) {
+            if (initiator != null && tu.is(initiator.getUnit())) {
+                return initiator.battle_role;
+            }
+            
+            if (receiver != null && tu.is(receiver.getUnit())) {
+                return receiver.battle_role;
+            }
+            
+            return null;
+        }
+        
         public Combatant getCombatantByUnit(TangibleUnit tu) {
-            if (tu.is(initiator.getUnit())) {
+            if (initiator != null && tu.is(initiator.getUnit())) {
                 return initiator;
             }
             
-            return tu.is(receiver.getUnit()) ? receiver : null;
+            return receiver != null && tu.is(receiver.getUnit()) ? receiver : null;
         }
         
         public TangibleUnit getUnit() {

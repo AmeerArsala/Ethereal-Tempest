@@ -7,24 +7,23 @@ package fundamental.stats;
 
 import fundamental.ability.Ability;
 import fundamental.skill.Skill;
+import fundamental.stats.Bonus.BonusType;
 import fundamental.stats.Bonus.StatType;
 import fundamental.talent.Talent;
+import fundamental.talent.TalentCondition;
+import fundamental.talent.TalentCondition.Occasion;
+import java.util.Arrays;
 
 /**
  *
  * @author night
  */
 public class RawBroadBonus {
-    private StatBundle statBonus = null;
     private Skill acquiredSkill = null;
     private Talent acquiredTalent = null;
     private Ability acquiredAbility = null;
     
     public RawBroadBonus() {}
-    
-    public RawBroadBonus(StatBundle statBonus) {
-        this.statBonus = statBonus;
-    }
     
     public RawBroadBonus(Talent acquiredTalent, Skill acquiredSkill, Ability acquiredAbility) {
         this.acquiredTalent = acquiredTalent;
@@ -32,16 +31,30 @@ public class RawBroadBonus {
         this.acquiredAbility = acquiredAbility;
     }
     
-    public RawBroadBonus(StatBundle statBonus, Talent acquiredTalent, Skill acquiredSkill, Ability acquiredAbility) {
-        this.statBonus = statBonus;
-        this.acquiredTalent = acquiredTalent;
+    public RawBroadBonus(StatBundle statBonus, Skill acquiredSkill, Ability acquiredAbility) {
+        this(statBonus);
         this.acquiredSkill = acquiredSkill;
         this.acquiredAbility = acquiredAbility;
     }
     
-    public RawBroadBonus setStatBonus(StatBundle statBonus) {
-        this.statBonus = statBonus;
-        return this;
+    public RawBroadBonus(StatBundle statBonus) {
+        if (statBonus.getStatType() == StatType.Base) {
+            acquiredTalent = Talent.Bonus(Arrays.asList(new Bonus(statBonus.getValue(), BonusType.Raw, statBonus.getWhichBaseStat())), Occasion.Indifferent);
+        } else if (statBonus.getStatType() == StatType.Battle) {
+            acquiredTalent = Talent.Bonus(Arrays.asList(new Bonus(statBonus.getValue(), BonusType.Raw, statBonus.getWhichBattleStat())), Occasion.Indifferent);
+        }
+    }
+    
+    public RawBroadBonus(Talent acquiredTalent) {
+        this.acquiredTalent = acquiredTalent;
+    }
+    
+    public RawBroadBonus(Skill acquiredSkill) {
+        this.acquiredSkill = acquiredSkill;
+    }
+    
+    public RawBroadBonus(Ability acquiredAbility) {
+        this.acquiredAbility = acquiredAbility;
     }
     
     public RawBroadBonus setBonusSkill(Skill acquiredSkill) {
@@ -59,7 +72,6 @@ public class RawBroadBonus {
         return this;
     }
     
-    public StatBundle getStatBonus() { return statBonus; }
     public Skill getBonusSkill() { return acquiredSkill; }
     public Talent getBonusTalent() { return acquiredTalent; }
     public Ability getBonusAbility() { return acquiredAbility; }
@@ -67,14 +79,6 @@ public class RawBroadBonus {
     @Override
     public String toString() {
         String desc = "";
-        
-        if (statBonus != null) {
-            if (statBonus.getStatType() == StatType.Base) {
-                desc += statBonus.getWhichBaseStat().getName() + " +" + statBonus.getValue() + "\n";
-            } else if (statBonus.getStatType() == StatType.Battle) {
-                desc += statBonus.getWhichBattleStat().getName() + " +" + statBonus.getValue() + "\n";
-            }
-        }
         
         if (acquiredSkill != null) {
             desc += "Grants the Skill '" + acquiredSkill.getName() + "'\n";
