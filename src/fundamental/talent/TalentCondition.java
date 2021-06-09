@@ -7,7 +7,7 @@ package fundamental.talent;
 
 import com.google.gson.annotations.SerializedName;
 import etherealtempest.FSM.MapFlowState;
-import etherealtempest.info.Conveyor;
+import etherealtempest.info.Conveyer;
 
 /**
  *
@@ -45,29 +45,25 @@ public abstract class TalentCondition {
         }
     }
     
-    private String desc = "";
+    private String desc;
     private Occasion occasion;
     
     public TalentCondition(String desc, Occasion occasion) {
-        this.desc = desc;
+        this.desc = occasion.getDesc() + desc;
         this.occasion = occasion;
     }
     
-    //no description
-    public TalentCondition(Occasion occasion) {
-        this.occasion = occasion;
-    }
-    
-    protected abstract boolean getCondition(Conveyor data);
+    protected abstract boolean getCondition(Conveyer data);
     
     public Occasion getOccasion() { return occasion; }
     
     public TalentCondition occasion(Occasion O) { //set occasion
         occasion = O;
+        desc = occasion.getDesc() + desc;
         return this;
     }
     
-    public boolean checkCondition(Conveyor data, Occasion currentOccasion) {
+    public boolean checkCondition(Conveyer data, Occasion currentOccasion) {
         if (occasion == currentOccasion || occasion == Occasion.Indifferent) {
             return getCondition(data);
         } 
@@ -75,27 +71,22 @@ public abstract class TalentCondition {
         return false;
     }
     
-    public void setDescription(String description) {
-        desc = description;
-    }
-    
     @Override
     public String toString() {
-        return occasion.getDesc() + desc;
+        return desc;
     }
-    
     
     public static final TalentCondition ALWAYS_TRIGGERS = new TalentCondition("", Occasion.Indifferent) {
         @Override
-        protected boolean getCondition(Conveyor data) {
+        protected boolean getCondition(Conveyer data) {
             return true;
         }
     };
     
     public static final TalentCondition AlwaysTriggersOnOccasion(Occasion o) { 
-        return new TalentCondition(o) {
+        return new TalentCondition("", o) {
             @Override
-            protected boolean getCondition(Conveyor data) {
+            protected boolean getCondition(Conveyer data) {
                 return true;
             }
         };
@@ -104,7 +95,7 @@ public abstract class TalentCondition {
     //triggers if user's equipped weapon is powered by an element after combat
     public static final TalentCondition POWERED_BY_ELEMENT = new TalentCondition("if user's equipped weapon is powered by an element, ", Occasion.AfterCombat) {
         @Override
-        public boolean getCondition(Conveyor data) {
+        public boolean getCondition(Conveyer data) {
             return data.getUnit().getEquippedWPN() != null && data.getUnit().getEquippedWPN().poweredByElement.length() > 2;
         }
     };

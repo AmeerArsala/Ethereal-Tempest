@@ -12,9 +12,8 @@ import etherealtempest.MasterFsmState;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.Coords;
-import maps.layout.MapLevel;
-import maps.layout.MapCoords;
-import maps.layout.occupant.character.TangibleUnit;
+import maps.layout.Map;
+import maps.layout.occupant.TangibleUnit;
 import maps.layout.occupant.VenturePeek;
 
 /**
@@ -27,12 +26,12 @@ public class RangeDisplay {
     
     private float tileOpacity = 0;
     private final AssetManager assetManager;
-    private final MapLevel map; //maybe take off final later
+    private final Map mp; //maybe take off final later
     private final List<TileFoundation> displayedMovSquares = new ArrayList<>();
     private final List<TileFoundation> displayedAtkSquares = new ArrayList<>();
     
-    public RangeDisplay(MapLevel map, AssetManager assetManager) {
-        this.map = map;
+    public RangeDisplay(Map mp, AssetManager assetManager) {
+        this.mp = mp;
         this.assetManager = assetManager;
     }
     
@@ -51,46 +50,45 @@ public class RangeDisplay {
         return 0f;
     }
     
-    public void displayRange(TangibleUnit tu, CursorState cState) {
-        cancelRange();
+    public void displayRange(TangibleUnit tu, CursorState cState, int layer) {
+        cancelRange(layer);
         tileOpacity = convertToOpacity(cState);
         
-        List<MapCoords> possibleSpaces = VenturePeek.filledCoordsForTilesOfRange(tu.getMOBILITY(), tu.getPos());
-        for (MapCoords possible : possibleSpaces) {
-            if (shouldDisplayTile(tu.getPos(), possible, tu.getMOBILITY(), map)) {
+        List<Coords> possibleSpaces = VenturePeek.filledCoordsForTilesOfRange(tu.getMobility(), tu.coords(), layer);
+        for (Coords possible : possibleSpaces) {
+            int x = possible.getX(), y = possible.getY();
+            if (shouldDisplayTile(tu, x, y, layer, mp)) {
                 //reveal at specified opacity in blue tile if unit can move to it
-                TileFoundation movSquare = map.getMovSquareAt(possible);
-                movSquare.getPatchMaterial().setTexture("ColorMap", assetManager.loadTexture(TileFoundation.MOVEMENT));
-                movSquare.getPatchMaterial().setColor("Color", new ColorRGBA(1, 1, 1, tileOpacity));
-                displayedMovSquares.add(movSquare);
+                mp.movSet[layer][x][y].getPatchMaterial().setTexture("ColorMap", assetManager.loadTexture(TileFoundation.MOVEMENT));
+                mp.movSet[layer][x][y].getPatchMaterial().setColor("Color", new ColorRGBA(1, 1, 1, tileOpacity));
+                displayedMovSquares.add(mp.movSet[layer][x][y]);
             }
         }
         
-        List<MapCoords> attackTilePositions = calculateAttackTilePositions(tu);
+        List<Coords> attackTilePositions = calculateAttackTilePositions(tu, layer);
         attackTilePositions.forEach((coordinates) -> {
-            TileFoundation tile = map.getMovSquareAt(coordinates);
+            TileFoundation tile = mp.movSet[layer][coordinates.getX()][coordinates.getY()];
             tile.getPatchMaterial().setTexture("ColorMap", assetManager.loadTexture(TileFoundation.ATTACK));
             tile.getPatchMaterial().setColor("Color", new ColorRGBA(1, 1, 1, tileOpacity));
             displayedAtkSquares.add(tile);
         });
     }
     
-    private List<MapCoords> calculateAttackTilePositions(TangibleUnit tu) {
-        List<MapCoords> tileCoordinates = new ArrayList<>();
+    private List<Coords> calculateAttackTilePositions(TangibleUnit tu, int layer) {
+        List<Coords> tileCoordinates = new ArrayList<>();
         
         List<Integer> maxRange = tu.getFullOffensiveRange();
         
         //a bounding box of area
         int furthest = maxRange.get(maxRange.size() - 1);
-        int boundingBoxLength = (((tu.getMOBILITY() + furthest) * 2) + 1);
-        int centerXY = tu.getMOBILITY() + furthest; //unit position on grid, center of this 2D boolean array
-        //int xDiff = tu.getPos().x() - centerXY, yDiff = tu.getPos().y() - centerXY; //same place subtracts from so finds difference
-        MapCoords diff = tu.getPos().subtract(centerXY, centerXY); //same place subtracts from so finds difference
+        int boundingBoxLength = (((tu.getMobility() + furthest) * 2) + 1);
+        int centerXY = tu.getMobility() + furthest; //unit position on grid, center of this 2D boolean array
+        int xDiff = tu.getPosX() - centerXY, yDiff = tu.getPosY() - centerXY; //same place subtracts from so finds difference
         
         for (int x = 0; x < boundingBoxLength; x++) {
             for (int y = 0; y < boundingBoxLength; y++) {
-                MapCoords input = diff.add(x, y);
-                if (map.isWithinBounds(input) && !displayedMovSquares.contains(map.getMovSquareAt(input))) {
+                Coords input = new Coords(x + xDiff, y + yDiff);
+                if (mp.isWithinBounds(input, layer) && !displayedMovSquares.contains(mp.movSet[layer][x + xDiff][y + yDiff])) {
                     //check if the difference is small enough
                     for (Integer range : maxRange) {
                         if (isXSpacesFromMovSquare(input, range)) {
@@ -104,7 +102,7 @@ public class RangeDisplay {
         return tileCoordinates;
     }
     
-    public void cancelRange() {
+    public void cancelRange(int layer) {
         displayedMovSquares.forEach((square) -> {
             square.getPatchMaterial().setColor("Color", new ColorRGBA(1, 1, 1, 0));
         });
@@ -119,39 +117,23 @@ public class RangeDisplay {
         displayedAtkSquares.clear();
     }
     
-    private boolean isXSpacesFromMovSquare(MapCoords coords, int X) {
-        return displayedMovSquares.stream().anyMatch((square) -> (square.getPos().getCoords().nonDiagonalDistanceFrom(coords.getCoords()) == X));
+    private boolean isXSpacesFromMovSquare(Coords cds, int X) {
+        return displayedMovSquares.stream().anyMatch((square) -> (Math.abs(square.getPosX() - cds.getX()) + Math.abs(square.getPosY() - cds.getY()) == X));
     }
     
-    /*public static boolean shouldDisplayTile(TangibleUnit tu, int x, int y, int layer, MapLevel mp) {
+    public static boolean shouldDisplayTile(TangibleUnit tu, int x, int y, int layer, Map mp) {
         return x == tu.getPosX() && y == tu.getPosY() ? true : new Path(mp, tu.getPosX(), tu.getPosY(), x, y, layer, tu.getMobility()).wasSuccess();
-    }*/
-    
-    public static boolean shouldDisplayTile(Coords start, Coords dest, int layer, int moveCapacity) {
-        return shouldDisplayTile(start, dest, layer, moveCapacity, MasterFsmState.getCurrentMap());
     }
     
-    public static boolean shouldDisplayTile(Coords start, Coords dest, int layer, int moveCapacity, MapLevel mp) {
-        if (start.equals(dest)) {
-            return true;
-        }
-        
-        return new Path(start, dest, layer, moveCapacity).wasSuccess();
+    public static boolean shouldDisplayTile(Coords start, Coords dest, int layer, int maxLength) {
+        return start.equals(dest) ? true : new Path(MasterFsmState.getCurrentMap(), start.getX(), start.getY(), dest.getX(), dest.getY(), layer, maxLength).wasSuccess();
     }
     
-    public static boolean shouldDisplayTile(MapCoords start, MapCoords dest, int moveCapacity, MapLevel mp) {
-        if (start.equals(dest)) {
-            return true;
-        }
-        
-        return new Path(start, dest, moveCapacity, mp).wasSuccess();
+    public static boolean shouldDisplayTile(int startX, int startY, int destX, int destY, int layer, int spaces, Map mp) {
+        return startX == destX && startY == destY ? true : new Path(mp, startX, startY, destX, destY, layer, spaces).wasSuccess();
     }
     
-    public static boolean shouldDisplayTile(MapCoords start, MapCoords dest, int moveCapacity) {
-        if (start.equals(dest)) {
-            return true;
-        }
-        
-        return new Path(start, dest, moveCapacity).wasSuccess();
+    public static boolean shouldDisplayTileWithAddedMobility(TangibleUnit tu, int x, int y, int layer, Map mp, int added) {
+        return x == tu.getPosX() && y == tu.getPosY() ? true : new Path(mp, tu.getPosX(), tu.getPosY(), x, y, layer, tu.getMobility() + added).wasSuccess();
     }
 }

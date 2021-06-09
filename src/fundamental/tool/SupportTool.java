@@ -5,10 +5,9 @@
  */
 package fundamental.tool;
 
-import etherealtempest.info.Conveyor;
+import etherealtempest.info.Conveyer;
+import fundamental.stats.Bonus;
 import fundamental.Calculation;
-import fundamental.item.weapon.WeaponAttribute;
-import fundamental.item.weapon.WeaponType;
 import fundamental.stats.RawBroadBonus;
 import fundamental.stats.Toll;
 import java.util.List;
@@ -18,17 +17,22 @@ import java.util.List;
  * @author night
  */
 public class SupportTool extends Tool {
-    private final Calculation<Conveyor, Toll> healCalculator;
+    private final Calculation<Conveyer, Toll> healCalculator;
+    private final Calculation<Conveyer, Bonus> buffCalculator = null;
     
     public Toll extraHeals = null;
     
-    public SupportTool(int crt, List<Integer> toolRanges, WeaponAttribute attr, WeaponType toolType, RawBroadBonus adv, Calculation<Conveyor, Toll> healCalculator) {
+    public SupportTool(int crt, List<Integer> toolRanges, String attr, String toolType, RawBroadBonus adv, Calculation<Conveyer, Toll> healCalculator) { //with both skill and talent
         super(crt, toolRanges, adv, attr, toolType);
         this.healCalculator = healCalculator;
     }
     
-    public Calculation<Conveyor, Toll> getHealCalculator() {
+    public Calculation<Conveyer, Toll> getHealCalculator() {
         return healCalculator;
+    }
+    
+    public Calculation<Conveyer, Bonus> getBuffCalculator() {
+        return buffCalculator;
     }
     
     public SupportTool setExtraHeals(Toll heals) {
@@ -39,6 +43,10 @@ public class SupportTool extends Tool {
     @Override
     public String toString() {
         String stats = healCalculator.description() + '\n';
+        
+        if (buffCalculator != null) {
+            stats += buffCalculator.description() + '\n';
+        }
         
         return     
                    stats + '\n'

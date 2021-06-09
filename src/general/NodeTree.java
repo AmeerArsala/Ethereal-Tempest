@@ -5,7 +5,6 @@
  */
 package general;
 
-import general.utils.GeneralUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,28 +12,19 @@ import java.util.List;
 /**
  *
  * @author night
- * @param <V> value type
+ * @param <V>
  */
 public class NodeTree<V> {
-    private final HashMap<String[], V> tree;
-    private final List<String[]> keys;
+    private HashMap<String[], V> tree;
+    private List<String[]> keys;
     
     public NodeTree() {
         tree = new HashMap<>();
         keys = new ArrayList<>();
     }
     
-    public NodeTree(HashMap<String[], V> tree, List<String[]> keys) {
-        this.tree = tree;
-        this.keys = keys;
-    }
-    
     public HashMap<String[], V> getTree() {
         return tree;
-    }
-    
-    public List<String[]> getKeys() {
-        return keys;
     }
     
     public void putNew(List<V> origins, V value) {

@@ -12,37 +12,33 @@ import java.util.List;
 /**
  *
  * @author night
- * @param <D> data holder type
  */
-public class RequestDealer<D extends Conveyor> {
-    private final List<Request<D>> requests = new ArrayList<>();
+public class RequestDealer implements Requestable {
+    private final List<Request> requests = new ArrayList<>();
     
     public RequestDealer() {}
     
-    public List<Request<D>> getRequests() {
+    @Override
+    public List<Request> getRequests() {
         return requests;
     }
     
-    public void attemptToResolveCurrentRequest(float tpf, D data) {
-        boolean wallActive = false;
-        boolean finished = requests.get(0).update(tpf, data);
-        for (int i = 1; i < requests.size(); i++) {
-            if (requests.get(i).getRequestType() == RequestType.ASAP || !wallActive) {
+    @Override
+    public void attemptToResolveCurrentRequest(float tpf, DataStructure data) {
+        int highestIndex = 0;
+        for (int i = 0; i < requests.size(); i++) {
+            if (requests.get(i).getRequestType() == RequestType.ASAP) {
                 requests.get(i).update(tpf, data);
-            }
-            
-            if (requests.get(i).getIsWall()) {
-                wallActive = true;
+            } else if (requests.get(i).getPriority() > requests.get(highestIndex).getPriority()) {
+                highestIndex = i;
             }
         }
         
+        boolean finished = requests.get(highestIndex).update(tpf, data);
+        
         if (finished) {
-            requests.remove(0);
+            requests.remove(highestIndex);
         }
-    }
-    
-    public boolean hasNext() {
-        return !requests.isEmpty();
     }
     
 }

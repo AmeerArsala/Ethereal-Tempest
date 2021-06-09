@@ -5,24 +5,29 @@
  */
 package etherealtempest;
 
-import etherealtempest.info.Conveyor;
+import etherealtempest.info.Conveyer;
 import com.jme3.asset.AssetManager;
 import etherealtempest.FSM.MapFlowState;
-import maps.layout.MapLevel;
+import maps.layout.Map;
 
 /**
  *
  * @author night
  */
-public class MasterFsmState extends FsmState<MapFlowState> {
+public class MasterFsmState extends FsmState {
     private AssetManager local;
-    private Conveyor conveyor;
+    private Conveyer conveyor;
     
-    private static MapLevel current;
+    private static Map current;
     //private static Cursor currentCursor;
+    
+    public MasterFsmState() {
+        state = MapFlowState.MapDefault;
+    }
     
     public MasterFsmState(MapFlowState e) {
         super(e);
+        state = e;
     }
     
     public MasterFsmState setAssetManager(AssetManager AM) {
@@ -30,12 +35,12 @@ public class MasterFsmState extends FsmState<MapFlowState> {
         return this;
     }
     
-    public MasterFsmState setConveyor(Conveyor C) {
+    public MasterFsmState setConveyer(Conveyer C) {
         conveyor = C;
         return this;
     }
     
-    public Conveyor getConveyor() { return conveyor; }
+    public Conveyer getConveyer() { return conveyor; }
     
     public AssetManager getAssetManager() {
         return local;
@@ -46,10 +51,10 @@ public class MasterFsmState extends FsmState<MapFlowState> {
         return this;
     }
     
-    public static MapLevel getCurrentMap() { return current; }
+    public static Map getCurrentMap() { return current; }
     //public static Cursor getCurrentCursor() { return currentCursor; }
     
-    public static void setCurrentDefaultMap(MapLevel M) { current = M; }
+    public static void setCurrentDefaultMap(Map M) { current = M; }
     //public static void setCurrentDefaultCursor(Cursor C) { currentCursor = C; }
     
 }

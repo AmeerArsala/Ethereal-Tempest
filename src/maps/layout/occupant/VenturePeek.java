@@ -15,30 +15,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import maps.layout.Coords;
-import maps.layout.MapLevel;
-import maps.layout.MapCoords;
-import maps.layout.tile.Path;
+import maps.layout.Map;
 
 /**
  *
  * @author night
  */
 public class VenturePeek {
-    private final MapCoords position;
+    private final Coords position;
+    private final int elevation;
+    
     private int mobility;
     
-    public VenturePeek(MapCoords pos, int mob) {
-        position = pos;
+    public VenturePeek(int posX, int posY, int elv, int mob) {
+        position = new Coords(posX, posY);
+        elevation = elv;
         mobility = mob;
     }
     
-    public VenturePeek(Coords pos, int layer, int mob) {
-        position = new MapCoords(pos, layer);
-        mobility = mob;
+    public VenturePeek addX(int x) {
+        position.addX(x);
+        return this;
     }
     
-    public VenturePeek setMapCoords(MapCoords point) {
-        position.set(point);
+    public VenturePeek addY(int y) {
+        position.addX(y);
         return this;
     }
     
@@ -47,69 +48,108 @@ public class VenturePeek {
         return this;
     }
     
-    public VenturePeek setLayer(int layer) {
-        position.setLayer(layer);
-        return this;
-    }
-    
-    public VenturePeek addXY(int x, int y) {
-        position.addLocal(x, y);
-        return this;
-    }
-    
-    public VenturePeek addXY(Coords coords) {
-        position.addLocal(coords);
-        return this;
-    }
-    
     public VenturePeek addMobility(int delta) {
         mobility += delta;
         return this;
     }
     
-    public VenturePeek setMobility(int mob) {
-        mobility = mob;
-        return this;
-    }
-    
-    public boolean willReach(MapCoords coords) {
-        if (position.getLayer() != coords.getLayer()) {
-            return false;
+    public boolean willReach(int x, int y) {
+        Map mp = MasterFsmState.getCurrentMap();
+        
+        boolean withinSpaces = false;
+        for (int layer = 0; layer < mp.getLayerCount(); layer++) {
+            if (Map.isWithinSpaces(mobility, position.getX(), position.getY(), mp.fullmap[layer][x][y].getPosX(), mp.fullmap[layer][x][y].getPosY())) {
+                withinSpaces = true;
+                layer = mp.getLayerCount();
+            }
         }
         
-        int layer = coords.getLayer();
-        Coords origin = position.getCoords(), destination = coords.getCoords();
-        
-        if (origin.nonDiagonalDistanceFrom(destination) <= mobility) {
-            return RangeDisplay.shouldDisplayTile(origin, destination, layer, mobility);
-        }
-        
-        return false;
+        return withinSpaces && RangeDisplay.shouldDisplayTile(position.getX(), position.getY(), x, y, elevation, mobility, mp);
     }
     
-    public boolean isCloserThan(MapCoords other, MapCoords goal) {
-        List<Tile> A = new Path(position, goal, 1000000).getPath();
-        List<Tile> B = new Path(other, goal, 1000000).getPath();
+    public boolean willReach(Coords cds) {
+        return willReach(cds.getX(), cds.getY());
+    }
+    
+    public boolean isCloserThan(Coords other, Coords goal) {
+        List<Tile> A = new Path(position, goal, elevation, 100).getPath();
+        List<Tile> B = new Path(other, goal, elevation, 100).getPath();
         
         return A.size() >= B.size();
     }
     
-    public List<MapCoords> smartCoordsForTilesOfRange(int range, MapCoords origin) { //does this with a preference, orders them by which the this instance's position is closest to
-        List<MapCoords> positions = new ArrayList<>();
+    private static void addIfNew(Coords coord, List<Coords> coords) {
+        if (!coords.contains(coord)) {
+            coords.add(coord);
+        }
+    } 
+    
+    public static List<Coords> deltaCoordsForTilesOfRange(int range) { // f"(x)
+        List<Coords> deltas = new ArrayList<>();
         
-        if (position.getLayer() != origin.getLayer()) {
-            return positions;
+        for (int d = 0; d <= range; d++) {
+            //Quadrant I (+, +)
+            addIfNew(new Coords(d, range - d), deltas);
+            //addIfNew(new Coords(range - d, d), deltas);
+            
+            //Quadrant II (-, +)
+            addIfNew(new Coords(-1 * d, range - d), deltas);
+            //addIfNew(new Coords(-1 * (range - d), d), deltas);
+            
+            //Quadrant III (-, -)
+            addIfNew(new Coords(-1 * d, -1 * (range - d)), deltas);
+            //addIfNew(new Coords(-1 * (range - d), -1 * d), deltas);
+            
+            //Quadrant IV (+, -)
+            addIfNew(new Coords(d, -1 * (range - d)), deltas);
+            //addIfNew(new Coords(range - d, -1 * d), deltas);
         }
         
-        final int layer = position.getLayer();
-        final float diff = FastMath.PI / 4f; 
+        return deltas;
+    }
+    
+    public static List<Coords> coordsForTilesOfRange(int range, Coords origin, int layer) { //border coords; f'(x)
+        List<Coords> positions = new ArrayList<>();
+        deltaCoordsForTilesOfRange(range).forEach((delta) -> {
+            if (MasterFsmState.getCurrentMap().isWithinBounds(origin.combine(delta), layer)) {
+                positions.add(origin.combine(delta));
+            }
+        });
+        
+        return positions;
+    }
+    
+    public static List<Coords> filledCoordsForTilesOfRange(int range, Coords origin, int layer) { // f(x)
+        List<Coords> positions = new ArrayList<>();
+        positions.add(origin);
+        for (int i = 1; i <= range; i++) {
+            positions.addAll(coordsForTilesOfRange(i, origin, layer));
+        }
+        
+        return positions;
+    }
+    
+    public static List<Tile> toTile(List<Coords> list, int layer) {
+        List<Tile> tiles = new ArrayList<>();
+        Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
+        list.forEach((cds) -> {
+            tiles.add(layerTiles[cds.getX()][cds.getY()]);
+        });
+        
+        return tiles;
+    }
+    
+    public List<Coords> smartCoordsForTilesOfRange(int range, Coords origin, int layer) { //does this with a preference, orders them by which the this instance's position is closest to
+        List<Coords> positions = new ArrayList<>();
+        
         for (int d = 0; d <= range; d++) {
             HashMap<Integer, Coords> distances = new HashMap<>();
             
+            final float diff = FastMath.HALF_PI / 2f;
             for (float theta = diff; theta < FastMath.TWO_PI; theta += diff) {
                 int xsign = (int)Math.signum(FastMath.cos(theta)), ysign = (int)Math.signum(FastMath.sin(theta));
                 Coords value = new Coords(xsign * d, ysign * (range - d));
-                distances.put(position.getCoords().nonDiagonalDistanceFrom(origin.getCoords().add(value)), value);
+                distances.put(position.difference(origin.combine(value)), value);
             }
 
             while (distances.keySet().size() > 0) {
@@ -122,86 +162,12 @@ public class VenturePeek {
                     }
                 }
                 
-                positions.add(new MapCoords(distances.get(lowestKey), layer));
+                positions.add(distances.get(lowestKey));
                 distances.remove(lowestKey);
             }
         }
         
         return positions;
-    }
-    
-    private static void addIfNew(List<Coords> coords, Coords coord) {
-        if (!coords.contains(coord)) {
-            coords.add(coord);
-        }
-    } 
-    
-    public static List<Coords> deltaCoordsForTilesOfRange(int range) { // f"(x)
-        List<Coords> deltas = new ArrayList<>();
-        
-        for (int d = 0; d <= range; d++) {
-            //Quadrant I (+, +)
-            addIfNew(deltas, new Coords(d, range - d));
-            //addIfNew(deltas, new Coords(range - d, d));
-            
-            //Quadrant II (-, +)
-            addIfNew(deltas, new Coords(-1 * d, range - d));
-            //addIfNew(deltas, new Coords(-1 * (range - d), d));
-            
-            //Quadrant III (-, -)
-            addIfNew(deltas, new Coords(-1 * d, -1 * (range - d)));
-            //addIfNew(deltas, new Coords(-1 * (range - d), -1 * d));
-            
-            //Quadrant IV (+, -)
-            addIfNew(deltas, new Coords(d, -1 * (range - d)));
-            //addIfNew(deltas, new Coords(range - d, -1 * d));
-        }
-        
-        return deltas;
-    }
-    
-    public static List<MapCoords> coordsForTilesOfRange(int range, MapCoords origin) { //border coords; f'(x)
-        List<MapCoords> positions = new ArrayList<>();
-        deltaCoordsForTilesOfRange(range).forEach((delta) -> {
-            MapCoords next = origin.add(delta);
-            if (MasterFsmState.getCurrentMap().isWithinBounds(next)) {
-                positions.add(next);
-            }
-        });
-        
-        return positions;
-    }
-    
-    public static List<MapCoords> filledCoordsForTilesOfRange(int range, MapCoords origin) { // f(x)
-        List<MapCoords> positions = new ArrayList<>();
-        positions.add(origin);
-        for (int i = 1; i <= range; i++) {
-            positions.addAll(coordsForTilesOfRange(i, origin));
-        }
-        
-        return positions;
-    }
-    
-    //converts List<Coords> in specified layer to List<Tile>
-    public static List<Tile> toTile(List<Coords> list, int layer) {
-        List<Tile> tiles = new ArrayList<>();
-        Tile[][] layerTiles = MasterFsmState.getCurrentMap().getLayerTiles(layer);
-        list.forEach((cds) -> {
-            tiles.add(layerTiles[cds.x()][cds.y()]);
-        });
-        
-        return tiles;
-    }
-    
-    //converts List<MapCoords> to List<Tile>
-    public static List<Tile> toTile(List<MapCoords> list) {
-        List<Tile> tiles = new ArrayList<>();
-        MapLevel map = MasterFsmState.getCurrentMap();
-        list.forEach((cds) -> {
-            tiles.add(map.getTileAt(cds));
-        });
-        
-        return tiles;
     }
 
 }

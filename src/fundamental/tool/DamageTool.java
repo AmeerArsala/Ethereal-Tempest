@@ -5,12 +5,8 @@
  */
 package fundamental.tool;
 
-import fundamental.jobclass.JobClass.MobilityType;
-import fundamental.item.weapon.WeaponAttribute;
-import fundamental.item.weapon.WeaponType;
-import fundamental.stats.BaseStat;
+import fundamental.stats.Bonus;
 import fundamental.stats.RawBroadBonus;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,36 +14,44 @@ import java.util.List;
  * @author night
  */
 public class DamageTool extends Tool {
-    private int Pow, Acc; //might, hit rate, weight, crit rate. This is not final because of forging
-    private BaseStat damageMeasuredAgainstStat;
+    private int Pow, Acc; //might, hit rate, weight, crit rate
+    private String[] effect; //things it is effective against
     
-    private final ArrayList<MobilityType> effect; //things it is effective against
+    public int extraDamage = 0;
     
-    public DamageTool(int pwr, int accuracy, int crt, List<Integer> range, WeaponType toolType, WeaponAttribute attr, BaseStat againstStat, ArrayList<MobilityType> eff, RawBroadBonus onEquip) {
-        super(crt, range, onEquip, attr, toolType);
+    public DamageTool(int pwr, int accuracy, int crt, List<Integer> range, String toolType, String attr, String[] eff, RawBroadBonus adv) { //with both skill and talent
+        super(crt, range, adv, attr, toolType);
         Pow = pwr;
         Acc = accuracy;
-        damageMeasuredAgainstStat = againstStat;
         effect = eff;
     }
     
-    public DamageTool getNewInstance() {
-        return new DamageTool(Pow, Acc, CRIT, ranges, type, attribute, damageMeasuredAgainstStat, effect, onEquipEffect);
+    public DamageTool setExtraDamage(int extra) {
+        extraDamage = extra;
+        return this;
     }
     
-    public ArrayList<MobilityType> effective() { return effect; }
+    public DamageTool getNewInstance() {
+        return new DamageTool(Pow, Acc, CRIT, ranges, type, attribute, effect, new RawBroadBonus(onEquipTalent, onEquipSkill, onEquipAbility)).setExtraDamage(extraDamage);
+    }
     
+    public String[] effective() { return effect; }
     public int getPow() { return Pow; }
     public int getAcc() { return Acc; }
     
-    public BaseStat getDamageMeasuredAgainstStat() { return damageMeasuredAgainstStat; }
+    public String getDmgType() {
+        if (type.equals("sword") || type.equals("axe") || type.equals("polearm") || type.equals("knife") || type.equals("bow") || type.equals("whip") || type.equals("monster")) {
+          return "physical";
+        }
+        return "ether";
+    }
     
-    public String getEffString() {
+    private String getEffString() {
         String full = "";
       
-        for (int i = 0; i < effect.size(); i++) {
-            full += effect.get(i);
-            if (i < effect.size() - 1) {
+        for (int i = 0; i < effect.length; i++) {
+            full += effect[i];
+            if (i < effect.length - 1) {
                 full += ", ";
             }
         }

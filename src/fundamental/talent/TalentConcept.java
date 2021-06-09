@@ -12,18 +12,10 @@ package fundamental.talent;
 public class TalentConcept {
     private TalentCondition condition;
     private TalentEffect effect;
-    private String desc;
     
     public TalentConcept(TalentCondition cond, TalentEffect eff) {
         condition = cond;
         effect = eff;
-        desc = condition.toString() + effect.toString();
-    }
-    
-    public TalentConcept(String description, TalentCondition cond, TalentEffect eff) {
-        condition = cond;
-        effect = eff;
-        desc = description;
     }
     
     public TalentCondition getTalentCondition() { return condition; }
@@ -31,6 +23,6 @@ public class TalentConcept {
     
     @Override
     public String toString() {
-        return desc;
+        return condition.toString() + effect.toString();
     }
 }

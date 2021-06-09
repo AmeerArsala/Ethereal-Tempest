@@ -5,81 +5,81 @@
  */
 package fundamental.formation;
 
-import com.google.gson.Gson;
-import fundamental.unit.UnitAllegiance;
-import fundamental.Gear;
+import battle.Combatant.BaseStat;
+import etherealtempest.MasterFsmState;
+import etherealtempest.characters.Unit.UnitAllegiance;
+import etherealtempest.info.Conveyer;
+import fundamental.Associated;
 import fundamental.stats.Bonus.StatType;
-import fundamental.stats.StatBundle;
-import fundamental.stats.BaseStat;
 import fundamental.stats.RawBroadBonus;
-import fundamental.talent.Talent;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
+import fundamental.stats.StatBundle;
+import fundamental.tool.Tool.ToolType;
 import java.util.HashMap;
 import java.util.List;
 import maps.layout.Coords;
-import maps.layout.MapCoords;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.tile.Tile;
+import maps.layout.occupant.VenturePeek;
 
 /**
  *
  * @author night
  */
-public class Formation extends Gear {
+public class Formation extends Associated {
     private static final HashMap<BaseStat, String> typeMap = new HashMap<>();
     
     static {
-        typeMap.put(BaseStat.MaxHP, "Aquarius");
-        typeMap.put(BaseStat.MaxTP, "Pisces");
-        typeMap.put(BaseStat.Strength, "Leo");
-        typeMap.put(BaseStat.Ether, "Scorpio");
-        typeMap.put(BaseStat.Agility, "Aries");
-        typeMap.put(BaseStat.Comprehension, "Libra");
-        typeMap.put(BaseStat.Dexterity, "Gemini");
-        typeMap.put(BaseStat.Defense, "Virgo");
-        typeMap.put(BaseStat.Resilience, "Capricorn");
-        typeMap.put(BaseStat.Mobility, "Sagittarius");
-        typeMap.put(BaseStat.Physique, "Taurus");
-        typeMap.put(BaseStat.Adrenaline, "Cancer");
+        typeMap.put(BaseStat.maxHP, "Aquarius");
+        typeMap.put(BaseStat.maxTP, "Pisces");
+        typeMap.put(BaseStat.strength, "Leo");
+        typeMap.put(BaseStat.ether, "Scorpio");
+        typeMap.put(BaseStat.agility, "Aries");
+        typeMap.put(BaseStat.comprehension, "Libra");
+        typeMap.put(BaseStat.dexterity, "Gemini");
+        typeMap.put(BaseStat.defense, "Virgo");
+        typeMap.put(BaseStat.resilience, "Capricorn");
+        typeMap.put(BaseStat.mobility, "Sagittarius");
+        typeMap.put(BaseStat.physique, "Taurus");
+        typeMap.put(BaseStat.adrenaline, "Cancer");
     }
     
-    private int tier;
     private String formationType;
-    private List<FormationTechnique> techniques;
+    private int tier;
+    private StatBundle statBonus;
     
-    public Formation(String name, String desc, int tier, StatBundle statBonus, List<FormationTechnique> techniques) {
+    private List<FormationTechnique> techniques;
+    private List<Integer> ranges;
+    
+    private ToolType toolType;
+    
+    public Formation(String name, String desc, int tier, StatBundle statBonus, ToolType toolType, List<Integer> ranges, List<FormationTechnique> techniques) {
         super(name, desc);
         this.tier = tier;
         this.techniques = techniques;
-        
-        passive = new RawBroadBonus(statBonus);
-        initializeFormationType(statBonus);
-    }
-    
-    public Formation(String name, String desc, RawBroadBonus passive, int tier, StatBundle statBonus, List<FormationTechnique> techniques) {
-        super(name, desc, passive);
-        this.tier = tier;
-        this.techniques = techniques;
-        
-        Talent toTalent = new RawBroadBonus(statBonus).getBonusTalent();
-        passive.getBonusTalent().getFullBody().addAll(toTalent.getFullBody());
-        
-        initializeFormationType(statBonus);
-    }
-    
-    private void initializeFormationType(StatBundle statBonus) {
+        this.toolType = toolType;
+        this.ranges = ranges;
+        this.statBonus = statBonus;
         if (statBonus != null && statBonus.getStatType() == StatType.Base) {
-            formationType = typeMap.get((BaseStat)statBonus.getStat());
+            formationType = typeMap.get(statBonus.getWhichBaseStat());
         } else {
             formationType = "Wildcard";
         }
     }
     
-    public int getTier() { return tier; }
+    public Formation(boolean ex) {
+        super(ex);
+    }
+    
     public String getFormationType() { return formationType; }
+    
+    public int getTier() { return tier; }
+    
+    public StatBundle getPassiveStatBonus() { return statBonus; }
+    
+    public ToolType getToolType() { return toolType; }
+    
+    public List<Integer> getRange() { return ranges; }
+    
     public List<FormationTechnique> getTechniques() { return techniques; }
     
     public FormationTechnique getMostDesiredTechnique() {
@@ -93,54 +93,18 @@ public class Formation extends Gear {
         return highest;
     }
     
-    public List<Integer> getFullRange() {
-        List<Integer> ranges = new ArrayList<>();
-        for (FormationTechnique tech : techniques) {
-            for (Integer range : tech.getRanges()) {
-                if (!ranges.contains(range)) {
-                    ranges.add(range);
+    public boolean isAvailableAt(Coords pos, int layer, UnitAllegiance allegiance) { 
+        Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
+        for (Integer range : ranges) {
+            for (Coords point : VenturePeek.coordsForTilesOfRange(range, pos, layer)) {
+                TangibleUnit occupier = layerTiles[point.getX()][point.getY()].getOccupier();
+                if (occupier != null && ((toolType.isSupportive() && allegiance.alliedWith(occupier.unitStatus)) || (!toolType.isSupportive() && !allegiance.alliedWith(occupier.unitStatus)))) {
+                    return true;
                 }
-            }
-        }
-        
-        return ranges;
-    }
-    
-    public List<Integer> getPartialRange(boolean supportive) {
-        List<Integer> ranges = new ArrayList<>();
-        for (FormationTechnique tech : techniques) {
-            if (tech.getToolType().isSupportive() == supportive) {
-                for (Integer range : tech.getRanges()) {
-                    if (!ranges.contains(range)) {
-                        ranges.add(range);
-                    }
-                }
-            }
-        }
-        
-        return ranges;
-    }
-    
-    public boolean isAvailableAt(MapCoords pos, UnitAllegiance userAllegiance) { 
-        for (FormationTechnique tech : techniques) {
-            if (tech.isAvailableAt(pos, userAllegiance)) {
-                return true;
             }
         }
         
         return false;
-    }
-    
-    public List<FormationTechnique> techniquesAvailableAt(MapCoords pos, UnitAllegiance userAllegiance) {
-        List<FormationTechnique> techs = new ArrayList<>();
-        
-        for (FormationTechnique tech : techniques) {
-            if (tech.isAvailableAt(pos, userAllegiance)) {
-                techs.add(tech);
-            }
-        }
-        
-        return techs;
     }
     
     @Override
@@ -148,36 +112,6 @@ public class Formation extends Gear {
         return name + "\n \n" + desc + "\n \n";
     }
     
-    
-    public static final Formation Trigonal_Planar() {
-        return deserializeFormation("Trigonal Planar.json", Arrays.asList(FormationTechnique.FallBack()));
-    }
-    
-    private static Formation deserializeFormation(String jsonName, List<FormationTechnique> techniques) {
-        try {
-            Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\EntityPresets\\formations\\" + jsonName));
-            
-            return gson.fromJson(reader, FormationDeserialization.class).constructFormation(techniques); 
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-    
-    private static Formation deserializeFormation(String jsonName, List<FormationTechnique> techniques, RawBroadBonus extraPassive) {
-        try {
-            Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\EntityPresets\\formations\\" + jsonName));
-            
-            return gson.fromJson(reader, FormationDeserialization.class).constructFormation(techniques, extraPassive); 
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
 }
 
     

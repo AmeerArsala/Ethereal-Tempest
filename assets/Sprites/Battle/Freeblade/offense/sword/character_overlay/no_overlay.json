@@ -1,9 +1,0 @@
-{
-  "overlaySpritesheetFileName": null,
-  "discardRegularSpritesheetTexture": false,
-  "spriteWidthToHeightRatio": 1.53, // ((image width) / columns) / ((image height) / rows)
-  "scalar": { //think of this as a height scalar that happens to scale with width, since the above field is the ratio of width to height of a sprite
-    "factor": 0.4,
-    "fromContainer": true
-  }
-}

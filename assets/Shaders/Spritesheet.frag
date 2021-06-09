@@ -11,5 +11,5 @@ void main(){
         color *= m_Color;
     #endif
     
-    gl_FragColor = color;
+    gl_FragColor=color;
 }

@@ -8,26 +8,24 @@ package etherealtempest.info;
 /**
  *
  * @author night
- * @param <D> data holder type
  */
-public abstract class Request<D extends Conveyor> {
+public abstract class Request {
     public enum RequestType {
         Ordinal, //linear
         ASAP; //happens ASAP
     }
     
     private final RequestType requestType;
+    private final boolean isWall; //meaning that this request will not let everything else around it happen until it is done
+    private final int priority;
     
-    //meaning that this request will not let everything else around it happen until it is done; otherwise, happens at the same time as other requests
-    //walls cannot out ASAP requests
-    private final boolean isWall; 
-    
-    public Request(RequestType requestType, boolean isWall) {
+    public Request(RequestType requestType, int priority, boolean isWall) {
         this.requestType = requestType;
+        this.priority = priority;
         this.isWall = isWall;
     }
     
-    public boolean update(float tpf, D data) { //returns if the update is done or not
+    public boolean update(float tpf, DataStructure data) { //returns if the update is done or not
         boolean finished = update(data, tpf);
         
         if (finished) {
@@ -38,10 +36,11 @@ public abstract class Request<D extends Conveyor> {
         return false;
     }
     
-    protected abstract boolean update(D data, float tpf);
-    protected abstract void onFinish(D data);
+    protected abstract boolean update(DataStructure data, float tpf);
+    protected abstract void onFinish(DataStructure data);
     
     public RequestType getRequestType() { return requestType; }
     public boolean getIsWall() { return isWall; }
+    public int getPriority() { return priority; }
     
 }

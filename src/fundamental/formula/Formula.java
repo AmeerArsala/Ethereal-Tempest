@@ -5,67 +5,131 @@
  */
 package fundamental.formula;
 
-import battle.animation.config.EntityAnimation.AnimationSource;
-import com.google.gson.Gson;
+import battle.animation.FormulaAnimation;
 import fundamental.stats.Toll;
 import fundamental.stats.Toll.Exchange;
+
+import com.destroflyer.jme3.effekseer.model.ParticleEffect;
+import com.destroflyer.jme3.effekseer.model.ParticleEffectSettings;
+import com.destroflyer.jme3.effekseer.reader.EffekseerReader;
+import com.destroflyer.jme3.effekseer.renderer.EffekseerControl;
+import com.google.gson.Gson;
+import com.jme3.asset.AssetManager;
 import etherealtempest.MasterFsmState;
-import fundamental.BattleVisual;
-import fundamental.unit.UnitAllegiance;
+import etherealtempest.characters.Unit.UnitAllegiance;
 import fundamental.tool.DamageTool;
-import fundamental.Gear;
+import fundamental.FreelyAssociated;
 import fundamental.tool.SupportTool;
 import fundamental.tool.Tool;
 import fundamental.tool.Tool.ToolType;
+import general.visual.ParticleEffectBeta;
+import general.visual.ParticleEffectInfoBeta;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import maps.layout.Coords;
-import maps.layout.MapLevel;
-import maps.layout.MapCoords;
-import maps.layout.occupant.character.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.tile.Tile;
 import maps.layout.occupant.VenturePeek;
 
 /**
  *
  * @author night
- * @param <T> DamageTool or SupportTool
  */
-public class Formula<T extends Tool> extends Gear {
+public class Formula extends FreelyAssociated {
     private ToolType formulaType;
     private Toll cost;
-    private T formulaData;
+    private Tool formulaData;
     
-    public Formula(Gear template, T data, ToolType FT, Toll usage, String animationJson) {
-        super(template.getName(), template.getDescription(), template.getPassiveBonusEffect());
+    private FormulaAnimation jsonInfo;
+    private EffekseerControl control;
+    private ParticleEffectBeta testEffect;
+    private ParticleEffect particleEffect;
+    
+    private AssetManager assetM;
+    
+    private static int IDgen = 0;
+    private final int ID;
+    
+    public Formula(FreelyAssociated template, Tool data, ToolType FT, Toll usage) {
+        super(template.getName(), template.getDescription(), template.getExtraTalent(), template.getExtraSkill());
         formulaData = data;
         cost = usage;
         formulaType = FT;
-        formulaData.setAnimation(new BattleVisual(animationJson, AnimationSource.ParticleEffect));
+        
+        jsonInfo = deserializeFromJSON();
+        
+        ID = IDgen;
+        IDgen++;
     }
     
-    public ToolType getFormulaPurpose() { return formulaType; }
+    private Formula(FreelyAssociated template, Tool data, ToolType FT, Toll usage, int id) {
+        super(template.getName(), template.getDescription(), template.getExtraTalent(), template.getExtraSkill());
+        formulaData = data;
+        cost = usage;
+        formulaType = FT;
+        
+        jsonInfo = deserializeFromJSON();
+        
+        ID = id;
+    }
+        
+    public Formula() {
+        super(false);
+        
+        ID = IDgen;
+        IDgen++;
+    }
+    
+    public Formula(boolean ex) {
+        super(ex);
+        
+        ID = IDgen;
+        IDgen++;
+    }
+    
+    public Formula cloneFormulaInstance() {
+        return new Formula(this, formulaData, formulaType, cost, ID);
+    }
+    
+    public int getID() { return ID; }
+    
+    private FormulaAnimation deserializeFromJSON() {
+        try {
+            Gson gson = new Gson();
+            Reader reader = Files.newBufferedReader(Paths.get("assets\\Models\\Effects\\Formulas\\" + name + ".json"));
+            return gson.fromJson(reader, FormulaAnimation.class);
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
     
     public DamageTool getOffensiveFormulaData() { return formulaType == ToolType.Attack ? ((DamageTool)formulaData) : null; }
     public SupportTool getSupportiveFormulaData() { return formulaType.isSupportive() ? ((SupportTool)formulaData) : null; }
-    public T getActualFormulaData() { return formulaData; }
+    public Tool getActualFormulaData() { return formulaData; }
     
     public int getHPUsage() { return cost.getType() == Exchange.HP ? cost.getValue() : 0; }
     public int getTPUsage() { return cost.getType() == Exchange.TP ? cost.getValue() : 0; }
-    
-    public String getIconPath() {
-        return "Interface/GUI/icons/item_and_formula/" + formulaData.getType() + ".png";
+        
+    public ToolType getFormulaPurpose() {
+        return formulaType;
     }
     
-    public boolean isAvailableAt(MapCoords pos, UnitAllegiance allegiance, int currentHP, int currentTP) {
+    public FormulaAnimation getInfo() {
+        return jsonInfo;
+    }
+    
+    public boolean isAvailableAt(Coords pos, int layer, UnitAllegiance allegiance, int currentHP, int currentTP) {
         if (currentHP < getHPUsage() || currentTP < getTPUsage()) { return false; } 
         
-        MapLevel currentMap = MasterFsmState.getCurrentMap();
+        Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
         for (Integer range : formulaData.getRange()) {
-            for (MapCoords point : VenturePeek.coordsForTilesOfRange(range, pos)) {
-                TangibleUnit occupier = currentMap.getTileAt(point).getOccupier();
-                if (occupier != null && formulaType.isSupportive() == allegiance.alliedWith(occupier.getAllegiance())) {
+            for (Coords point : VenturePeek.coordsForTilesOfRange(range, pos, layer)) {
+                TangibleUnit occupier = layerTiles[point.getX()][point.getY()].getOccupier();
+                if (occupier != null && ((formulaType.isSupportive() && allegiance.alliedWith(occupier.unitStatus)) || (!formulaType.isSupportive() && !allegiance.alliedWith(occupier.unitStatus)))) {
                     return true;
                 }
             }
@@ -90,20 +154,36 @@ public class Formula<T extends Tool> extends Gear {
         return st;
     }
     
-    private static FormulaDeserialization deserialization(String jsonName) {
-        try {
-            Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\EntityPresets\\formulas\\" + jsonName));
-            return gson.fromJson(reader, FormulaDeserialization.class);
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
+    public EffekseerControl getControl() {
+        return control;
     }
     
-    public static final Formula Anemo_Schism() {
-        return deserialization("Anemo Schism.json").constructOffensiveFormula(null); //no bonus for having this formula, that's why null is there
-        //formula.animation.initializeParticleEffects(assetManager); do not call this here because it already gets caleld in VisibleEntityParticleEffectAnimation
+    public ParticleEffectBeta getParticleEffect() {
+        return testEffect;
+    }
+        
+    public void initializeAnimation(AssetManager assetManager) {
+        assetM = assetManager;
+        EffekseerReader reader = new EffekseerReader();
+        
+        particleEffect = reader.read("assets", "assets\\Models\\Effects\\MAGICALxSPIRAL\\" + name + ".efkproj");
+        
+        ParticleEffectInfoBeta info = new ParticleEffectInfoBeta().quality(1);
+        testEffect = new ParticleEffectBeta()
+                .directory("assets\\Models\\Effects\\MAGICALxSPIRAL")
+                .fileName("anemo schism.efkproj")
+                .particleEffect(particleEffect)
+                .info(info);
+        
+        ParticleEffectSettings PES = new ParticleEffectSettings();
+        control = new EffekseerControl(particleEffect, PES, assetManager);
+        control.setEnabled(true);
+    }
+    
+    public EffekseerControl resetControl() {
+        control = new EffekseerControl(particleEffect, new ParticleEffectSettings(), assetM);
+        control.setEnabled(true);
+        
+        return control;
     }
 }

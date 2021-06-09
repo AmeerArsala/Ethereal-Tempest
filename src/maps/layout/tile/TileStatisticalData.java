@@ -11,7 +11,6 @@ import fundamental.talent.Talent;
 import fundamental.talent.TalentCondition.Occasion;
 import java.util.ArrayList;
 import java.util.List;
-import maps.layout.MapCoords;
 
 /**
  *
@@ -61,7 +60,7 @@ public class TileStatisticalData { //USE GSON FOR THIS
         givenTalent = tal;
     }
     
-    public Talent convertRawBonuses(MapCoords coords) {
+    public Talent convertRawBonuses(int x, int y, int layer) {
         List<Bonus> eligible = new ArrayList<>();
         if (buffsAndOrDebuffs != null) {
             for (Bonus B : buffsAndOrDebuffs) {
@@ -71,6 +70,6 @@ public class TileStatisticalData { //USE GSON FOR THIS
             }
         }
         
-        return Talent.TileBonus(coords, eligible, getOccasion());
+        return Talent.TileBonus(x, y, layer, eligible, getOccasion());
     }
 }

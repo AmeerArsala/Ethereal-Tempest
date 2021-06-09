@@ -1,9 +1,0 @@
-{
-  "name": "Trigonal Planar",
-  "desc": "A basic 3-point formation",
-  "tier": 1,
-  "statBonus": { //boosts mobility by 1; Sagittarius
-    "baseStatName": "Mobility",
-    "val": 1
-  }
-}

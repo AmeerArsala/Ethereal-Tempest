@@ -5,28 +5,22 @@
  */
 package fundamental.skill;
 
-import com.google.gson.Gson;
 import fundamental.stats.Toll;
 import etherealtempest.MasterFsmState;
-import fundamental.unit.UnitAllegiance;
-import fundamental.Attribute;
+import etherealtempest.characters.Unit.UnitAllegiance;
+import fundamental.Associated;
 import fundamental.tool.Tool;
 import fundamental.tool.Tool.ToolType;
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import maps.layout.Coords;
-import maps.layout.MapLevel;
-import maps.layout.MapCoords;
-import maps.layout.occupant.character.TangibleUnit;
+import maps.layout.occupant.TangibleUnit;
+import maps.layout.tile.Tile;
 import maps.layout.occupant.VenturePeek;
 
 /**
  *
  * @author night
  */
-public class Skill extends Attribute {
+public class Skill extends Associated {
     private String path = "Interface/GUI/skill_icons/empty.png";
     private ToolType type;
     private Toll info;
@@ -34,10 +28,14 @@ public class Skill extends Attribute {
     
     public Skill(String name, String desc, String path, ToolType type, Toll info, SkillEffect effect) {
         super(name, desc);
-        this.path = path;
+        this.path = "Interface/GUI/skill_icons/" + path;
         this.type = type;
         this.info = info; 
         this.effect = effect;
+    }
+    
+    public Skill(boolean exists) {
+        super(exists);
     }
 
     public String getPath() { return path; }
@@ -47,12 +45,12 @@ public class Skill extends Attribute {
     
     public Toll getToll() { return info; }
     
-    public boolean isAvailableAt(MapCoords pos, UnitAllegiance allegiance, Tool tool) {
-        MapLevel currentMap = MasterFsmState.getCurrentMap();
+    public boolean isAvailableAt(Coords pos, int layer, UnitAllegiance allegiance, Tool tool) { 
+        Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
         for (Integer range : tool.getRange()) {
-            for (MapCoords point : VenturePeek.coordsForTilesOfRange(range, pos)) {
-                TangibleUnit occupier = currentMap.getTileAt(point).getOccupier();
-                if (occupier != null && type.isSupportive() == allegiance.alliedWith(occupier.getAllegiance())) {
+            for (Coords point : VenturePeek.coordsForTilesOfRange(range, pos, layer)) {
+                TangibleUnit occupier = layerTiles[point.getX()][point.getY()].getOccupier();
+                if (occupier != null && ((type.isSupportive() && allegiance.alliedWith(occupier.unitStatus)) || (!type.isSupportive() && !allegiance.alliedWith(occupier.unitStatus)))) {
                     return true;
                 }
             }
@@ -63,21 +61,4 @@ public class Skill extends Attribute {
     
     @Override
     public String toString() { return name; }
-    
-    
-    public static final Skill Heavy_Swing = deserialization("Heavy Swing.json").constructSkill(null);
-    
-    private static SkillDeserialization deserialization(String jsonName) {
-        try {
-            Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\EntityPresets\\skills\\" + jsonName));
-            
-            return gson.fromJson(reader, SkillDeserialization.class); 
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
-
 }

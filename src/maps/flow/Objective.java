@@ -5,7 +5,7 @@
  */
 package maps.flow;
 
-import etherealtempest.info.Conveyor;
+import etherealtempest.info.Conveyer;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.Reader;
@@ -42,7 +42,7 @@ public class Objective {
     private ObjectiveData deserializeFromJSON() {
         try {
             Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\MapPresets\\Objectives\\" + objectiveName + ".json"));
+            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\presets\\MapObjectives\\" + objectiveName + ".json"));
             return gson.fromJson(reader, ObjectiveData.class);
         }
         catch (IOException ex) {
@@ -54,7 +54,7 @@ public class Objective {
     public String getName() { return objectiveName; }
     public ObjectiveData getCriteria() { return criteria; }
     
-    public int turnsRemaining(Conveyor conv) {
+    public int turnsRemaining(Conveyer conv) {
         return turnsRemaining(conv.getCurrentTurn());
     }
     
@@ -62,11 +62,11 @@ public class Objective {
         return turnLimit - currentTurn + 1;
     }
     
-    public boolean isMet(Conveyor conv) { //TODO: TAKE INTO ACCOUNT THE OBJECTIVEDATA AND MAKE A DECISION ABOUT IT
+    public boolean isMet(Conveyer conv) { //TODO: TAKE INTO ACCOUNT THE OBJECTIVEDATA AND MAKE A DECISION ABOUT IT
         return criteria.victoryConditionsMet(conv);
     }
     
-    public boolean hasFailed(Conveyor conv) {
+    public boolean hasFailed(Conveyer conv) {
         return criteria.lossConditionsMet(conv);
     }
     

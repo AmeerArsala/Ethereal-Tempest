@@ -1,0 +1,10 @@
+{
+  "template": {
+    "name": "Copper Shortsword",
+    "desc": "A basic shortsword designed for quick cuts and maneuvers.",
+    "Weight": 3,
+    "worth": 300
+  },
+  "durability": 40.0,
+  "requiredLevel": 0
+}

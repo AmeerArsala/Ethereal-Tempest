@@ -105,10 +105,6 @@ public class TileVisualData { //TODO: Add Shaders to this
             );
         }
         
-        public void resetRootNode() {
-            modelRoot = new Node();
-        }
-        
         public void integrate(Node tileVisualDataRootNode, Node structure) {
             Node model = structure.clone(true);
             
@@ -139,7 +135,7 @@ public class TileVisualData { //TODO: Add Shaders to this
     public void finishAssimilation(Node tileRootNode) {
         if (clones != null) {
             for (DistinctOccupantModel dom : clones) {
-                dom.resetRootNode();
+                dom.modelRoot = new Node();
                 dom.integrate(root, modelTemplateForAssimilation);
             }
             tileRootNode.attachChild(root);

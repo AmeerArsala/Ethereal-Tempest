@@ -5,7 +5,8 @@
  */
 package fundamental.stats;
 
-import com.google.gson.annotations.Expose;
+import battle.Combatant.BaseStat;
+import battle.Combatant.BattleStat;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,9 +21,6 @@ public class Bonus {
         @SerializedName("FullTurn") FullTurn, //like a rally
         @SerializedName("ThroughNextAction") ThroughNextAction
     }
-    
-    @Expose(deserialize = false)
-    private int turnApplied = -1;
     
     private int value;
     private BonusType bonusType;
@@ -41,6 +39,18 @@ public class Bonus {
         this.battleStatBonus = battleStatBonus;
     }
     
+    public Bonus(int value, BaseStat baseStatBonus) {
+        this.value = value;
+        this.baseStatBonus = baseStatBonus;
+        bonusType = BonusType.Raw;
+    }
+    
+    public Bonus(int value, BattleStat battleStatBonus) {
+        this.value = value;
+        this.battleStatBonus = battleStatBonus;
+        bonusType = BonusType.Raw;
+    }
+    
     public int getValue() { return value; }
     public BonusType getType() { return bonusType; }
     public BaseStat getBaseStat() { return baseStatBonus; }
@@ -48,13 +58,6 @@ public class Bonus {
     
     public StatType getStatType() {
         return baseStatBonus != null ? StatType.Base : StatType.Battle;
-    }
-    
-    public int getTurnApplied() { return turnApplied; }
-    
-    public Bonus setTurnApplied(int turn) {
-        turnApplied = turn;
-        return this;
     }
     
     public StatBundle toStatBundle() {
@@ -66,45 +69,16 @@ public class Bonus {
         return new StatBundle(battleStatBonus, value);
     }
     
-    public String StatAsString() {
-        if (getStatType() == StatType.Base) {
-            return baseStatBonus.getName();
-        }
-        
-        return battleStatBonus.getName();
-    }
-    
-    public String StatBonusAsString() {
-        if (getStatType() == StatType.Base) {
-            return baseStatBonus.getName() + " " + deltaStat(value);
-        }
-        
-        return battleStatBonus.getName() + deltaStat(value);
-    }
-    
-    public String getDeltaValueAsString() {
-        return deltaStat(value);
-    }
-    
-    private static String deltaStat(int val) {
-        String str = "";
-        if (val > 0) { str += "+"; }
-        
-        return str + val;
-    }
-    
     public enum StatType {
-        @SerializedName("Base") Base(1, BaseStat.class), 
-        @SerializedName("Battle") Battle(-1, BattleStat.class);
+        Base(1), 
+        Battle(-1);
         
         private BattleStat battleStat = null;
         private BaseStat baseStat = null;
         
         private final int id;
-        private final Class<?> declaringClass;
-        private StatType(int identifier, Class<?> declClass) {
+        private StatType(int identifier) {
             id = identifier;
-            declaringClass = declClass;
         }
         
         public StatType setBaseStat(BaseStat based) {
@@ -122,22 +96,8 @@ public class Bonus {
         
         public int getID() { return id; }
         
-        public Class<?> getTypeDeclaringClass() {
-            return declaringClass;
-        }
-        
         public StatType getMatchingValue(int val) {
             return val == 1 ? Base : (val == -1 ? Battle : null);
-        }
-        
-        public static StatType getStatTypeByTypeDeclaringClass(Class<?> decl) {
-            for (StatType stat : StatType.values()) {
-                if  (stat.declaringClass == decl) {
-                    return stat;
-                }
-            }
-            
-            return null;
         }
     }
     

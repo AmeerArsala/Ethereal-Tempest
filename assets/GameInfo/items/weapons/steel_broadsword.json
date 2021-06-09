@@ -1,0 +1,10 @@
+{
+  "template": {
+    "name": "Steel Broadsword",
+    "desc": "A strong sword considered an essential by skilled swordsman.",
+    "Weight": 8,
+    "worth": 700
+  },
+  "durability": 35.0,
+  "requiredLevel": 2
+}

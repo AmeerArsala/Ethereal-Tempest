@@ -5,60 +5,38 @@
  */
 package etherealtempest;
 
-import com.jme3.math.ColorRGBA;
-import maps.layout.occupant.Cursor;
-
 /**
  *
  * @author night
  * @param <T> enum type
  */
-public abstract class FSM<T extends Enum> {
+public abstract class FSM<T> {
     protected FsmState<T> state;
     
-    public FSM() {}
-    
-    public FSM(FsmState<T> state) {
-        this.state = state;
-    }
-    
-    public FSM(T st) {
-        state = new FsmState<>(st);
-    }
-    
-    public abstract void setNewStateIfAllowed(FsmState<T> st); //does not set last enum unless it is abstracted as such
+    public abstract void setNewStateIfAllowed(FsmState<T> st);
     
     public void setNewStateIfAllowed(T st) {
-        if (state != null) {
-            setNewStateIfAllowed(new FsmState<>(st, state.getEnum()));
-        } else {
-            setNewStateIfAllowed(new FsmState<>(st));
-        }
+        setNewStateIfAllowed(new FsmState<>(st));
     }
     
-    //does not set last enum
     public void forceState(FsmState<T> st) {
         state = st;
     }
     
     public void forceState(T st) {
-        if (state != null) {
-            state = new FsmState<>(st, state.getEnum());
-        } else {
-            state = new FsmState<>(st);
-        }
+        state = new FsmState<>(st);
     }
     
     public FsmState<T> getState() {
         return state;
     }
     
-    public T getEnumState() {
-        return state.getEnum();
+    public <E> E getEnumState(Class<E> enumClassOfE) {
+        return enumClassOfE.cast(state.getEnum());
     }
     
-    public T getLastEnumState() {
-        return state.getLastEnum();
+    public T getEnumState() {
+        return (T)state.getEnum();
     }
     
     public enum LevelState {
@@ -72,11 +50,15 @@ public abstract class FSM<T extends Enum> {
         Idle,
         
         MapDefault,
+        SwitchingTurn,
         BeginningOfTurn,
         
         PreBattle,
         DuringBattle,
         PostBattle,
+        
+        //ActionMenu states
+        PostActionMenuOpened,
         
         //StatScreen states
         StatScreenOpened,
@@ -87,40 +69,24 @@ public abstract class FSM<T extends Enum> {
     
     public enum CursorState {
         //Cursor states
-        CursorDefault(Cursor.DEFAULT_COLOR),
-        AnyoneHovered(Cursor.DEFAULT_COLOR),
-        AnyoneSelected(Cursor.SELECTING_MOVE_SQUARE),
-        AnyoneMoving(Cursor.DEFAULT_COLOR),
-        AnyoneSelectingTarget(Cursor.SELECTING_ATTACK_TARGET),
-        AnyoneTargeted(Cursor.DEFAULT_COLOR),
-        Idle(Cursor.MISC_COLOR);
-        
-        private final ColorRGBA correspondingColor;
-        private CursorState(ColorRGBA color) {
-            correspondingColor = color;
-        }
-        
-        public ColorRGBA getCorrespondingColor() {
-            return correspondingColor;
-        }
+        CursorDefault,
+        AnyoneHovered,
+        AnyoneSelected,
+        AnyoneMoving,
+        AnyoneSelectingTarget,
+        AnyoneTargeted,
+        Idle
     }
     
     public enum UnitState {
         //TangibleUnit states
         Idle,
+        Moving,
         Active,
         Done,
-        Dying,
         Dead,
-        SelectingTarget
+        SelectingTarget,
+        ReceivingEffect //this is for aoe damage to the unit before/after combat, etc.
     }
     
-    public enum FighterState {
-        Fighting,
-        ApplyingDeath,
-        GainingExp,
-        LevelUp, //text pops then transition in
-        LevelUpDone, //when you can press select to exit out
-        Finished
-    }
 }

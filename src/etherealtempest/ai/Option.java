@@ -6,9 +6,9 @@
 package etherealtempest.ai;
 
 import etherealtempest.info.ActionInfo.PostMoveAction;
-import fundamental.Attribute;
+import fundamental.Associated;
 import fundamental.Entity;
-import maps.layout.MapCoords;
+import maps.layout.Coords;
 import maps.layout.occupant.Cursor.Purpose;
 import maps.layout.occupant.MapEntity;
 
@@ -19,14 +19,14 @@ import maps.layout.occupant.MapEntity;
 public class Option {
         public final PostMoveAction action;
         public final Purpose purpose;
-        public final Attribute option;
-        public final MapCoords targetTile;
+        public final Associated option;
+        public final Coords targetTile;
         public final Entity target; //must be one of the subclasses
         public final int fromRange;
         
         public int priority = -1;
         
-        public Option(PostMoveAction accion, Purpose pur, Attribute opt, MapCoords cds, int range, Entity targetEntity) {
+        public Option(PostMoveAction accion, Purpose pur, Associated opt, Coords cds, int range, Entity targetEntity) {
             action = accion;
             option = opt;
             purpose = pur;
@@ -35,7 +35,7 @@ public class Option {
             target = targetEntity;
         }
         
-        public Option(MapCoords cds) { //for waiting on a tile and doing nothing else
+        public Option(Coords cds) { //for waiting on a tile and doing nothing else
             targetTile = cds;
             fromRange = 0;
             purpose = null;
@@ -44,7 +44,7 @@ public class Option {
             target = null;
         }
         
-        public Option(MapCoords cds, PostMoveAction accion) { //for waiting on a tile and doing nothing else
+        public Option(Coords cds, PostMoveAction accion) { //for waiting on a tile and doing nothing else
             targetTile = cds;
             action = accion;
             fromRange = 0;
@@ -53,7 +53,7 @@ public class Option {
             target = null;
         }
         
-        public Option(MapCoords cds, PostMoveAction accion, MapEntity targetEntity, int range) { //for waiting on a tile and doing nothing else
+        public Option(Coords cds, PostMoveAction accion, MapEntity targetEntity, int range) { //for waiting on a tile and doing nothing else
             targetTile = cds;
             action = accion;
             target = targetEntity;

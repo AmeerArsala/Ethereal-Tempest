@@ -5,34 +5,25 @@
  */
 package fundamental.item;
 
-import fundamental.stats.RawBroadBonus;
-
 /**
  *
  * @author night
- * 
- * this is for deserialization
  */
 public class BasicItem {
     private String name;
     private String desc;
-    private int weight;
+    private int Weight;
     private int worth;
     
-    public BasicItem(String name, String desc, int weight, int worth) {
+    public BasicItem(String name, String desc, int Weight, int worth) {
         this.name = name;
         this.desc = desc;
-        this.weight = weight;
+        this.Weight = Weight;
         this.worth = worth;
     }
     
-    public Item construct(RawBroadBonus passive) {
-        return new Item(name, desc, weight, worth, passive) {
-            @Override
-            public String getIconPath() {
-                return null;
-            }
-        };
+    public Item construct() {
+        return new Item(name, desc, Weight, worth);
     }
     
 }
