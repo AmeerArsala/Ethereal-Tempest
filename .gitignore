@@ -8,12 +8,17 @@ assets/Sounds
 assets/Textures
 !assets/MatDefs/custom/
 !assets/MatDefs/TTF/
-assets/MatDefs
+assets/MatDefs/
+assets/Sprites/unfinished
+assets/Sprites/other
 
 ##############################
 ## Misc
 ##############################
 .png
+.jpg
+.jpeg
+.gif
 
 ##############################
 ## Java
