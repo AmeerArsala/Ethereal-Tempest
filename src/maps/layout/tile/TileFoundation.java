@@ -17,11 +17,11 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import com.simsilica.lemur.LayerComparator;
-import general.GeneralUtils;
+import general.utils.GeneralUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import maps.layout.Coords;
+import maps.layout.MapCoords;
 import static maps.layout.tile.Tile.MOVEMENT;
 
 /**
@@ -34,21 +34,19 @@ public class TileFoundation {
     protected static final String MOVEMENT = "Textures/tiles/movsquare.png";
     protected static final String ATTACK = "Textures/tiles/atksquare.png";
     
-    protected final int pX, pY, elevation;
+    protected final MapCoords coords = new MapCoords();
     protected Geometry tgeometry;
     protected Mesh patchMesh;
     
-    protected TileFoundation(int posx, int posy, int layer) {
-        pX = posx;
-        pY = posy;
-        elevation = layer;
+    protected TileFoundation(int posX, int posY, int layer) {
+        coords.setPosition(posX, posY, layer);
     }
     
-    public TileFoundation(int posx, int posy, int layer, AssetManager assetManager) { //for movement square
-        this(posx, posy, layer);
+    public TileFoundation(int posX, int posY, int layer, AssetManager assetManager) { //for movement square
+        this(posX, posY, layer);
         
         patchMesh = createMesh();
-        tgeometry = new Geometry("movesquare: (" + pX + ", " + pY + ")", patchMesh);
+        tgeometry = new Geometry("movesquare: (" + posX + ", " + posY + ")", patchMesh);
         
         Material movsquare = new Material(assetManager, "MatDefs/custom/RangeTile.j3md"); // MatDefs/custom/RangeTile.j3md vs. Common/MatDefs/Misc/Unshaded.j3md
         movsquare.setTexture("ColorMap", assetManager.loadTexture(MOVEMENT));
@@ -66,11 +64,7 @@ public class TileFoundation {
         LayerComparator.setLayer(tgeometry, 2);
     }
     
-    public int getPosX() { return pX; }
-    public int getPosY() { return pY; }
-    public int getElevation() { return elevation; }
-    
-    public Coords coords() { return new Coords(pX, pY); }
+    public MapCoords getPos() { return coords; }
     
     public Geometry getGeometry() { return tgeometry; }
     public Material getPatchMaterial() { return tgeometry.getMaterial(); }

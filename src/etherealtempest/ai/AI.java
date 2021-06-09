@@ -5,22 +5,23 @@
  */
 package etherealtempest.ai;
 
-import etherealtempest.info.Conveyer;
-import battle.forecast.PrebattleForecast;
+import etherealtempest.info.Conveyor;
+import battle.data.forecast.PrebattleForecast;
 import fundamental.ability.Ability;
-import battle.forecast.SupportForecast;
+import battle.data.forecast.SupportForecast;
 import etherealtempest.FSM.UnitState;
 import fundamental.formation.Formation;
 import fundamental.formula.Formula;
 import fundamental.item.Item;
-import fundamental.item.Weapon;
+import fundamental.item.weapon.Weapon;
 import fundamental.skill.Skill;
-import etherealtempest.GameUtils;
+import general.utils.GameUtils;
 import etherealtempest.MasterFsmState;
-import etherealtempest.characters.Unit.UnitAllegiance;
+import fundamental.unit.UnitAllegiance;
 import etherealtempest.info.ActionInfo;
 import etherealtempest.info.ActionInfo.PostMoveAction;
-import fundamental.Associated;
+import fundamental.Attribute;
+import fundamental.formation.FormationTechnique;
 import fundamental.tool.Tool.ToolType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,10 +29,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import maps.flow.ObjectiveData;
-import maps.layout.Coords;
 import maps.layout.occupant.Cursor.Purpose;
-import maps.layout.Map;
-import maps.layout.occupant.TangibleUnit;
+import maps.layout.MapLevel;
+import maps.layout.MapCoords;
+import maps.layout.occupant.character.TangibleUnit;
 import maps.layout.tile.Tile;
 import maps.layout.occupant.VenturePeek;
 import maps.layout.tile.TileOptionData.TileType;
@@ -116,26 +117,26 @@ public class AI {
     
     private AI(TangibleUnit ref) {
         reference = ref;
-        allegiance = reference.unitStatus;
+        allegiance = reference.getAllegiance();
         
         SAME = new AllegianceRecognizer() {
             @Override
             public boolean allows(TangibleUnit tu) {
-                return !reference.is(tu) && allegiance == tu.unitStatus;
+                return !reference.equals(tu) && allegiance == tu.getAllegiance();
             }
         };
         
         ALLIED = new AllegianceRecognizer() {
             @Override
             public boolean allows(TangibleUnit tu) {
-                return reference.unitStatus.alliedWith(tu.unitStatus);
+                return reference.isAlliedWith(tu);
             }
         };
         
         ENEMY = new AllegianceRecognizer() {
             @Override
             public boolean allows(TangibleUnit tu) {
-                return !reference.unitStatus.alliedWith(tu.unitStatus);
+                return !reference.isAlliedWith(tu);
             }
         };
     }
@@ -165,7 +166,7 @@ public class AI {
         allegiance = us;
     }
     
-    public Option calculateNextCourseOfAction(Conveyer data) {
+    public Option calculateNextCourseOfAction(Conveyor data) {
         if (givenCommand != null) { //command overrides all
             Command cmd = givenCommand.equivalentInstance();
             givenCommand = null;
@@ -185,14 +186,14 @@ public class AI {
         return null;
     }
     
-    void updateMindset(Conveyer data) {
+    void updateMindset(Conveyor data) {
         mindset = new ArrayList<>();
         behaviorMap.keySet().forEach((cond) -> {
             mindset.add(mindsetMap(cond, behaviorMap.get(cond), data));
         });
     }
     
-    private ConditionalBehavior mindsetMap(Condition condition, Behavior behavior, Conveyer data) {
+    private ConditionalBehavior mindsetMap(Condition condition, Behavior behavior, Conveyor data) {
         boolean cause;
         Option effect;
         
@@ -220,7 +221,7 @@ public class AI {
         //effect
         switch (behavior) {
             case DefaultMindset:
-                if (reference.unitStatus == UnitAllegiance.Ally) {
+                if (reference.getAllegiance() == UnitAllegiance.Ally) {
                     effect = ObjectivePriorityAsAlly(data);
                 } else { //enemy
                     effect = ObjectivePriorityAsEnemy(data);
@@ -230,7 +231,7 @@ public class AI {
                 effect = ChargeIn(data);
                 break;
             case Hold:
-                effect = mostFavorableMiscOption(reference.coords(), data);
+                effect = mostFavorableMiscOption(reference.getPos(), data);
                 break;
             case Drugged:
                 int random = (int)(Math.random() * 2);
@@ -238,9 +239,9 @@ public class AI {
                     int index = (int)(4 * Math.random());
                     effect = optionMap(Command.valueOf(index), data);
                 } else { // random == 1; random position in move squares
-                    List<Coords> squares = reference.movementTiles();
-                    Coords tile = squares.get((int)(Math.random() * squares.size()));
-                    Tile rand = MasterFsmState.getCurrentMap().fullmap[reference.getElevation()][tile.getX()][tile.getY()];
+                    List<MapCoords> squares = reference.movementTiles();
+                    MapCoords tile = squares.get((int)(Math.random() * squares.size()));
+                    Tile rand = MasterFsmState.getCurrentMap().getTileAt(tile);
                     if (rand.getOccupier() != null) {
                         effect = mostFavorableOffensiveOption(rand.getOccupier(), data);
                     } else {
@@ -256,7 +257,7 @@ public class AI {
         return new ConditionalBehavior(cause, effect);
     }
     
-    Option optionMap(Command command, Conveyer data) {
+    Option optionMap(Command command, Conveyor data) {
         switch(command) {
             case Charge:
                 return ChargeIn(data);
@@ -265,7 +266,7 @@ public class AI {
             case Run:
                 return RunAway(data);
             case HoldPosition:
-                return mostFavorableMiscOption(reference.coords(), data);
+                return mostFavorableMiscOption(reference.getPos(), data);
         }
         
         return null;
@@ -278,7 +279,7 @@ public class AI {
                         private boolean hasPassedOnce = false;
                         
                         @Override
-                        public boolean condition(Conveyer data) {
+                        public boolean condition(Conveyor data) {
                             if (hasPassedOnce) {
                                 return true;
                             }
@@ -293,7 +294,7 @@ public class AI {
                     },
                     new AIBehavior() {
                         @Override
-                        public Option action(Conveyer data) {
+                        public Option action(Conveyor data) {
                             return ObjectivePriorityAsEnemy(data);
                         }
                     }
@@ -301,62 +302,61 @@ public class AI {
         );
     }
     
-    private Option GroupUp(Conveyer data) {
-        return mostFavorableMiscOption(surround(data.getUnit().coords(), 8, reference.getElevation()), data); //group up around some target of the same allegiance
+    private Option GroupUp(Conveyor data) {
+        int max = 8;
+        return mostFavorableMiscOption(surround(data.getUnit().getPos(), max), data); //group up around some target of the same allegiance
     }
     
-    private Option RunAway(Conveyer data) {
+    private Option RunAway(Conveyor data) {
         ObjectiveData objective = data.getObjective().getCriteria();
         
         //play objective it that is it
         if (allegiance == UnitAllegiance.Ally && objective.getEscape()) {
-            List<Tile> escTiles = MasterFsmState.getCurrentMap().reorderTheseTilesByClosestTo(
-                    reference.getPosX(), 
-                    reference.getPosY(), 
-                    GameUtils.getSpecialTiles(TileType.Escape, allegiance)
+            List<Tile> escTiles = MapLevel.reorderTheseTilesByClosestTo(
+                reference.getPos(),
+                GameUtils.getSpecialTiles(TileType.Escape, allegiance)
             );
                 
             for (Tile esc : escTiles) {
-                if (!esc.isOccupied && reference.movementTiles().contains(esc.coords())) {
-                    return mostFavorableMiscOption(esc.coords(), data);
+                if (!esc.isOccupied && reference.movementTiles().contains(esc.getPos())) {
+                    return mostFavorableMiscOption(esc.getPos(), data);
                 }
             }
                 
-            return mostFavorableMiscOption(reference.movementTileFurthestOnPathTowards(escTiles.get(0).coords()).coords(), data);
+            return mostFavorableMiscOption(reference.movementTileFurthestOnPathTowards(escTiles.get(0).getPos()).getPos(), data);
         }
         
         if (allegiance == UnitAllegiance.Enemy && objective.getX_EnemiesEscapeForDefeat() != null) {
-            List<Tile> escTiles = MasterFsmState.getCurrentMap().reorderTheseTilesByClosestTo(
-                    reference.getPosX(), 
-                    reference.getPosY(), 
-                    GameUtils.getSpecialTiles(TileType.Escape, allegiance)
+            List<Tile> escTiles = MapLevel.reorderTheseTilesByClosestTo(
+                reference.getPos(),
+                GameUtils.getSpecialTiles(TileType.Escape, allegiance)
             );
                 
             for (Tile esc : escTiles) {
-                if (!esc.isOccupied && reference.movementTiles().contains(esc.coords())) {
-                    return mostFavorableMiscOption(esc.coords(), data);
+                if (!esc.isOccupied && reference.movementTiles().contains(esc.getPos())) {
+                    return mostFavorableMiscOption(esc.getPos(), data);
                 }
             }
                 
-            return mostFavorableMiscOption(reference.movementTileFurthestOnPathTowards(escTiles.get(0).coords()).coords(), data);
+            return mostFavorableMiscOption(reference.movementTileFurthestOnPathTowards(escTiles.get(0).getPos()).getPos(), data);
         }
         
         //get scariest enemy unit position
-        Coords scariest = null;
+        MapCoords scariest = null;
         int highestConcentration = 0;
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (!unit.isAlliedWith(reference.unitStatus) && unit.getFSM().getState().getEnum() != UnitState.Dead) {
+            if (!unit.isAlliedWith(reference.getAllegiance()) && unit.getFSM().getEnumState() != UnitState.Dead) {
                 int concentration = unit.calculateConcentrationValue(1);
                 if (scariest == null || concentration > highestConcentration) {
-                    scariest = unit.coords();
+                    scariest = unit.getPos();
                     highestConcentration = concentration;
                 }
             }
         }
         
-        Coords furthestMoveTileFrom = null;
-        for (Coords tile : reference.movementTiles()) {
-            if (furthestMoveTileFrom == null || (scariest != null && scariest.difference(tile) > scariest.difference(furthestMoveTileFrom))) {
+        MapCoords furthestMoveTileFrom = null;
+        for (MapCoords tile : reference.movementTiles()) {
+            if (furthestMoveTileFrom == null || (scariest != null && scariest.spacesFrom(tile) > scariest.spacesFrom(furthestMoveTileFrom))) {
                 furthestMoveTileFrom = tile;
             }
         }
@@ -368,7 +368,7 @@ public class AI {
         return mostFavorableMiscOption(furthestMoveTileFrom, data);
     }
     
-    private Option ChargeIn(Conveyer data) {
+    private Option ChargeIn(Conveyor data) {
         Option highestPriorityOffensiveOption = calculateHighestPriorityOffensiveOption(data, ANY);
         if (highestPriorityOffensiveOption != null) {
             return highestPriorityOffensiveOption;
@@ -377,12 +377,12 @@ public class AI {
         return mostFavorableMiscOption(
                 reference.movementTileFurthestOnPathTowards(
                     calculateHighestPriorityOffensiveOptionNotRegardingDistance(data).targetTile
-                ).coords(),
+                ).getPos(),
                 data
         );
     }
     
-    public Option DefaultBehavior(Conveyer data) {
+    public Option DefaultBehavior(Conveyor data) {
         Option highestPriorityAssistOption = calculateHighestPriorityAssistOption(data, ANY);        
         if (highestPriorityAssistOption != null) {
             return highestPriorityAssistOption;
@@ -391,12 +391,10 @@ public class AI {
         return ChargeIn(data);
     }
     
-    public Coords surround(Coords target, int cap, int layer) { //returns first available coord
-        Tile[][] layerTiles = MasterFsmState.getCurrentMap().fullmap[layer];
-        
+    public MapCoords surround(MapCoords target, int cap) { //returns first available coord
         for (int range = 1; range <= cap; range++) {
-            for (Coords tile : reference.venture().smartCoordsForTilesOfRange(range, target, layer)) {
-                if (!layerTiles[tile.getX()][tile.getY()].isOccupied) {
+            for (MapCoords tile : reference.venture().smartCoordsForTilesOfRange(range, target)) {
+                if (!MasterFsmState.getCurrentMap().getTileAt(tile).isOccupied) {
                     return tile;
                 }
             }
@@ -405,26 +403,26 @@ public class AI {
         return null;
     }
     
-    public Option ObjectivePriorityAsAlly(Conveyer data) {
+    public Option ObjectivePriorityAsAlly(Conveyor data) {
         ObjectiveData objective = data.getObjective().getCriteria();
-        Map currentMap = MasterFsmState.getCurrentMap();
+        MapLevel currentMap = MasterFsmState.getCurrentMap();
         
         //adding phase
         List<Tile> toProtect = new ArrayList<>();
         
         if (objective.getAnyAnnexableTileAnnexedForDefeat() || objective.getAllAnnexableTilesAnnexedForDefeat()) { //the ally will rush to protect these tiles
-            toProtect.addAll(GameUtils.getSpecialTiles(TileType.Annex, reference.unitStatus, false));
+            toProtect.addAll(GameUtils.getSpecialTiles(TileType.Annex, reference.getAllegiance(), false));
         }
         
         if (objective.getX_CharactersDieForDefeat() != null) { //the ally will rush to protect this character and move with them
             GameUtils.retrieveCharacters(objective.getX_CharactersDieForDefeat(), data).forEach((tu) -> {
-                toProtect.add(currentMap.fullmap[tu.getElevation()][tu.getPosX()][tu.getPosY()]);
+                toProtect.add(currentMap.getTileAt(tu.getPos()));
             });
         }
         
         if (objective.getX_EntitiesDieForDefeat() != null) { //the ally will rush to protect this structure
             GameUtils.retrieveEntities(objective.getX_EntitiesDieForDefeat(), data).forEach((entity) -> {
-                toProtect.add(currentMap.fullmap[entity.getElevation()][entity.getPosX()][entity.getPosY()]);
+                toProtect.add(currentMap.getTileAt(entity.getPos()));
             });
         }
         
@@ -436,26 +434,26 @@ public class AI {
         return DefaultBehavior(data);
     }
     
-    public Option ObjectivePriorityAsEnemy(Conveyer data) { //protect before attack
+    public Option ObjectivePriorityAsEnemy(Conveyor data) { //protect before attack
         ObjectiveData objective = data.getObjective().getCriteria();
-        Map currentMap = MasterFsmState.getCurrentMap();
+        MapLevel currentMap = MasterFsmState.getCurrentMap();
         
         //adding phase: defensive
         List<Tile> toProtect = new ArrayList<>();
         
         if (objective.getAnnexAnyAnnexableTile() || objective.getAnnexAllAnnexableTiles()) { //the enemy will rush to protect these tiles
-            toProtect.addAll(GameUtils.getSpecialTiles(TileType.Annex, reference.unitStatus, false));
+            toProtect.addAll(GameUtils.getSpecialTiles(TileType.Annex, reference.getAllegiance(), false));
         }
         
         if (objective.getNamesOfBossesToKill() != null) { //the enemy will rush to protect this character and move with them (be a bodyguard)
             GameUtils.retrieveCharacters(objective.getNamesOfBossesToKill(), data).forEach((tu) -> {
-                toProtect.add(currentMap.fullmap[tu.getElevation()][tu.getPosX()][tu.getPosY()]);
+                toProtect.add(currentMap.getTileAt(tu.getPos()));
             });
         }
         
         if (objective.getNamesOfEntitiesToKill()!= null) { //the enemy will rush to protect this structure
             GameUtils.retrieveEntities(objective.getNamesOfEntitiesToKill(), data).forEach((entity) -> {
-                toProtect.add(currentMap.fullmap[entity.getElevation()][entity.getPosX()][entity.getPosY()]);
+                toProtect.add(currentMap.getTileAt(entity.getPos()));
             });
         }
         
@@ -474,14 +472,14 @@ public class AI {
         
         //attempt annex phase
         if (objective.getAnyAnnexableTileAnnexedForDefeat() || objective.getAllAnnexableTilesAnnexedForDefeat()) { //the enemy will rush to annex these tiles
-            return annexWithTheseTiles(GameUtils.getSpecialTiles(TileType.Annex, reference.unitStatus), data);
+            return annexWithTheseTiles(GameUtils.getSpecialTiles(TileType.Annex, reference.getAllegiance()), data);
         }
         
         //attempt escapist phase
         if (objective.getX_EnemiesEscapeForDefeat() != null) {
             List<TangibleUnit> escapees = GameUtils.retrieveCharacters(objective.getX_EnemiesEscapeForDefeat(), data);
             for (TangibleUnit escapee : escapees) {
-                if (escapee.is(reference)) {
+                if (escapee.equals(reference)) {
                     List<Tile> toEscapeIn = new ArrayList<>();
                     toEscapeIn.addAll(GameUtils.getSpecialTiles(TileType.Escape));
                     
@@ -492,13 +490,13 @@ public class AI {
         
         if (objective.getX_CharactersDieForDefeat() != null) { //the enemy will rush to attack these characters
             GameUtils.retrieveCharacters(objective.getX_CharactersDieForDefeat(), data).forEach((tu) -> {
-                toOffend.add(currentMap.fullmap[tu.getElevation()][tu.getPosX()][tu.getPosY()]);
+                toOffend.add(currentMap.getTileAt(tu.getPos()));
             });
         }
         
         if (objective.getX_EntitiesDieForDefeat() != null) { //the enemy will rush to attack these structures
             GameUtils.retrieveEntities(objective.getX_EntitiesDieForDefeat(), data).forEach((entity) -> {
-                toOffend.add(currentMap.fullmap[entity.getElevation()][entity.getPosX()][entity.getPosY()]);
+                toOffend.add(currentMap.getTileAt(entity.getPos()));
             });
         }
         
@@ -511,13 +509,13 @@ public class AI {
         return DefaultBehavior(data);
     }
     
-    public Option escapeWithTheseTiles(List<Tile> toEscapeIn, Conveyer data) {
+    public Option escapeWithTheseTiles(List<Tile> toEscapeIn, Conveyor data) {
         //prioritize the closest one
-        List<Tile> toEscapeOrdered = MasterFsmState.getCurrentMap().reorderTheseTilesByClosestTo(reference.getPosX(), reference.getPosY(), toEscapeIn);
+        List<Tile> toEscapeOrdered = MapLevel.reorderTheseTilesByClosestTo(reference.getPos(), toEscapeIn);
         
         for (int i = 0; i < toEscapeOrdered.size(); i++) {
             Tile escapeTile = toEscapeOrdered.get(i);
-            Coords escape = escapeTile.coords();
+            MapCoords escape = escapeTile.getPos();
             
             if (reference.canReach(escape) && !escapeTile.isOccupied) {
                 return new Option(escape, PostMoveAction.Escape);
@@ -527,7 +525,7 @@ public class AI {
                     @Override
                     public boolean allows(TangibleUnit target) {
                         for (Integer range : reference.getFullAssistRange()) {
-                            List<Coords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.coords(), target.getElevation());
+                            List<MapCoords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.getPos());
                             if (ableSquares.stream().anyMatch(
                                     (square) -> (!reference.venture().isCloserThan(square, escape)) )) {
                                 return true;
@@ -547,7 +545,7 @@ public class AI {
                     @Override
                     public boolean allows(TangibleUnit target) {
                         for (Integer range : reference.getFullOffensiveRange()) {
-                            List<Coords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.coords(), target.getElevation());
+                            List<MapCoords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.getPos());
                             if (ableSquares.stream().anyMatch(
                                     (square) -> (!reference.venture().isCloserThan(square, escape)) )) {
                                 return true;
@@ -564,7 +562,7 @@ public class AI {
                 } 
                 
                 return mostFavorableMiscOption(
-                    reference.movementTileFurthestOnPathTowards(escape).coords(),
+                    reference.movementTileFurthestOnPathTowards(escape).getPos(),
                     data
                 );
             }
@@ -573,13 +571,13 @@ public class AI {
         return DefaultBehavior(data);
     }
     
-    public Option annexWithTheseTiles(List<Tile> toAnnex, Conveyer data) {
+    public Option annexWithTheseTiles(List<Tile> toAnnex, Conveyor data) {
         //prioritize the closest one
-        List<Tile> toAnnexOrdered = MasterFsmState.getCurrentMap().reorderTheseTilesByClosestTo(reference.getPosX(), reference.getPosY(), toAnnex);
+        List<Tile> toAnnexOrdered = MapLevel.reorderTheseTilesByClosestTo(reference.getPos(), toAnnex);
         
         for (int i = 0; i < toAnnexOrdered.size(); i++) {
             Tile annexTile = toAnnexOrdered.get(i);
-            Coords annex = annexTile.coords();
+            MapCoords annex = annexTile.getPos();
             
             if (reference.canReach(annex) && !annexTile.isOccupied) {
                 return new Option(annex, PostMoveAction.Annex);
@@ -589,7 +587,7 @@ public class AI {
                     @Override
                     public boolean allows(TangibleUnit target) {
                         for (Integer range : reference.getFullAssistRange()) {
-                            List<Coords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.coords(), target.getElevation());
+                            List<MapCoords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.getPos());
                             if (ableSquares.stream().anyMatch(
                                     (square) -> (!reference.venture().isCloserThan(square, annex)) )) {
                                 return true;
@@ -609,7 +607,7 @@ public class AI {
                     @Override
                     public boolean allows(TangibleUnit target) {
                         for (Integer range : reference.getFullOffensiveRange()) {
-                            List<Coords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.coords(), target.getElevation());
+                            List<MapCoords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.getPos());
                             if (ableSquares.stream().anyMatch(
                                     (square) -> (!reference.venture().isCloserThan(square, annex)) )) {
                                 return true;
@@ -626,7 +624,7 @@ public class AI {
                 } 
                 
                 return mostFavorableMiscOption(
-                    reference.movementTileFurthestOnPathTowards(annex).coords(),
+                    reference.movementTileFurthestOnPathTowards(annex).getPos(),
                     data
                 );
             }
@@ -635,12 +633,12 @@ public class AI {
         return DefaultBehavior(data);
     }
     
-    public Option attackTheseTiles(List<Tile> toOffend, Conveyer data) {
+    public Option attackTheseTiles(List<Tile> toOffend, Conveyor data) {
         //prioritize the closest one
-        List<Tile> toOffendOrdered = MasterFsmState.getCurrentMap().reorderTheseTilesByClosestTo(reference.getPosX(), reference.getPosY(), toOffend);
+        List<Tile> toOffendOrdered = MapLevel.reorderTheseTilesByClosestTo(reference.getPos(), toOffend);
         
         for (Tile offendTile : toOffendOrdered) {
-            Coords offend = offendTile.coords();
+            MapCoords offend = offendTile.getPos();
             
             for (Integer range : reference.getFullOffensiveRange()) {
                 if (reference.venture().addMobility(range).willReach(offend)) { //if they can attack
@@ -657,7 +655,7 @@ public class AI {
                 @Override
                 public boolean allows(TangibleUnit target) {
                     for (Integer range : reference.getFullAssistRange()) {
-                        List<Coords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.coords(), target.getElevation());
+                        List<MapCoords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.getPos());
                         if (ableSquares.stream().anyMatch(
                                     (square) -> (!reference.venture().isCloserThan(square, offend)) )) {
                                 return true;
@@ -677,7 +675,7 @@ public class AI {
                     @Override
                     public boolean allows(TangibleUnit target) {
                         for (Integer range : reference.getFullOffensiveRange()) {
-                            List<Coords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.coords(), target.getElevation());
+                            List<MapCoords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.getPos());
                             if (ableSquares.stream().anyMatch(
                                     (square) -> (!reference.venture().isCloserThan(square, offend)) )) {
                                 return true;
@@ -694,7 +692,7 @@ public class AI {
                 } 
                 
                 return mostFavorableMiscOption(
-                    reference.movementTileFurthestOnPathTowards(offend).coords(),
+                    reference.movementTileFurthestOnPathTowards(offend).getPos(),
                     data
                 );
         }
@@ -702,25 +700,25 @@ public class AI {
         return DefaultBehavior(data);
     }
     
-    public Option protectTheseTiles(List<Tile> toProtect, Conveyer data) {
+    public Option protectTheseTiles(List<Tile> toProtect, Conveyor data) {
         //prioritize the closest one
-        List<Tile> toProtectOrdered = MasterFsmState.getCurrentMap().reorderTheseTilesByClosestTo(reference.getPosX(), reference.getPosY(), toProtect);
+        List<Tile> toProtectOrdered = MapLevel.reorderTheseTilesByClosestTo(reference.getPos(), toProtect);
         
         for (int i = 0; i < toProtectOrdered.size(); i++) {
             Tile payload = toProtectOrdered.get(i);
             
-            if (reference.canReach(payload.getPosX(), payload.getPosY())) { //tile they want to protect is in their range
+            if (reference.canReach(payload.getPos())) { //tile they want to protect is in their range
                 if (!payload.isOccupied) {
                     //become a meat shield
-                    return new Option(new Coords(payload.getPosX(), payload.getPosY()));
+                    return new Option(payload.getPos());
                 } else {
                     //assist is top priority
                     AllegianceRecognizer assistLimiter = new AllegianceRecognizer() {
                         @Override
                         public boolean allows(TangibleUnit target) {
                             for (Integer range : reference.getFullAssistRange()) {
-                                List<Coords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.coords(), target.getElevation());
-                                if (ableSquares.stream().anyMatch((square) -> ( (reference.canReach(square.getX(), square.getY()) && reference.venture().addMobility(1).setCoords(square).willReach(payload.coords()) ) ))) {
+                                List<MapCoords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.getPos());
+                                if (ableSquares.stream().anyMatch((square) -> ((reference.canReach(square) && reference.venture().addMobility(1).setMapCoords(square).willReach(payload.getPos()))))) {
                                     return true;
                                 }
                             }
@@ -744,8 +742,8 @@ public class AI {
                         @Override
                         public boolean allows(TangibleUnit target) {
                             for (Integer range : reference.getFullOffensiveRange()) {
-                                List<Coords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.coords(), target.getElevation());
-                                if (ableSquares.stream().anyMatch((square) -> ( (reference.canReach(square.getX(), square.getY()) && reference.venture().addMobility(1).setCoords(square).willReach(payload.coords()) ) ))) {
+                                List<MapCoords> ableSquares = VenturePeek.coordsForTilesOfRange(range, target.getPos());
+                                if (ableSquares.stream().anyMatch((square) -> ((reference.canReach(square) && reference.venture().addMobility(1).setMapCoords(square).willReach(payload.getPos()))))) {
                                     return true;
                                 }
                             }
@@ -768,7 +766,8 @@ public class AI {
                     
                     //no enemies in range
                     //form a "phalanx" (meat shields adjacent to tile)
-                    Coords phalanx = surround(payload.coords(), 1, reference.getElevation());
+                    int max = 1;
+                    MapCoords phalanx = surround(payload.getPos(), max);
                     if (phalanx != null) {
                         return mostFavorableMiscOption(reference.closestMovementTileTo(phalanx), data);
                     }
@@ -784,47 +783,47 @@ public class AI {
                     return highestPriorityOffensiveOption;
                 }
                 
-                return mostFavorableMiscOption(reference.movementTileFurthestOnPathTowards(payload.coords()).coords(), data);
+                return mostFavorableMiscOption(reference.movementTileFurthestOnPathTowards(payload.getPos()).getPos(), data);
             }
         }
         
         return null;
     }
     
-    public Option mostFavorableMiscOption(Coords pos, Conveyer data) {
+    public Option mostFavorableMiscOption(MapCoords pos, Conveyor data) {
         Ability bestAbility = null;
-        Formation bestFormation = null;
+        FormationTechnique bestFormationTechnique = null;
         Item bestItem = null;
         
         ActionInfo opciones = reference.determineOptions(pos, data);
         
-            if (opciones.getAvailableActions().contains(PostMoveAction.Ability)) {
-                for (Ability abl : opciones.getUsableAbilities()) {
-                    if (abl.getType() == ToolType.SupportSelf) {
-                        if (bestAbility == null || abl.getDesirability(data) > bestAbility.getDesirability(data)) {
-                            bestAbility = abl;
-                        }
+        if (opciones.getAvailableActions().contains(PostMoveAction.Ability)) {
+            for (Ability abl : opciones.getUsableAbilities()) {
+                if (abl.getType() == ToolType.SupportSelf) {
+                    if (bestAbility == null || abl.getDesirability(data) > bestAbility.getDesirability(data)) {
+                        bestAbility = abl;
                     }
                 }
             }
+        }
             
-            if (opciones.getAvailableActions().contains(PostMoveAction.Formation) && reference.equippedFormation().getToolType() == ToolType.SupportSelf) {
-                bestFormation = reference.equippedFormation();
-            }
+        if (opciones.getAvailableActions().contains(PostMoveAction.Formation) && reference.equippedFormation().getMostDesiredTechnique().getToolType() == ToolType.SupportSelf) {
+            bestFormationTechnique = reference.equippedFormation().getMostDesiredTechnique();
+        }
             
-            if (opciones.getAvailableActions().contains(PostMoveAction.Item)) {
-                for (Item itm : opciones.getUsableItems()) {
-                    if (itm.getItemEffect() != null && itm.getItemEffect().getType() == ToolType.SupportSelf) {
-                        if (bestItem == null || itm.getItemEffect().getDesirability() > bestItem.getItemEffect().getDesirability()) {
-                            bestItem = itm;
-                        }
+        if (opciones.getAvailableActions().contains(PostMoveAction.Item)) {
+            for (Item itm : opciones.getUsableItems()) {
+                if (itm.getItemEffect() != null && itm.getItemEffect().getType() == ToolType.SupportSelf) {
+                    if (bestItem == null || itm.getItemEffect().getDesirability() > bestItem.getItemEffect().getDesirability()) {
+                        bestItem = itm;
                     }
                 }
             }
+        }
         
         int highestPriority = 0;
-        Coords bestCoords = null;
-        Associated bestOption = null;
+        MapCoords bestCoords = null;
+        Attribute bestOption = null;
         Purpose purpose = null;
         PostMoveAction action = null;
         
@@ -835,9 +834,9 @@ public class AI {
             action = PostMoveAction.Ability;
         }
         
-        if (bestFormation != null &&  bestFormation.getMostDesiredTechnique().getDesirability() > highestPriority) {
-            highestPriority = bestFormation.getMostDesiredTechnique().getDesirability();
-            bestOption = bestFormation;
+        if (bestFormationTechnique != null &&  bestFormationTechnique.getDesirability() > highestPriority) {
+            highestPriority = bestFormationTechnique.getDesirability();
+            bestOption = bestFormationTechnique;
             purpose = Purpose.None;
             action = PostMoveAction.Formation;
         }
@@ -851,37 +850,37 @@ public class AI {
         return new Option(action, purpose, bestOption, bestCoords, 0, null).setPriority(highestPriority);
     }
     
-    public Option mostFavorableOffensiveOption(TangibleUnit enemy, Conveyer data) {
+    public Option mostFavorableOffensiveOption(TangibleUnit enemy, Conveyor data) {
         PrebattleForecast bestEtherForecast = null;
         Formula bestFormula = null;
-        Coords bestFormulaCoords = null;
+        MapCoords bestFormulaCoords = null;
         
         PrebattleForecast bestWeaponForecast = null;
         Weapon bestWeapon = null;
-        Coords bestWeaponCoords = null;
+        MapCoords bestWeaponCoords = null;
         
         PrebattleForecast bestSkillForecast = null;
         Skill bestSkill = null;
-        Coords bestSkillCoords = null;
+        MapCoords bestSkillCoords = null;
         
         Ability bestAbility = null;
-        Coords bestAbilityCoords = null;
+        MapCoords bestAbilityCoords = null;
         
-        Formation bestFormation = null;
-        Coords bestFormationCoords = null;
+        FormationTechnique bestFormationTechnique = null, mostDesirableTechnique = reference.equippedFormation().getMostDesiredTechnique();
+        MapCoords bestFormationCoords = null;
         
         Item bestItem = null;
-        Coords bestItemCoords = null;
+        MapCoords bestItemCoords = null;
         
-        for (Coords spot : reference.allowedCoordsFromTarget(enemy.coords(), true)) {
-            int range = spot.getRange();
+        for (MapCoords spot : reference.allowedCoordsFromTarget(enemy.getPos(), true)) {
+            int range = spot.getCoords().getRange();
             ActionInfo opciones = reference.determineOptions(spot, data);
             
             if (opciones.getAvailableActions().contains(PostMoveAction.Ether)) {
                 for (Formula fma : opciones.getUsableFormulas()) {
                     if (!fma.getFormulaPurpose().isSupportive() && fma.getActualFormulaData().getRange().contains(range)) {
                         reference.equip(fma);
-                        PrebattleForecast forecast = PrebattleForecast.createForecast(new Conveyer(reference).setEnemyUnit(enemy), Purpose.EtherAttack, range);
+                        PrebattleForecast forecast = PrebattleForecast.createSimulatedForecast(new Conveyor(reference).setEnemyUnit(enemy), range);
                         if (bestEtherForecast == null || forecast.calculateDesirabilityToInitiate() > bestEtherForecast.calculateDesirabilityToInitiate()) {
                             bestEtherForecast = forecast;
                             bestFormula = fma;
@@ -895,7 +894,7 @@ public class AI {
                 for (Weapon wpn : opciones.getUsableWeapons()) {
                     if (wpn.getWeaponData().getRange().contains(range)) {
                         reference.equip(wpn);
-                        PrebattleForecast forecast = PrebattleForecast.createForecast(new Conveyer(reference).setEnemyUnit(enemy), Purpose.WeaponAttack, range);
+                        PrebattleForecast forecast = PrebattleForecast.createSimulatedForecast(new Conveyor(reference).setEnemyUnit(enemy), range);
                         if (bestWeaponForecast == null || forecast.calculateDesirabilityToInitiate() > bestWeaponForecast.calculateDesirabilityToInitiate()) {
                             bestWeaponForecast = forecast;
                             bestWeapon = wpn;
@@ -910,7 +909,7 @@ public class AI {
                     if (skl.getType() == ToolType.Attack && bestWeapon != null && skl.getEffect().getTrueRange(bestWeapon.getWeaponData()).contains(range)) {
                         reference.equip(bestWeapon);
                         reference.setToUseSkill(skl);
-                        PrebattleForecast forecast = PrebattleForecast.createForecast(new Conveyer(reference).setEnemyUnit(enemy), Purpose.SkillAttack, range);
+                        PrebattleForecast forecast = PrebattleForecast.createSimulatedForecast(new Conveyor(reference).setEnemyUnit(enemy), range);
                         if (bestSkillForecast == null || forecast.calculateDesirabilityToInitiate() > bestSkillForecast.calculateDesirabilityToInitiate()) {
                             bestSkillForecast = forecast;
                             bestSkill = skl;
@@ -935,11 +934,11 @@ public class AI {
             
             if (
                     opciones.getAvailableActions().contains(PostMoveAction.Formation) 
-                    && reference.equippedFormation().getToolType() == ToolType.Attack
-                    && reference.equippedFormation().getRange().contains(range)
+                    && mostDesirableTechnique.getToolType() == ToolType.Attack
+                    && mostDesirableTechnique.getRanges().contains(range)
                ) 
             {
-                bestFormation = reference.equippedFormation();
+                bestFormationTechnique = mostDesirableTechnique;
                 bestFormationCoords = spot;
             }
             
@@ -956,8 +955,8 @@ public class AI {
         }
         
         int highestPriority = 0;
-        Coords bestCoords = null;
-        Associated bestOption = null;
+        MapCoords bestCoords = null;
+        Attribute bestOption = null;
         Purpose purpose = null;
         PostMoveAction action = null;
         
@@ -997,9 +996,9 @@ public class AI {
             action = PostMoveAction.Ability;
         }
         
-        if (bestFormation != null &&  bestFormation.getMostDesiredTechnique().getDesirability() > highestPriority) {
-            highestPriority = bestFormation.getMostDesiredTechnique().getDesirability();
-            bestOption = bestFormation;
+        if (bestFormationTechnique != null && mostDesirableTechnique.getDesirability() > highestPriority) {
+            highestPriority = mostDesirableTechnique.getDesirability();
+            bestOption = bestFormationTechnique;
             bestCoords = bestFormationCoords;
             purpose = Purpose.None;
             action = PostMoveAction.Formation;
@@ -1012,34 +1011,38 @@ public class AI {
             action = PostMoveAction.Item;
         }
         
-        int range = Math.abs(bestCoords.getX() - enemy.getPosX()) + Math.abs(bestCoords.getY() - enemy.getPosY());
+        int range = 0;
+        
+        if (bestCoords != null) {
+            range = bestCoords.spacesFrom(enemy.getPos());
+        }
         
         return new Option(action, purpose, bestOption, bestCoords, range, enemy).setPriority(highestPriority);
     }
     
-    public Option mostFavorableAssistOption(TangibleUnit ally, Conveyer data) {
+    public Option mostFavorableAssistOption(TangibleUnit ally, Conveyor data) {
         SupportForecast bestEtherForecast = null;
         Formula bestFormula = null;
-        Coords bestFormulaCoords = null;
+        MapCoords bestFormulaCoords = null;
         
         Ability bestAbility = null;
-        Coords bestAbilityCoords = null;
+        MapCoords bestAbilityCoords = null;
         
-        Formation bestFormation = null;
-        Coords bestFormationCoords = null;
+        FormationTechnique bestFormationTechnique = null, mostDesirableTechnique = reference.equippedFormation().getMostDesiredTechnique();
+        MapCoords bestFormationCoords = null;
         
         Item bestItem = null;
-        Coords bestItemCoords = null;
+        MapCoords bestItemCoords = null;
         
-        for (Coords spot : reference.allowedCoordsFromTarget(ally.coords(), false)) { //calculate the most favorable range here too
-            int range = spot.getRange();
+        for (MapCoords spot : reference.allowedCoordsFromTarget(ally.getPos(), false)) { //calculate the most favorable range here too
+            int range = spot.getCoords().getRange();
             ActionInfo opciones = reference.determineOptions(spot, data);
             
             if (opciones.getAvailableActions().contains(PostMoveAction.Ether)) {
                 for (Formula fma : opciones.getUsableFormulas()) {
                     if (fma.getFormulaPurpose().isSupportive() && fma.getActualFormulaData().getRange().contains(range)) {
                         reference.equip(fma);
-                        SupportForecast forecast = new SupportForecast(new Conveyer(reference).setOtherUnit(ally));
+                        SupportForecast forecast = new SupportForecast(new Conveyor(reference).setOtherUnit(ally));
                         if (bestEtherForecast == null || forecast.calculateDesirabilityToInitiate() > bestEtherForecast.calculateDesirabilityToInitiate()) {
                             bestEtherForecast = forecast;
                             bestFormula = fma;
@@ -1062,11 +1065,11 @@ public class AI {
             
             if (
                     opciones.getAvailableActions().contains(PostMoveAction.Formation) 
-                    && reference.equippedFormation().getToolType() == ToolType.SupportAlly
-                    && reference.equippedFormation().getRange().contains(range)
+                    && mostDesirableTechnique.getToolType() == ToolType.SupportAlly
+                    && mostDesirableTechnique.getRanges().contains(range)
                ) 
             {
-                bestFormation = reference.equippedFormation();
+                bestFormationTechnique = mostDesirableTechnique;
                 bestFormationCoords = spot;
             }
             
@@ -1083,8 +1086,8 @@ public class AI {
         }
         
         int highestPriority = 0;
-        Coords bestCoords = null;
-        Associated bestOption = null;
+        MapCoords bestCoords = null;
+        Attribute bestOption = null;
         Purpose purpose = null;
         PostMoveAction action = null;
         
@@ -1105,9 +1108,9 @@ public class AI {
             action = PostMoveAction.Ability;
         }
         
-        if (bestFormation != null &&  bestFormation.getMostDesiredTechnique().getDesirability() > highestPriority) {
-            highestPriority = bestFormation.getMostDesiredTechnique().getDesirability();
-            bestOption = bestFormation;
+        if (bestFormationTechnique != null && mostDesirableTechnique.getDesirability() > highestPriority) {
+            highestPriority = mostDesirableTechnique.getDesirability();
+            bestOption = mostDesirableTechnique;
             bestCoords = bestFormationCoords;
             purpose = Purpose.None;
             action = PostMoveAction.Formation;
@@ -1119,13 +1122,16 @@ public class AI {
             purpose = Purpose.None;
             action = PostMoveAction.Item;
         }
-        
-        int range = Math.abs(bestCoords.getX() - ally.getPosX()) + Math.abs(bestCoords.getY() - ally.getPosY());
+
+        int range = 0;
+        if (bestCoords != null) {
+            range = bestCoords.spacesFrom(ally.getPos());
+        }
         
         return new Option(action, purpose, bestOption, bestCoords, range, ally).setPriority(highestPriority);
     }
     
-    public Option calculateHighestPriorityAssistOption(Conveyer conv, AllegianceRecognizer condition) {
+    public Option calculateHighestPriorityAssistOption(Conveyor conv, AllegianceRecognizer condition) {
         List<TangibleUnit> inRangeUnits = reference.UnitsInRange(condition.addExtra(ALLIED), conv.getAllUnits());
         
         Option highestPriorityOption = null;
@@ -1139,7 +1145,7 @@ public class AI {
         return highestPriorityOption;
     }
     
-    public Option calculateHighestPriorityOffensiveOption(Conveyer conv, AllegianceRecognizer condition) {
+    public Option calculateHighestPriorityOffensiveOption(Conveyor conv, AllegianceRecognizer condition) {
         List<TangibleUnit> inRangeUnits = reference.UnitsInRange(condition.addExtra(ENEMY), conv.getAllUnits());
 
         Option highestPriorityOption = null;
@@ -1153,7 +1159,7 @@ public class AI {
         return highestPriorityOption;
     }
     
-    public Option calculateHighestPriorityOffensiveOptionNotRegardingDistance(Conveyer conv) {
+    public Option calculateHighestPriorityOffensiveOptionNotRegardingDistance(Conveyor conv) {
         List<TangibleUnit> inRangeUnits = GameUtils.calculateEnemyUnits(reference, conv);
 
         Option highestPriorityOption = null;
@@ -1169,9 +1175,9 @@ public class AI {
 }
 
 interface AICondition {
-    public boolean condition(Conveyer data);
+    public boolean condition(Conveyor data);
 }
     
 interface AIBehavior {
-    public Option action(Conveyer data);
+    public Option action(Conveyor data);
 }

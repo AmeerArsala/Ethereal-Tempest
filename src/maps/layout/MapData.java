@@ -118,7 +118,7 @@ public class MapData { // use gson
     public static MapData deserializePreset(String presetName) {
         try {
             Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\presets\\Maps\\" + presetName + ".json"));
+            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\MapPresets\\Maps\\" + presetName + ".json"));
             
             return gson.fromJson(reader, MapData.class);
         }

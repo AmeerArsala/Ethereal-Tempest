@@ -1,0 +1,72 @@
+/// - Start Animation
+C00
+C00
+C00
+C00
+C00
+C101029
+O p- objblank.png
+B p- bgblank.png
+6
+O p- objblank.png
+B p- bg0.png
+6 
+O p- objblank.png
+B p- bg1.png
+6
+C000040 
+O p- objblank.png
+B p- bg2.png
+6 
+O p- objblank.png
+B p- bg3.png
+6 
+O p- objblank.png
+B p- bg4.png
+6 
+O p- objblank.png
+B p- bg5.png
+6 
+O p- objblank.png
+B p- bg6.png
+6 
+O p- objblank.png
+B p- bg7.png
+6 
+O p- objblank.png
+B p- bg8.png
+6 
+O p- objblank.png
+B p- bg9.png
+6 
+O p- objblank.png
+B p- bg10.png
+6 
+O p- objblank.png
+B p- bg11.png
+6 
+O p- objblank.png
+B p- bg12.png
+6 
+O p- objblank.png
+B p- bg13.png
+6 
+O p- objblank.png
+B p- bg14.png
+6 
+O p- objblank.png
+B p- bg15.png
+6 
+C1F
+C00001A
+O p- objblank.png
+B p- bg16.png
+6 
+O p- objblank.png
+B p- bg17.png
+6 
+O p- objblank.png
+B p- bg18.png
+6
+~~~
+/// - End Animation

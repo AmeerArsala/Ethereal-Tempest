@@ -1,0 +1,40 @@
+{
+  "configPath": "Sprites\\Battle\\Freeblade\\offense\\delta ether\\config.json",
+  "hitPoint": null,
+  "animation": [
+    {
+      "column": 1,
+      "animationSegment": {
+        "from": 0,
+        "to": 5,
+        "delay": 0.0
+      }
+    },
+    {
+      "column": 2,
+      "animationSegment": {
+        "from": 0,
+        "to": 5,
+        "delay": 0.0
+      }
+    }
+  ],
+  "impact": null,
+  "otherActionFrames": [
+    {
+      "column": 1,
+      "frame": 0,
+      "soundPath": "" //TODO: add hand thrust sound
+    },
+    {
+      "column": 1,
+      "frame": 2,
+      "soundPath": "" //TODO: add charging noise
+    },
+    {
+      "column": 2,
+      "frame": 0,
+      "soundPath": "" //TODO: add sound
+    }
+  ]
+}

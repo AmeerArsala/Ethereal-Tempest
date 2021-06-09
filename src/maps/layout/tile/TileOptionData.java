@@ -6,7 +6,7 @@
 package maps.layout.tile;
 
 import com.google.gson.annotations.SerializedName;
-import etherealtempest.characters.Unit.UnitAllegiance;
+import fundamental.unit.UnitAllegiance;
 
 /**
  *

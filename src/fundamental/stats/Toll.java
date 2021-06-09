@@ -5,18 +5,32 @@
  */
 package fundamental.stats;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  *
  * @author night
  */
 public class Toll {
     public enum Exchange {
-        HP,
-        TP,
-        Durability
+        @SerializedName("HP") HP(BaseStat.CurrentHP),
+        @SerializedName("TP") TP(BaseStat.CurrentTP),
+        @SerializedName("Durability") Durability();
+        
+        private BaseStat correlatingStat = null;
+        
+        private Exchange(BaseStat correlatingStat) {
+            this.correlatingStat = correlatingStat;
+        }
+        
+        private Exchange() {}
+        
+        public BaseStat getCorrelatingStat() {
+            return correlatingStat;
+        }
     }
     
-    private int val = 0;
+    private int val;
     private Exchange type;
     
     public Toll(Exchange e, int value) {

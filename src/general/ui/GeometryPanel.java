@@ -1,0 +1,107 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package general.ui;
+
+import com.jme3.material.Material;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.VertexBuffer;
+import com.jme3.scene.shape.Quad;
+
+/**
+ *
+ * @author night
+ */
+public class GeometryPanel extends Node {
+    protected final float width, height;
+    private final Quad quad;
+    private final Geometry geometry;
+    
+    private boolean isMirrored = false;
+    
+    public GeometryPanel(float width, float height) {
+        this.width = width;
+        this.height = height;
+        
+        quad = new Quad(width, height);
+        geometry = new Geometry("quad panel", quad);
+        geometry.setQueueBucket(Bucket.Transparent);
+        
+        attachChild(geometry);
+    }
+    
+    public float getWidth() { return width; }
+    public float getHeight() { return height; }
+    
+    public Vector2f getUnscaledDimensions() {
+        return new Vector2f(width, height);
+    }
+    
+    public Vector2f getScaledDimensions() { //scaled dimensions
+        Vector3f localScale = getLocalScale();
+        return new Vector2f(width * localScale.x, height * localScale.y);
+    }
+    
+    public Geometry getGeometry() { return geometry; }
+    public Quad getQuad() { return quad; }
+    
+    public boolean isMirrored() { return isMirrored; }
+    
+    public Material getMaterial() {
+        return geometry.getMaterial();
+    }
+    
+    @Override
+    public void setMaterial(Material mat) {
+        geometry.setMaterial(mat);
+    }
+    
+    protected void setNodeMaterial(Material mat) {
+        super.setMaterial(mat);
+    }
+    
+    public void setMirrored(boolean mirrored) {
+        isMirrored = mirrored;
+        if (mirrored) {
+            quad.setBuffer(VertexBuffer.Type.TexCoord, 2, new float[]
+            { //mirrored; clockwise / x values inverted (0 goes to 1 and 1 goes to 0)
+                1, 0,
+                0, 0,
+                0, 1,
+                1, 1
+            });
+        } else { //not mirrored; counter clockwise / x values not inverted
+            quad.setBuffer(VertexBuffer.Type.TexCoord, 2, new float[]
+            {
+                0, 0,
+                1, 0,
+                1, 1,
+                0, 1
+            });
+        }
+    }
+    
+    public void mirror() {
+        setMirrored(!isMirrored);
+    }
+    
+    public Vector3f getPositiveDirection3DVector() {
+        Vector2f vec = getPositiveDirection2DVector();
+        return new Vector3f(vec.x, vec.y, 1);
+    }
+    
+    public Vector2f getPositiveDirection2DVector() {
+        return new Vector2f(isMirrored ? 1 : -1, 1);
+    }
+    
+    public Vector2f vectorInPositiveDirection(Vector2f percentDimensions, boolean scaleDimensions) {
+        Vector2f dims = scaleDimensions ? getScaledDimensions() : getUnscaledDimensions();
+        return dims.multLocal(percentDimensions).multLocal(getPositiveDirection2DVector());
+    }
+}

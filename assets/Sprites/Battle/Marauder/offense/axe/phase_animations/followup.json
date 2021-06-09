@@ -1,0 +1,23 @@
+{
+  "config": {
+    "spritesheet": {
+      "framesPerColumn": [ 5, 6, 5, 4, 9, 4, 5 ]
+    }
+  },
+  "animation": [
+    {
+      "column": 2,
+      "animationSegment": {
+        "from": 0,
+        "to": 4,
+        "delay": 0.0
+      }
+    }
+  ],
+  "impact": {
+    "column": 2,
+    "frame": 2,
+    "soundPath": "" //TODO: add sound
+  },
+  "otherSounds": []
+}

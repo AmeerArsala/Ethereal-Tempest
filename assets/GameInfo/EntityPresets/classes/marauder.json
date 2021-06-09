@@ -1,0 +1,171 @@
+{
+  "name": "Marauder",
+  "desc": "A peasant who has turned to the ways of violence due to their less fortunate status.",
+  "tier": 0,
+  "bonusBaseStats": [
+    {
+      "baseStatName": "Max HP",
+      "val": 0
+    },
+    {
+      "baseStatName": "Max TP",
+      "val": 0
+    },
+    {
+      "baseStatName": "Strength",
+      "val": 0
+    },
+    {
+      "baseStatName": "Ether",
+      "val": 0
+    },
+    {
+      "baseStatName": "Agility",
+      "val": 0
+    },
+    {
+      "baseStatName": "Dexterity",
+      "val": 0
+    },
+    {
+      "baseStatName": "Comprehension",
+      "val": 0
+    },
+    {
+      "baseStatName": "Defense",
+      "val": 0
+    },
+    {
+      "baseStatName": "Resilience",
+      "val": 0
+    },
+    {
+      "baseStatName": "Mobility",
+      "val": 0
+    },
+    {
+      "baseStatName": "Physique",
+      "val": 0
+    },
+    {
+      "baseStatName": "Base Adrenaline",
+      "val": 0
+    }
+  ],
+  "bonusBattleStats": [
+    {
+      "battleStatName": "Accuracy",
+      "val": 0
+    },
+    {
+      "battleStatName": "AttackPower",
+      "val": 0
+    },
+    {
+      "battleStatName": "AttackSpeed",
+      "val": 0
+    },
+    {
+      "battleStatName": "Crit",
+      "val": 0
+    },
+    {
+      "battleStatName": "CritEvasion",
+      "val": 0
+    },
+    {
+      "battleStatName": "Evasion",
+      "val": 0
+    }
+  ],
+  "maxStats": [
+    {
+      "baseStatName": "Max HP",
+      "val": 35
+    },
+    {
+      "baseStatName": "Max TP",
+      "val": 30
+    },
+    {
+      "baseStatName": "Strength",
+      "val": 28
+    },
+    {
+      "baseStatName": "Ether",
+      "val": 10
+    },
+    {
+      "baseStatName": "Agility",
+      "val": 13
+    },
+    {
+      "baseStatName": "Dexterity",
+      "val": 11
+    },
+    {
+      "baseStatName": "Comprehension",
+      "val": 9
+    },
+    {
+      "baseStatName": "Defense",
+      "val": 13
+    },
+    {
+      "baseStatName": "Resilience",
+      "val": 7
+    },
+    {
+      "baseStatName": "Mobility",
+      "val": 10
+    },
+    {
+      "baseStatName": "Physique",
+      "val": 15
+    },
+    {
+      "baseStatName": "Base Adrenaline",
+      "val": 20
+    }
+  ],
+  "wieldableWeaponTypes": [ "Axe" ],
+  "mobilityTypes": [ "Infantry" ],
+  "battleAnimationConfigurations": [
+    {
+      "weaponType": "Axe",
+      "animationConfigurations": {
+        "dash": {
+          "animationType": "Spritesheet",
+          "entityAnimationJson": "Battle\\Marauder\\offense\\axe\\dash.json"
+        },
+        "attack": {
+          "animationType": "Spritesheet",
+          "entityAnimationJson": "Battle\\Marauder\\offense\\axe\\attack.json"
+        },
+        "followup": {
+          "animationType": "Spritesheet",
+          "entityAnimationJson": "Battle\\Marauder\\offense\\axe\\followup.json"
+        },
+        "critical": {
+          "animationType": "Spritesheet",
+          "entityAnimationJson": "Battle\\Marauder\\offense\\axe\\critical.json"
+        },
+        "finisher": {
+          "animationType": "Spritesheet",
+          "entityAnimationJson": "Battle\\Marauder\\offense\\axe\\finisher.json"
+        },
+        "retreat": {
+          "animationType": "Spritesheet",
+          "entityAnimationJson": "Battle\\Marauder\\offense\\axe\\retreat.json"
+        },
+        "dodge": {
+          "animationType": "Spritesheet",
+          "entityAnimationJson": "Battle\\Marauder\\offense\\axe\\dodge.json"
+        }
+      },
+      "skillAnimationConfigurations": [
+        //TODO: put stuff here
+      ]
+    }
+  ]
+}

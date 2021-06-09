@@ -11,7 +11,7 @@ import edited.FlyCamera;
 import edited.state.FlyCamTrueAppState;
 import java.util.ArrayList;
 import java.util.List;
-import maps.layout.Map;
+import maps.layout.MapLevel;
 import maps.state.TestMap;
 
 /**
@@ -20,6 +20,7 @@ import maps.state.TestMap;
  * @author normenhansen
  */
 public class Main extends SimpleApplication {
+    private static Main app;
     
     public static final FSM GameFSM = new FSM() {
         @Override
@@ -28,22 +29,34 @@ public class Main extends SimpleApplication {
         }
     };
     
+    //this is for the frameCount and time when the tpf is delayed in order for the game not to go too fast or too slow but at a controlled speed
+    //this is at the 1f / 60f for tpf in the TestMap class
+    public static final Globals GameFlow = new Globals(); 
+    
     public Main() {
         super(new StatsAppState(), new FlyCamTrueAppState(), new AudioListenerState(), new DebugKeysAppState());
     }
 
     public static void main(String[] args) {
-        Main app = new Main();
+        app = new Main();
         app.start();
+    }
+    
+    public static int getScreenWidth() {
+        return app.settings.getWidth();
+    }
+    
+    public static int getScreenHeight() {
+        return app.settings.getHeight();
     }
 
     @Override
     public void simpleInitApp() {
-       settings.setFrameRate(120);
+       settings.setFrameRate(120); //cap at 120fps
        
        debugFlyCam();
        flyCam.setMoveSpeed(350);
-       
+
        tilesInitialization();
         
        stateManager.attach(new TestMap(this, getCamera(), flyCam, settings));
@@ -57,13 +70,13 @@ public class Main extends SimpleApplication {
             textures.add(assetManager.loadTexture(prefix + name).getImage());
         }
         
-        Map.tileTextures = new TextureArray(textures);
-        Map.OverflowBlendMap = assetManager.loadTexture(prefix + "BlendMap.png");
+        MapLevel.tileTextures = new TextureArray(textures);
+        MapLevel.OverflowBlendMap = assetManager.loadTexture(prefix + "BlendMap.png");
     }
 
     @Override
     public void simpleUpdate(float tpf) {
-        //TODO: add update code
+        Globals.updateGlobalInstance(tpf);
     }
     
     public void debugFlyCam() {

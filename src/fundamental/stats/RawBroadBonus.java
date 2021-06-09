@@ -10,9 +10,10 @@ import fundamental.skill.Skill;
 import fundamental.stats.Bonus.BonusType;
 import fundamental.stats.Bonus.StatType;
 import fundamental.talent.Talent;
-import fundamental.talent.TalentCondition;
 import fundamental.talent.TalentCondition.Occasion;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -38,11 +39,16 @@ public class RawBroadBonus {
     }
     
     public RawBroadBonus(StatBundle statBonus) {
-        if (statBonus.getStatType() == StatType.Base) {
-            acquiredTalent = Talent.Bonus(Arrays.asList(new Bonus(statBonus.getValue(), BonusType.Raw, statBonus.getWhichBaseStat())), Occasion.Indifferent);
-        } else if (statBonus.getStatType() == StatType.Battle) {
-            acquiredTalent = Talent.Bonus(Arrays.asList(new Bonus(statBonus.getValue(), BonusType.Raw, statBonus.getWhichBattleStat())), Occasion.Indifferent);
-        }
+        this(Arrays.asList(statBonus));
+    }
+    
+    public RawBroadBonus(List<StatBundle> statBonuses) {
+        List<Bonus> bonuses = new ArrayList<>(statBonuses.size());
+        statBonuses.forEach((bundle) -> {
+            bonuses.add(bundle.toRawBonus());
+        });
+        
+        acquiredTalent = Talent.Bonus(bonuses, Occasion.Indifferent);
     }
     
     public RawBroadBonus(Talent acquiredTalent) {

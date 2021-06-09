@@ -13,14 +13,16 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.shader.VarType;
 import com.simsilica.lemur.LayerComparator;
-import etherealtempest.characters.Unit.UnitAllegiance;
+import fundamental.unit.UnitAllegiance;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import maps.layout.Map;
+import maps.layout.Coords;
+import maps.layout.MapLevel;
 import maps.layout.MapBounds;
+import maps.layout.MapCoords;
 import maps.layout.occupant.MapEntity;
-import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.character.TangibleUnit;
 import maps.layout.tile.TileOptionData.TileType;
 import maps.layout.tile.TileVisualData.GroundType;
 
@@ -29,6 +31,8 @@ import maps.layout.tile.TileVisualData.GroundType;
  * @author night
  */
 public class Tile extends TileFoundation {
+    public static final float LENGTH = RADIUS_FOR_SQUARE * 2f;
+    
     private final Node node;
     
     private TileData info = null;
@@ -88,23 +92,23 @@ public class Tile extends TileFoundation {
         info = TD;
     }
     
-     private void initializeTexture(List<TileData[][]> data, MapBounds bounds, AssetManager assetManager) {
+    private void initializeTexture(List<TileData[][]> data, MapBounds bounds, AssetManager assetManager) {
         Material mat = new Material(assetManager, "MatDefs/custom/TileBlend.j3md");
-        mat.setTextureParam("TileTexArray", VarType.TextureArray, Map.tileTextures);
+        mat.setTextureParam("TileTexArray", VarType.TextureArray, MapLevel.tileTextures);
         
         int index = info.getVisuals().getGroundType().getIndex();
         mat.setInt("CurrentIndex", index);
-        //mat.setTexture("BlendMap", Map.OverflowBlendMap);
+        //mat.setTexture("BlendMap", MapLevel.OverflowBlendMap);
         mat.setFloat("BlendAmplitude", 0.15f);
         
-        boolean hasTop = pY + 1 < bounds.getYLength(elevation);
-        boolean hasBottom = pY - 1 >= bounds.getMinimumY(elevation);
-        boolean hasRight = pX + 1 < bounds.getXLength(elevation);
-        boolean hasLeft = pX - 1 >= bounds.getMinimumX(elevation);
+        boolean hasTop = coords.getY() + 1 < bounds.getYLength(coords.getLayer());
+        boolean hasBottom = coords.getY() - 1 >= bounds.getMinimumY(coords.getLayer());
+        boolean hasRight = coords.getX() + 1 < bounds.getXLength(coords.getLayer());
+        boolean hasLeft = coords.getX() - 1 >= bounds.getMinimumX(coords.getLayer());
         
         boolean allSame = true;
         if (hasTop) {
-            int topIndex = data.get(elevation)[pY + 1][pX].getVisuals().getGroundType().getIndex();
+            int topIndex = coords.add(0, 1).getRowYColXfrom(data).getVisuals().getGroundType().getIndex();
             mat.setInt("TopIndex", topIndex);
             
             if (topIndex != index) {
@@ -113,7 +117,7 @@ public class Tile extends TileFoundation {
         }
         
         if (hasBottom) {
-            int bottomIndex = data.get(elevation)[pY - 1][pX].getVisuals().getGroundType().getIndex();
+            int bottomIndex = coords.add(0, -1).getRowYColXfrom(data).getVisuals().getGroundType().getIndex();
             mat.setInt("BottomIndex", bottomIndex);
             
             if (bottomIndex != index) {
@@ -122,7 +126,7 @@ public class Tile extends TileFoundation {
         }
         
         if (hasLeft) {
-            int leftIndex = data.get(elevation)[pY][pX - 1].getVisuals().getGroundType().getIndex();
+            int leftIndex = coords.add(-1, 0).getRowYColXfrom(data).getVisuals().getGroundType().getIndex();
             mat.setInt("LeftIndex", leftIndex);
             
             if (leftIndex != index) {
@@ -131,7 +135,7 @@ public class Tile extends TileFoundation {
         }
         
         if (hasRight) {
-            int rightIndex = data.get(elevation)[pY][pX + 1].getVisuals().getGroundType().getIndex();
+            int rightIndex = coords.add(1, 0).getRowYColXfrom(data).getVisuals().getGroundType().getIndex();
             mat.setInt("RightIndex", rightIndex);
             
             if (rightIndex != index) {
@@ -146,7 +150,7 @@ public class Tile extends TileFoundation {
         }
         
         patchMesh = createMesh();
-        tgeometry = new Geometry("tile: (" + pX + ", " + pY + ")", patchMesh);
+        tgeometry = new Geometry("tile: (" + coords.getX() + ", " + coords.getY() + ")", patchMesh);
         tgeometry.setMaterial(mat);
         
         node.attachChild(tgeometry);

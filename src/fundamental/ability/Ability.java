@@ -5,8 +5,8 @@
  */
 package fundamental.ability;
 
-import etherealtempest.info.Conveyer;
-import fundamental.Associated;
+import etherealtempest.info.Conveyor;
+import fundamental.Attribute;
 import fundamental.tool.Tool.ToolType;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author night
  */
-public class Ability extends Associated {
+public class Ability extends Attribute {
     private AbilityEffect effect;
     private List<Integer> ranges; 
     private ToolType type;
@@ -30,19 +30,15 @@ public class Ability extends Associated {
         }
     }
     
-    public Ability(boolean exi) {
-        super(exi);
-    }
-    
-    public boolean canBeUsed(Conveyer data) {
+    public boolean canBeUsed(Conveyor data) {
         return effect.mayBeUsed(data);
     }
     
-    public void enactEffect(Conveyer data) {
+    public void enactEffect(Conveyor data) {
         effect.enactEffect(data);
     }
     
-    public int getDesirability(Conveyer data) {
+    public int getDesirability(Conveyor data) {
         return effect.calculateFavorability(data);
     }
     

@@ -5,14 +5,14 @@
  */
 package fundamental.ability;
 
-import etherealtempest.info.Conveyer;
+import etherealtempest.info.Conveyor;
 
 /**
  *
  * @author night
  */
 public interface AbilityEffect {
-    public boolean mayBeUsed(Conveyer conv);
-    public void enactEffect(Conveyer conv);
-    public int calculateFavorability(Conveyer conv);
+    public boolean mayBeUsed(Conveyor conv);
+    public void enactEffect(Conveyor conv);
+    public int calculateFavorability(Conveyor conv);
 }

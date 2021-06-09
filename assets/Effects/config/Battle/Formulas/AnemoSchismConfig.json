@@ -1,0 +1,7 @@
+{
+  "particleEffect": {
+    "effectPath": "Effects/MAGICALxSPIRAL/Anemo Schism.efkproj",
+    "frames": 60,
+    "useDestroyoflyer": true
+  }
+}

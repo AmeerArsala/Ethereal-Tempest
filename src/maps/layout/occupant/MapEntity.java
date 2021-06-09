@@ -6,6 +6,7 @@
 package maps.layout.occupant;
 
 import fundamental.Entity;
+import maps.layout.MapCoords;
 
 /**
  *
@@ -43,19 +44,15 @@ public class MapEntity extends Entity { //use gson
     public static final int DEFAULT_HP_VALUE = 3;
     public static final int UNBREAKABLE_STRUCTURE = 0;
 
-    private int posX;
-    private int posY;
-    private int elevation;
+    private MapCoords pos;
     private int MaxHP;
     
     private int currentHP;
     private DamageLevel damageState = DamageLevel.None;
     
-    public MapEntity(String name, int posX, int posY, int elevation, int MaxHP) {
+    public MapEntity(String name, MapCoords pos, int MaxHP) {
         super(name);
-        this.posX = posX;
-        this.posY = posY;
-        this.elevation = elevation;
+        this.pos = pos;
         this.MaxHP = MaxHP;
         
         updateDamageState();
@@ -85,9 +82,7 @@ public class MapEntity extends Entity { //use gson
         damageState = DamageLevel.calculateDamageLevel(currentHP, MaxHP);
     }
     
-    public int getPosX() { return posX; }
-    public int getPosY() { return posY; }
-    public int getElevation() { return elevation; }
+    public MapCoords getPos() { return pos; }
     
     public int getMaxHP() { return MaxHP; }
     public int getCurrentHP() { return currentHP; }
