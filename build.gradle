@@ -1,3 +1,7 @@
+plugins {
+    id "io.github.0ffz.github-packages" version "1.2.1"
+}
+
 apply plugin: 'java'
 apply plugin: 'application'
 apply plugin: 'eclipse'
@@ -5,7 +9,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'idea'
 
 ext {
-    jmonkeyengine_version = '3.3.2-stable'
+    jmonkeyengine_version = '3.4.0-stable'
     license = file("$rootDir/license.txt")
 }
 
@@ -14,7 +18,7 @@ repositories {
     mavenCentral()
     jcenter()
     maven { url "https://jitpack.io" }
-    maven { url  "https://dl.bintray.com/riccardo/effekseer" }
+    maven githubPackage.invoke("riccardobl")
 }
 
 // NetBeans will automatically add "run" and "debug" tasks relying on the
@@ -65,22 +69,23 @@ dependencies {
     
     implementation files('C:\\Users\\night\\Desktop\\portfolio\\nonmobile\\libraries (java)\\SimArboreal.jar')
     implementation files('C:\\Users\\night\\Desktop\\portfolio\\nonmobile\\libraries (java)\\arboreal-assets.jar')
+    implementation files('C:\\Users\\night\\Desktop\\portfolio\\nonmobile\\libraries (java)\\MathParser.org-mXparser-4.4.2.jar')
     
     implementation "com.atr:jme-ttf:2.2.2"
     implementation "org.jmonkeyengine:jme3-terrain:3.3.2-stable"
     
-    implementation "com.github.riccardobl:jme-effekseerNative:-SNAPSHOT"
+    implementation 'wf.frk:jme-effekseer-native:0.3'
     implementation 'com.github.destroflyer.jme3-effekseer:jme3-effekseer:44aff53'
     
     //compile "com.simsilica:sim-fx:1.0.+"
     //runtime "com.simsilica:sim-fx:1.0.+:assets"
     
-    compileOnly 'org.projectlombok:lombok:1.18.12'
-	annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    compileOnly 'org.projectlombok:lombok:1.18.16'
+	annotationProcessor 'org.projectlombok:lombok:1.18.16'
 	
-	testCompileOnly 'org.projectlombok:lombok:1.18.12'
-	testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-    
+	testCompileOnly 'org.projectlombok:lombok:1.18.16'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+        
 }
 
 sourceSets {
