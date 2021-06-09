@@ -6,9 +6,9 @@ assets/Models
 assets/Scenes
 assets/Sounds
 assets/Textures
+assets/MatDefs/
 !assets/MatDefs/custom/
 !assets/MatDefs/TTF/
-assets/MatDefs/
 assets/Sprites/unfinished
 assets/Sprites/other
 
