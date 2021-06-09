@@ -7,6 +7,8 @@ assets/Scenes
 assets/Sounds
 assets/Textures
 assets/MatDefs/
+assets/Effects/
+!assets/Effects/config
 !assets/MatDefs/custom/
 !assets/MatDefs/TTF/
 assets/Sprites/unfinished
@@ -19,6 +21,8 @@ assets/Sprites/other
 *.jpg
 *.jpeg
 *.gif
+*.efkefc
+*.efkproj
 
 ##############################
 ## Java

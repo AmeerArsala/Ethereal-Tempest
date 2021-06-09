@@ -22,7 +22,6 @@ import com.jme3.math.Quaternion;
 import com.jme3.scene.Node;
 import etherealtempest.Globals;
 import general.procedure.UpdateLoop;
-import general.visual.animation.VisualTransition;
 import general.visual.animation.VisualTransition.Progress;
 import java.io.IOException;
 import java.io.Reader;
