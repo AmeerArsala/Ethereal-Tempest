@@ -1,0 +1,69 @@
+{
+  "configPath": "Sprites\\Battle\\Freeblade\\offense\\delta ether\\config.json",
+  "hitPoint": null,
+  "animation": [
+    {
+      "column": 3,
+      "animationSegment": {
+        "from": 0,
+        "to": 9,
+        "delay": 0.0
+      }
+    }
+  ],
+  "impact": null,
+  "otherActionFrames": [
+    {
+      "column": 3,
+      "frame": 1,
+      "soundPath": "", //TODO: add dodge sound
+      "userChanges": {
+        "velocities": [
+          {
+            "strFunc": {
+              "parameter": "t",
+              "xFunction": "-0.025",
+              "yFunction": "-32t + 0.025"
+            },
+            "frames": 3
+          }
+        ],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      },
+      "enemyChanges": {
+        "velocities": [],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      }
+    },
+    {
+      "column": 3,
+      "frame": 7,
+      "soundPath": "", //TODO: add jump sound
+      "userChanges": {
+        "velocities": [
+          {
+            "strFunc": {
+              "parameter": "t",
+              "xFunction": "0.025",
+              "yFunction": "-32t + 0.025"
+            },
+            "frames": 3
+          }
+        ],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      },
+      "enemyChanges": {
+        "velocities": [],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      }
+    }
+  ]
+}

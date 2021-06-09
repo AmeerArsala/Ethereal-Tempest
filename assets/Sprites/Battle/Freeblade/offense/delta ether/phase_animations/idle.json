@@ -1,0 +1,16 @@
+{
+  "configPath": "Sprites\\Battle\\Freeblade\\offense\\delta ether\\config.json",
+  "hitPoint": null,
+  "animation": [
+    {
+      "column": 0,
+      "animationSegment": {
+        "from": 0,
+        "to": 1,
+        "delay": 0.0
+      }
+    }
+  ],
+  "impact": null,
+  "otherActionFrames": []
+}

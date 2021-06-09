@@ -7,7 +7,7 @@ package maps.layout.tile;
 
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
-import etherealtempest.characters.Unit.UnitAllegiance;
+import fundamental.unit.UnitAllegiance;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
@@ -84,7 +84,7 @@ public class TileData {
     public static TileData loadPreset(AssetManager assetManager, String presetName) {
         try {
             Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\presets\\Tiles\\" + presetName + ".json"));
+            Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\MapPresets\\Tiles\\" + presetName + ".json"));
             
             TileData data = gson.fromJson(reader, TileData.class);
             

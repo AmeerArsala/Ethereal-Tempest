@@ -6,14 +6,14 @@
 package maps.flow;
 
 import etherealtempest.FSM.UnitState;
-import etherealtempest.info.Conveyer;
-import etherealtempest.GameUtils;
+import etherealtempest.info.Conveyor;
+import general.utils.GameUtils;
 import etherealtempest.MasterFsmState;
-import etherealtempest.characters.Unit.UnitAllegiance;
-import maps.layout.Map;
+import fundamental.unit.UnitAllegiance;
+import maps.layout.MapLevel;
 import maps.layout.occupant.MapEntity;
 import maps.layout.occupant.MapEntity.DamageLevel;
-import maps.layout.occupant.TangibleUnit;
+import maps.layout.occupant.character.TangibleUnit;
 
 /**
  *
@@ -205,9 +205,9 @@ public class ObjectiveData {
         return this;
     }
     
-    public boolean killAllBossesMet(Conveyer data) {
+    public boolean killAllBossesMet(Conveyor data) {
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (unit.getIsBoss() && !unit.isAlliedWith(UnitAllegiance.Player) && unit.getFSM().getState().getEnum() != UnitState.Dead) {
+            if (unit.getParams().isBoss && !unit.isAlliedWith(UnitAllegiance.Player) && unit.getFSM().getEnumState() != UnitState.Dead) {
                 return false;
             }
         }
@@ -215,9 +215,9 @@ public class ObjectiveData {
         return true;
     }
     
-    public boolean killAllEnemyUnitsMet(Conveyer data) {
+    public boolean killAllEnemyUnitsMet(Conveyor data) {
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (!unit.isAlliedWith(UnitAllegiance.Player) && unit.getFSM().getState().getEnum() != UnitState.Dead) {
+            if (!unit.isAlliedWith(UnitAllegiance.Player) && unit.getFSM().getEnumState() != UnitState.Dead) {
                 return false;
             }
         }
@@ -225,9 +225,9 @@ public class ObjectiveData {
         return true;
     }
     
-    public boolean escapeMet(Conveyer data) { //remove a unit every time they escape from the map, also the commanders have to escape last
+    public boolean escapeMet(Conveyor data) { //remove a unit every time they escape from the map, also the commanders have to escape last
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (unit.unitStatus == UnitAllegiance.Player && unit.getFSM().getState().getEnum() != UnitState.Dead && unit.getIsBoss()) {
+            if (unit.getAllegiance() == UnitAllegiance.Player && unit.getFSM().getEnumState() != UnitState.Dead && unit.getParams().isBoss) {
                 return false;
             }
         }
@@ -236,11 +236,11 @@ public class ObjectiveData {
     }
     
     public boolean annexAllAnnexableTilesMet() {
-        Map stage = MasterFsmState.getCurrentMap();
-        for (int layer = 0; layer < stage.fullmap.length; layer++) {
-            for (int x = 0; x < stage.fullmap[layer].length; x++) {
-                for (int y = 0; y < stage.fullmap[layer][x].length; y++) {
-                    if (stage.fullmap[layer][x][y].getTileData().allegianceIsEligible(UnitAllegiance.Player) && !stage.fullmap[layer][x][y].hasBeenAnnexed()) {
+        MapLevel stage = MasterFsmState.getCurrentMap();
+        for (int layer = 0; layer < stage.getLayerCount(); layer++) {
+            for (int x = stage.getMinimumX(layer); x < stage.getXLength(layer); x++) {
+                for (int y = stage.getMinimumY(layer); y < stage.getYLength(layer); y++) {
+                    if (stage.getTileAt(x, y, layer).getTileData().allegianceIsEligible(UnitAllegiance.Player) && !stage.getTileAt(x, y, layer).hasBeenAnnexed()) {
                         return false;
                     }
                 }
@@ -251,11 +251,11 @@ public class ObjectiveData {
     }
     
     public boolean annexAnyAnnexableTileMet() {
-        Map stage = MasterFsmState.getCurrentMap();
-        for (int layer = 0; layer < stage.fullmap.length; layer++) {
-            for (int x = 0; x < stage.fullmap[layer].length; x++) {
-                for (int y = 0; y < stage.fullmap[layer][x].length; y++) {
-                    if (stage.fullmap[layer][x][y].hasBeenAnnexedBy(UnitAllegiance.Player)) {
+        MapLevel stage = MasterFsmState.getCurrentMap();
+        for (int layer = 0; layer < stage.getLayerCount(); layer++) {
+            for (int x = stage.getMinimumX(layer); x < stage.getXLength(layer); x++) {
+                for (int y = stage.getMinimumY(layer); y < stage.getYLength(layer); y++) {
+                    if (stage.getTileAt(x, y, layer).hasBeenAnnexedBy(UnitAllegiance.Player)) {
                         return true;
                     }
                 }
@@ -265,47 +265,47 @@ public class ObjectiveData {
         return false;
     }
     
-    public boolean numberOfEnemiesToKillMet(Conveyer data) {
+    public boolean numberOfEnemiesToKillMet(Conveyor data) {
         int killed = 0;
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (!unit.isAlliedWith(UnitAllegiance.Player) && unit.getFSM().getState().getEnum() == UnitState.Dead) {
+            if (!unit.isAlliedWith(UnitAllegiance.Player) && unit.getFSM().getEnumState() == UnitState.Dead) {
                 killed++;
             }
         }
         
-        return killed == numberOfEnemiesToKill || killed == numberOfEnemiesToKill.intValue();
+        return killed == numberOfEnemiesToKill;
     }
     
-    public boolean numberOfBossesToKillMet(Conveyer data) {
+    public boolean numberOfBossesToKillMet(Conveyor data) {
         int killed = 0;
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (!unit.isAlliedWith(UnitAllegiance.Player) && unit.getIsBoss() && unit.getFSM().getState().getEnum() == UnitState.Dead) {
+            if (!unit.isAlliedWith(UnitAllegiance.Player) && unit.getParams().isBoss && unit.getFSM().getEnumState() == UnitState.Dead) {
                 killed++;
             }
         }
         
-        return killed == numberOfBossesToKill || killed == numberOfBossesToKill.intValue();
+        return killed == numberOfBossesToKill;
     }
     
-    public boolean numberOfUnitsToDieMet(Conveyer data) {
+    public boolean numberOfUnitsToDieMet(Conveyor data) {
         int killed = 0;
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (unit.getFSM().getState().getEnum() == UnitState.Dead) {
+            if (unit.getFSM().getEnumState() == UnitState.Dead) {
                 killed++;
             }
         }
         
-        return killed == numberOfUnitsToDie || killed == numberOfUnitsToDie.intValue();
+        return killed == numberOfUnitsToDie;
     }
     
-    public boolean turnsToPassForVictoryMet(Conveyer data) {
-        return data.getCurrentTurn() > turnsToPassForVictory || data.getCurrentTurn() > turnsToPassForVictory.intValue();
+    public boolean turnsToPassForVictoryMet(Conveyor data) {
+        return data.getCurrentTurn() > turnsToPassForVictory;
     }
     
-    public boolean namesOfEntitiesToKillMet(Conveyer data) {
+    public boolean namesOfEntitiesToKillMet(Conveyor data) {
         for (TangibleUnit unit : data.getAllUnits()) {
             for (String name : namesOfEntitiesToKill) {
-                if (unit.getName().equals(name) && unit.getFSM().getState().getEnum() != UnitState.Dead) {
+                if (unit.getName().equals(name) && unit.getFSM().getEnumState() != UnitState.Dead) {
                     return false;
                 }
             }
@@ -322,9 +322,9 @@ public class ObjectiveData {
         return true;
     }
     
-    public boolean namesOfBossesToKillMet(Conveyer data) {
+    public boolean namesOfBossesToKillMet(Conveyor data) {
         for (TangibleUnit unit : data.getAllUnits()) {
-            if (unit.getIsBoss() && unit.getFSM().getState().getEnum() != UnitState.Dead) {
+            if (unit.getParams().isBoss && unit.getFSM().getEnumState() != UnitState.Dead) {
                 for (String name : namesOfEntitiesToKill) {
                     if (unit.getName().equals(name)) {
                         return false;
@@ -336,7 +336,7 @@ public class ObjectiveData {
         return true;
     }
     
-    public boolean victoryConditionsMet(Conveyer data) {
+    public boolean victoryConditionsMet(Conveyor data) {
         if (killAllBosses && !killAllBossesMet(data)) { return false; }
         if (killAllEnemyUnits && !killAllEnemyUnitsMet(data)) { return false; }
         if (escape && !escapeMet(data)) { return false; }
@@ -351,7 +351,7 @@ public class ObjectiveData {
         return !(namesOfBossesToKill != null && !namesOfBossesToKillMet(data));
     }
     
-    public boolean lossConditionsMet(Conveyer data) {
+    public boolean lossConditionsMet(Conveyor data) {
         return defeatCondition.conditionsMet(data);
     }
     
@@ -396,9 +396,9 @@ public class ObjectiveData {
             this.X_Enemies_Escape = X_Enemies_Escape;
         }
         
-        public boolean leaderDiesMet(Conveyer data) {
+        public boolean leaderDiesMet(Conveyor data) {
             for (TangibleUnit unit : data.getAllUnits()) {
-                if (unit.isAlliedWith(UnitAllegiance.Player) && unit.isLeader && unit.getFSM().getState().getEnum() == UnitState.Dead) {
+                if (unit.isAlliedWith(UnitAllegiance.Player) && unit.getParams().isLeader && unit.getFSM().getEnumState() == UnitState.Dead) {
                     return true;
                 }
             }
@@ -406,9 +406,9 @@ public class ObjectiveData {
             return false;
         }
         
-        public boolean anyPlayerCharacterDiesMet(Conveyer data) {
+        public boolean anyPlayerCharacterDiesMet(Conveyor data) {
             for (TangibleUnit unit : data.getAllUnits()) {
-                if (unit.unitStatus == UnitAllegiance.Player && unit.getFSM().getState().getEnum() == UnitState.Dead) {
+                if (unit.getAllegiance() == UnitAllegiance.Player && unit.getFSM().getEnumState() == UnitState.Dead) {
                     return true;
                 }
             }
@@ -416,9 +416,9 @@ public class ObjectiveData {
             return false;
         }
         
-        public boolean anyPlayerCommanderDiesMet(Conveyer data) {
+        public boolean anyPlayerCommanderDiesMet(Conveyor data) {
             for (TangibleUnit unit : data.getAllUnits()) {
-                if (unit.getIsBoss() && unit.unitStatus == UnitAllegiance.Player && unit.getFSM().getState().getEnum() == UnitState.Dead) {
+                if (unit.getParams().isBoss && unit.getAllegiance() == UnitAllegiance.Player && unit.getFSM().getEnumState() == UnitState.Dead) {
                     return true;
                 }
             }
@@ -427,11 +427,11 @@ public class ObjectiveData {
         }
         
         public boolean anyAnnexableTileAnnexedMet() {
-            Map stage = MasterFsmState.getCurrentMap();
-            for (int layer = 0; layer < stage.fullmap.length; layer++) {
-                for (int x = 0; x < stage.fullmap[layer].length; x++) {
-                    for (int y = 0; y < stage.fullmap[layer][x].length; y++) {
-                        if (stage.fullmap[layer][x][y].hasBeenAnnexedByEnemy()) {
+            MapLevel stage = MasterFsmState.getCurrentMap();
+            for (int layer = 0; layer < stage.getLayerCount(); layer++) {
+                for (int x = stage.getMinimumX(layer); x < stage.getXLength(layer); x++) {
+                    for (int y = stage.getMinimumY(layer); y < stage.getYLength(layer); y++) {
+                        if (stage.getTileAt(x, y, layer).hasBeenAnnexedByEnemy()) {
                             return true;
                         }
                     }
@@ -442,11 +442,11 @@ public class ObjectiveData {
         }
         
         public boolean allAnnexableTilesAnnexedMet() {
-            Map stage = MasterFsmState.getCurrentMap();
-            for (int layer = 0; layer < stage.fullmap.length; layer++) {
-                for (int x = 0; x < stage.fullmap[layer].length; x++) {
-                    for (int y = 0; y < stage.fullmap[layer][x].length; y++) {
-                        if (!stage.fullmap[layer][x][y].hasBeenAnnexedByEnemy()) {
+            MapLevel stage = MasterFsmState.getCurrentMap();
+            for (int layer = 0; layer < stage.getLayerCount(); layer++) {
+                for (int x = stage.getMinimumX(layer); x < stage.getXLength(layer); x++) {
+                    for (int y = stage.getMinimumY(layer); y < stage.getYLength(layer); y++) {
+                        if (!stage.getTileAt(x, y, layer).hasBeenAnnexedByEnemy()) {
                             return false;
                         }
                     }
@@ -456,43 +456,43 @@ public class ObjectiveData {
             return true;
         }
         
-        public boolean X_Number_Of_Player_Characters_DieMet(Conveyer data) {
+        public boolean X_Number_Of_Player_Characters_DieMet(Conveyor data) {
             int dead = 0;
             for (TangibleUnit unit : data.getAllUnits()) {
-                if (unit.unitStatus == UnitAllegiance.Player && unit.getFSM().getState().getEnum() == UnitState.Dead) {
+                if (unit.getAllegiance() == UnitAllegiance.Player && unit.getFSM().getEnumState() == UnitState.Dead) {
                     dead++;
                 }
             }
             
-            return dead == X_Number_Of_Player_Characters_Die || dead == X_Number_Of_Player_Characters_Die.intValue();
+            return dead == X_Number_Of_Player_Characters_Die;
         }
         
-        public boolean X_Number_Of_Any_Characters_DieMet(Conveyer data) {
+        public boolean X_Number_Of_Any_Characters_DieMet(Conveyor data) {
             int dead = 0;
             for (TangibleUnit unit : data.getAllUnits()) {
-                if (unit.getFSM().getState().getEnum() == UnitState.Dead) {
+                if (unit.getFSM().getEnumState() == UnitState.Dead) {
                     dead++;
                 }
             }
             
-            return dead == X_Number_Of_Any_Characters_Die || dead == X_Number_Of_Any_Characters_Die.intValue();
+            return dead == X_Number_Of_Any_Characters_Die;
         }
         
-        public boolean X_Number_Of_Allies_DieMet(Conveyer data) {
+        public boolean X_Number_Of_Allies_DieMet(Conveyor data) {
             int dead = 0;
             for (TangibleUnit unit : data.getAllUnits()) {
-                if (unit.unitStatus == UnitAllegiance.Ally && unit.getFSM().getState().getEnum() == UnitState.Dead) {
+                if (unit.getAllegiance() == UnitAllegiance.Ally && unit.getFSM().getEnumState() == UnitState.Dead) {
                     dead++;
                 }
             }
             
-            return dead == X_Number_Of_Allies_Die || dead == X_Number_Of_Allies_Die.intValue();
+            return dead == X_Number_Of_Allies_Die;
         }
         
-        public boolean X_Number_Of_Entities_DieMet(Conveyer data) {
+        public boolean X_Number_Of_Entities_DieMet(Conveyor data) {
             int dead = 0;
             for (TangibleUnit unit : data.getAllUnits()) {
-                if (unit.getFSM().getState().getEnum() == UnitState.Dead) {
+                if (unit.getFSM().getEnumState() == UnitState.Dead) {
                     dead++;
                 }
             }
@@ -503,15 +503,15 @@ public class ObjectiveData {
                 }
             }
             
-            return dead == X_Number_Of_Entities_Die || dead == X_Number_Of_Entities_Die.intValue();
+            return dead == X_Number_Of_Entities_Die;
         }
         
-        public boolean X_Number_Of_Turns_PassMet(Conveyer data) { return data.getCurrentTurn() > X_Number_Of_Turns_Pass; }
+        public boolean X_Number_Of_Turns_PassMet(Conveyor data) { return data.getCurrentTurn() > X_Number_Of_Turns_Pass; }
         
-        public boolean X_Characters_DieMet(Conveyer data) {
+        public boolean X_Characters_DieMet(Conveyor data) {
             for (TangibleUnit unit : GameUtils.calculateAlliedUnits(UnitAllegiance.Player, data)) {
                 for (String name : X_Characters_Die) {
-                    if (unit.getName().equals(name) && unit.getFSM().getState().getEnum() != UnitState.Dead) {
+                    if (unit.getName().equals(name) && unit.getFSM().getEnumState() != UnitState.Dead) {
                         return false;
                     }
                 }
@@ -520,7 +520,7 @@ public class ObjectiveData {
             return true;
         }
         
-        public boolean X_Entities_DieMet(Conveyer data) {
+        public boolean X_Entities_DieMet(Conveyor data) {
             for (MapEntity entity : data.getMapEntities()) {
                 for (String name : X_Entities_Die) {
                     if (entity.getName().equals(name) && entity.getDamageLevel() != DamageLevel.Broken) {
@@ -531,7 +531,7 @@ public class ObjectiveData {
             
             for (TangibleUnit unit : data.getAllUnits()) {
                 for (String name : X_Characters_Die) {
-                    if (unit.getName().equals(name) && unit.getFSM().getState().getEnum() != UnitState.Dead) {
+                    if (unit.getName().equals(name) && unit.getFSM().getEnumState() != UnitState.Dead) {
                         return false;
                     }
                 }
@@ -540,7 +540,7 @@ public class ObjectiveData {
             return true;
         }
         
-        public boolean X_Enemies_EscapeMet(Conveyer data) {
+        public boolean X_Enemies_EscapeMet(Conveyor data) {
             for (TangibleUnit unit : data.getAllUnits()) {
                 if (!unit.isAlliedWith(UnitAllegiance.Player)) {
                     for (String name : X_Enemies_Escape) {
@@ -554,7 +554,7 @@ public class ObjectiveData {
             return true;
         }
         
-        public boolean conditionsMet(Conveyer data) {
+        public boolean conditionsMet(Conveyor data) {
             if (leaderDies && !leaderDiesMet(data)) { return false; }
             if (anyPlayerCharacterDies && !anyPlayerCharacterDiesMet(data)) { return false; }
             if (anyPlayerCommanderDies && !anyPlayerCommanderDiesMet(data)) { return false; }

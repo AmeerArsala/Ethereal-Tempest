@@ -14,15 +14,15 @@ import java.util.List;
 /**
  *
  * @author night
- * @param <E> this is for the type of enum or key you want to call it with
+ * @param <E> this is for the type of enum or key you want to call it with; can also be string
  */
-public abstract class ComplexInputReader<E> {
+public abstract class ComplexInputReader<E extends Enum> {
     private final boolean allowErgonomics;
     
     protected float heldTimeCheckpoint = 1f; //1 second by default
     
     private BiMap<E, String> mapping = HashBiMap.create();
-    private HashMap<E, Float> heldInputs = new HashMap<>();
+    private final HashMap<E, Float> heldInputs = new HashMap<>();
     
     public ComplexInputReader(boolean allowErgonomics) {
         this.allowErgonomics = allowErgonomics;

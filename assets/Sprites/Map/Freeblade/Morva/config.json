@@ -1,0 +1,31 @@
+{
+  "maxColumns": 4,
+  "fileName": "spritesheet.png",
+  "outlineSheet": "outlinesheet.png",
+  "rows": 
+  [
+    {
+      "animation": "MovingDown"
+    },
+
+    {
+      "animation": "MovingRight"
+    },
+
+    {
+      "animation": "MovingLeft"
+    },
+
+    {
+      "animation": "MovingUp"
+    },
+
+    {
+      "animation": "Idle"
+    },
+
+    {
+      "animation": "Idle2"
+    }
+  ]
+}

@@ -14,7 +14,7 @@ import com.jme3.scene.Node;
  * @author night
  */
 public class DeserializedModel { //this class is for gson stuff
-    public Node modelRoot; //the parent of actual thing
+    protected Node modelRoot; //the parent of actual thing
         
     //gson this area
     protected Float x = 0f, y = 0f, z = 0f; // relative/local; this would apply to model

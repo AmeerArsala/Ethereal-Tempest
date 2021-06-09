@@ -1,0 +1,25 @@
+{
+  "config": {
+    "spritesheet": {
+      "framesPerColumn": [ 5, 6, 5, 4, 9, 4, 5 ]
+    }
+  },
+  "animation": [
+    {
+      "column": 6,
+      "animationSegment": {
+        "from": 0,
+        "to": 2,
+        "delay": 0.0
+      }
+    }
+  ],
+  "impact": null,
+  "otherSounds": [
+    {
+      "column": 6,
+      "frame": 0,
+      "soundPath": "" //TODO: add dodging sound
+    }
+  ]
+}

@@ -5,7 +5,7 @@
  */
 package etherealtempest.ai;
 
-import etherealtempest.info.Conveyer;
+import etherealtempest.info.Conveyor;
 
 /**
  *
@@ -34,15 +34,15 @@ public class ConditionalBehavior {
         declaredAnonymously = false;
     }
     
-    public boolean canExecute(Conveyer data) {
+    public boolean canExecute(Conveyor data) {
         return declaredAnonymously ? condition.condition(data) : cause;
     }
     
-    public Option retrieveAction(Conveyer data) {
+    public Option retrieveAction(Conveyor data) {
         return declaredAnonymously ? behavior.action(data) : effect;
     }
         
-    /*public boolean attempt(Conveyer data) {
+    /*public boolean attempt(Conveyor data) {
         if (condition.condition(data)) {
             behavior.execute(data);
             return true;

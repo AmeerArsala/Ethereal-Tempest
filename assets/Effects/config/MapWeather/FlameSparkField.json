@@ -1,0 +1,17 @@
+{
+  "effectPath": "Effects/Original/EmberSparks",
+  "scaleX": 2000,
+  "scaleY": 2000,
+  "scaleZ": 2000,
+  "rotX": -60,
+  "x": 30,
+  "y": -60,
+  "z": 60,
+  "frames": 120,
+  "useCustomDriver": true,
+  "loop": true,
+  "initialDelay": 2000,
+  "minimumDelay": 2000,
+  "maximumDelay": 3000
+
+}

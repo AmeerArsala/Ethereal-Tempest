@@ -20,6 +20,6 @@ public interface MapBounds {
     
     public boolean isWithinXBounds(int test, int layer);
     public boolean isWithinYBounds(int test, int layer);
-    public boolean isWithinBounds(Coords test, int layer);
+    public boolean isWithinBounds(MapCoords test);
     
 }

@@ -5,9 +5,9 @@
  */
 package fundamental.item;
 
-import battle.Combatant;
-import etherealtempest.info.Conveyer;
+import etherealtempest.info.Conveyor;
 import fundamental.ability.AbilityEffect;
+import fundamental.stats.BaseStat;
 import fundamental.stats.Toll;
 import fundamental.stats.Toll.Exchange;
 import fundamental.talent.TalentEffect;
@@ -73,9 +73,9 @@ public abstract class ItemEffect { //when used
         this.effect2 = effect2;
     }
     
-    public abstract boolean canBeUsed(Conveyer C);
+    public abstract boolean canBeUsed(Conveyor C);
     
-    public void executeEffect(Conveyer C) {
+    public void executeEffect(Conveyor C) {
         if (effect != null) {
             effect.enactEffect(C);
         }
@@ -110,8 +110,8 @@ public abstract class ItemEffect { //when used
     public static ItemEffect Restore(Exchange stat, int value) {
         return new ItemEffect(ToolType.SupportSelf, 100, TalentEffect.Heal(new Toll(stat, value))) {
             @Override
-            public boolean canBeUsed(Conveyer C) {
-                return C.getUnit().getStat(Combatant.BaseStat.currentHP) < C.getUnit().getStat(Combatant.BaseStat.maxHP);
+            public boolean canBeUsed(Conveyor C) {
+                return C.getUnit().getBaseStat(BaseStat.CurrentHP) < C.getUnit().getBaseStat(BaseStat.MaxHP);
             }
         };
     }

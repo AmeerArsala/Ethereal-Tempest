@@ -5,11 +5,11 @@
  */
 package fundamental.talent;
 
-import battle.Combatant;
-import battle.Combatant.BaseStat;
-import battle.Combatant.BattleRole;
-import etherealtempest.info.Conveyer;
-import fundamental.Associated;
+import battle.participant.Combatant;
+import fundamental.stats.BaseStat;
+import battle.participant.BattleRole;
+import etherealtempest.info.Conveyor;
+import fundamental.Attribute;
 import fundamental.skill.Skill;
 import fundamental.stats.Bonus;
 import fundamental.stats.Bonus.BonusType;
@@ -17,41 +17,48 @@ import fundamental.stats.Toll.Exchange;
 import fundamental.talent.TalentCondition.Occasion;
 import fundamental.tool.Tool;
 import fundamental.tool.Tool.ToolType;
+import fundamental.unit.AgainstUnits;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import maps.layout.occupant.TangibleUnit;
+import maps.layout.MapCoords;
+import maps.layout.occupant.character.TangibleUnit;
 
 /**
  *
  * @author night
  */
-public class Talent extends Associated {
+public class Talent extends Attribute {
     private String loredesc = "";
     private String imagePath = "";
     private ToolType type;
     
     private List<TalentConcept> body = new ArrayList<>();
     
-    private boolean actualTalent = true;
+    //private boolean actualTalent = true;
     
+    //use this constructor
     public Talent(String talentname, ToolType t_type, String lore, String imgPath, List<TalentConcept> tc) {
         super(talentname, talentname + " \n " + lore + "\n \nEffects: \n" + generateDescription(tc));
         type = t_type;
         loredesc = lore;
-        imagePath = "Interface/GUI/talent_icons/" + imgPath;
+        imagePath = "Interface/GUI/icons/talent/" + imgPath;
         body = tc;
     }
     
-    protected Talent(String talentname, ToolType t_type, String lore, String description, String imgPath) {
+    //use custom description
+    public Talent(String talentname, ToolType t_type, String lore, String description, String imgPath, List<TalentConcept> tc) {
         super(talentname, description);
         type = t_type;
         loredesc = lore;
-        imagePath = "Interface/GUI/talent_icons/" + imgPath;
+        imagePath = "Interface/GUI/icons/talent/" + imgPath;
     }
     
-    public Talent(boolean ex) {
-        super(ex);
+    //used to shorten constructor for talents that aren't actual talents but provide bonuses to Units such as standing on Tiles
+    protected Talent(ToolType t_type, List<TalentConcept> tc) {
+        super("", generateDescription(tc));
+        type = t_type;
+        body = tc;
     }
     
     public static final String generateDescription(List<TalentConcept> tc) {
@@ -61,7 +68,7 @@ public class Talent extends Associated {
             desc += concept.toString() + "\n";
         }
         
-        return ("" + desc.charAt(0)).toUpperCase() + desc.substring(1);
+        return ("" + desc.charAt(0)).toUpperCase() + desc.substring(1); //capitalize first letter
     }
     
     public ToolType getToolType() { return type; }
@@ -71,9 +78,8 @@ public class Talent extends Associated {
     
     public List<TalentConcept> getFullBody() { return body; }
     
-    public boolean getIsActualTalent() { return actualTalent; }
-    
-    void setActualTalent(boolean is) { actualTalent = is; }
+    //public boolean getIsActualTalent() { return actualTalent; }
+    //void setActualTalent(boolean is) { actualTalent = is; }
     
     @Override
     public String toString() { return name; }
@@ -85,6 +91,11 @@ public class Talent extends Associated {
      * ToolType.Attack is when a Unit attacks another; the skills, talents, and abilities under this category will be used in attack sequences
      */
     
+    
+    public static final Talent createEffect(ToolType t_type, List<TalentConcept> tc) {
+        return new Talent(t_type, tc);
+    }
+    
     public static final Talent Opportunist() { //basically vantage
         return new Talent(
             "Opportunist", 
@@ -93,9 +104,10 @@ public class Talent extends Associated {
             "opportunist.png", 
             Arrays.asList(
                 new TalentConcept(
-                    new TalentCondition("If user's HP <= 50% and can counterattack against foe, ", Occasion.BeforeCombat) {
+                    "If user's HP <= 50% and can counterattack against foe, user always attacks first during combat.",
+                    new TalentCondition(Occasion.BeforeCombat) {
                         @Override
-                        protected boolean getCondition(Conveyer data) {
+                        protected boolean getCondition(Conveyor data) {
                             Combatant cbt = data.getCombatantByUnit(data.getUnit());
                             
                             if (cbt == null) { return false; }
@@ -111,9 +123,9 @@ public class Talent extends Associated {
                             return cbt.battle_role == BattleRole.Receiver && cbt.getUnit().canCounterattackAgainst(range);
                         }
                     },
-                    new TalentEffect("unit always attacks first") {
+                    new TalentEffect() {
                         @Override
-                        public void enactEffect(Conveyer info) {
+                        public void enactEffect(Conveyor info) {
                             info.getInitiator().battle_role = info.getInitiator().battle_role.getOpponent();
                             info.getReceiver().battle_role = info.getReceiver().battle_role.getOpponent();
                         }
@@ -133,10 +145,11 @@ public class Talent extends Associated {
                 new TalentConcept(
                     TalentCondition.AlwaysTriggersOnOccasion(Occasion.AfterCombat),
                     TalentEffect.PercentageStatBasedAOE( //50% of ether stat as damage to enemies within 3 range
-                        50, //%
-                        BaseStat.ether, //stat
+                        0.5f, //%
+                        BaseStat.Ether, //stat
                         Exchange.HP, //penalty type
-                        3 //range
+                        3, //range
+                        AgainstUnits.Enemy
                     ) 
                 )
             )
@@ -151,22 +164,24 @@ public class Talent extends Associated {
             "optimism.png",
             Arrays.asList(
                 new TalentConcept(
-                    new TalentCondition("If user's HP >= 50%, ", Occasion.StartOfTurn) {
+                    new TalentCondition("if user's HP >= 50%, ", Occasion.StartOfTurn) {
                         @Override
-                        protected boolean getCondition(Conveyer data) {
+                        protected boolean getCondition(Conveyor data) {
                             return data.getUnit().getCurrentToMaxHPratio() >= 0.5f;
                         }
                     },
                     new TalentEffect("increases a random stat (excluding HP, TP, and Adrenaline) by 4 points for an entire turn") {
                         @Override
-                        protected List<Bonus> userBuffs(Conveyer data) { //buffs to self
+                        protected List<Bonus> userBuffs(Conveyor data) { //buffs to self
                             List<Bonus> bonuses = new ArrayList<>();
                             int length = BaseStat.values().length;
                             
-                            BaseStat stat = BaseStat.values()[(int)(length * Math.random())];
-                            while (stat == BaseStat.maxHP || stat == BaseStat.currentHP || stat == BaseStat.maxTP || stat == BaseStat.currentTP || stat == BaseStat.level || stat == BaseStat.adrenaline) { //reroll if it is any of these stats
+                            List<BaseStat> blacklistedStats = Arrays.asList(BaseStat.MaxHP, BaseStat.CurrentHP, BaseStat.MaxTP, BaseStat.CurrentTP, BaseStat.Adrenaline);
+                            BaseStat stat;
+                            
+                            do {
                                 stat = BaseStat.values()[(int)(length * Math.random())];
-                            }
+                            } while (blacklistedStats.contains(stat));
                             
                             bonuses.add(new Bonus(4, BonusType.FullTurn, stat));
                             return bonuses;
@@ -177,48 +192,30 @@ public class Talent extends Associated {
         );
     }
     
-    public static final Talent TileBonus(int x, int y, int l, List<Bonus> bonuses, Occasion occasion) {
-        Talent RTB = new Talent(
-            "", ToolType.SupportSelf, "", "",
+    public static final Talent TileBonus(MapCoords pos, List<Bonus> bonuses, Occasion occasion) {
+        return new Talent(
+            ToolType.SupportSelf,
             Arrays.asList(
                 new TalentConcept(
-                    new TalentCondition("", occasion) {
+                    new TalentCondition(occasion) {
                         @Override
-                        protected boolean getCondition(Conveyer data) {
-                            TangibleUnit unit = data.getUnit();
-                            return unit.getPosX() == x && unit.getPosY() == y && unit.getElevation() == l;
+                        protected boolean getCondition(Conveyor data) {
+                            return data.getUnit().getPos().equals(pos);
                         }
                     },
-                    new TalentEffect("") {
-                        @Override
-                        public List<Bonus> userBuffs(Conveyer data) {
-                            return bonuses;
-                        }
-                        
-                        @Override
-                        public void enactEffect(Conveyer info) {}
-                    }     
+                    TalentEffect.Bonuses(bonuses)
                 )
             )
         );
-        
-        RTB.setActualTalent(false);
-        
-        return RTB;
     }
     
     public static final Talent Bonus(List<Bonus> bonuses, Occasion occasion) {
         return new Talent(
-            "", ToolType.SupportSelf, "", "",
+            ToolType.SupportSelf,
             Arrays.asList(
                 new TalentConcept(
                     TalentCondition.ALWAYS_TRIGGERS,
-                    new TalentEffect("") {
-                        @Override
-                        public List<Bonus> userBuffs(Conveyer data) {
-                            return bonuses;
-                        }
-                    }     
+                    TalentEffect.Bonuses(bonuses)     
                 )
             )
         );
