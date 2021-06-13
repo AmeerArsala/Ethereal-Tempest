@@ -7,8 +7,8 @@ uniform vec4 m_OnlyChangeColor; // example: if this is white, then it will only 
 
 uniform vec4 m_Color;
 uniform vec4 m_BackgroundColor;
-uniform vec4 m_OutlineColor;
-uniform float m_OutlineThickness; //in percent, from 0.0 to 1.0
+//uniform vec4 m_OutlineColor;
+//uniform float m_OutlineThickness; //in percent, from 0.0 to 1.0
 uniform bool m_UsesGradient;
 uniform float m_GradientCoefficient;
 uniform float m_GradientStart;
@@ -18,14 +18,14 @@ uniform float m_PercentEnd;    //from 0.0 to 1.0
 
 varying vec2 texCoord;
 
-vec4 getNonOutlineColor(vec4 color) {
+vec4 obtainColor(vec4 color) {
     #ifdef HAS_PERCENT_FILLED
         float percentAreaLength = m_PercentEnd - m_PercentStart;
         
         if (texCoord.y <= m_PercentStart + (m_PercentFilled * percentAreaLength)) {
             #ifdef HAS_COLOR
                 color *= m_Color;
-                        
+                
                 #ifdef HAS_USES_GRADIENT
                     float horizontalShift = 0.0;
                     #ifdef HAS_GRADIENT_START
@@ -63,7 +63,8 @@ void main() {
     #ifndef HAS_COLORMAP
         baseColor = vec4(1.0, 1.0, 1.0, 1.0);
     #endif
-
+    
+    /*
     #ifdef HAS_OUTLINE_THICKNESS
         if (texCoord.x <= m_OutlineThickness || texCoord.y <= m_OutlineThickness || (1.0 - texCoord.x) <= m_OutlineThickness || (1.0 - texCoord.y) <= m_OutlineThickness) {
             #ifdef HAS_OUTLINE_COLOR
@@ -77,6 +78,7 @@ void main() {
             return;
         }
     #endif
+    */
     
-    gl_FragColor = getNonOutlineColor(baseColor);
+    gl_FragColor = obtainColor(baseColor);
 }

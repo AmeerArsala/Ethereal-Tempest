@@ -6,8 +6,8 @@
 package etherealtempest.gui;
 
 import com.jme3.scene.Node;
-import etherealtempest.Globals;
-import general.procedure.SimpleQueue;
+import general.GameTimer;
+import general.procedure.ProcedureGroup;
 import general.math.FloatPair;
 import general.math.function.ControlledMathFunction;
 import general.math.function.MathFunction;
@@ -22,7 +22,7 @@ import general.visual.animation.VisualTransition.Progress;
 public abstract class ValueIndicator {
     protected final Node node;
     
-    protected final SimpleQueue queue = new SimpleQueue();
+    protected final ProcedureGroup queue = new ProcedureGroup();
     
     protected final Text2D text;
     protected final int maxNumber;
@@ -89,9 +89,9 @@ public abstract class ValueIndicator {
     
     //for regular use
     public void queueToPercent(float percent, float seconds) {
-        Globals local = new Globals();
+        GameTimer local = new GameTimer();
         float slope = (percent - percentFull) / seconds; //seconds = (seconds - 0f)
-        queue.addToQueue((tpf) -> {
+        queue.add((tpf) -> {
             percentFull += slope;
             
             local.update(tpf);
@@ -112,10 +112,10 @@ public abstract class ValueIndicator {
     
     //use this if you have a velocity function
     public void queueToPercent(MathFunction velocity, FloatPair domain) {
-        Globals local = new Globals();
+        GameTimer local = new GameTimer();
         float seconds = domain.b - domain.a;
         
-        queue.addToQueue((tpf) -> {
+        queue.add((tpf) -> {
             percentFull += velocity.output(domain.a + local.getTime());
             
             local.update(tpf);
@@ -131,7 +131,7 @@ public abstract class ValueIndicator {
     
     public void addTransitionToQueue(VisualTransition transition) {
         transition.beginTransitions();
-        queue.addToQueue((tpf) -> {
+        queue.add((tpf) -> {
             transition.update(tpf);
             
             return transition.getTransitionProgress() == Progress.Finished;

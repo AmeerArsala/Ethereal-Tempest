@@ -72,6 +72,7 @@ public class ActionMenu {
         
         @Override
         protected void onDeselect() {
+            System.out.println("Hi ddy.");
             conv.getCursor().goBackFromMenu();
         }
 
@@ -89,6 +90,14 @@ public class ActionMenu {
         setOpen(false);
     }
     
+    public Node getNode() { 
+        return menuNode; 
+    }
+    
+    public boolean isOpen() { 
+        return isOpen; 
+    }
+    
     public final void setOpen(boolean open) {
         isOpen = open;
     }
@@ -103,9 +112,6 @@ public class ActionMenu {
             rootMenu.update(tpf);
         }
     }
-    
-    public Node getNode() { return menuNode; }
-    public boolean isOpen() { return isOpen; }
     
     public MasterFsmState resolveInput(String name, boolean keyPressed, float tpf) {
         boolean rootIsActive = rootMenu.catchInput(name, keyPressed, tpf);

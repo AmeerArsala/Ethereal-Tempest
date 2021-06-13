@@ -5,23 +5,26 @@
  */
 package general.procedure;
 
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  *
  * @author night
+ * @param <I> input type
  */
-public class SimpleQueue {
-    private final List<SimpleProcedure> procedures = new LinkedList<>();
-    private final ArrayList<SimpleProcedure> finished = new ArrayList<>();
+public class ReactorGroup<I> { //all procedures react to an input
+    private final List<Function<I, Boolean>> procedures = new LinkedList<>();
+    private final ArrayList<Function<I, Boolean>> finished = new ArrayList<>();
     
-    public SimpleQueue() {}
+    public ReactorGroup() {}
     
-    public void update(float tpf) {
+    public void update(I input) {
         procedures.forEach((procedure) -> {
-            boolean done = procedure.update(tpf);
+            boolean done = procedure.apply(input);
             if (done) {
                 finished.add(procedure);
             }
@@ -31,19 +34,11 @@ public class SimpleQueue {
         finished.clear();
     }
     
-    public void addToQueue(SimpleProcedure procedure) {
-        procedures.add(procedure);
+    public void add(Function<I, Boolean> func) {
+        procedures.add(func);
     }
     
-    public List<SimpleProcedure> getProcedures() {
+    public List<Function<I, Boolean>> getProcedures() {
         return procedures;
-    }
-    
-    public boolean isEmpty() {
-        return procedures.isEmpty();
-    }
-    
-    public void clear() {
-        procedures.clear();
     }
 }

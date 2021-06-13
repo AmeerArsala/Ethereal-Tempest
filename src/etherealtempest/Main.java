@@ -5,10 +5,12 @@ import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.renderer.RenderManager;
+import com.jme3.system.AppSettings;
 import com.jme3.texture.Image;
 import com.jme3.texture.TextureArray;
 import edited.FlyCamera;
 import edited.state.FlyCamTrueAppState;
+import general.GameTimer;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.MapLevel;
@@ -20,7 +22,6 @@ import maps.state.TestMap;
  * @author normenhansen
  */
 public class Main extends SimpleApplication {
-    private static Main app;
     
     public static final FSM GameFSM = new FSM() {
         @Override
@@ -31,23 +32,19 @@ public class Main extends SimpleApplication {
     
     //this is for the frameCount and time when the tpf is delayed in order for the game not to go too fast or too slow but at a controlled speed
     //this is at the 1f / 60f for tpf in the TestMap class
-    public static final Globals GameFlow = new Globals(); 
+    public static final GameTimer GameFlow = new GameTimer(); 
     
     public Main() {
         super(new StatsAppState(), new FlyCamTrueAppState(), new AudioListenerState(), new DebugKeysAppState());
     }
 
     public static void main(String[] args) {
-        app = new Main();
-        app.start();
+        Globals.app = new Main();
+        Globals.app.start();
     }
     
-    public static int getScreenWidth() {
-        return app.settings.getWidth();
-    }
-    
-    public static int getScreenHeight() {
-        return app.settings.getHeight();
+    AppSettings accessSettings() {
+        return settings;
     }
 
     @Override
@@ -76,7 +73,7 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleUpdate(float tpf) {
-        Globals.updateGlobalInstance(tpf);
+        Globals.update(tpf);
     }
     
     public void debugFlyCam() {
@@ -97,5 +94,4 @@ public class Main extends SimpleApplication {
     public void simpleRender(RenderManager rm) {
         //TODO: add render code
     }
-    
 }

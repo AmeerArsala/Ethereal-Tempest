@@ -367,6 +367,9 @@ public abstract class Menu<O extends MenuOption<DATA>, DATA> {
     //OVERRIDE IF NEEDED
     protected void onMouseExitedOption() {}
     
+    //OVERRIDE IF NEEDED
+    protected boolean ignoreInputs() { return false; }
+    
     private void goBackToPreviousMenu() {
         Node masterNode = getRootMenu().getNode().getParent();
         
@@ -392,6 +395,10 @@ public abstract class Menu<O extends MenuOption<DATA>, DATA> {
     
     //returns whether this menu was the one that called onInput; in other words, whether it was the active one at the time
     public final boolean catchInput(String name, boolean keyPressed, float tpf) {
+        if (ignoreInputs()) {
+            return active;
+        }
+        
         if (active) {
             onInput(name, keyPressed, tpf);
             return true;

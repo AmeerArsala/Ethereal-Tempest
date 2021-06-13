@@ -27,12 +27,13 @@ import etherealtempest.FSM.CursorState;
 import etherealtempest.FSM.MapFlowState;
 import etherealtempest.FSM.UnitState;
 import etherealtempest.FsmState;
-import etherealtempest.Globals;
+import etherealtempest.GameProtocols;
 import etherealtempest.MasterFsmState;
 import etherealtempest.geometry.GeometricBody;
 import general.ComplexInputReader;
+import general.GameTimer;
 import general.procedure.SimpleOrdinalQueue;
-import general.procedure.SimpleProcedure;
+import general.procedure.functional.SimpleProcedure;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
@@ -87,7 +88,7 @@ public class Cursor extends Node implements OnTile {
     private static final float BUTTON_HOLD_TIME = 0.25f;
     private static final float DEFAULT_CURSOR_SPEED = 1.5f, HELD_CURSOR_SPEED = 1.25f;
     
-    private final Globals globals = new Globals();
+    private final GameTimer globals = new GameTimer();
     private final SimpleOrdinalQueue queue = new SimpleOrdinalQueue();
     
     private final CursorPointer pointer;
@@ -449,7 +450,7 @@ public class Cursor extends Node implements OnTile {
                             if (fsm.getState().getEnum() == CursorState.AnyoneSelectingTarget) { //if the unit selected is an enemy being targeted
                                 receivingEnd = tu; //modify this later
                                 fsm.setNewStateIfAllowed(CursorState.AnyoneTargeted);
-                                //start a battle
+                                //start a fight
                                 interpreter.clear();
                                 selectedUnit.remapPosition(pos.subtract(selectionDifferenceXY));
                                 return new MasterFsmState(MapFlowState.PreBattle).setConveyor(new Conveyor(selectedUnit).setEnemyUnit(receivingEnd).createCombatants());
@@ -465,7 +466,7 @@ public class Cursor extends Node implements OnTile {
             
             if (name.equals("deselect")) {
                 if (keyPressed) {
-                    if (fsm.getState().getEnum() == CursorState.AnyoneSelected) {
+                    if (fsm.getEnumState() == CursorState.AnyoneSelected) {
                         //fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
                         fsm.setNewStateIfAllowed(CursorState.CursorDefault);
                         rangeDisplay.updateOpacity(fsm.getEnumState());
@@ -473,6 +474,16 @@ public class Cursor extends Node implements OnTile {
                         selectedUnit.deselect();
                         selectedUnit = null;
                         isBacking = true;
+                    } else if (fsm.getEnumState() == CursorState.AnyoneSelectingTarget) {
+                        purpose = Purpose.None;
+                        selectedUnit.getFSM().setNewStateIfAllowed(UnitState.Active);
+                        
+                        fsm.forceState(CursorState.Idle);
+                        square.getMaterial().setColor("Color", DEFAULT_COLOR);
+                        pointer.getMaterial().setColor("Color", DEFAULT_COLOR);
+                        
+                        setPosition(selectedUnit.getPos());
+                        GameProtocols.OpenPostActionMenu();
                     }
                 }
             }

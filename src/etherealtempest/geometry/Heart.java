@@ -166,11 +166,11 @@ public class Heart extends Node {
     
     private static void materialInitialization(Material mat) {
         mat.setColor("Color", ColorRGBA.Red);
-        mat.setColor("OutlineColor", ColorRGBA.Black);
+        //mat.setColor("OutlineColor", ColorRGBA.Black);
             
         float $75 = 75f / 255f;
         mat.setColor("BackgroundColor", new ColorRGBA($75, $75, $75, 1f)); //gray
-        mat.setFloat("OutlineThickness", 0.125f);
+        //mat.setFloat("OutlineThickness", 0.125f);
         mat.setFloat("GradientCoefficient", 1f);
         mat.setFloat("PercentFilled", 1.0f);
     }

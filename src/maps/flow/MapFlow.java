@@ -27,8 +27,9 @@ import etherealtempest.MasterFsmState;
 import etherealtempest.info.Conveyor;
 import etherealtempest.info.RequestDealer;
 import fundamental.talent.TalentCondition.Occasion;
+import general.GameTimer;
 import general.math.function.MathFunction;
-import general.procedure.SimpleQueue;
+import general.procedure.ProcedureGroup;
 import general.ui.text.FontProperties;
 import general.ui.text.FontProperties.KeyType;
 import general.ui.text.Text2D;
@@ -62,8 +63,8 @@ public class MapFlow { //eventually make this the map controller
         XthParty;
     }
     
-    public final Globals mapGlobals = new Globals();
-    public final SimpleQueue queue = new SimpleQueue();
+    public final GameTimer mapGlobals = new GameTimer();
+    public final ProcedureGroup queue = new ProcedureGroup();
     
     private final List<Turn> partiesInvolved;
     private final RequestDealer<Conveyor> requestTaker = new RequestDealer<>();
@@ -265,8 +266,8 @@ public class MapFlow { //eventually make this the map controller
         };
         
         float length = 2f; //switching turn will last 1.5 seconds
-        Globals timer = new Globals();
-        queue.addToQueue((tpf) -> {
+        GameTimer timer = new GameTimer();
+        queue.add((tpf) -> {
             float alpha = alphaFunction.output(timer.getTime());
             phaseText.setOutlineMaterial(new ColorRGBA(1, 1, 1, alpha), new ColorRGBA(0, 0, 0, alpha));
             phaseText.setLocalTranslation(xFunction.output(timer.getTime()) * cam.getWidth(), 0.5f * cam.getHeight(), 1f);

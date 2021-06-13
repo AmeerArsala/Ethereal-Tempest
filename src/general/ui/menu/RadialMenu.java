@@ -315,6 +315,11 @@ public abstract class RadialMenu<DATA> extends Menu<RadialMenuOption<DATA>, DATA
     }
     
     @Override
+    protected boolean ignoreInputs() {
+        return rotating;
+    }
+    
+    @Override
     protected void onMouseEnteredOption() {
         /*optionsNode.attachChild(line);
         line.rotateTo(findHoveredOption().getAngle() + FastMath.PI);*/

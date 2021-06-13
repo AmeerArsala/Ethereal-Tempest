@@ -5,6 +5,7 @@
  */
 package battle.participant.visual;
 
+import battle.animation.BattleAnimation;
 import battle.animation.config.AttackSheetConfig;
 import battle.animation.config.PossibleConfig;
 import battle.data.DecisionParams;
@@ -20,7 +21,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import etherealtempest.FSM.FighterState;
 import fundamental.unit.CharacterUnitInfo;
-import general.procedure.UpdateLoop;
+import general.procedure.functional.UpdateLoop;
 import general.visual.OverlaySheetConfig;
 import general.visual.Sprite;
 
@@ -95,11 +96,6 @@ public class Fighter {
         //update positions of user and opponent
         decisionData.userPos.set(sprite.getPercentagePosition(common.battleBoxDimensions));
         decisionData.opponentPos.set(fromOpponent.getSprite().getPercentagePosition(common.battleBoxDimensions));
-        
-        //update notifier
-        fromSelf.realImpactOccurred = controller.getCurrentAnimation().realImpactOccurred();
-        fromSelf.strikeFinished = controller.getCurrentAnimation().isStrikeFinished();
-        fromSelf.fightFullyDone = visualizer.fightIsFullyDone();
     }
     
     public void update(float tpf) {
@@ -116,6 +112,13 @@ public class Fighter {
         
         controller.update(tpf);
         visualizer.update(tpf);
+    }
+    
+    public void postUpdate(float tpf) {
+        //update notifier
+        fromSelf.realImpactOccurred = controller.getCurrentAnimation().realImpactOccurred();
+        fromSelf.strikeFinished = controller.getCurrentAnimation().isStrikeFinished();
+        fromSelf.fightFullyDone = visualizer.fightIsFullyDone();
     }
     
     public void onStrikeEnd() {
@@ -175,10 +178,21 @@ public class Fighter {
         if (currentRole == Participant.Victim && fromOpponent.realImpactOccurred()) {
             onReceiveImpact();
         }
+
+        BattleAnimation.Queue animQueue = controller.getCurrentAnimationQueue();
         
-        //work on idle here
+        if (animQueue.isEmpty()) {
+            if (currentRole == Participant.Striker) {
+                forecast.getCombatant().applySkillTollIfAny();
+                nextAttackAnimation();
+            } else {
+                //TODO: work on idle here
+            }
+        }
         
-        controller.getCurrentAnimationQueue().startCurrentAnimationIfNotAlready();
+        if (animQueue.getCurrentTask() != null) {
+            animQueue.startCurrentAnimationIfNotAlready();
+        }
     }
     
     public final void updateStrikeRole() {

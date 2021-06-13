@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.layout.occupant;
+package etherealtempest;
 
 /**
  *
  * @author night
  */
-public class GlobalProtocols {
+public class GameProtocols {
     private static Runnable OpenPostActionMenu = () -> {};
     
     public static void setOpenPostActionMenu(Runnable open) {

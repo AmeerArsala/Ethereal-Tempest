@@ -64,12 +64,13 @@ import etherealtempest.FSM.CursorState;
 import etherealtempest.FSM.MapFlowState;
 import etherealtempest.FSM.UnitState;
 import etherealtempest.FsmState;
+import etherealtempest.Globals;
 import etherealtempest.Main;
 import etherealtempest.MasterFsmState;
 import fundamental.unit.UnitAllegiance;
 import fundamental.formula.Formula;
 import fundamental.unit.CharacterUnitInfo;
-import general.procedure.SimpleQueue;
+import general.procedure.ProcedureGroup;
 import java.util.HashMap;
 import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
@@ -78,7 +79,7 @@ import maps.layout.occupant.MapEntity;
 import fundamental.unit.PositionedUnitParameters;
 import maps.layout.Coords;
 import maps.layout.MapCoords;
-import maps.layout.occupant.GlobalProtocols;
+import etherealtempest.GameProtocols;
 import maps.layout.tile.Tile;
 
 /**
@@ -113,7 +114,7 @@ public class TestMap extends AbstractAppState {
     protected StatScreen stats;
     
     protected final Vector3f worldUpVector = new Vector3f(0, 1, 0);
-    protected final SimpleQueue queue = new SimpleQueue();
+    protected final ProcedureGroup queue = new ProcedureGroup();
     protected final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
         @Override
         public void setNewStateIfAllowed(FsmState<MapFlowState> st) {
@@ -202,16 +203,14 @@ public class TestMap extends AbstractAppState {
                     }
                 }
                 
-                //cursor action
                 if (mapFlow.getCursor().getState().getEnum() != CursorState.Idle && stats.getState().getEnum() == MapFlowState.GuiClosed && !postAction.isOpen()) {
+                    //cursor action
                     MasterFsmState test = mapFlow.getCursor().resolveInput(name, tpf, keyPressed);
                     if (test != null) {
                         fsm.setNewStateIfAllowed(test.setAssetManager(assetManager));
                     }
-                }
-                
-                //post action menu action
-                if (postAction.isOpen() && keyPressed) { //postActionMenu
+                } else if (postAction.isOpen() && keyPressed) {
+                    //postActionMenu action
                     if (name.equals("select")) {
                         mapFlow.getCursor().forceState(CursorState.Idle);
                     }
@@ -292,14 +291,14 @@ public class TestMap extends AbstractAppState {
         skybox.setCullHint(CullHint.Never);
         rootNode.attachChild(skybox);*/
         
-        localGuiNode.setLocalTranslation(0, Main.getScreenHeight(), 0);
+        localGuiNode.setLocalTranslation(0, Globals.getScreenHeight(), 0);
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
-        postAction.getNode().setLocalTranslation(Main.getScreenWidth() / 2.07f, Main.getScreenHeight() / -1.7f, postAction.getNode().getLocalTranslation().z);
+        postAction.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, Globals.getScreenHeight() / -1.7f, postAction.getNode().getLocalTranslation().z);
         
         effekseerRenderer = EffekseerRenderer.addToViewPort(stManager, app0.getViewPort(), assetManager, settings.isGammaCorrection());
         
-        GlobalProtocols.setOpenPostActionMenu(() -> {
+        GameProtocols.setOpenPostActionMenu(() -> {
             localGuiNode.attachChild(postAction.getNode());
             postAction.setOpen(true);
             postAction.initialize(mapFlow.constructConveyor().setUnit(mapFlow.getCursor().selectedUnit));
@@ -501,13 +500,11 @@ public class TestMap extends AbstractAppState {
             )
         );
         
-        System.out.println("fight constructed");
-        
         fight.onFinish(() -> {
             rootNode.attachChild(localRootNode);
             mapFlow.setLastStrikes(fight.getStrikeTheater().getActualStrikes());
             
-            queue.addToQueue((tpf) -> {
+            queue.add((tpf) -> {
                 //check if deaths are being applied
                 //TODO: also check if any other effects are being applied
                 for (TangibleUnit unit : mapFlow.getUnits()) {

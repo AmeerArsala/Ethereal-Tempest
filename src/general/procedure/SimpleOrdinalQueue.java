@@ -5,6 +5,7 @@
  */
 package general.procedure;
 
+import general.procedure.functional.SimpleProcedure;
 import java.util.LinkedList;
 import java.util.List;
 

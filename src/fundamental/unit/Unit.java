@@ -176,7 +176,7 @@ public class Unit extends Entity {
         }
         
         if (inventory.getItems().get(0) instanceof Weapon) {
-            return ((Weapon)inventory.getFirst()).getWeaponData();
+            return ((Weapon)inventory.getFirstItem()).getWeaponData();
         }
         
         return null;

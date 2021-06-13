@@ -44,6 +44,7 @@ import java.util.List;
 import etherealtempest.FSM;
 import etherealtempest.FSM.MapFlowState;
 import etherealtempest.FsmState;
+import etherealtempest.Globals;
 import etherealtempest.Main;
 import etherealtempest.info.Conveyor;
 import fundamental.formation.Formation;
@@ -930,7 +931,7 @@ public class StatScreen extends Node {
         cellSave.attachChild(transitionAnim);
         
         setLocalScale(1.25f, 1.25f, 1);
-        setLocalTranslation(0.125f * Main.getScreenWidth(), -0.065f * Main.getScreenHeight(), 1f);
+        setLocalTranslation(0.125f * Globals.getScreenWidth(), -0.065f * Globals.getScreenHeight(), 1f);
         
         attachChild(menu);
     }
@@ -1295,7 +1296,7 @@ public class StatScreen extends Node {
                 new StatBundle<>(BaseStat.Physique, tu.getRawStat(BaseStat.Physique) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Physique)) //physique
             );
             
-            int[] tempBuffs = getTotalBonuses(data, BonusType.Raw, false);
+            int[] tempBuffs = getTotalBonuses(data, BonusType.Raw, false); //exclude raw bonuses
             
             rawBaseStatsWithTempBuffs = Arrays.asList(
                 new StatBundle<>(BaseStat.Level, tu.getLVL()), //level
@@ -1310,7 +1311,7 @@ public class StatScreen extends Node {
                 new StatBundle<>(BaseStat.Physique, rawBaseStats.get(9).getValue() + tempBuffs[8]) //physique
             );
             
-            rawBonuses = getTotalBonuses(data, BonusType.Raw, true);
+            rawBonuses = getTotalBonuses(data, BonusType.Raw, true); //only include raw bonuses
         }
         
         private int[] getTotalBonuses(Conveyor data, BonusType filterBy, boolean inclusion) {

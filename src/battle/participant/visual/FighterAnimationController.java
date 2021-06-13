@@ -12,7 +12,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;
 import fundamental.jobclass.animation.ActionDecider;
 import fundamental.jobclass.animation.NextActionSequence;
-import general.procedure.UpdateLoop;
+import general.procedure.functional.UpdateLoop;
 import java.util.function.Predicate;
 
 /**

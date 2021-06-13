@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import etherealtempest.FSM;
 import etherealtempest.FSM.UnitState;
 import etherealtempest.FsmState;
-import etherealtempest.Globals;
 import etherealtempest.MasterFsmState;
 import etherealtempest.ai.AI;
 import etherealtempest.ai.AI.Behavior;
@@ -34,6 +33,7 @@ import fundamental.stats.Bonus.StatType;
 import fundamental.talent.TalentCondition.Occasion;
 import fundamental.unit.CharacterUnitInfo;
 import fundamental.unit.PositionedUnit;
+import general.GameTimer;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
 import general.visual.DeserializedParticleEffect;
 import java.util.LinkedHashMap;
@@ -41,7 +41,7 @@ import java.util.List;
 import maps.flow.MapFlow;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
-import maps.layout.occupant.GlobalProtocols;
+import etherealtempest.GameProtocols;
 import maps.layout.occupant.VenturePeek;
 import maps.layout.tile.Path;
 
@@ -179,7 +179,7 @@ public class TangibleUnit extends PositionedUnit {
         previousPos.set(pos);
         
         Path path = new Path(pos, destination, getMOBILITY());
-        Globals timer = new Globals();
+        GameTimer timer = new GameTimer();
         
         visuals.addToQueue((tpf) -> {
             visuals.updateSprite();
@@ -196,7 +196,7 @@ public class TangibleUnit extends PositionedUnit {
                 //pos.set(path.getFinalPos());
                     
                 //open menu
-                GlobalProtocols.OpenPostActionMenu();
+                GameProtocols.OpenPostActionMenu();
                 
                 fsm.setNewStateIfAllowed(UnitState.Active);
                 return true;
@@ -236,7 +236,7 @@ public class TangibleUnit extends PositionedUnit {
     }
     
     public void die() {
-        Globals counter = new Globals();
+        GameTimer counter = new GameTimer();
         visuals.addToQueue((tpf) -> {
             //update color
             ColorRGBA color = BattleSprite.DIE_FUNCTION.rgba(counter.getTime());

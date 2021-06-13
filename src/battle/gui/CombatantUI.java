@@ -25,6 +25,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import enginetools.MaterialCreator;
 import enginetools.MaterialParamsProtocol;
+import etherealtempest.Globals;
 import etherealtempest.Main;
 import etherealtempest.geometry.Heart;
 import etherealtempest.gui.RadialProgressBar;
@@ -37,6 +38,8 @@ import general.ui.text.FontProperties;
 import general.ui.text.FontProperties.KeyType;
 import general.ui.text.Text2D;
 import general.ui.text.TextProperties;
+import general.ui.text.quickparams.TextDisplacementParams;
+import general.ui.text.quickparams.UIFontParams;
 import general.utils.EngineUtils;
 import general.utils.EngineUtils.CenterAxis;
 import general.utils.GameUtils;
@@ -59,8 +62,8 @@ public class CombatantUI {
     
     private final GeometryPanel portrait, nametag;
     private final GeometryPanel tool, forecastInfo;
-    private final HeartIndicator hpHeart;
-    private final ShapeIndicator tpBall;
+    //private final HeartIndicator hpHeart;
+    private final ShapeIndicator hpHeart, tpBall;
     
     private ExpIndicator expbar;
     private LevelUpPanel levelUpPanel;
@@ -72,9 +75,9 @@ public class CombatantUI {
         
         mirrorUI = forecast.getCombatant().battle_role == BattleRole.Initiator;
         
-        float portraitDims = 0.2f * Main.getScreenWidth();
-        float heartScale = 0.16f * Main.getScreenWidth();
-        float tpBallDims = 0.08f * Main.getScreenWidth();
+        float portraitDims = 0.2f * Globals.getScreenWidth();
+        Vector2f hpHeartDims = new Vector2f(1, 600f / 582f).multLocal(0.16f * Globals.getScreenWidth());
+        Vector2f tpBallDims = new Vector2f(1, 581f / 429f).multLocal(0.08f * Globals.getScreenWidth());
         
         portrait = createPortrait(portraitDims, portraitDims);
         nametag = createNametag(new UIFontParams("Interface/Fonts/DIOGENES.ttf", 35f, Style.Plain, 3));
@@ -86,31 +89,34 @@ public class CombatantUI {
         tool = equippedToolAndForecastInfo.panelA;
         forecastInfo = equippedToolAndForecastInfo.panelB;
         
-        hpHeart = createHeart(
-            new Heart(heartScale, 3, assetManager),
-            new UIFontParams("Interface/Fonts/DIOGENES.ttf", 23f, Style.Plain, 3)
+        hpHeart = createIndicator(
+            hpHeartDims,
+            new UIFontParams("Interface/Fonts/DIOGENES.ttf", 23f, Style.Plain, 3),
+            generateHeartMatParams(),
+            forecast.getCombatant().getBaseStat(BaseStat.CurrentHP),
+            forecast.getCombatant().getBaseStat(BaseStat.MaxHP)
         );
         
-        tpBall = createTPBall(
-            new Vector2f(tpBallDims, tpBallDims), 
-            new UIFontParams("Interface/Fonts/DIOGENES.ttf", 23f, Style.Plain, 3)
+        tpBall = createIndicator(
+            tpBallDims,
+            new UIFontParams("Interface/Fonts/DIOGENES.ttf", 23f, Style.Plain, 3),
+            generateTPBallMatParams(),
+            forecast.getCombatant().getBaseStat(BaseStat.CurrentTP),
+            forecast.getCombatant().getBaseStat(BaseStat.MaxTP)
         );
         
-        setLocalTranslation(portrait, new Vector3f(0f, Main.getScreenHeight() - portraitDims, 0f));
-        setLocalTranslation(nametag, portrait.getLocalTranslation().add(nametag.getWidth() / 2f, nametag.getHeight() / -2f, 1f));
-        setLocalTranslation(tool, new Vector3f(0.025f * Main.getScreenWidth(), 0.25f * Main.getScreenHeight(), 1f));
-        setLocalTranslation(forecastInfo, new Vector3f(0.025f * Main.getScreenWidth(), 0.025f * Main.getScreenHeight(), 0f));
-        setLocalTranslation(hpHeart.getNode(),
+        setLocalTranslationOf(portrait, new Vector3f(0f, Globals.getScreenHeight() - portraitDims, 0f));
+        setLocalTranslationOf(nametag, portrait.getLocalTranslation().add(nametag.getWidth() / 2f, nametag.getHeight() / -2f, 1f));
+        setLocalTranslationOf(tool, new Vector3f(0.025f * Globals.getScreenWidth(), 0.25f * Globals.getScreenHeight(), 1f));
+        setLocalTranslationOf(forecastInfo, new Vector3f(0.025f * Globals.getScreenWidth(), 0.025f * Globals.getScreenHeight(), 0f));
+        setLocalTranslationOf(hpHeart.getNode(),
             forecastInfo.getLocalTranslation()
                 .mult(new Vector3f(2f, 1f, 1f))
                 .add(forecastInfo.getWidth(), 0, 0)
         );
         
-        DomainBox heartBox = hpHeart.getHeart().calculateRelativeDomainBox();
-        
-        setLocalTranslation(tpBall.getNode(), 
-            hpHeart.getNode().getLocalTranslation()
-                .add(heartBox.getDomainX().length(), heartBox.getDomainY().length() / 2f, 0f)
+        setLocalTranslationOf(tpBall.getNode(), 
+            hpHeart.getNode().getLocalTranslation().add(hpHeartDims.x, hpHeartDims.y, 0f).multLocal(1.5f, 0.5f, 0f)
         );
         
         uiNode.attachChild(portrait);
@@ -119,6 +125,16 @@ public class CombatantUI {
         uiNode.attachChild(forecastInfo);
         uiNode.attachChild(hpHeart.getNode());
         uiNode.attachChild(tpBall.getNode());
+    }
+    
+    private class DualPanel {
+        public final GeometryPanel panelA;
+        public final GeometryPanel panelB;
+        
+        public DualPanel(GeometryPanel panelA, GeometryPanel panelB) {
+            this.panelA = panelA;
+            this.panelB = panelB;
+        }
     }
     
     public Node getNode() { return uiNode; }
@@ -134,23 +150,20 @@ public class CombatantUI {
     public GeometryPanel getEquippedPanel() { return tool; }
     public GeometryPanel getForecastInfoPanel() { return forecastInfo; }
     
-    public HeartIndicator getHPHeart() { return hpHeart; }
+    //public HeartIndicator getHPHeart() { return hpHeart; }
+    public ShapeIndicator getHPHeart() { return hpHeart; }
     public ShapeIndicator getTPBall() { return tpBall; }
     
     public ExpIndicator getExpBar() { return expbar; }
     public LevelUpPanel getLevelUpPanel() { return levelUpPanel; } 
     
-    public Vector3f createCameraDimensionsVector() {
-        return new Vector3f(Main.getScreenWidth(), Main.getScreenHeight(), 1f);
-    } 
-    
-    private void setLocalTranslation(Spatial spatial, Vector3f localTranslation) {
+    private void setLocalTranslationOf(Spatial spatial, Vector3f localTranslation) {
         if (!mirrorUI) {
             spatial.setLocalTranslation(localTranslation);
             return;
         }
         
-        spatial.setLocalTranslation(Main.getScreenWidth() - localTranslation.x, localTranslation.y, localTranslation.z);
+        spatial.setLocalTranslation(Globals.getScreenWidth() - localTranslation.x, localTranslation.y, localTranslation.z);
     }
     
     public void update(float tpf) {
@@ -183,9 +196,9 @@ public class CombatantUI {
             levelUpPanel = createLevelUpPanel();
         }
         
-        float translation = 0.05f * Main.getScreenHeight();
+        float translation = 0.05f * Globals.getScreenHeight();
         float initialX = -levelUpPanel.getPanel().getWidth();
-        setLocalTranslation(levelUpPanel.getNode(), new Vector3f(initialX, translation, 0.5f));
+        setLocalTranslationOf(levelUpPanel.getNode(), new Vector3f(initialX, translation, 0.5f));
         
         expbar.levelUp(
             0.1f,   // 0.1 seconds for the "LEVEL UP!" text to expand
@@ -197,7 +210,7 @@ public class CombatantUI {
                     new Animation() {
                         @Override
                         protected void update(float tpf, float Y, Spatial target, Animation anim) {
-                            setLocalTranslation(target, target.getLocalTranslation().setX(Y));
+                            setLocalTranslationOf(target, target.getLocalTranslation().setX(Y));
                         }
                     }.setInitialAndEndVals(initialX, translation)
                 );
@@ -209,46 +222,6 @@ public class CombatantUI {
                 expbar.addTransitionToQueue(transition);
             }
         );
-    }
-    
-    private class TextDisplacementParams {
-        public final Align hAlign;
-        public final VAlign vAlign;
-        public final WrapMode wrapMode;
-        
-        public TextDisplacementParams(Align hAlign, VAlign vAlign, WrapMode wrapMode) {
-            this.hAlign = hAlign;
-            this.vAlign = vAlign;
-            this.wrapMode = wrapMode;
-        }
-    }
-    
-    private class UIFontParams {
-        public final String fontPath;
-        public final float fontSize;
-        public final Style style;
-        public final int kerning;
-        
-        public UIFontParams(String fontPath, float fontSize, Style style, int kerning) {
-            this.fontPath = fontPath;
-            this.fontSize = fontSize;
-            this.style = style;
-            this.kerning = kerning;
-        }
-        
-        public FontProperties createFontProperties(KeyType keyType) {
-            return new FontProperties(fontPath, keyType, style, fontSize);
-        }
-    }
-    
-    private class DualPanel {
-        public final GeometryPanel panelA;
-        public final GeometryPanel panelB;
-        
-        public DualPanel(GeometryPanel panelA, GeometryPanel panelB) {
-            this.panelA = panelA;
-            this.panelB = panelB;
-        }
     }
     
     private Text2D generateText(String text, ColorRGBA color, Rectangle rectangle, UIFontParams params, TextDisplacementParams displacementParams) {
@@ -416,7 +389,7 @@ public class CombatantUI {
         return equippedIcon;
     }
     
-    private HeartIndicator createHeart(Heart heart, UIFontParams params) {
+    /*private HeartIndicator createHeartShape(Heart heart, UIFontParams params) {
         String text = forecast.getCombatant().getBaseStat(BaseStat.CurrentHP) + "/" + forecast.getCombatant().getBaseStat(BaseStat.MaxHP);
         
         Rectangle rect = new Rectangle(
@@ -432,24 +405,10 @@ public class CombatantUI {
         hpText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
         
         return new HeartIndicator(heart, hpText, forecast.getCombatant().getCurrentToMaxHPRatio(), forecast.getCombatant().getBaseStat(BaseStat.MaxHP));
-    }
+    }*/
     
-    private ShapeIndicator createTPBall(Vector2f xyDimensions, UIFontParams params) {
-        MaterialParamsProtocol matParams = (mat) -> {
-            String TP_BALL_TEXTURE_PATH = "Interface/GUI/common/tpBall.png";
-            ColorRGBA onlyChangeColor = ColorRGBA.White; 
-            ColorRGBA tpColor = GameUtils.TP_COLOR_PINK;
-            float tpBallYStart = 0.36317f;
-            float tpBallYEnd = 0.93287f;
-            
-            mat.setTexture("ColorMap", assetManager.loadTexture(TP_BALL_TEXTURE_PATH));
-            mat.setColor("OnlyChangeColor", onlyChangeColor);
-            mat.setColor("Color", tpColor);
-            mat.setFloat("PercentStart", tpBallYStart);
-            mat.setFloat("PercentEnd", tpBallYEnd);
-        };
-        
-        String text = forecast.getCombatant().getBaseStat(BaseStat.CurrentTP) + "/" + forecast.getCombatant().getBaseStat(BaseStat.MaxTP);
+    private ShapeIndicator createIndicator(Vector2f xyDimensions, UIFontParams params, MaterialParamsProtocol matParams, int current, int max) {
+        String text = current + "/" + max;
         
         Rectangle rect = new Rectangle(
             0f,  // x
@@ -460,14 +419,51 @@ public class CombatantUI {
         
         TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Center, VAlign.Center, WrapMode.CharClip);
         
-        Text2D tpText = generateText(text, ColorRGBA.White, rect, params, displacementParams);
-        tpText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
+        Text2D visibleText = generateText(text, ColorRGBA.White, rect, params, displacementParams);
+        visibleText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
         
-        return new ShapeIndicator(xyDimensions, matParams, assetManager, tpText, forecast.getCombatant().getCurrentToMaxTPRatio(), forecast.getCombatant().getBaseStat(BaseStat.MaxTP));
+        float currentPercent = ((float)current) / max;
+        
+        return new ShapeIndicator(xyDimensions, matParams, assetManager, visibleText, currentPercent, max);
+    }
+    
+    private MaterialParamsProtocol generateHeartMatParams() {
+        return (mat) -> {
+            float $75 = 75f / 255f;
+            
+            //rounded to 5 decimal places
+            float hpHeartYStart = 0.03952f;
+            float hpHeartYEnd = 0.97251f;
+            
+            mat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/common/heart.png"));
+            mat.setColor("Color", ColorRGBA.Red);
+            mat.setColor("OnlyChangeColor", ColorRGBA.White);
+            mat.setColor("BackgroundColor", new ColorRGBA($75, $75, $75, 1f)); //gray
+            mat.setFloat("GradientCoefficient", 1f);
+            mat.setFloat("PercentStart", hpHeartYStart);
+            mat.setFloat("PercentEnd", hpHeartYEnd);
+        };
+    }
+    
+    private MaterialParamsProtocol generateTPBallMatParams() {
+        return (mat) -> {
+            float $75 = 75f / 255f;
+            
+            //rounded to 5 decimal places
+            float tpBallYStart = 0.36317f;
+            float tpBallYEnd = 0.93287f;
+            
+            mat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/common/tpBall.png"));
+            mat.setColor("Color", GameUtils.TP_COLOR_PINK);
+            mat.setColor("OnlyChangeColor", ColorRGBA.White);
+            mat.setColor("BackgroundColor", new ColorRGBA($75, $75, $75, 1f)); //gray
+            mat.setFloat("PercentStart", tpBallYStart);
+            mat.setFloat("PercentEnd", tpBallYEnd);
+        };
     }
     
     private LevelUpPanel createLevelUpPanel() {
-        return new LevelUpPanel(forecast.getCombatant().getUnit(), createCameraDimensionsVector(), assetManager);
+        return new LevelUpPanel(forecast.getCombatant().getUnit(), new Vector3f(Globals.getScreenWidth(), Globals.getScreenHeight(), 1f), assetManager);
     }
     
     public void initializeEXPbar() {
@@ -477,7 +473,7 @@ public class CombatantUI {
         
         int specificity = 2;
         ColorRGBA color = forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor();
-        float outerRadius = 0.1f * Main.getScreenWidth();
+        float outerRadius = 0.1f * Globals.getScreenWidth();
         float innerToOuterRadiusRatio = 52.5f / 70.75f;
         
         RadialProgressBar expCircle = new RadialProgressBar(innerToOuterRadiusRatio * outerRadius, outerRadius, color, specificity, assetManager);  
@@ -503,7 +499,7 @@ public class CombatantUI {
         
         expbar = new ExpIndicator(expCircle, expText, assetManager, forecast.getCombatant().getUnit().currentEXP / 100f, 100);
         
-        setLocalTranslation(expbar.getExpCircle(), nametag.getLocalTranslation().add(0.05f * Main.getScreenWidth(), (-2 * outerRadius) - nametag.getHeight(), 0f));
+        setLocalTranslationOf(expbar.getExpCircle(), nametag.getLocalTranslation().add(0.05f * Globals.getScreenWidth(), (-2 * outerRadius) - nametag.getHeight(), 0f));
         uiNode.attachChild(expbar.getExpCircle());
     }
     

@@ -26,8 +26,8 @@ import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import etherealtempest.Main;
 import etherealtempest.geometry.GeometricBody;
-import general.procedure.SimpleProcedure;
-import general.procedure.SimpleQueue;
+import general.procedure.functional.SimpleProcedure;
+import general.procedure.ProcedureGroup;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
 import general.utils.GameUtils;
 import general.visual.DeserializedParticleEffect;
@@ -61,7 +61,7 @@ public class UnitVisuals {
     private final ProgressBar hpBar, tpBar;
     
     private final LinkedList<DeserializedParticleEffect> effectQueue = new LinkedList<>();
-    private final SimpleQueue queue = new SimpleQueue();
+    private final ProcedureGroup queue = new ProcedureGroup();
     
     private final Spritesheet spritesheetInfo;
     private AnimationState animState = AnimationState.Idle;
@@ -218,7 +218,7 @@ public class UnitVisuals {
     }
     
     public void addToQueue(SimpleProcedure procedure) {
-        queue.addToQueue(procedure);
+        queue.add(procedure);
     }
     
     public void detachBars() {

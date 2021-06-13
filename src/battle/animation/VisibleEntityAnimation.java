@@ -13,9 +13,9 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import etherealtempest.Globals;
-import general.procedure.SimpleProcedure;
-import general.procedure.SimpleQueue;
+import general.GameTimer;
+import general.procedure.functional.SimpleProcedure;
+import general.procedure.ProcedureGroup;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -25,7 +25,7 @@ import java.util.function.Predicate;
  * @param <R> User Spatial: Node, Sprite, GeometryPanel, etc.
  */
 public abstract class VisibleEntityAnimation<R extends Spatial> {
-    protected final Globals timeCounter = new Globals();
+    protected final GameTimer timeCounter = new GameTimer();
     protected final EntityAnimation info;
     
     protected final EntityRoot<R> entityAnimationRoot;
@@ -122,7 +122,7 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
 // <S> is the User Spatial
 class EntityRoot<S extends Spatial> {
     public final S root;
-    public final SimpleQueue queue = new SimpleQueue();
+    public final ProcedureGroup queue = new ProcedureGroup();
     public final Vector3f positiveDirection;
     
     private ColorRGBA currentColor = null;
@@ -181,7 +181,7 @@ class EntityRoot<S extends Spatial> {
     }
     
     public void addChangesToQueueIfAny(Changes changes, boolean fromSelf) {
-        queue.addToQueue(new SimpleProcedure() {
+        queue.add(new SimpleProcedure() {
             private int framesSince = 0;
                 
             @Override

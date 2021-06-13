@@ -60,16 +60,12 @@ public class Fight {
         data = params;
         forecast = battleForecast;
         strikes = forecast.createStrikeEvents();
-        System.out.println("strike events created");
         
         combat = new Combat(params.toCommonParams(strikes), forecast);
-        System.out.println("combat constructed");
         
         terrainModel = params.createModel();
-        System.out.println("terrain created");
         terrainModel.setCullHint(CullHint.Never);
         terrainModel.attachChild(combat.getNode());
-        System.out.println("terrain loaded");
         
         fsm.setNewStateIfAllowed(State.Initializing);
     }
@@ -110,6 +106,7 @@ public class Fight {
                 fsm.setNewStateIfAllowed(State.InProgress); //this is just for the time being; add a transition later
                 break;
             case InProgress:
+                System.out.println("update combat");
                 combat.update(tpf);
                 
                 if (combat.isFinished()) {
@@ -122,6 +119,8 @@ public class Fight {
             default:
                 break;
         }
+        
+        terrainModel.updateGeometricState();
     }
     
     public void resolveInput(String name, float tpf, boolean keyPressed) {

@@ -5,6 +5,8 @@
  */
 package general.procedure;
 
+import general.procedure.functional.UpdateCommand;
+import general.procedure.functional.UpdateLoop;
 import com.simsilica.lemur.Command;
 import java.util.LinkedList;
 import java.util.function.Predicate;
@@ -155,5 +157,13 @@ public class OrdinalQueue<T> {
         tasks.forEach((task) -> {
             command.execute(task.focus);
         });
+    }
+    
+    public int size() {
+        return tasks.size();
+    }
+    
+    public boolean isEmpty() {
+        return tasks.isEmpty();
     }
 }

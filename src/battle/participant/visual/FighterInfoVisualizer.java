@@ -21,6 +21,7 @@ import etherealtempest.FsmState;
 import etherealtempest.Globals;
 import fundamental.stats.BaseStat;
 import fundamental.tool.DamageTool;
+import general.GameTimer;
 import general.math.function.CartesianFunction;
 import general.ui.text.FontProperties;
 import general.ui.text.Text2D;
@@ -36,7 +37,7 @@ import java.util.List;
  * @author night
  */
 public class FighterInfoVisualizer {
-    private final Globals counter = new Globals();
+    private final GameTimer counter = new GameTimer();
     private final FSM<FighterState> fsm = new FSM<FighterState>() {
         @Override
         public void setNewStateIfAllowed(FsmState<FighterState> st) {

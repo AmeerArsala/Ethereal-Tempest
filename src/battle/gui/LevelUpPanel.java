@@ -21,7 +21,7 @@ import com.jme3.scene.Spatial;
 import enginetools.MaterialCreator;
 import fundamental.stats.BaseStat;
 import general.procedure.OrdinalQueue;
-import general.procedure.UpdateLoop;
+import general.procedure.functional.UpdateLoop;
 import general.ui.GeometryPanel;
 import general.ui.text.FontProperties;
 import general.ui.text.FontProperties.KeyType;

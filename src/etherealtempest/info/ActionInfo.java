@@ -164,7 +164,7 @@ public class ActionInfo {
 
             @Override
             public void onSelect() {
-                conv.getUnit().equip(((Weapon)conv.getUnit().getInventory().getItems().get(0)));
+                conv.getUnit().equip(((Weapon)conv.getUnit().getInventory().getFirstItem()));
                 conv.getUnit().setToUseSkill(null);
                 conv.getUnit().getFSM().setNewStateIfAllowed(UnitState.SelectingTarget);
                 conv.getCursor().setPurpose(Purpose.WeaponAttack);

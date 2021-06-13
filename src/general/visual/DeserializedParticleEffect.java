@@ -21,7 +21,8 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.scene.Node;
 import etherealtempest.Globals;
-import general.procedure.UpdateLoop;
+import general.GameTimer;
+import general.procedure.functional.UpdateLoop;
 import general.visual.animation.VisualTransition.Progress;
 import java.io.IOException;
 import java.io.Reader;
@@ -42,7 +43,7 @@ public class DeserializedParticleEffect extends DeserializedModel {
     @Expose(deserialize = false) private EffekseerEmissionDriverGeneric driver;
     @Expose(deserialize = false) private Node particleNode;
     
-    @Expose(deserialize = false) private Globals counter;
+    @Expose(deserialize = false) private GameTimer counter;
     @Expose(deserialize = false) private Progress effectProgress;
     @Expose(deserialize = false) private UpdateLoop onEffectStart;
     @Expose(deserialize = false) private UpdateLoop onEffectUpdate;
@@ -110,7 +111,7 @@ public class DeserializedParticleEffect extends DeserializedModel {
         modelRoot = new Node();
         particleNode = new Node();
         
-        counter = new Globals();
+        counter = new GameTimer();
         effectProgress = Progress.Fresh;
         
         onEffectStart = (tpf) -> {};
@@ -182,7 +183,7 @@ public class DeserializedParticleEffect extends DeserializedModel {
         return driver;
     }
     
-    public Globals getCounter() {
+    public GameTimer getCounter() {
         return counter;
     }
     

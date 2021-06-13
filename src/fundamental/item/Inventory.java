@@ -33,7 +33,7 @@ public class Inventory {
         return items;
     }
     
-    public Item getFirst() {
+    public Item getFirstItem() {
         return items.get(0);
     }
     

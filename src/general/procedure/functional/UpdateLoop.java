@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general.procedure;
+package general.procedure.functional;
 
 /**
  *
  * @author night
  */
-public interface SimpleProcedure {
-    public boolean update(float tpf); //return true when done
+public interface UpdateLoop {
+    public void update(float tpf);
 }

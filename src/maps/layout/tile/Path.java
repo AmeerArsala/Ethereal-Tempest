@@ -29,6 +29,7 @@ public class Path {
     private final LinkedList<MapCoords> pathSequence = new LinkedList<>();
     
     private boolean success = true;
+    private boolean biasX;
     private int remainingMoves;
     private int optionCheckStartIndex = 0;
     
@@ -54,6 +55,7 @@ public class Path {
         
         success = (end.getLayer() == start.getLayer()) && moveCapacity >= end.spacesFrom(start) && !map.getTileAt(end).isOccupied;
         if (success) {
+            biasX = start.getY() == end.getY();
             generatePath();
         }
     }
@@ -96,13 +98,25 @@ public class Path {
             return options;
         }
         
-        MapCoords[] cardinalDirections = 
-        {
-            tile.add(0, 1),  // North
-            tile.add(0, -1), // South
-            tile.add(1, 0),  // East
-            tile.add(-1, 0)  // West
-        };
+        MapCoords[] cardinalDirections = new MapCoords[4];
+        int north, south, east, west;
+        
+        if (!biasX) {
+            north = 0;
+            south = 1;
+            east = 2;
+            west = 3;
+        } else {
+            east = 0;
+            west = 1;
+            north = 2;
+            south = 3;
+        }
+        
+        cardinalDirections[north] = tile.add(0, 1);
+        cardinalDirections[south] = tile.add(0, -1);
+        cardinalDirections[east] = tile.add(1, 0);
+        cardinalDirections[west] = tile.add(-1, 0);
         
         for (MapCoords possibleOption : cardinalDirections) {
             //if option is available
