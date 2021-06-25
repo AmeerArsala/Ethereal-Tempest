@@ -5,6 +5,7 @@
  */
 package maps.layout.tile;
 
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
 import com.jme3.light.DirectionalLight;
@@ -12,7 +13,6 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.simsilica.lemur.LayerComparator;
 import general.visual.DeserializedModel;
-import maps.layout.Coords;
 
 /**
  *
@@ -20,33 +20,39 @@ import maps.layout.Coords;
  */
 public class TileVisualData { //TODO: Add Shaders to this
     public enum GroundType {
-        @SerializedName("Grass") Grass("grass.jpg", 0),
-        @SerializedName("Dirt") Dirt("dirt.jpg", 1),
-        @SerializedName("Rock") Rock("rock.jpg", 2),
-        @SerializedName("Plains") Plains("plains.jpg", 3),
-        @SerializedName("Sand") Sand("sand.jpg", 4),
-        @SerializedName("Mossy Stone") MossyStone("mossystone.jpg", 5);
+        @SerializedName("Grass") Grass(0, "grass.jpg", 9),
+        @SerializedName("Dirt") Dirt(1, "dirt.jpg", 10),
+        @SerializedName("Rock") Rock(2, "rock.jpg", 3),
+        @SerializedName("Plains") Plains(3, "plains.jpg", -9),
+        @SerializedName("Sand") Sand(4, "sand.jpg", 8),
+        @SerializedName("Mossy Stone") MossyStone(5, "mossystone.jpg", -11);
         
-        private final String path;
         private final int index;
+        private final String path;
+        private final int blendPriority;
         
-        private GroundType(String tex, int textureArrayIndex) {
-            path = "Textures/tiles/" + tex;
+        private GroundType(int textureArrayIndex, String tex, int textureBlendPriority) {
             index = textureArrayIndex;
+            path = "Textures/tiles/" + tex;
+            blendPriority = textureBlendPriority;
+        }
+        
+        public int getIndex() {
+            return index;
         }
         
         public String getPath() {
             return path;
         }
         
-        public int getIndex() {
-            return index;
+        public int getBlendPriority() {
+            return blendPriority;
         }
     }
     
     //DO NOT GSON THESE
-    private Node modelTemplateForAssimilation; // DO NOT GSON THIS
-    private Node root; //the root node but configured for json; DO NOT GSON THIS
+    @Expose(deserialize = false) private Node modelTemplateForAssimilation;
+    @Expose(deserialize = false) private Node root; //the root node but configured for json
     
     private Float xDisplace, yDisplace, zDisplace; //of the entire node
     

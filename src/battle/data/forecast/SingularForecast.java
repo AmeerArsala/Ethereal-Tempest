@@ -8,7 +8,7 @@ package battle.data.forecast;
 import battle.data.Strike;
 import battle.participant.Combatant;
 import battle.participant.BattleRole;
-import etherealtempest.FSM.UnitState;
+import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.info.Conveyor;
 import fundamental.skill.Skill;
 import fundamental.stats.BaseStat;

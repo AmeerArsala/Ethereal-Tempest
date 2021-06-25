@@ -54,7 +54,12 @@ void main() {
         
         #ifdef HAS_ONLY_CHANGE_COLOR
             if (baseColor != m_OnlyChangeColor) {
-                gl_FragColor = baseColor;
+                if (baseColor.a == 0.0) {
+                    discard;
+                } else {
+                    gl_FragColor = baseColor;
+                }
+                
                 return;
             }
         #endif

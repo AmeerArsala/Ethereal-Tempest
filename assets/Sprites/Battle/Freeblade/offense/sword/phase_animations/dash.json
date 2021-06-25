@@ -1,37 +1,50 @@
 {
   "configPath": "Sprites\\Battle\\Freeblade\\offense\\sword\\config.json",
-  "hitPoint": null,
+  "hitPoint": {
+    "x": 0.354,
+    "y": 0.25
+  },
   "animation": [
     {
       "column": 0,
       "animationSegment": {
         "from": 2,
-        "to": 4,
+        "to": 3,
+        "delay": 0.1
+      }
+    },
+    {
+      "column": 0,
+      "animationSegment": {
+        "from": 4,
+        "to": 5,
         "delay": 0.0
       }
     }
   ],
+  "loopAnimationVisually": false,
+  "delayForIndefiniteChanges": 0.0,
   "impact": null,
   "otherActionFrames": [
     {
       "column": 0,
-      "frame": 4,
+      "frame": 5,
       "soundPath": "", //TODO: add dash sound
       "userChanges": {
         "velocities": [
           {
             "strFunc": {
               "parameter": "t",
-              "xFunction": "0.2"
+              "xFunction": "0.1"
             },
-            "frames": null
+            "domain": "0-?" //0 to infinity; could be written in any way as long as 0 is the first character and ? is the last character. Other examples: "0 to ?", "0?", "0 ?", "0, ?", etc.
           }
         ],
         "thetaVelocities": [],
         "localScales": [],
         "colors": []
       },
-      "enemyChanges": {
+      "opponentChanges": {
         "velocities": [],
         "thetaVelocities": [],
         "localScales": [],

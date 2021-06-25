@@ -9,6 +9,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
@@ -20,8 +21,8 @@ import general.ui.menu.BasicMenu.Orientation;
 import general.ui.text.FontProperties;
 import general.ui.text.Text2D;
 import general.ui.text.TextProperties;
-import general.utils.EngineUtils;
-import general.utils.EngineUtils.CenterAxis;
+import general.utils.helpers.EngineUtils;
+import general.utils.helpers.EngineUtils.CenterAxis;
 import java.util.Arrays;
 
 /**
@@ -82,7 +83,7 @@ public abstract class BasicMenuOption<DATA> extends MenuOption<DATA> {
         hoveredColorFunc = hoveredColorFunction;
         notHoveredColorFunc = notHoveredColorFunction;
 
-        option = new GeometryPanel(panelSize.x, panelSize.y);
+        option = new GeometryPanel(panelSize.x, panelSize.y, RenderQueue.Bucket.Gui);
         
         Texture containerDefault = ((TbtQuadBackgroundComponent)new Container().getBackground()).getTexture();
         bgMat = matCreator.createMaterial(assetManager);

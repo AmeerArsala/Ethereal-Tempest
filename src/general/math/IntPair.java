@@ -10,50 +10,46 @@ package general.math;
  * @author night
  */
 public class IntPair {
-    private int x, y;
-    private boolean xSet, ySet;
+    private Integer x, y;
     
     public IntPair(int x, int y) {
         this.x = x;
         this.y = y;
-        
-        xSet = true;
-        ySet = true;
     }
     
-    public IntPair() {
-        xSet = false;
-        ySet = false;
-    }
+    public IntPair() {}
     
-    public int getX() {
+    public Integer getX() {
         return x;
     }
     
-    public int getY() {
+    public Integer getY() {
         return y;
     }
     
     public boolean isXSet() {
-        return xSet;
+        return x != null;
     }
     
     public boolean isYSet() {
-        return ySet;
+        return y != null;
     }
     
     public IntPair setX(int xval) {
         x = xval;
-        xSet = true;
         return this;
     }
     
     public IntPair setY(int yval) {
         y = yval;
-        ySet = true;
         return this;
     }
     
-    public void removeX() { xSet = false; }
-    public void removeY() { ySet = false; }
+    public void removeX() { 
+        x = null; 
+    }
+    
+    public void removeY() { 
+        y = null; 
+    }
 }

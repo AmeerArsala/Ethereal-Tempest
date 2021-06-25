@@ -29,21 +29,47 @@
       "column": 2,
       "animationSegment": {
         "from": 2,
-        "to": 4,
+        "to": 5,
         "delay": 0.0
       }
     }
   ],
+  "loopAnimationVisually": false,
+  "delayForIndefiniteChanges": 0.0,
   "impact": {
     "column": 2,
     "frame": 2,
-    "soundPath": "" //TODO: add sound
+    "soundPath": "", //TODO: add sound
+    "userChanges": {
+      "velocities": [],
+      "thetaVelocities": [],
+      "localScales": [],
+      "colors": []
+    },
+    "opponentChanges": {
+      "velocities": [],
+      "thetaVelocities": [],
+      "localScales": [],
+      "colors": []
+    }
   },
   "otherActionFrames": [
     {
       "column": 1,
       "frame": 1,
-      "soundPath": "" //TODO: add sound effect
+      "soundPath": "", //TODO: add sound effect
+      "userChanges": {
+        "velocities": [],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      },
+      "opponentChanges": {
+        "velocities": [],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      }
     }
   ]
 }

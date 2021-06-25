@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general;
+package general.tools.input;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;

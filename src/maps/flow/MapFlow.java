@@ -18,24 +18,27 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
-import etherealtempest.FSM;
-import etherealtempest.FSM.MapFlowState;
-import etherealtempest.FSM.UnitState;
-import etherealtempest.FsmState;
+import etherealtempest.fsm.FSM;
+import etherealtempest.fsm.FSM.MapFlowState;
+import etherealtempest.fsm.FSM.UnitState;
+import etherealtempest.fsm.FsmState;
 import etherealtempest.Globals;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.info.Conveyor;
-import etherealtempest.info.RequestDealer;
+import general.procedure.RequestDealer;
 import fundamental.talent.TalentCondition.Occasion;
-import general.GameTimer;
+import general.tools.GameTimer;
 import general.math.function.MathFunction;
 import general.procedure.ProcedureGroup;
 import general.ui.text.FontProperties;
 import general.ui.text.FontProperties.KeyType;
 import general.ui.text.Text2D;
 import general.ui.text.TextProperties;
-import general.utils.GeneralUtils;
+import general.utils.helpers.EngineUtils;
+import general.utils.helpers.EngineUtils.CenterAxis;
+import general.utils.helpers.GeneralUtils;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import maps.layout.occupant.Cursor;
 import maps.layout.occupant.MapEntity;
@@ -63,7 +66,7 @@ public class MapFlow { //eventually make this the map controller
         XthParty;
     }
     
-    public final GameTimer mapGlobals = new GameTimer();
+    public final GameTimer syncTimer = new GameTimer();
     public final ProcedureGroup queue = new ProcedureGroup();
     
     private final List<Turn> partiesInvolved;
@@ -127,9 +130,8 @@ public class MapFlow { //eventually make this the map controller
             
             switch(st.getEnum()) {
                 case DuringBattle:
-                    cursor.forceState(CursorState.Idle);
+                    cursor.getFSM().forceState(CursorState.Idle);
                     currentFight.begin();
-                    System.out.println("FIGHT HAS BEGUN");
                     break;
                 case PostBattle:
                     initiator = null;
@@ -192,14 +194,13 @@ public class MapFlow { //eventually make this the map controller
         queue.update(tpf);
         cursor.update(tpf);
         
-        if (mapGlobals.getTime() >= 1f / 60f) {
+        if (syncTimer.getTime() >= 1f / 60f) {
             syncUpdate(tpf);
-            mapGlobals.setTime(0f);
+            syncTimer.reset();
         }
         
         updateAI(tpf);
-        
-        mapGlobals.update(tpf);
+        syncTimer.update(tpf);
     }
     
     public void syncUpdate(float tpf) {
@@ -248,38 +249,24 @@ public class MapFlow { //eventually make this the map controller
         turn = partiesInvolved.get(phaseIndex);
         
         Text2D phaseText = createPhaseText(getPhaseString());
-        phaseText.setOutlineMaterial(new ColorRGBA(1, 1, 1, 0), new ColorRGBA(0, 0, 0, 0));
+        phaseText.setLocalTranslation(EngineUtils.centerEntity(phaseText.getTextBounds(), Globals.getScreenDimensions(), Arrays.asList(CenterAxis.X, CenterAxis.Y)));
+        //phaseText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
+        
         localGuiNode.attachChild(phaseText);
-        
-        MathFunction alphaFunction = new MathFunction() {
-            @Override
-            protected float f(float time) {
-                return FastMath.clamp(-FastMath.pow(time - FastMath.sqrt(0.5f), 2) + 0.5f, 0f, 1f);
-            }
-        };
-        
-        MathFunction xFunction = new MathFunction() {
-            @Override
-            protected float f(float time) {
-                return FastMath.pow(time - 1, 2) / 3f;
-            }
-        };
-        
-        float length = 2f; //switching turn will last 1.5 seconds
-        GameTimer timer = new GameTimer();
+
+        final GameTimer timer = new GameTimer();
         queue.add((tpf) -> {
-            float alpha = alphaFunction.output(timer.getTime());
-            phaseText.setOutlineMaterial(new ColorRGBA(1, 1, 1, alpha), new ColorRGBA(0, 0, 0, alpha));
-            phaseText.setLocalTranslation(xFunction.output(timer.getTime()) * cam.getWidth(), 0.5f * cam.getHeight(), 1f);
+            float alpha = 1.5f * FastMath.sin((FastMath.PI / 4f) * timer.getTime());
+            phaseText.setTextAlpha(alpha);
+            //phaseText.setTextColor(new ColorRGBA(1, 1, 1, alpha));
             
-            timer.update(tpf); 
-            
-            if (timer.getTime() >= length) {
+            if (alpha < 0f) {
                 localGuiNode.detachChild(phaseText);
                 fsm.setNewStateIfAllowed(MapFlowState.BeginningOfTurn);
                 return true;
             }
             
+            timer.update(tpf); 
             return false;
         });
     }
@@ -289,19 +276,24 @@ public class MapFlow { //eventually make this the map controller
     }
     
     public Text2D createPhaseText(String text) {
+        int kerning = 3;
+        float fontSize = 135f;
+        
         TextProperties textParams = 
             TextProperties.builder()
                 .horizontalAlignment(Align.Left)
                 .verticalAlignment(VAlign.Center)
-                .kerning(3)
+                .kerning(kerning)
                 .wrapMode(WrapMode.Clip)
-                .textBox(new Rectangle(0f, 0f, 0.3f * cam.getWidth(), 0.1f * cam.getHeight()))
+                .textBox(new Rectangle(0f, 0f, 0.5f * Globals.getScreenWidth(), 0.1f * Globals.getScreenHeight()))
                 .build();
         
-        FontProperties fontParams = new FontProperties("Interface/Fonts/IMMORTAL.ttf", KeyType.BMP, Style.Plain, 45f);
+        FontProperties fontParams = new FontProperties("Interface/Fonts/IMMORTAL.ttf", KeyType.BMP, Style.Plain, fontSize);
         
         Text2D phaseText = new Text2D(text, ColorRGBA.White, textParams, fontParams, assetManager);
-        phaseText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
+        //phaseText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
+        
+        //phaseText.getTextContainer().setLocalScale(3.0f);
         
         return phaseText;
     }

@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package etherealtempest.info;
+package general.procedure;
 
-import etherealtempest.info.Request.RequestType;
+import general.procedure.Request.RequestType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,7 +14,7 @@ import java.util.List;
  * @author night
  * @param <D> data holder type
  */
-public class RequestDealer<D extends Conveyor> {
+public class RequestDealer<D> {
     private final List<Request<D>> requests = new ArrayList<>();
     
     public RequestDealer() {}

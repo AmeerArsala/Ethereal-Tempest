@@ -8,6 +8,7 @@ package battle.gui;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
+import com.jme3.renderer.queue.RenderQueue;
 import etherealtempest.gui.RadialProgressBar;
 import etherealtempest.gui.ValueIndicator;
 import general.ui.GeometryPanel;
@@ -29,7 +30,7 @@ public class ExpIndicator extends ValueIndicator {
         
         float heightToWidthRatio = 25.5f / 100.5f;
         float width = expbar.getInnerRadius() * 2, height = width * heightToWidthRatio;
-        levelUpTextPanel = new GeometryPanel(width, height);
+        levelUpTextPanel = new GeometryPanel(width, height, RenderQueue.Bucket.Gui);
         
         Material levelUpTextMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         levelUpTextMat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/common/levelup.png"));

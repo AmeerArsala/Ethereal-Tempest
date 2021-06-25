@@ -24,16 +24,20 @@ public class Combat {
         this.common = common;
         
         initiator = new Fighter(forecast.getInitiatorForecast(), common, false); // mirror == false
-        receiver = new Fighter(forecast.getReceiverForecast(), common, true); // mirror == true
+        receiver = new Fighter(forecast.getReceiverForecast(), common, true);    // mirror == true
         
         initiator.giveNotifier(receiver);
         receiver.giveNotifier(initiator);
-        
+
         initiator.attachGUI();
         receiver.attachGUI();
         
+        //must be called BEFORE attemptStrike(), because the sprites need parent nodes
         node.attachChild(initiator.getSprite());
         node.attachChild(receiver.getSprite());
+        
+        initiator.attemptStrike();
+        receiver.attemptStrike();
     }
     
     public Node getNode() { return node; }

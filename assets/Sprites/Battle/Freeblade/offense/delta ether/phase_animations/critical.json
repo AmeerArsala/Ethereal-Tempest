@@ -19,6 +19,8 @@
       }
     }
   ],
+  "loopAnimationVisually": false,
+  "delayForIndefiniteChanges": 0.0,
   "impact": null,
   "otherActionFrames": [
     {

@@ -7,9 +7,9 @@ package fundamental.formation;
 
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.info.Conveyor;
-import etherealtempest.info.Request;
+import general.procedure.Request;
 import fundamental.Attribute;
 import fundamental.tool.Tool.ToolType;
 import fundamental.unit.UnitAllegiance;

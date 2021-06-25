@@ -5,8 +5,8 @@
  */
 package fundamental.unit;
 
-import etherealtempest.FSM.UnitState;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.FSM.UnitState;
+import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.ai.AllegianceRecognizer;
 import etherealtempest.info.ActionInfo;
 import etherealtempest.info.Conveyor;
@@ -28,8 +28,8 @@ import maps.layout.MapCoords;
 import maps.layout.OnTile;
 import maps.layout.occupant.VenturePeek;
 import maps.layout.occupant.character.TangibleUnit;
-import maps.layout.tile.Path;
-import maps.layout.tile.RangeDisplay;
+import maps.layout.tile.move.Path;
+import maps.layout.tile.move.RangeDisplay;
 import maps.layout.tile.Tile;
 import maps.layout.tile.TileStatisticalData;
 
@@ -42,7 +42,7 @@ import maps.layout.tile.TileStatisticalData;
 public class PositionedUnit extends UnitCharacter implements OnTile {
     public static final int DEFAULT_TRADE_DISTANCE = 1; //adjacent
     
-    protected final PositionedUnitParameters params;
+    protected final PositionedUnitParams params;
     
     protected final MapCoords pos = new MapCoords();
     protected final MapCoords previousPos = new MapCoords();
@@ -52,13 +52,13 @@ public class PositionedUnit extends UnitCharacter implements OnTile {
     private Skill inUse = null;
     private final List<String> namesOfUnitsToTalkTo = new ArrayList<>();
     
-    public PositionedUnit(Unit X, CharacterUnitInfo info, PositionedUnitParameters startingParams, UnitAllegiance startingAllegiance) {
+    public PositionedUnit(Unit X, CharacterUnitInfo info, PositionedUnitParams startingParams, UnitAllegiance startingAllegiance) {
         super(X, info);
         params = startingParams;
         allegiance = startingAllegiance;
     }
 
-    public PositionedUnitParameters getParams() { 
+    public PositionedUnitParams getParams() { 
         return params; 
     }
     
@@ -165,7 +165,7 @@ public class PositionedUnit extends UnitCharacter implements OnTile {
         List<TangibleUnit> partners = new ArrayList<>();
 
         for (MapCoords position : VenturePeek.coordsForTilesOfRange(tradeDistance, atPosition)) {
-            Tile tile = MasterFsmState.getCurrentMap().getTileAt(atPosition);
+            Tile tile = MasterFsmState.getCurrentMap().getTileAt(position);
             if (tile.isOccupied && allegiance == tile.getOccupier().allegiance && (inventory.getItems().size() > 0 || tile.getOccupier().getInventory().getItems().size() > 0)) {
                 partners.add(tile.getOccupier());
             }

@@ -5,12 +5,12 @@
  */
 package battle.animation.config;
 
+import com.google.gson.annotations.Expose;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import general.math.ParametricFunctionStrings3f;
 import general.math.ParametricFunctionStrings4f;
-import general.math.function.ParametricFunction3f;
-import general.math.function.RGBAFunction;
+import general.utils.helpers.GeneralUtils;
 
 /**
  *
@@ -22,6 +22,9 @@ public class Changes {
     private Change3f[] thetaVelocities; //angular velocity in degrees; units: degrees/frame 
     private Change3f[] localScales; //not a velocity function
     private Change4f[] colors; //not a velocity function
+    
+    //@Expose(deserialize = false) 
+    //private ChangePack[] finiteChanges; //changes at all FINITE frames since action frame; this includes infinites up to the highest index of the arrays above
     
     public Changes() {}
     
@@ -37,68 +40,60 @@ public class Changes {
     Change3f[] getLocalScales() { return localScales; }
     Change4f[] getColors() { return colors; }
     
-    public Vector3f getVelocity(int framesSinceActionFrame) {
-        for (Change3f velocity : velocities) {
-            if (velocity.getFrames() == null || framesSinceActionFrame < velocity.getFrames()) { //null acts as infinity in this case
-                ParametricFunction3f v = velocity.getStrFunc().getFunction();
-                return new Vector3f(v.x(framesSinceActionFrame), v.y(framesSinceActionFrame), v.z(framesSinceActionFrame));
-            }
-            
-            framesSinceActionFrame -= velocity.getFrames();
+    /*public ChangePack getChangePack(int framesSinceActionFrame) {
+        return finiteChanges.length > 0 && framesSinceActionFrame < finiteChanges.length ? finiteChanges[framesSinceActionFrame] : generateChangePack(framesSinceActionFrame);
+    }*/
+    
+    public ChangePack generateChangePack(int framesSinceActionFrame) {
+        ParametricFunctionStrings4f colorStrings = getColorStrings(framesSinceActionFrame);
+        
+        ColorRGBA rgba = null;
+        String colorMatParam = null;
+        if (colorStrings != null) {
+            rgba = colorStrings.getRGBAFunction().rgba(framesSinceActionFrame);
+            colorMatParam = colorStrings.getColorMatParam();
         }
         
-        return null;
+        return new ChangePack(
+            getVelocity(framesSinceActionFrame),
+            getAngularVelocity(framesSinceActionFrame),
+            getLocalScale(framesSinceActionFrame),
+            rgba,
+            colorMatParam
+        );
+    }
+    
+    private static int getChangeIndex(DomainParse[] arr, int framesSinceActionFrame, String name) {
+        //System.out.println("[framesSinceActionFrame: " + framesSinceActionFrame + "]: " + name);
+        for (int i = 0; i < arr.length; ++i) {
+            boolean infinite = arr[i].isInfinite();
+            //System.out.println(name + "[" + i + "].isInfinite() == " + infinite);
+            if (infinite || (!infinite && arr[i].frameWithinSpecifiedBounds(framesSinceActionFrame))) {
+                return i;
+            }
+        }
+        
+        return -1;
+    }
+    
+    public Vector3f getVelocity(int framesSinceActionFrame) {
+        int index = getChangeIndex(velocities, framesSinceActionFrame, "velocity");
+        return index == -1 ? null : velocities[index].getStrFunc().output(framesSinceActionFrame);
     }
     
     public Vector3f getAngularVelocity(int framesSinceActionFrame) {
-        for (Change3f thetaVelocity : thetaVelocities) {
-            if (thetaVelocity.getFrames() == null || framesSinceActionFrame < thetaVelocity.getFrames()) { //null acts as infinity in this case
-                ParametricFunction3f v = thetaVelocity.getStrFunc().getFunction();
-                return new Vector3f(v.x(framesSinceActionFrame), v.y(framesSinceActionFrame), v.z(framesSinceActionFrame));
-            }
-            
-            framesSinceActionFrame -= thetaVelocity.getFrames();
-        }
-        
-        return null;
+        int index = getChangeIndex(thetaVelocities, framesSinceActionFrame, "thetaVelocity");
+        return index == -1 ? null : thetaVelocities[index].getStrFunc().output(framesSinceActionFrame);
     }
     
     public Vector3f getLocalScale(int framesSinceActionFrame) {
-        for (Change3f localScale : localScales) {
-            if (localScale.getFrames() == null || framesSinceActionFrame < localScale.getFrames()) { //null acts as infinity in this case
-                ParametricFunction3f s = localScale.getStrFunc().getFunction();
-                return new Vector3f(s.x(framesSinceActionFrame), s.y(framesSinceActionFrame), s.z(framesSinceActionFrame));
-            }
-            
-            framesSinceActionFrame -= localScale.getFrames();
-        }
-        
-        return null;
+        int index = getChangeIndex(localScales, framesSinceActionFrame, "localScale");
+        return index == -1 ? null : localScales[index].getStrFunc().output(framesSinceActionFrame);
     }
     
-    public ColorRGBA getColor(int framesSinceActionFrame) {
-        for (Change4f color : colors) {
-            if (color.getFrames() == null || framesSinceActionFrame < color.getFrames()) { //null acts as infinity in this case
-                RGBAFunction rgba = color.getStrFunc().getRGBAFunction();
-                return rgba.rgba(framesSinceActionFrame);
-            }
-            
-            framesSinceActionFrame -= color.getFrames();
-        }
-        
-        return null;
-    }
-    
-    public String getColorMatParam(int framesSinceActionFrame) {
-        for (Change4f color : colors) {
-            if (color.getFrames() == null || framesSinceActionFrame < color.getFrames()) { //null acts as infinity in this case
-                return color.getStrFunc().getColorMatParam();
-            }
-            
-            framesSinceActionFrame -= color.getFrames();
-        }
-        
-        return null;
+    public ParametricFunctionStrings4f getColorStrings(int framesSinceActionFrame) {
+        int index = getChangeIndex(colors, framesSinceActionFrame, "color");
+        return index == -1 ? null : colors[index].getStrFunc();
     }
     
     public void initializeAll() {
@@ -117,31 +112,56 @@ public class Changes {
         for (Change4f color : colors) {
             color.getStrFunc().initialize();
         }
+        
+        /*
+        finiteChanges = new ChangePack[
+            GeneralUtils.highestInt(
+                new int[]{velocities.length, thetaVelocities.length, localScales.length, colors.length}
+            )
+        ];
+        
+        for (int i = 0; i < finiteChanges.length; ++i) { //i = framesSince
+            finiteChanges[i] = generateChangePack(i);
+        }
+        
+        */
     }
 }
 
-class Change3f {
-    private ParametricFunctionStrings3f strFunc;
-    private Integer frames;
+class DomainParse {
+    private String domain;
     
-    public Change3f(ParametricFunctionStrings3f strFunc, int frames) {
+    public DomainParse(String domain) { //something like "1, 2" or "0, ?" which is 0 to infinity
+        this.domain = domain;
+    }
+    
+    public int getStartFrame() { return Integer.parseUnsignedInt(domain.substring(0, 1)); } //parse first character
+    public int getEndFrame() { return Integer.parseUnsignedInt(domain.substring(domain.length() - 1)); } //can fail if infinite so check first
+    public boolean isInfinite() { return domain.charAt(domain.length() - 1) == '?'; }
+    
+    public boolean frameWithinSpecifiedBounds(int frame) {
+        return frame >= getStartFrame() && frame <= getEndFrame();
+    }
+}
+
+class Change3f extends DomainParse {
+    private ParametricFunctionStrings3f strFunc;
+    
+    public Change3f(ParametricFunctionStrings3f strFunc, String domain) {
+        super(domain);
         this.strFunc = strFunc;
-        this.frames = frames;
     }
     
     public ParametricFunctionStrings3f getStrFunc() { return strFunc; }
-    public Integer getFrames() { return frames; }
 }
 
-class Change4f {
+class Change4f extends DomainParse {
     private ParametricFunctionStrings4f strFunc;
-    private Integer frames;
     
-    public Change4f(ParametricFunctionStrings4f strFunc, int frames) {
+    public Change4f(ParametricFunctionStrings4f strFunc, String domain) {
+        super(domain);
         this.strFunc = strFunc;
-        this.frames = frames;
     }
     
     public ParametricFunctionStrings4f getStrFunc() { return strFunc; }
-    public Integer getFrames() { return frames; }
 }

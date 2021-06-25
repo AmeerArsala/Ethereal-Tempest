@@ -5,7 +5,9 @@
  */
 package battle.animation.config;
 
+import general.math.IntPair;
 import general.visual.animation.DomainDelayMapping;
+import java.util.List;
 
 /**
  *
@@ -27,4 +29,18 @@ public class ColumnDomainDelayMapping {
     public DomainDelayMapping getAnimation() {
         return animationSegment;
     }
+    
+    public List<IntPair> generateIndexedList() {
+        return animationSegment.generateIndexedList(column);
+    }
+    
+    //sums frames
+    public static int totalFrames(ColumnDomainDelayMapping[] animation) {
+        int sum = 0;
+        for (ColumnDomainDelayMapping segment : animation) {
+            sum += segment.animationSegment.length();
+        }
+        
+        return sum;
+    } 
 }

@@ -6,7 +6,7 @@
 package etherealtempest.gui;
 
 import com.jme3.scene.Node;
-import general.GameTimer;
+import general.tools.GameTimer;
 import general.procedure.ProcedureGroup;
 import general.math.FloatPair;
 import general.math.function.ControlledMathFunction;
@@ -50,6 +50,10 @@ public abstract class ValueIndicator {
     
     public Node getNode() { 
         return node; 
+    }
+    
+    public Text2D getText() {
+        return text;
     }
     
     public boolean isQueueEmpty() {

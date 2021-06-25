@@ -6,7 +6,7 @@
 package fundamental.talent;
 
 import com.google.gson.annotations.SerializedName;
-import etherealtempest.FSM.MapFlowState;
+import etherealtempest.fsm.FSM.MapFlowState;
 import etherealtempest.info.Conveyor;
 
 /**

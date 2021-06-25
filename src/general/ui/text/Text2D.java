@@ -20,10 +20,11 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.Command;
+import general.tools.universal.CustomException;
 
 /**
  *
- * @author night
+ * @author NiteZ
  */
 public class Text2D extends Node {
     private final Material outlineMaterial;
@@ -32,10 +33,10 @@ public class Text2D extends Node {
     private final TrueTypeFont ttf;
     private final StringContainer sc;
     private final TrueTypeContainer textContainer;
-    private ColorRGBA textColor;
+    private ColorRGBA textColor, outlineColor;
     
     public Text2D(String text, ColorRGBA color, TextProperties textParams, FontProperties fontParams, AssetManager assetManager) {
-        super("2D Text");
+        super("2D Text: " + "\"" + text + "\"");
         fontProperties = fontParams;
         textColor = color;
         
@@ -62,6 +63,18 @@ public class Text2D extends Node {
     public FontProperties getFontProperties() { return fontProperties; }
     public ColorRGBA getTextColor() { return textColor; }
     
+    public ColorRGBA getOutlineColor() throws CustomException {
+        if (textContainer.getMaterial() != outlineMaterial) {
+            throw new CustomException("Text is Not Using Outline Material");
+        }
+        
+        return outlineColor;
+    }
+    
+    public boolean usingTextOutline() { 
+        return textContainer.getMaterial() == outlineMaterial; 
+    }
+    
     public TextProperties salvageTextProperties() {
         return new TextProperties(sc.getTextBox(), sc.getKerning(), sc.getWrapMode(), sc.getAlignment(), sc.getVerticalAlignment());
     }
@@ -72,6 +85,7 @@ public class Text2D extends Node {
     public int getNumNonSpaceCharacters() { return sc.getNumNonSpaceCharacters(); }
     public float getTextWidth() { return sc.getTextWidth(); } //width of the actual text in pixels (bounds) from the upper left corner at the origin to the lowest point of the lowest character on the last line
     public float getTextHeight() { return sc.getTextHeight(); } //height of the actual text in pixels (bounds) from the upper left corner at the origin to the lowest point of the lowest character on the last line
+    public Vector3f getTextBounds() { return new Vector3f(sc.getTextWidth(), sc.getTextHeight(), 0f); }
     
     public float getTextBoxWidth() { return textContainer.getWidth(); } //width of the textbox with all its padding and everything 
     public float getTextBoxHeight() { return textContainer.getHeight(); } //height of the textbox with all its padding and everything
@@ -134,12 +148,15 @@ public class Text2D extends Node {
         textContainer.setMaterial(mat);
     }
     
-    public void setOutlineMaterial(ColorRGBA nativeColor, ColorRGBA outlineColor) {
+    public void setOutlineMaterial(ColorRGBA nativeColor, ColorRGBA textOutlineColor) {
+        textColor = nativeColor;
+        outlineColor = textOutlineColor;
+        
         if (textContainer.getMaterial() != outlineMaterial) {
             textContainer.setMaterial(outlineMaterial);
         }
         
-        outlineMaterial.setColor("Color", nativeColor);
+        outlineMaterial.setColor("Color", textColor);
         outlineMaterial.setColor("Outline", outlineColor);
     }
     
@@ -150,6 +167,15 @@ public class Text2D extends Node {
     public void setTextColor(ColorRGBA color) {
         textColor = color;
         textContainer.getMaterial().setColor("Color", textColor);
+    }
+    
+    public void setTextAlpha(float alpha) {
+        setTextColor(new ColorRGBA(textColor.r, textColor.g, textColor.b, alpha));
+        
+        if (textContainer.getMaterial() == outlineMaterial) {
+            outlineColor = new ColorRGBA(outlineColor.r, outlineColor.g, outlineColor.b, alpha);
+            outlineMaterial.setColor("Outline", outlineColor);
+        }
     }
     
     public void setOutlineColorIfUsingOutline(ColorRGBA outlineColor) {

@@ -3,9 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general;
+package general.tools.universal;
 
-import general.utils.GeneralUtils;
+import general.utils.helpers.GeneralUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

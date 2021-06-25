@@ -9,11 +9,13 @@
       "column": 2,
       "animationSegment": {
         "from": 0,
-        "to": 4,
+        "to": 5,
         "delay": 0.0
       }
     }
   ],
+  "loopAnimationVisually": false,
+  "delayForIndefiniteChanges": 0.0,
   "impact": {
     "column": 2,
     "frame": 2,
@@ -24,7 +26,7 @@
       "localScales": [],
       "colors": []
     },
-    "enemyChanges": {
+    "opponentChanges": {
       "velocities": [],
       "thetaVelocities": [],
       "localScales": [],

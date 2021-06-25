@@ -6,7 +6,7 @@
 package maps.layout.occupant;
 
 import maps.layout.occupant.character.TangibleUnit;
-import maps.layout.tile.RangeDisplay;
+import maps.layout.tile.move.RangeDisplay;
 import etherealtempest.info.Conveyor;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
@@ -22,16 +22,16 @@ import com.jme3.scene.Node;
 import com.jme3.scene.shape.Quad;
 import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialCreator;
-import etherealtempest.FSM;
-import etherealtempest.FSM.CursorState;
-import etherealtempest.FSM.MapFlowState;
-import etherealtempest.FSM.UnitState;
-import etherealtempest.FsmState;
+import etherealtempest.fsm.FSM;
+import etherealtempest.fsm.FSM.CursorState;
+import etherealtempest.fsm.FSM.MapFlowState;
+import etherealtempest.fsm.FSM.UnitState;
+import etherealtempest.fsm.FsmState;
 import etherealtempest.GameProtocols;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.geometry.GeometricBody;
-import general.ComplexInputReader;
-import general.GameTimer;
+import general.tools.input.ComplexInputReader;
+import general.tools.GameTimer;
 import general.procedure.SimpleOrdinalQueue;
 import general.procedure.functional.SimpleProcedure;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
@@ -56,12 +56,17 @@ public class Cursor extends Node implements OnTile {
     }
     
     public enum Direction {
-        Up,
-        Down,
-        Left,
-        Right;
+        Up("move up"),
+        Down("move down"),
+        Left("move left"),
+        Right("move right");
         
         private Direction conflicter;
+        private final String correspondingInput;
+        
+        private Direction(String input) {
+            correspondingInput = input;
+        }
         
         private void setConflicter(Direction conflict) {
             conflicter = conflict;
@@ -70,12 +75,32 @@ public class Cursor extends Node implements OnTile {
         static {
             Up.setConflicter(Down);
             Down.setConflicter(Up);
+            
             Left.setConflicter(Right);
             Right.setConflicter(Left);
         }
         
         public Direction getConflicter() {
             return conflicter;
+        }
+        
+        public String getCorrespondingInput() {
+            return correspondingInput;
+        }
+        
+        public static Direction getDirection(String input) {
+            Direction[] vals = Direction.values();
+            for (Direction dir : vals) {
+                if (dir.getCorrespondingInput().equals(input)) {
+                    return dir;
+                }
+            }
+            
+            return null;
+        }
+        
+        public static String getConflicter(String input) {
+            return getDirection(input).getConflicter().getCorrespondingInput();
         }
     }
     
@@ -111,7 +136,7 @@ public class Cursor extends Node implements OnTile {
         new ComplexInputReader<Direction>(true, BUTTON_HOLD_TIME) {
             @Override
             public void protocolProcedure(Direction inputHeld) {
-                if (fsm.getState().getEnum() != CursorState.Idle && getHeldTime(inputHeld) > BUTTON_HOLD_TIME) {
+                if (fsm.getEnumState() != CursorState.Idle && getHeldTime(inputHeld) > BUTTON_HOLD_TIME) {
                     tryTranslate(inputHeld, 1, amountOfKeysPressed() == 1 || !keyIsHeld(inputHeld.getConflicter()));
                 }
             }
@@ -197,12 +222,7 @@ public class Cursor extends Node implements OnTile {
         fsm.forceState(CursorState.CursorDefault);
     }
     
-    public FsmState<CursorState> getState() {
-        return fsm.getState();
-    }
-    
-    public void setStateIfAllowed(CursorState cs) { fsm.setNewStateIfAllowed(cs); }
-    public void forceState(CursorState cs) { fsm.forceState(cs); }
+    public FSM<CursorState> getFSM() { return fsm; }
     
     public MapCoords getPos() { return pos; }
     
@@ -235,7 +255,7 @@ public class Cursor extends Node implements OnTile {
     }
     
     public boolean traversingAllowed() {
-        return selectedUnit == null || fsm.getEnumState() != CursorState.AnyoneMoving;
+        return selectedUnit == null || (fsm.getEnumState() != CursorState.AnyoneMoving && fsm.getEnumState() != CursorState.Idle);
     }
     
     public void setPosition(MapCoords position) {
@@ -305,7 +325,7 @@ public class Cursor extends Node implements OnTile {
             translatingX = true;
             toTraverseXY.addLocal(delta);
             
-            if (fsm.getState().getEnum() == CursorState.AnyoneSelectingTarget) { 
+            if (fsm.getEnumState() == CursorState.AnyoneSelectingTarget) { 
                 selectionDifferenceXY.addLocal(delta);
             }
             
@@ -320,7 +340,7 @@ public class Cursor extends Node implements OnTile {
             translatingY = true;
             toTraverseXY.addLocal(delta);
             
-            if (fsm.getState().getEnum() == CursorState.AnyoneSelectingTarget) { 
+            if (fsm.getEnumState() == CursorState.AnyoneSelectingTarget) { 
                 selectionDifferenceXY.addLocal(delta); 
             }
             
@@ -388,7 +408,7 @@ public class Cursor extends Node implements OnTile {
                 fsm.setNewStateIfAllowed(CursorState.AnyoneHovered); //sets it if and only if fsm.getEnumState() == CursorState.CursorDefault
                 
                 if (fsm.getEnumState() == CursorState.AnyoneHovered || (fsm.getEnumState() == CursorState.AnyoneSelected && tu.isSelected())) {
-                    rangeDisplay.displayRange(tu, fsm.getEnumState());
+                    rangeDisplay.displayRange(tu, fsm.getEnumState().getCorrespondingTileOpacity());
                 }
             } else if (!tu.isSelected() && fsm.getEnumState() != CursorState.AnyoneSelected) { //if nobody is selected nor is this unit selected
                 fsm.setNewStateIfAllowed(CursorState.CursorDefault); //cancels range too
@@ -414,7 +434,7 @@ public class Cursor extends Node implements OnTile {
         
         interpreter.obtainInput(name, tpf, keyPressed);
         
-        if (fsm.getState().getEnum() != CursorState.Idle && (!isBacking || isCorrected)) {
+        if (fsm.getEnumState() != CursorState.Idle && (!isBacking || isCorrected)) {
             if (name.equals("move up") && keyPressed) {
                 translateY(1);
             } 
@@ -429,25 +449,25 @@ public class Cursor extends Node implements OnTile {
             }
             
             if (name.equals("select")) {
-                if (keyPressed) {
-                    if (fsm.getState().getEnum() == CursorState.AnyoneSelected) {
-                        rangeDisplay.updateOpacity(fsm.getEnumState());
-                    }
-                    
+                if (keyPressed && !translatingX && !translatingY) {
                     TangibleUnit tu = MasterFsmState.getCurrentMap().getTileAt(pos).getOccupier();
                     
                     //for moving
-                    if (tu == null && fsm.getState().getEnum() == CursorState.AnyoneSelected) {
+                    if (fsm.getEnumState() == CursorState.AnyoneSelected) {
                         if (selectedUnit.getPos().getLayer() == pos.getLayer() && pos.getCoords().nonDiagonalDistanceFrom(selectedUnit.getPos().getCoords()) <= selectedUnit.getMOBILITY()) {
                             fsm.setNewStateIfAllowed(CursorState.AnyoneMoving);
                             selectedUnit.moveTo(pos);
+                            
+                            if (tu != null) {
+                                rangeDisplay.cancelRange();
+                            }
                         }
                     }
                 
                     //for selection and targeting
                     if (tu != null && pos.equals(tu.getPos())) {
                         if (!tu.isSelected()) {
-                            if (fsm.getState().getEnum() == CursorState.AnyoneSelectingTarget) { //if the unit selected is an enemy being targeted
+                            if (fsm.getEnumState() == CursorState.AnyoneSelectingTarget) { //if the unit selected is an enemy being targeted
                                 receivingEnd = tu; //modify this later
                                 fsm.setNewStateIfAllowed(CursorState.AnyoneTargeted);
                                 //start a fight
@@ -469,7 +489,6 @@ public class Cursor extends Node implements OnTile {
                     if (fsm.getEnumState() == CursorState.AnyoneSelected) {
                         //fsm.setNewStateIfAllowed(new MasterFsmState().setAssetManager(assetManager));
                         fsm.setNewStateIfAllowed(CursorState.CursorDefault);
-                        rangeDisplay.updateOpacity(fsm.getEnumState());
                         pos.set(selectedUnit.getPos());
                         selectedUnit.deselect();
                         selectedUnit = null;
@@ -512,8 +531,8 @@ public class Cursor extends Node implements OnTile {
     public void goBackFromMenu() {
         fsm.forceState(CursorState.AnyoneSelected);
         selectedUnit.remapPosition(selectedUnit.getPreviousPos());
-        selectedUnit.getVisuals().setAnimationState(AnimationState.Idle);
+        selectedUnit.getVisuals().setIdealIdle();
         selectedUnit.getFSM().setNewStateIfAllowed(UnitState.Active);
-        rangeDisplay.displayRange(selectedUnit, fsm.getEnumState());
+        rangeDisplay.displayRange(selectedUnit, fsm.getEnumState().getCorrespondingTileOpacity());
     }
 }

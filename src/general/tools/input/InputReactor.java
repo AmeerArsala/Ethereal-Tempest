@@ -3,17 +3,21 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general.utils;
+package general.tools.input;
+
+import general.utils.ReturnBool;
+import java.util.function.Predicate;
 
 /**
  *
  * @author night
  */
-public class MathUtils {
+public class InputReactor {
+    private float heldTime;
     
-    public static float pointSlopeForm(float x, float x1, float x2, float y1, float y2) {
-        float m = ((y2 - y1) / (x2 - x1));
-        return m * (x - x1) + y1;
+    public InputReactor() {
+        
     }
+    
     
 }

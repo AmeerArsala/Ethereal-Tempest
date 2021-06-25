@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  *
@@ -57,17 +58,22 @@ public class EntityAnimation {
     
     @Expose(deserialize = false) private AnimationSource animSource;
     @Expose(deserialize = false) private PossibleConfig config; //spritesheet config or particle effect animation config, but not both
+    @Expose(deserialize = false) private List<IntPair> localFrameConversion;
     
     private String configPath; //path to PossibleConfig (config)
     private Vector2f hitPoint; //hitbox
     private ColumnDomainDelayMapping[] animation; //which frames to use and their delays
+    private Boolean loopAnimationVisually; //whether the animation is looped visually or not
+    private Float delayForIndefiniteChanges; //delay for Changes that go on for an indefinite duration
     private ActionFrame impact; //impact sound; this can also be the start of casting ether formulas/spells
     private ActionFrame[] otherActionFrames; //other sounds at specified frames
     
-    public EntityAnimation(String configPath, Vector2f hitPoint, ColumnDomainDelayMapping[] animation, ActionFrame impact, ActionFrame[] otherActionFrames) {
+    public EntityAnimation(String configPath, Vector2f hitPoint, ColumnDomainDelayMapping[] animation, Boolean loopAnimationVisually, Float delayForIndefiniteChanges, ActionFrame impact, ActionFrame[] otherActionFrames) {
         this.configPath = configPath;
         this.hitPoint = hitPoint;
         this.animation = animation;
+        this.loopAnimationVisually = loopAnimationVisually;
+        this.delayForIndefiniteChanges = delayForIndefiniteChanges;
         this.impact = impact;
         this.otherActionFrames = otherActionFrames;
     }
@@ -86,6 +92,27 @@ public class EntityAnimation {
         }
     }
     
+    private void initializeLocalFrameConversion() {
+        localFrameConversion = new ArrayList<>();
+        for (ColumnDomainDelayMapping seg : animation) {
+            localFrameConversion.addAll(seg.generateIndexedList());
+        }
+    }
+    
+    private void initializeMiscProperties() { //set default values for property fields
+        if (loopAnimationVisually == null) {
+            loopAnimationVisually = false;
+        }
+        
+        if (delayForIndefiniteChanges == null) {
+            delayForIndefiniteChanges = 0.0f;
+        }
+        
+        if (otherActionFrames == null) {
+            otherActionFrames = new ActionFrame[0];
+        }
+    }
+    
     public AnimationSource getAnimationSource() {
         return animSource;
     }
@@ -98,34 +125,49 @@ public class EntityAnimation {
         return hitPoint;
     }
     
+    public Float getDelayForIndefiniteChanges() {
+        return delayForIndefiniteChanges;
+    }
+    
+    public ActionFrame getImpact() {
+        return impact;
+    }
+    
     public int getFrames() {
-        int sum = 0;
-        for (ColumnDomainDelayMapping segment : animation) {
-            sum += segment.getAnimation().length();
-        }
-        
-        return sum;
+        return localFrameConversion.size();
     }
     
+    //only use this for Spritesheets, because particle effects will just use localFrame
     public int getActualFrameAt(int localFrame) {
-        IntPair columnAndSegmentFrame = columnAndSegmentFrameAt(localFrame);
         if (animSource == AnimationSource.Spritesheet) {
-            return config.getPossibleSpritesheet().convertToIntPosition(columnAndSegmentFrame.getX(), columnAndSegmentFrame.getY());
+            IntPair columnAndSegmentFrame = columnAndSegmentFrameAt(localFrame);
+            int col = columnAndSegmentFrame.getX();
+            int segFrame = columnAndSegmentFrame.getY();
+            
+            return config.getPossibleSpritesheet().convertToIntPosition(col, segFrame);
         }
         
-        return -1;
+        return getSegmentFrameAt(localFrame); //returns the possibly changed value of localFrame (for use with ParticleEffect)
     }
     
+    /**
+     * 
+     * @param localFrame 
+     * @return an IntPair where the x-value is the column and the y-value is the segmentFrame
+     */
     private IntPair columnAndSegmentFrameAt(int localFrame) { // (column, segmentFrame)
-        for (ColumnDomainDelayMapping segment : animation) {
-            if (localFrame < segment.getAnimation().length()) {
-                return new IntPair(segment.getColumn(), segment.getAnimation().getPositionA() + localFrame);
-            }
-            
-            localFrame -= segment.getAnimation().length();
+        int frames = localFrameConversion.size(); // localFrameConversion.size() == getFrames()
+        if (loopAnimationVisually) {
+            localFrame %= frames;
+        } else if (localFrame >= frames) {
+            localFrame = frames - 1;
         }
         
-        return null;
+        if (animSource == AnimationSource.Spritesheet) {
+            return localFrameConversion.get(localFrame);
+        }
+        
+        return new IntPair().setY(localFrame); // animSource == AnimationSource.ParticleEffect
     }
     
     public int getColumnAt(int localFrame) {
@@ -136,39 +178,35 @@ public class EntityAnimation {
         return columnAndSegmentFrameAt(localFrame).getY();
     }
     
-    protected ColumnDomainDelayMapping segmentAt(int localFrame) {
-        for (ColumnDomainDelayMapping segment : animation) {
-            if (localFrame < segment.getAnimation().length()) {
-                return segment;
-            }
-            
-            localFrame -= segment.getAnimation().length();
+    public float getDelayAt(int localFrame) {
+        if (localFrame >= localFrameConversion.size()) { // localFrameConversion.size() == getFrames()
+            return delayForIndefiniteChanges;
         }
         
-        return null;
-    }
-    
-    public float getDelayAt(int localFrame) {
         int frame = getSegmentFrameAt(localFrame);
         for (ColumnDomainDelayMapping d_delay : animation) {
             if (
                     (frame >= d_delay.getAnimation().getPositionA() && frame <= d_delay.getAnimation().getPositionB()) || 
                     (frame <= d_delay.getAnimation().getPositionA() && frame >= d_delay.getAnimation().getPositionB())
-               ) {
+            ) {
                 return d_delay.getAnimation().getDelay();
             }
         }
         
-        return 0f; //no delay if no custom delay was found
+        return 0.0f; //no delay if no custom delay was found
     }
     
     public boolean impactOccursAt(int localFrame) {
-        if (impact == null) {
+        System.out.println("impact is null? " + (impact == null));
+        System.err.println("localFrame: " + localFrame + ", localFrameConversion.size(): " + localFrameConversion.size());
+        if (impact == null || localFrame >= localFrameConversion.size()) {
             return false;
         }
         
-        IntPair info = columnAndSegmentFrameAt(localFrame);
-        return info.getX() == impact.getColumn() && info.getY() == impact.getFrame();
+        System.out.println("HEY");
+        
+        IntPair info = localFrameConversion.get(localFrame);
+        return Objects.equals(info.getX(), impact.getColumn()) && info.getY() == impact.getFrame(); //x is column, y is segmentFrame; for particle effects, the first condition wlil be null == null
     }
     
     public List<ActionFrame> getAllActionFrames() { //typically not in order because of impact
@@ -184,13 +222,19 @@ public class EntityAnimation {
     }
     
     public List<ActionFrame> getActionFramesAt(int localFrame) {
-        List<ActionFrame> allActionFrames = getAllActionFrames();
-        List<ActionFrame> actions = new ArrayList<>();
+        if (localFrame >= localFrameConversion.size()) { // localFrameConversion.size() == getFrames()
+            return new ArrayList<>();
+        }
         
-        IntPair info = columnAndSegmentFrameAt(localFrame);
+        List<ActionFrame> actions = new ArrayList<>();
+        List<ActionFrame> allActionFrames = getAllActionFrames();
+        
+        IntPair info = localFrameConversion.get(localFrame);
+        int col = info.getX();
+        int segFrame = info.getY();
         
         for (ActionFrame action : allActionFrames) {
-            if (info.getX() == action.getColumn() && info.getY() == action.getFrame()) {
+            if (col == action.getColumn() && segFrame == action.getFrame()) {
                 actions.add(action);
             }
         }
@@ -213,6 +257,8 @@ public class EntityAnimation {
             entityAnimation.config = PossibleConfig.deserialize(entityAnimation.configPath);
             entityAnimation.config.getPossibleSpritesheet().setFileRoot(fileRoot);
             entityAnimation.initializeActionFrames();
+            entityAnimation.initializeLocalFrameConversion();
+            entityAnimation.initializeMiscProperties();
             entityAnimation.animSource = AnimationSource.Spritesheet;
             
             return entityAnimation;
@@ -231,6 +277,8 @@ public class EntityAnimation {
             EntityAnimation entityAnimation = gson.fromJson(reader, EntityAnimation.class);
             entityAnimation.config = PossibleConfig.deserialize(entityAnimation.configPath);
             entityAnimation.initializeActionFrames();
+            entityAnimation.initializeLocalFrameConversion();
+            entityAnimation.initializeMiscProperties();
             entityAnimation.animSource = AnimationSource.ParticleEffect;
             
             return entityAnimation;

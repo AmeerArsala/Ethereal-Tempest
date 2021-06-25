@@ -126,7 +126,7 @@ public class RandomizedPiecewiseFunction extends PiecewiseFunction { //this will
             }
         }
         
-        if (domain.b != null && x > domain.b) {
+        if (domain.b != Float.POSITIVE_INFINITY && x > domain.b) {
             return defaultValue;
         }
         
@@ -150,7 +150,7 @@ public class RandomizedPiecewiseFunction extends PiecewiseFunction { //this will
      * @return
      */
     public static RandomizedPiecewiseFunction superRandom(FloatPair rangeOfRange, float partitionLengthMultiplier) {
-        return new RandomizedPiecewiseFunction(ZERO_TO_INFINITY, rangeOfRange, MathFunction.CONSTANT(Float.MIN_VALUE * 2 * partitionLengthMultiplier), true);
+        return new RandomizedPiecewiseFunction(new FloatPair(0f, Float.POSITIVE_INFINITY), rangeOfRange, MathFunction.CONSTANT(Float.MIN_VALUE * 2 * partitionLengthMultiplier), true);
     }
     
 }

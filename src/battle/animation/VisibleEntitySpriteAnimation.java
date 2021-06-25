@@ -18,34 +18,16 @@ import general.visual.Sprite;
  */
 public class VisibleEntitySpriteAnimation extends VisibleEntityAnimation<BattleSprite> {
     //sprite is NOT bound to this class and only needs to be passed in as a pre-existing Object; otherwise, do whatever you want with the Sprite
-    //private final AttackSheetConfig sheetConfig;
+    //private final AssetManager assetManager;
     
     public VisibleEntitySpriteAnimation(EntityAnimation config, SpriteAnimationParams params) {
         super(config, params.userSprite, params.opponentSprite, params.secondEndAnimationCondition, params.mirror);
-        initialize(params.assetManager);
+        //assetManager = params.assetManager;
     }
     
-    private void initialize(AssetManager assetManager) {
-        BattleSprite sprite = entityAnimationRoot.root;
-        AttackSheetConfig sheetConfig = info.getConfig().getPossibleSpritesheet();
+    /*private void initialize(AssetManager assetManager) {
         
-        //entityAnimationRoot.root = sprite (it is of type Sprite)
-        String existingPath = sprite.getTexturePath();
-        
-        if (existingPath == null || !existingPath.equals(sheetConfig.getSpritesheetImagePath())) {
-            sprite.setSizeX(sheetConfig.getColumns());
-            sprite.setSizeY(sheetConfig.getRows());
-            sprite.setSpritesheetTexture(sheetConfig.getSpritesheetImagePath(), assetManager);
-            
-            if (sprite.hasOverlay()) {
-                //TODO: set corresponding overlay spritesheet texture path for overlay
-            }
-        }
-        
-        if (info.getHitPoint() != null) {
-            sprite.setHitPointIfAllowed(info.getHitPoint());
-        }
-    }
+    }*/
 
     @Override
     protected void updateAnimation(float tpf) {
@@ -60,7 +42,28 @@ public class VisibleEntitySpriteAnimation extends VisibleEntityAnimation<BattleS
 
     @Override
     protected void beginAnimation(Node animationRoot) {
+        System.err.println("BEGIN ANIMATION PHASE");
         
+        BattleSprite sprite = entityAnimationRoot.root;
+        /*AttackSheetConfig sheetConfig = info.getConfig().getPossibleSpritesheet();
+        
+        //entityAnimationRoot.root = sprite (it is of type Sprite)
+        String existingPath = sprite.getTexturePath();
+        
+        if (existingPath == null || !existingPath.equals(sheetConfig.getSpritesheetImagePath())) {
+            sprite.setSizeX(sheetConfig.getColumns());
+            sprite.setSizeY(sheetConfig.getRows());
+            sprite.setSpritesheetTexture(sheetConfig.getSpritesheetImagePath(), assetManager);
+            
+            if (sprite.hasOverlay()) {
+                //TODO: set corresponding overlay spritesheet texture path for overlay
+            }
+        }*/
+        
+        if (info.getHitPoint() != null) {
+            System.err.println("NOTICE: HITPOINT SET");
+            sprite.setHitPointIfAllowed(info.getHitPoint());
+        }
     }
     
     public Sprite getSprite() {

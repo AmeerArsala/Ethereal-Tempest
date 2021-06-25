@@ -21,7 +21,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.scene.Node;
 import etherealtempest.Globals;
-import general.GameTimer;
+import general.tools.GameTimer;
 import general.procedure.functional.UpdateLoop;
 import general.visual.animation.VisualTransition.Progress;
 import java.io.IOException;

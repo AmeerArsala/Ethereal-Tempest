@@ -14,8 +14,8 @@ import com.jme3.font.Rectangle;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
 import enginetools.MaterialCreator;
-import etherealtempest.FSM.CursorState;
-import etherealtempest.FSM.UnitState;
+import etherealtempest.fsm.FSM.CursorState;
+import etherealtempest.fsm.FSM.UnitState;
 import fundamental.ability.Ability;
 import fundamental.formation.Formation;
 import fundamental.formula.Formula;
@@ -168,7 +168,7 @@ public class ActionInfo {
                 conv.getUnit().setToUseSkill(null);
                 conv.getUnit().getFSM().setNewStateIfAllowed(UnitState.SelectingTarget);
                 conv.getCursor().setPurpose(Purpose.WeaponAttack);
-                conv.getCursor().setStateIfAllowed(CursorState.AnyoneSelectingTarget);
+                conv.getCursor().getFSM().setNewStateIfAllowed(CursorState.AnyoneSelectingTarget);
                 closeEntireMenu();
             }
         }; 

@@ -239,7 +239,6 @@ public abstract class RadialMenu<DATA> extends Menu<RadialMenuOption<DATA>, DATA
                 rotating = false;
                 accumulatedFactor = 0f;
                 availableOptions.get(currentIndex).setHovered(true);
-                System.out.println("index: " + currentIndex); //remove this later
             }
             
             accumulatedFactor += factor;

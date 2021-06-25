@@ -5,11 +5,11 @@
  */
 package maps.layout.occupant;
 
-import maps.layout.tile.RangeDisplay;
-import maps.layout.tile.Path;
+import maps.layout.tile.move.RangeDisplay;
+import maps.layout.tile.move.Path;
 import maps.layout.tile.Tile;
 import com.jme3.math.FastMath;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.Set;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
-import maps.layout.tile.Path;
+import maps.layout.tile.move.Path;
 
 /**
  *

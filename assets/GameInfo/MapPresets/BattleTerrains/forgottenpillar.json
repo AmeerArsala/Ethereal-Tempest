@@ -1,0 +1,12 @@
+{ //for BattleViewInfo class
+  "modelPath": "Models/BattleTerrains/battletest5.gltf", //Scenes/Battle/battletest5.j3o
+  "rightEdgePositionPercent": 0.025,
+  "leftEdgePositionPercent": -0.8125,
+  "topEdgePositionPercent": 1.0,
+  "bottomEdgePositionPercent": -0.0833,
+  "zLocation": 4.0,
+  "cameraX": -1.0,
+  "cameraY": 3.0,
+  "cameraZ": 15.0,
+  "envCamPosZ": 10.0
+}

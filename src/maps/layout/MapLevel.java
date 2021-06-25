@@ -10,24 +10,30 @@ import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;
 import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
+import general.math.DomainBox;
+import general.math.FloatPair;
 import java.util.ArrayList;
 import java.util.List;
 import general.visual.DeserializedParticleEffect;
 import java.util.LinkedList;
-import maps.layout.tile.Path;
+import maps.layout.tile.move.Path;
 import maps.layout.tile.TileData;
 import maps.layout.tile.TileFoundation;
+import maps.layout.tile.move.MoveSquare;
 
 /**
  *
  * @author night
  */
 public class MapLevel {
+    public static final float LAYER_Y_DEVIATION = 50f; //maybe rework this later
+    
     public static TextureArray tileTextures;
     public static Texture OverflowBlendMap;
     
     private final int tilesX, tilesY, layers;
-    private final Coords[][] layerBounds;
+    private final DomainBox[] layerBounds; // bounds go: [a, b)
+    //private final Coords[][] layerBounds;
     
     private MapBounds bounds;
     
@@ -36,7 +42,7 @@ public class MapLevel {
     private final Node extraMapStuff = new Node("extra map things");
     
     private Tile[][][] fullmap; // a 3d array of layers, it's a 3d array due to multiple elevations 
-    private TileFoundation[][][] movSet; // for movement squares
+    private MoveSquare[][][] movSet; // for movement squares
     
     //basic needs
     private MapLevel(String terrainName, int tilesX, int tilesY, int layers) {
@@ -45,7 +51,7 @@ public class MapLevel {
         this.tilesY = tilesY;
         this.layers = layers;
         
-        layerBounds = new Coords[layers][2]; //2 for (x, y)
+        layerBounds = new DomainBox[layers];
     }
     
     //most often used
@@ -54,8 +60,10 @@ public class MapLevel {
         
         //default settings/bounds
         for (int l = 0; l < layers; l++) {
-            layerBounds[l][0] = new Coords(0, tilesX); //x coordinate bounds [0, tilesX)
-            layerBounds[l][1] = new Coords(0, tilesY); //y coordinate bounds [0, tilesY)
+            layerBounds[l] = new DomainBox(
+                new FloatPair(0, tilesX), //x coordinate bounds [0, tilesX)
+                new FloatPair(0, tilesY)  //y coordinate bounds [0, tilesY)
+            );
         }
         
         setBounds();
@@ -63,13 +71,9 @@ public class MapLevel {
     }
     
     //with bounds included in constructor
-    public MapLevel(String terrainName, int tilesX, int tilesY, int layers, Coords[] xBoundsForEachLayer, Coords[] yBoundsForEachLayer, MapData data, AssetManager assetManager) {
+    public MapLevel(String terrainName, int tilesX, int tilesY, int layers, DomainBox[] boundsForEachLayer, MapData data, AssetManager assetManager) {
         this(terrainName, tilesX, tilesY, layers);
-        
-        for (int l = 0; l < layers; l++) {
-            layerBounds[l][0] = xBoundsForEachLayer[l];
-            layerBounds[l][1] = yBoundsForEachLayer[l];
-        }
+        System.arraycopy(boundsForEachLayer, 0, layerBounds, 0, layers); 
         
         setBounds();
         generateTiles(assetManager, data);
@@ -94,7 +98,7 @@ public class MapLevel {
 
         //make new instances
         fullmap = new Tile[layers][tilesX][tilesY];
-        movSet = new TileFoundation[layers][tilesX][tilesY];
+        movSet = new MoveSquare[layers][tilesX][tilesY];
         for (int l = 0; l < layers; l++) {
             for (int x = 0; x < tilesX; x++) {
                 for (int y = 0; y < tilesY; y++) {
@@ -102,12 +106,12 @@ public class MapLevel {
                     
                     //for actual tiles
                     fullmap[l][x][y] = new Tile(x, y, l, tileInfo, bounds, assetManager);
-                    fullmap[l][x][y].setLocalTranslation(tilesY * y, 50 * l, tilesX * x);
+                    fullmap[l][x][y].setLocalTranslation(tilesY * y, LAYER_Y_DEVIATION * l, tilesX * x);
                     tileNode.attachChild(fullmap[l][x][y].getNode());
                     
                     //for move squares
-                    movSet[l][x][y] = new TileFoundation(x, y, l, assetManager);
-                    movSet[l][x][y].setLocalTranslation(tilesY * y, 50 * l, tilesX * x);
+                    movSet[l][x][y] = new MoveSquare(x, y, l, assetManager);
+                    movSet[l][x][y].setLocalTranslation(tilesY * y, LAYER_Y_DEVIATION * l, tilesX * x);
                     extraMapStuff.attachChild(movSet[l][x][y].getGeometry());
                 }
             }
@@ -131,11 +135,11 @@ public class MapLevel {
         return coords.getRowXColYfrom(fullmap);
     }
     
-    public TileFoundation getMovSquareAt(int x, int y, int layer) {
+    public MoveSquare getMovSquareAt(int x, int y, int layer) {
         return movSet[layer][x][y];
     }
     
-    public TileFoundation getMovSquareAt(MapCoords coords) {
+    public MoveSquare getMovSquareAt(MapCoords coords) {
         return coords.getRowXColYfrom(movSet);
     }
     
@@ -143,7 +147,7 @@ public class MapLevel {
         return fullmap[layer];
     }
     
-    public TileFoundation[][] getLayerMovSquares(int layer) {
+    public MoveSquare[][] getLayerMovSquares(int layer) {
         return movSet[layer];
     }
     
@@ -154,28 +158,28 @@ public class MapLevel {
     private void setBounds() {
         bounds = new MapBounds() {
             @Override
-            public Coords[][] getBoundsForAllLayers() { 
+            public DomainBox[] getBoundsForAllLayers() { 
                 return layerBounds; 
             }
             
             @Override
             public int getXLength(int layer) {
-                return layerBounds[layer][0].y();
+                return (int)layerBounds[layer].getDomainX().b;
             }
             
             @Override
             public int getMinimumX(int layer) {
-                return layerBounds[layer][0].x();
+                return (int)layerBounds[layer].getDomainX().a;
             }
             
             @Override
             public int getYLength(int layer) {
-                return layerBounds[layer][1].y();
+                return (int)layerBounds[layer].getDomainY().b;
             }
             
             @Override
             public int getMinimumY(int layer) {
-                return layerBounds[layer][1].x();
+                return (int)layerBounds[layer].getDomainY().a;
             }
             
             @Override

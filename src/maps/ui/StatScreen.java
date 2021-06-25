@@ -41,9 +41,9 @@ import edited.EditedLabel;
 import edited.EditedTextField;
 import java.util.ArrayList;
 import java.util.List;
-import etherealtempest.FSM;
-import etherealtempest.FSM.MapFlowState;
-import etherealtempest.FsmState;
+import etherealtempest.fsm.FSM;
+import etherealtempest.fsm.FSM.MapFlowState;
+import etherealtempest.fsm.FsmState;
 import etherealtempest.Globals;
 import etherealtempest.Main;
 import etherealtempest.info.Conveyor;
@@ -52,8 +52,8 @@ import fundamental.formation.FormationTechnique;
 import fundamental.stats.StatBundle;
 import etherealtempest.gui.RadialProgressBar;
 import fundamental.stats.Bonus.BonusType;
-import general.utils.EngineUtils;
-import general.utils.EngineUtils.CenterAxis;
+import general.utils.helpers.EngineUtils;
+import general.utils.helpers.EngineUtils.CenterAxis;
 import java.util.Arrays;
 import maps.layout.occupant.character.TangibleUnit;
 import fundamental.talent.TalentCondition.Occasion;
@@ -115,6 +115,8 @@ public class StatScreen extends Node {
     public StatScreen(AssetManager AM) {
         assetManager = AM;
         fsm.setNewStateIfAllowed(new FsmState(MapFlowState.GuiClosed));
+        //0.125f * Globals.getScreenWidth(), -0.065f * Globals.getScreenHeight()
+        setLocalTranslation(0.125f * Globals.getScreenWidth(), 0.935f * Globals.getScreenHeight(), 1);
     }
     
     public FsmState getState() {
@@ -931,7 +933,7 @@ public class StatScreen extends Node {
         cellSave.attachChild(transitionAnim);
         
         setLocalScale(1.25f, 1.25f, 1);
-        setLocalTranslation(0.125f * Globals.getScreenWidth(), -0.065f * Globals.getScreenHeight(), 1f);
+        //setLocalTranslation(0.125f * Globals.getScreenWidth(), -0.065f * Globals.getScreenHeight(), 1f);
         
         attachChild(menu);
     }

@@ -16,6 +16,7 @@ import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import enginetools.MaterialCreator;
@@ -89,7 +90,7 @@ public class LevelUpPanel {
         leveledStats = character.rollLevelUp();
         res = cameraDimensions;
         
-        panel = new GeometryPanel(PANEL_WIDTH_PERCENT * res.x, PANEL_HEIGHT_PERCENT * res.y);
+        panel = new GeometryPanel(PANEL_WIDTH_PERCENT * res.x, PANEL_HEIGHT_PERCENT * res.y, RenderQueue.Bucket.Gui);
         
         Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
@@ -124,6 +125,9 @@ public class LevelUpPanel {
                             column1statArrow.attachTo(firstColumnStats[index]); //attach once
                         }
                     },
+                    () -> { //onStart
+                        
+                    },
                     () -> { //onFinish
                         firstColumnStats[index].setTextColor(ColorRGBA.Blue); //set text to blue when complete
                     }
@@ -139,6 +143,9 @@ public class LevelUpPanel {
                         if (!column2statArrow.isAttached()) {
                             column2statArrow.attachTo(secondColumnStats[index]); //attach once
                         }
+                    },
+                    () -> { //onStart
+                        
                     },
                     () -> { //onFinish
                         secondColumnStats[index].setTextColor(ColorRGBA.Blue); //set text to blue when complete
@@ -192,13 +199,13 @@ public class LevelUpPanel {
     private void initializePortrait() {
         float portraitDims = panel.getWidth() / 3f;
         
-        portrait = new GeometryPanel(portraitDims, portraitDims);
+        portrait = new GeometryPanel(portraitDims, portraitDims, RenderQueue.Bucket.Gui);
         Material portraitMat = new Material(assetManager, MaterialCreator.UNSHADED);
         portraitMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         portraitMat.setTexture("ColorMap", assetManager.loadTexture("Textures/portraits/" + character.getUnitInfo().getPortraitTextureName()));
         portrait.setMaterial(portraitMat);
         
-        portraitFrame = new GeometryPanel(1.15f * portraitDims, 1.15f * portraitDims);
+        portraitFrame = new GeometryPanel(1.15f * portraitDims, 1.15f * portraitDims, RenderQueue.Bucket.Gui);
         Material frameMat = new Material(assetManager, MaterialCreator.UNSHADED);
         frameMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         frameMat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/ui_borders/framebgtransparent.png"));
@@ -296,7 +303,7 @@ public class LevelUpPanel {
             
             float height = panel.getHeight() / 16.5f;
             float widthToHeightRatio = 600f / 788f;
-            arrowPanel = new GeometryPanel(widthToHeightRatio * height, height);
+            arrowPanel = new GeometryPanel(widthToHeightRatio * height, height, RenderQueue.Bucket.Gui);
             
             Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
             mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);

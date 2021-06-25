@@ -5,10 +5,10 @@
  */
 package maps.flow;
 
-import etherealtempest.FSM.UnitState;
+import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.info.Conveyor;
-import general.utils.GameUtils;
-import etherealtempest.MasterFsmState;
+import general.utils.helpers.GameUtils;
+import etherealtempest.fsm.MasterFsmState;
 import fundamental.unit.UnitAllegiance;
 import maps.layout.MapLevel;
 import maps.layout.occupant.MapEntity;

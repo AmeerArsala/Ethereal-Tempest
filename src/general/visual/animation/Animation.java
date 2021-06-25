@@ -20,7 +20,7 @@ import general.math.function.MathFunction;
 import general.math.function.ParametricFunction3f;
 import general.math.function.ParametricFunction4f;
 import general.ui.GeometryPanel;
-import general.utils.EngineUtils;
+import general.utils.helpers.EngineUtils;
 import general.visual.animation.VisualTransition.Progress;
 
 /**

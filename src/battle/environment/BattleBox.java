@@ -3,45 +3,64 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle;
+package battle.environment;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.Vector2f;
-import com.jme3.scene.Geometry;
+import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
 import com.jme3.scene.Node;
-import com.jme3.texture.Texture;
-import enginetools.ParamSetter;
 import java.util.HashMap;
-import java.util.List;
 
 /**
  *
  * @author night
  */
 public class BattleBox {
-    private final String modelPath;
     private final Vector2f dimensions;
+    private final BattleViewInfo viewInfo;
     private final TextureSettings params;
     
-    public BattleBox(String modelPath, Vector2f dimensions, TextureSettings params) {
-        this.modelPath = modelPath;
+    public BattleBox(Vector2f dimensions, BattleViewInfo viewInfo, TextureSettings params) {
         this.dimensions = dimensions;
+        this.viewInfo = viewInfo;
         this.params = params;
     }
     
-    public String getModelPath() {
-        return modelPath;
-    }
-
     public Vector2f getDimensions() {
         return dimensions;
     }
     
-    public Node generateModel(AssetManager assetManager) {
-        Node model = (Node)assetManager.loadModel(modelPath);
-        params.setTextures(model, assetManager);
-        return model;
+    public BattleViewInfo getViewInfo() {
+        return viewInfo;
+    }
+    
+    public BoxMetadata constructMetadata() {
+        return new BoxMetadata(
+            dimensions,
+            viewInfo.getLeftEdgePositionPercent(),
+            viewInfo.getRightEdgePositionPercent(),
+            viewInfo.getTopEdgePositionPercent(),
+            viewInfo.getBottomEdgePositionPercent()
+        );
+    }
+
+    public BattleEnvironment generateBattleEnvironment(AssetManager assetManager) {
+        Vector3f envCamPos = new Vector3f(
+            (viewInfo.getRightEdgePositionPercent() + viewInfo.getLeftEdgePositionPercent()) / 2f, 
+            dimensions.y / 2f, 
+            viewInfo.getEnvCamPosZ()
+        );
+        
+        System.out.println("envCamPos: " + envCamPos);
+        /*
+            BattleEnvironment environment = new BattleEnvironment(assetManager, viewInfo.getModelPath(), envCamPos);
+            Node model = environment.getTerrainModel();
+            params.setTextures(model, assetManager);
+        */
+        
+        return new BattleEnvironment(assetManager, viewInfo.getModelPath(), envCamPos);
     }
     
     public static class TextureSettings {

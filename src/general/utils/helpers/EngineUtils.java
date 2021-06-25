@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general.utils;
+package general.utils.helpers;
 
 import com.atr.jme.font.shape.TrueTypeNode;
 import com.google.gson.Gson;
@@ -47,17 +47,37 @@ public class EngineUtils {
         Z
     }
     
-    //center by setting local scale
     public static Vector3f centerEntity(Vector3f entityDimensions, Vector3f backgroundDimensions, List<CenterAxis> centerAxes) {
         float centerX = (backgroundDimensions.x - entityDimensions.x) / 2f;
         float centerY = (backgroundDimensions.y - entityDimensions.y) / 2f;
         float centerZ = (backgroundDimensions.z - entityDimensions.z) / 2f;
         return new Vector3f
         (
-            centerAxes.contains(CenterAxis.X) ? centerX : 0,
-            centerAxes.contains(CenterAxis.Y) ? centerY : 0,
-            centerAxes.contains(CenterAxis.Z) ? centerZ : 0
+            centerAxes.contains(CenterAxis.X) ? centerX : 0f,
+            centerAxes.contains(CenterAxis.Y) ? centerY : 0f,
+            centerAxes.contains(CenterAxis.Z) ? centerZ : 0f
         );
+    }
+    
+    public static Vector3f deltaToCenter(Vector3f entityPos, Vector3f entityDimensions, Vector3f bgDimensions, Vector3f bgPos, List<CenterAxis> axes) {
+        // offset = bgPos - entityPos + ((bgDimensions - entityDimensions) / 2)
+        Vector3f offset = bgPos.subtract(entityPos).add((bgDimensions.subtract(entityDimensions)).divide(2f));
+        
+        return new Vector3f
+        (
+            axes.contains(CenterAxis.X) ? offset.x : 0f,
+            axes.contains(CenterAxis.Y) ? offset.y : 0f,
+            axes.contains(CenterAxis.Z) ? offset.z : 0f
+        );
+    }
+    
+    public static void center(Spatial entity, Vector3f entityDimensions, Vector3f bgDimensions, Vector3f bgPos, List<CenterAxis> axes) {
+        entity.move(deltaToCenter(entity.getLocalTranslation(), entityDimensions, bgDimensions, bgPos, axes));
+    }
+    
+    public static void center(Spatial entity, Spatial bg, Vector3f entityDimensions, Vector3f bgDimensions, List<CenterAxis> axes) {
+        Vector3f worldOffset = deltaToCenter(entity.getWorldTranslation(), entityDimensions, bgDimensions, bg.getWorldTranslation(), axes);
+        entity.move(entity.worldToLocal(worldOffset, null));
     }
     
     public static Vector3f generateBoundsToCenter(TrueTypeNode label) {

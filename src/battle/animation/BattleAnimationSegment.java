@@ -57,7 +57,7 @@ public class BattleAnimationSegment {
         
         if (!concurrent) {
             VisibleEntityAnimation entityAnimation = firstUnfinishedAnimation();
-            if (entityAnimation == lastAnimation) {
+            if (entityAnimation == lastAnimation) { //real impacts only occur on the last animation
                 return lastAnimation.impactOccured();
             }
             

@@ -85,10 +85,9 @@ public class StrikeTheater {
         }
         
         for (int i = 0; i < strikes.size(); ++i) {
+            actualStrikes.add(strikes.get(i));
             if (getParticipantHP(Participant.Victim, i) == 0) { //if someone died, stop the loop
                 break;
-            } else { //if nobody died, add strikes to actualStrikes
-                actualStrikes.add(strikes.get(i));
             }
         }
     }
@@ -133,6 +132,27 @@ public class StrikeTheater {
         } 
         
         return null;
+    }
+    
+    public List<Strike> getActualStrikesFrom(int strikeIndex) {
+        List<Strike> actual = new ArrayList<>();
+        int HP = getParticipantHP(Participant.Victim, strikeIndex);
+        
+        if (HP == 0) {
+            return actual;
+        }
+        
+        Strike strike = strikes.get(strikeIndex);
+        actual.add(strike);
+        for (Strike stk : strike.getExtraStrikes()) {
+            actual.add(stk);
+            HP -= stk.getDamage();
+            if (HP <= 0) {
+                break;
+            }
+        }
+        
+        return actual;
     }
     
     public final int getParticipantHP(Participant participant, int strikeIndex) {

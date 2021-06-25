@@ -40,7 +40,7 @@ public class Strike {
         this.info = info;
         this.isSkill = isSkill;
         
-        calculateData();
+        calculateData(false);
     }
     
     private Strike(Combatant striker, Combatant victim, boolean isSkill) {
@@ -48,7 +48,7 @@ public class Strike {
         this.victim = new StrikeParticipant(victim);
         this.isSkill = isSkill;
         
-        simpleCalculateData();
+        calculateData(true);
     }
     
     public StrikeParticipant getStriker() { return striker; }
@@ -73,18 +73,6 @@ public class Strike {
         return all;
     }
     
-    private void applyBattleTalents() {
-        damage = striker.applyBattleTalents(damage, victim, info, extraStrikes, true);
-        damage = victim.applyBattleTalents(damage, striker, info, extraStrikes, false);
-    }
-    
-    private void applySkill() {
-        Combatant cStriker = striker.combatant, cVictim = victim.combatant;
-        
-        Skill skill = cStriker.getUnit().getToUseSkill();
-        extraStrikes.addAll(skill.getEffect().calculateExtraStrikes(cStriker, cVictim));
-    }
-    
     public void apply() {
         victim.applyLosses();
         striker.applyLosses();
@@ -101,8 +89,21 @@ public class Strike {
         }
     }
     
-    //realtime strike
-    private void calculateData() {
+    private void applyBattleTalents() {
+        damage = striker.applyBattleTalents(damage, victim, info, extraStrikes, true);
+        damage = victim.applyBattleTalents(damage, striker, info, extraStrikes, false);
+    }
+    
+    private void applySkill() {
+        Combatant cStriker = striker.combatant, cVictim = victim.combatant;
+        
+        Skill skill = cStriker.getUnit().getToUseSkill();
+        extraStrikes.addAll(skill.getEffect().calculateExtraStrikes(cStriker, cVictim));
+        
+        //TODO: do more here
+    }
+    
+    private void calculateData(boolean simple) {
         Combatant cStriker = striker.combatant, cVictim = victim.combatant;
         
         displayedAccuracy = cStriker.getBattleStat(BattleStat.Accuracy) - cVictim.getBattleStat(BattleStat.Evasion);
@@ -114,7 +115,7 @@ public class Strike {
         
         int critRN = (int)(1 + (Math.random() * 100));
         
-        if (isSkill) {
+        if (isSkill && !simple) {
             applySkill();
         }
         
@@ -125,54 +126,29 @@ public class Strike {
             
             damage = cStriker.getDefaultDamage();
             
-            //IN BETWEEN: FACTOR IN BATTLE TALENTS OR SKILLS BUT NOT BOTH AT ONCE
-            applyBattleTalents();
+            if (!simple) {
+                //IN BETWEEN: FACTOR IN BATTLE TALENTS OR SKILLS BUT NOT BOTH AT ONCE
+                applyBattleTalents();
+            }
             
             if (critRN <= cStriker.getBattleStat(BattleStat.Crit)) {
                 didCrit = true;
                 damage *= 2; //crit modifier
-            } else { didCrit = false; }
+            } else { 
+                didCrit = false; 
+            }
         } else {
             //it missed
             didHit = false;
             didCrit = false;
+            damage = 0;
             striker.durabilityChange -= 0.5f;
         }
+        
+        victim.hpLoss += damage;
+        //TODO: do more here
     }
     
-
-    private void simpleCalculateData() {
-        Combatant cStriker = striker.combatant, cVictim = victim.combatant;
-        
-        displayedAccuracy = cStriker.getBattleStat(BattleStat.Accuracy) - cVictim.getBattleStat(BattleStat.Evasion);
-        actualAccuracy = 10 * displayedAccuracy;
-        int RN = (int)(1 + Math.random() * 1000);
-        if (displayedAccuracy >= 60) {
-            actualAccuracy = (float)((displayedAccuracy * 100) + ((40/3.0) * displayedAccuracy * Math.sin((0.017 * displayedAccuracy) - 1)));
-        }
-        
-        int critRN = (int)(1 + (Math.random() * 100));
-        
-        if (RN <= actualAccuracy) {
-            //it hit
-            didHit = true;
-            striker.durabilityChange -= 1.0f;
-
-            damage = cStriker.getDefaultDamage();
-            
-            //simple; no skill or talent modifiers
-            
-            if (critRN <= cStriker.getBattleStat(BattleStat.Crit)) {
-                didCrit = true;
-                damage *= 2; //crit modifier
-            } else { didCrit = false; }
-        } else {
-            //it missed
-            didHit = false;
-            didCrit = false;
-            striker.durabilityChange -= 0.5f;
-        }
-    }
     
     //does not take into account skills and talents
     public static Strike SimpleStrike(Combatant striker, Combatant victim, boolean isSkill) {

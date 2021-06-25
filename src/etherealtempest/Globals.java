@@ -5,7 +5,9 @@
  */
 package etherealtempest;
 
-import general.GameTimer;
+import com.jme3.app.state.AppStateManager;
+import com.jme3.math.Vector3f;
+import general.tools.GameTimer;
 import general.procedure.ProcedureGroup;
 import general.procedure.functional.SimpleProcedure;
 import java.util.concurrent.Callable;
@@ -16,21 +18,13 @@ import java.util.concurrent.Future;
  * @author night
  */
 public class Globals {
-    static Main app;
     static final GameTimer timer = new GameTimer();
     static final ProcedureGroup tasks = new ProcedureGroup();
+    static Main app;
     
     static void update(float tpf) {
         tasks.update(tpf);
         timer.update(tpf);
-    }
-    
-    public static <V> Future<V> enqueue(Callable<V> callable) {
-        return app.enqueue(callable);
-    }
-    
-    public static void enqueue(Runnable runnable) {
-        app.enqueue(runnable);
     }
     
     public static int frameCount() {
@@ -45,6 +39,14 @@ public class Globals {
         tasks.add(task);
     }
     
+    public static <V> Future<V> enqueue(Callable<V> callable) {
+        return app.enqueue(callable);
+    }
+    
+    public static void enqueue(Runnable runnable) {
+        app.enqueue(runnable);
+    }
+    
     public static int getScreenWidth() {
         return app.accessSettings().getWidth();
     }
@@ -53,4 +55,11 @@ public class Globals {
         return app.accessSettings().getHeight();
     }
     
+    public static Vector3f getScreenDimensions() {
+        return new Vector3f(app.accessSettings().getWidth(), app.accessSettings().getHeight(), 0);
+    }
+    
+    public static AppStateManager getStateManager() {
+        return app.getStateManager();
+    }
 }

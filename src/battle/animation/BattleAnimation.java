@@ -34,12 +34,16 @@ public class BattleAnimation {
         return index;
     }
     
+    public int getSegmentCount() {
+        return segments.size();
+    }
+    
     public BattleAnimationSegment getCurrentSegment() {
         return segments.get(index);
     }
     
     public boolean isFinished() {
-        return index == segments.size() - 1 && segments.get(index).isFinished();
+        return index >= segments.size() || (index == segments.size() - 1 && segments.get(index).isFinished());
     }
     
     public boolean isPaused() { 
@@ -121,6 +125,10 @@ public class BattleAnimation {
             } else {
                 getCurrentTask().resume();
             }
+        }
+        
+        public void resetStarted() { 
+            started = false; 
         }
         
         public void resetCurrentAnimation() {

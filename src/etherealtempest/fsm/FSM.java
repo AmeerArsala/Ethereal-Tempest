@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package etherealtempest;
+package etherealtempest.fsm;
 
 import com.jme3.math.ColorRGBA;
 import maps.layout.occupant.Cursor;
@@ -88,20 +88,32 @@ public abstract class FSM<T extends Enum> {
     public enum CursorState {
         //Cursor states
         CursorDefault(Cursor.DEFAULT_COLOR),
-        AnyoneHovered(Cursor.DEFAULT_COLOR),
-        AnyoneSelected(Cursor.SELECTING_MOVE_SQUARE),
+        AnyoneHovered(Cursor.DEFAULT_COLOR, 0.5f),
+        AnyoneSelected(Cursor.SELECTING_MOVE_SQUARE, 0.85f),
         AnyoneMoving(Cursor.DEFAULT_COLOR),
         AnyoneSelectingTarget(Cursor.SELECTING_ATTACK_TARGET),
         AnyoneTargeted(Cursor.DEFAULT_COLOR),
         Idle(Cursor.MISC_COLOR);
         
         private final ColorRGBA correspondingColor;
+        private final float tileOpacity;
+        
         private CursorState(ColorRGBA color) {
             correspondingColor = color;
+            tileOpacity = 0f;
+        }
+        
+        private CursorState(ColorRGBA color, float opacity) {
+            correspondingColor = color;
+            tileOpacity = opacity;
         }
         
         public ColorRGBA getCorrespondingColor() {
             return correspondingColor;
+        }
+        
+        public float getCorrespondingTileOpacity() {
+            return tileOpacity;
         }
     }
     

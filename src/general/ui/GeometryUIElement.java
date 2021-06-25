@@ -8,6 +8,7 @@ package general.ui;
 import com.jme3.material.Material;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 
 /**
  *
@@ -19,7 +20,7 @@ public class GeometryUIElement extends GeometryPanel {
     private Vector3f paddingDiff = new Vector3f(0f, 0f, 0f);
     
     public GeometryUIElement(float width, float height, Material mat, Padding padding) {
-        super(width, height);
+        super(width, height, Bucket.Gui);
         this.mat = mat;
         this.padding = padding;
         initialize();
@@ -36,7 +37,9 @@ public class GeometryUIElement extends GeometryPanel {
         move(paddingDiff); // apply new vector
     }
     
+    @Override
     public Material getMaterial() { return mat; }
+    
     public Padding getPadding() { return padding; }
     
     @Override

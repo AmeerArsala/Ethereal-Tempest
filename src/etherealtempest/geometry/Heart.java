@@ -20,7 +20,7 @@ import general.math.function.MathFunction;
 import general.math.function.ParametricFunction;
 import general.math.function.ParametricFunction4f;
 import general.math.function.RGBAFunction;
-import general.utils.MathUtils;
+import general.utils.helpers.MathUtils;
 import java.util.ArrayList;
 import java.util.List;
 

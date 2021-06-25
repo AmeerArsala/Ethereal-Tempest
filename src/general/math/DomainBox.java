@@ -37,7 +37,7 @@ public class DomainBox {
     }
     
     public boolean pointIsWithinBox(Vector2f realPoint) {
-        return (realPoint.x >= domainX.a && realPoint.x <= domainX.b) && (realPoint.x >= domainY.a && realPoint.x <= domainY.b);
+        return (realPoint.x >= domainX.a && realPoint.x <= domainX.b) && (realPoint.y >= domainY.a && realPoint.y <= domainY.b);
     }
     
     public Vector2f getDimensions() {
@@ -94,5 +94,10 @@ public class DomainBox {
     
     public DomainBox generateEquivalentInstance() {
         return new DomainBox(domainX.newEquivalentInstance(), domainY.newEquivalentInstance());
+    }
+    
+    @Override
+    public String toString() {
+        return "x: [" + domainX + "], " + "y: [" + domainY + "]";  
     }
 }

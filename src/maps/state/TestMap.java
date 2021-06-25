@@ -5,9 +5,10 @@
  */
 package maps.state;
 
-import battle.BattleBox;
+import battle.environment.BattleBox;
 import battle.Fight;
 import battle.data.forecast.PrebattleForecast;
+import battle.environment.BattleViewInfo;
 import etherealtempest.info.Catalog;
 import etherealtempest.info.Conveyor;
 import com.atr.jme.font.asset.TrueTypeLoader;
@@ -59,16 +60,15 @@ import maps.layout.occupant.Cursor;
 import maps.layout.MapLevel;
 import maps.ui.StatScreen;
 import maps.layout.occupant.character.TangibleUnit;
-import etherealtempest.FSM;
-import etherealtempest.FSM.CursorState;
-import etherealtempest.FSM.MapFlowState;
-import etherealtempest.FSM.UnitState;
-import etherealtempest.FsmState;
+import etherealtempest.fsm.FSM;
+import etherealtempest.fsm.FSM.CursorState;
+import etherealtempest.fsm.FSM.MapFlowState;
+import etherealtempest.fsm.FSM.UnitState;
+import etherealtempest.fsm.FsmState;
 import etherealtempest.Globals;
 import etherealtempest.Main;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import fundamental.unit.UnitAllegiance;
-import fundamental.formula.Formula;
 import fundamental.unit.CharacterUnitInfo;
 import general.procedure.ProcedureGroup;
 import java.util.HashMap;
@@ -76,8 +76,7 @@ import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
 import maps.layout.MapData;
 import maps.layout.occupant.MapEntity;
-import fundamental.unit.PositionedUnitParameters;
-import maps.layout.Coords;
+import fundamental.unit.PositionedUnitParams;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
 import maps.layout.tile.Tile;
@@ -95,7 +94,7 @@ public class TestMap extends AbstractAppState {
     private final AnalogListener analogListener;
     private final AppSettings settings;
     
-    private Camera cam, fightCam;
+    private Camera cam;
     private AssetManager assetManager;
     private AppStateManager stManager;
     private RenderManager renderManager;
@@ -103,7 +102,7 @@ public class TestMap extends AbstractAppState {
      
     private EffekseerRenderer effekseerRenderer;
     private FlyByCamera flCam;
-    private Savable savestate;
+    //private Savable savestate;
     
     //private Node battleScene;
     protected MapLevel map00;
@@ -188,7 +187,7 @@ public class TestMap extends AbstractAppState {
                     stats.resolveInput(name, tpf);
                     if (stats.getState().getEnum() == MapFlowState.GuiClosed) { 
                         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault).setAssetManager(assetManager));
-                        mapFlow.getCursor().setStateIfAllowed(CursorState.CursorDefault);
+                        mapFlow.getCursor().getFSM().setNewStateIfAllowed(CursorState.CursorDefault);
                     }
                 }
                 
@@ -198,12 +197,12 @@ public class TestMap extends AbstractAppState {
                         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault).setAssetManager(assetManager));
                         stats.forceState(MapFlowState.StatScreenOpened);
                         stats.startUnitViewGUI(mapFlow.getCursor().getCurrentTile(map00).getOccupier(), mapFlow.constructConveyor());
-                        mapFlow.getCursor().forceState(CursorState.Idle);
+                        mapFlow.getCursor().getFSM().forceState(CursorState.Idle);
                         return;
                     }
                 }
                 
-                if (mapFlow.getCursor().getState().getEnum() != CursorState.Idle && stats.getState().getEnum() == MapFlowState.GuiClosed && !postAction.isOpen()) {
+                if (mapFlow.getCursor().getFSM().getEnumState() != CursorState.Idle && stats.getState().getEnum() == MapFlowState.GuiClosed && !postAction.isOpen()) {
                     //cursor action
                     MasterFsmState test = mapFlow.getCursor().resolveInput(name, tpf, keyPressed);
                     if (test != null) {
@@ -212,7 +211,7 @@ public class TestMap extends AbstractAppState {
                 } else if (postAction.isOpen() && keyPressed) {
                     //postActionMenu action
                     if (name.equals("select")) {
-                        mapFlow.getCursor().forceState(CursorState.Idle);
+                        mapFlow.getCursor().getFSM().forceState(CursorState.Idle);
                     }
                     
                     MasterFsmState change = postAction.resolveInput(name, keyPressed, tpf);
@@ -222,45 +221,14 @@ public class TestMap extends AbstractAppState {
                 }
                 
                 //testing purposes w/ camera during battle
-                if (fsm.getState().getEnum() == MapFlowState.DuringBattle) {
+                if (fsm.getEnumState() == MapFlowState.DuringBattle) {
                     mapFlow.getCurrentFight().resolveInput(name, tpf, keyPressed);
                 }
                 
                 //all the below inputs are for testing purposes
-                if (name.equals("F")) {
+                /*if (name.equals("F")) {
                     flCam.setEnabled(keyPressed);
-                }
-                
-                if (name.equals("S") && keyPressed) {
-                    if (fightCam != null) {
-                        fightCam.setLocation(fightCam.getLocation().add(0, 0, 1));
-                    }
-                }
-                if (name.equals("A") && keyPressed) {
-                    if (fightCam != null) {
-                        fightCam.setLocation(fightCam.getLocation().add(-1, 0, 0));
-                    }
-                }
-                if (name.equals("W") && keyPressed) {
-                    if (fightCam != null) {
-                        fightCam.setLocation(fightCam.getLocation().add(0, 0, -1));
-                    }
-                }
-                if (name.equals("D") && keyPressed) {
-                    if (fightCam != null) {
-                        fightCam.setLocation(fightCam.getLocation().add(1, 0, 0));
-                    }
-                }
-                if (name.equals("spacebar") && keyPressed) {
-                    if (fightCam != null) {
-                        fightCam.setLocation(fightCam.getLocation().add(0, 1, 0));
-                    }
-                }
-                if (name.equals("lshift") && keyPressed) {
-                    if (fightCam != null) {
-                        fightCam.setLocation(fightCam.getLocation().add(0, -1, 0));
-                    }
-                }
+                }*/
             }
         };
     }
@@ -276,13 +244,15 @@ public class TestMap extends AbstractAppState {
         rootNode.attachChild(localRootNode);
         guiNode.attachChild(localGuiNode);
         
-        /*Texture up = assetManager.loadTexture("Textures/skybox/top.png");
+        /*
+        Texture up = assetManager.loadTexture("Textures/skybox/top.png");
         Texture down = assetManager.loadTexture("Textures/skybox/bottom.png");
         Texture north = assetManager.loadTexture("Textures/skybox/north.png");
         Texture south = assetManager.loadTexture("Textures/skybox/south.png");
         Texture east = assetManager.loadTexture("Textures/skybox/east.png");
         Texture west = assetManager.loadTexture("Textures/skybox/west.png");
-        rootNode.attachChild(SkyFactory.createSky(assetManager, west, east, north, south, up, down));*/
+        rootNode.attachChild(SkyFactory.createSky(assetManager, west, east, north, south, up, down));
+        */
         
         /*Texture skyboxTex = assetManager.loadTexture("Textures/skybox/skybox2.png");
         
@@ -291,10 +261,10 @@ public class TestMap extends AbstractAppState {
         skybox.setCullHint(CullHint.Never);
         rootNode.attachChild(skybox);*/
         
-        localGuiNode.setLocalTranslation(0, Globals.getScreenHeight(), 0);
+        //localGuiNode.setLocalTranslation(0, Globals.getScreenHeight(), 0);
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
-        postAction.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, Globals.getScreenHeight() / -1.7f, postAction.getNode().getLocalTranslation().z);
+        postAction.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, (7 / 17f) * Globals.getScreenHeight(), postAction.getNode().getLocalTranslation().z);
         
         effekseerRenderer = EffekseerRenderer.addToViewPort(stManager, app0.getViewPort(), assetManager, settings.isGammaCorrection());
         
@@ -306,8 +276,6 @@ public class TestMap extends AbstractAppState {
         
         initializeMappings();
         initializeMap();
-        
-       mapFlow.getCursor().setPosition(mapFlow.getUnits().get(0).getPos()); //change position later
     }
     
     public void initializeMap() {
@@ -326,26 +294,25 @@ public class TestMap extends AbstractAppState {
         //initialize what's going on in the map
         mapFlow.initialize((ArrayList<TangibleUnit> units, List<MapEntity> mapEntities) -> {
             
-            units.add
-            (new TangibleUnit
-                (
+            units.add(
+                new TangibleUnit(
                     Catalog.UNIT_Morva(),
                     new CharacterUnitInfo("Morva.png"),
-                    new PositionedUnitParameters().hasStashAccess(true).isLeader(true),
+                    new PositionedUnitParams().hasStashAccess(true).isLeader(true),
                     UnitAllegiance.Player,
                     assetManager
                 )
             );
             
-            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParameters(), UnitAllegiance.Player, assetManager));
+            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Player, assetManager));
             
-            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParameters(), UnitAllegiance.Enemy, assetManager));
+            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
             
-            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParameters(), UnitAllegiance.Enemy, assetManager));
+            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
             
-            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParameters(), UnitAllegiance.Enemy, assetManager));
+            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
             
-            units.add(new TangibleUnit(Catalog.UNIT_EvilMorva(), new CharacterUnitInfo("RedTintedMorva.png"), new PositionedUnitParameters(), UnitAllegiance.Enemy, assetManager));
+            units.add(new TangibleUnit(Catalog.UNIT_EvilMorva(), new CharacterUnitInfo("RedTintedMorva.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
             
             int layer = 0;
             for (int k = 0; k < units.size(); k++) {
@@ -368,72 +335,76 @@ public class TestMap extends AbstractAppState {
         cam.setRotation(cameraRotation);
         
         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault));
+        
+        mapFlow.getCursor().setPosition(mapFlow.getUnits().get(0).getPos()); //change position later
         mapFlow.goToNextPhase();
+        
     }
     
     public void initializeMappings() {
-            inputManager.addMapping("move up", new KeyTrigger(KeyInput.KEY_UP));
-            inputManager.addMapping("move down", new KeyTrigger(KeyInput.KEY_DOWN));
-            inputManager.addMapping("move left", new KeyTrigger(KeyInput.KEY_LEFT));
-            inputManager.addMapping("move right", new KeyTrigger(KeyInput.KEY_RIGHT));
-            inputManager.addMapping("select", new KeyTrigger(KeyInput.KEY_X));
-            inputManager.addMapping("deselect", new KeyTrigger(KeyInput.KEY_Z));
-            inputManager.addMapping("C", new KeyTrigger(KeyInput.KEY_C));
-            inputManager.addMapping("saveState", new KeyTrigger(KeyInput.KEY_K));
-            inputManager.addMapping("loadLastState", new KeyTrigger(KeyInput.KEY_L));
-            inputManager.addMapping("bump left", new KeyTrigger(KeyInput.KEY_Q));
-            inputManager.addMapping("bump right", new KeyTrigger(KeyInput.KEY_E));
-            inputManager.addMapping("W", new KeyTrigger(KeyInput.KEY_W));
-            inputManager.addMapping("A", new KeyTrigger(KeyInput.KEY_A));
-            inputManager.addMapping("S", new KeyTrigger(KeyInput.KEY_S));
-            inputManager.addMapping("D", new KeyTrigger(KeyInput.KEY_D));
-            inputManager.addMapping("spacebar", new KeyTrigger(KeyInput.KEY_SPACE));
-            inputManager.addMapping("lshift", new KeyTrigger(KeyInput.KEY_LSHIFT));
-            inputManager.addMapping("F", new KeyTrigger(KeyInput.KEY_F));
-            inputManager.addMapping("left click", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-            inputManager.addMapping("right click", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
-            inputManager.addMapping("scroll up", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
-            inputManager.addMapping("scroll down", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true));
-            inputManager.addMapping("mouse move left", new MouseAxisTrigger(MouseInput.AXIS_X, false));
-            inputManager.addMapping("mouse move right", new MouseAxisTrigger(MouseInput.AXIS_X, true));
-            inputManager.addMapping("mouse move up", new MouseAxisTrigger(MouseInput.AXIS_Y, true));
-            inputManager.addMapping("mouse move down", new MouseAxisTrigger(MouseInput.AXIS_Y, false));
+        inputManager.addMapping("move up", new KeyTrigger(KeyInput.KEY_UP));
+        inputManager.addMapping("move down", new KeyTrigger(KeyInput.KEY_DOWN));
+        inputManager.addMapping("move left", new KeyTrigger(KeyInput.KEY_LEFT));
+        inputManager.addMapping("move right", new KeyTrigger(KeyInput.KEY_RIGHT));
+        inputManager.addMapping("select", new KeyTrigger(KeyInput.KEY_X));
+        inputManager.addMapping("deselect", new KeyTrigger(KeyInput.KEY_Z));
+        inputManager.addMapping("C", new KeyTrigger(KeyInput.KEY_C));
+        inputManager.addMapping("K", new KeyTrigger(KeyInput.KEY_K));
+        inputManager.addMapping("L", new KeyTrigger(KeyInput.KEY_L));
+        inputManager.addMapping("bump left", new KeyTrigger(KeyInput.KEY_Q));
+        inputManager.addMapping("bump right", new KeyTrigger(KeyInput.KEY_E));
+        inputManager.addMapping("W", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping("A", new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping("S", new KeyTrigger(KeyInput.KEY_S));
+        inputManager.addMapping("D", new KeyTrigger(KeyInput.KEY_D));
+        inputManager.addMapping("spacebar", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("lshift", new KeyTrigger(KeyInput.KEY_LSHIFT));
+        inputManager.addMapping("F", new KeyTrigger(KeyInput.KEY_F));
+        inputManager.addMapping("enter", new KeyTrigger(KeyInput.KEY_RETURN));
+        inputManager.addMapping("left click", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addMapping("right click", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        inputManager.addMapping("scroll up", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
+        inputManager.addMapping("scroll down", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true));
+        inputManager.addMapping("mouse move left", new MouseAxisTrigger(MouseInput.AXIS_X, false));
+        inputManager.addMapping("mouse move right", new MouseAxisTrigger(MouseInput.AXIS_X, true));
+        inputManager.addMapping("mouse move up", new MouseAxisTrigger(MouseInput.AXIS_Y, true));
+        inputManager.addMapping("mouse move down", new MouseAxisTrigger(MouseInput.AXIS_Y, false));
             
-            inputManager.addListener(actionListener, "move up");
-            inputManager.addListener(actionListener, "move down");
-            inputManager.addListener(actionListener, "move left");
-            inputManager.addListener(actionListener, "move right");
+        inputManager.addListener(actionListener, "move up");
+        inputManager.addListener(actionListener, "move down");
+        inputManager.addListener(actionListener, "move left");
+        inputManager.addListener(actionListener, "move right");
             
-            inputManager.addListener(actionListener, "W");
-            inputManager.addListener(actionListener, "A");
-            inputManager.addListener(actionListener, "S");
-            inputManager.addListener(actionListener, "D");
-            inputManager.addListener(actionListener, "spacebar");
-            inputManager.addListener(actionListener, "lshift");
+        inputManager.addListener(actionListener, "W");
+        inputManager.addListener(actionListener, "A");
+        inputManager.addListener(actionListener, "S");
+        inputManager.addListener(actionListener, "D");
+        inputManager.addListener(actionListener, "spacebar");
+        inputManager.addListener(actionListener, "lshift");
+        inputManager.addListener(actionListener, "F");
+        inputManager.addListener(actionListener, "enter");
             
-            inputManager.addListener(actionListener, "F");
+        inputManager.addListener(actionListener, "select");
+        inputManager.addListener(actionListener, "deselect");
+        inputManager.addListener(actionListener, "C");
+        inputManager.addListener(actionListener, "K");
+        inputManager.addListener(actionListener, "L");
+        inputManager.addListener(actionListener, "bump left");  // LB
+        inputManager.addListener(actionListener, "bump right"); // RB
             
-            inputManager.addListener(actionListener, "select");
-            inputManager.addListener(actionListener, "deselect");
-            inputManager.addListener(actionListener, "C");
-            inputManager.addListener(actionListener, "saveState");
-            inputManager.addListener(actionListener, "loadLastState");
-            inputManager.addListener(actionListener, "bump left"); //lb
-            inputManager.addListener(actionListener, "bump right"); //rb
+        inputManager.addListener(actionListener, "left click");
+        inputManager.addListener(analogListener, "left click");
             
-            inputManager.addListener(actionListener, "left click");
-            inputManager.addListener(analogListener, "left click");
+        inputManager.addListener(actionListener, "right click");
+        inputManager.addListener(analogListener, "right click");
             
-            inputManager.addListener(actionListener, "right click");
-            inputManager.addListener(analogListener, "right click");
+        inputManager.addListener(analogListener, "scroll up");
+        inputManager.addListener(analogListener, "scroll down");
             
-            inputManager.addListener(analogListener, "scroll up");
-            inputManager.addListener(analogListener, "scroll down");
-            
-            inputManager.addListener(analogListener, "mouse move left");
-            inputManager.addListener(analogListener, "mouse move right");
-            inputManager.addListener(analogListener, "mouse move up");
-            inputManager.addListener(analogListener, "mouse move down");
+        inputManager.addListener(analogListener, "mouse move left");
+        inputManager.addListener(analogListener, "mouse move right");
+        inputManager.addListener(analogListener, "mouse move up");
+        inputManager.addListener(analogListener, "mouse move down");
     }
     
     @Override
@@ -479,8 +450,8 @@ public class TestMap extends AbstractAppState {
         childToTextureMap.put("rightRock", "Textures/battle/test/cliff.png");
         
         BattleBox battleBox = new BattleBox(
-            "Scenes/Battle/battletest5.j3o",
-            new Vector2f(50f, 20f), //battleBoxDimensions
+            new Vector2f(15f, 6f), //battleBoxDimensions
+            BattleViewInfo.deserialize("forgottenpillar.json"),
             new BattleBox.TextureSettings(
                 childToTextureMap, 
                 "LightMap", 
@@ -514,7 +485,7 @@ public class TestMap extends AbstractAppState {
                 }
                 
                 //if no more deaths are being applied, go back to normal
-                mapFlow.getCursor().setStateIfAllowed(CursorState.CursorDefault);
+                mapFlow.getCursor().getFSM().setNewStateIfAllowed(CursorState.CursorDefault);
                 fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.PostBattle).setAssetManager(assetManager));
                 return true;
             });
@@ -530,6 +501,7 @@ public class TestMap extends AbstractAppState {
         */
         
         rootNode.detachChild(localRootNode);
+        flCam.setEnabled(true);
         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.DuringBattle).setAssetManager(assetManager));
     }
     

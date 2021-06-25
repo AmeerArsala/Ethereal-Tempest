@@ -9,9 +9,9 @@ import etherealtempest.info.Conveyor;
 import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;
 import com.simsilica.lemur.Panel;
-import etherealtempest.FSM;
-import etherealtempest.FSM.MapFlowState;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.FSM;
+import etherealtempest.fsm.FSM.MapFlowState;
+import etherealtempest.fsm.MasterFsmState;
 import general.math.FloatPair;
 import general.math.function.MathFunction;
 import general.math.function.ParametricFunction;
@@ -34,7 +34,7 @@ public class ActionMenu {
     public static final String STANDBY = "Interface/GUI/action_menu/option_icons/Standby.png";
     public static final String CHAIN_ATTACK = "Interface/GUI/action_menu/option_icons/Chain Attack.png";
     
-    private static final FloatPair SHAKE_DOMAIN = new FloatPair(0f); // Domain: [0f, infinity)
+    private static final FloatPair SHAKE_DOMAIN = new FloatPair(0f, Float.POSITIVE_INFINITY); // Domain: [0f, infinity)
     private static final FloatPair SHAKE_RANGE = new FloatPair(-2f, 2f); // Range: [-2f, 2f] 
     public static final RandomizedPiecewiseFunction SHAKE_PARAM = new RandomizedPiecewiseFunction(SHAKE_DOMAIN, SHAKE_RANGE, MathFunction.CONSTANT(1f), false); //1-second partitions
     public static final RandomizedPiecewiseFunction SHAKE_PARAM2 = new RandomizedPiecewiseFunction(SHAKE_DOMAIN, SHAKE_RANGE, MathFunction.CONSTANT(1f), false);

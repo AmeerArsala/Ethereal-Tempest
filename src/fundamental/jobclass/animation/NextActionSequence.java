@@ -9,6 +9,7 @@ import battle.animation.BattleAnimation;
 import battle.animation.BattleAnimationSegment;
 import battle.animation.SpriteAnimationParams;
 import battle.animation.VisibleEntityAnimation;
+import battle.animation.config.EntityAnimation;
 import com.jme3.scene.Node;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +54,14 @@ public class NextActionSequence {
             
             ++i;
         } while (i < nextActions.size());
+        
+        for (BattleAnimationSegment BAS : battleAnimationSegments) {
+            for (VisibleEntityAnimation anim : BAS.getEntityAnimations()) {
+                if (anim.getInfo().getImpact() != null) {
+                    System.err.println("Impact found!");
+                }
+            }
+        }
         
         return battleAnimationSegments;
     }

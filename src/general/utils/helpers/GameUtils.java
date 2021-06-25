@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general.utils;
+package general.utils.helpers;
 
 import com.jme3.math.ColorRGBA;
-import etherealtempest.FSM.UnitState;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.FSM.UnitState;
+import etherealtempest.fsm.MasterFsmState;
 import fundamental.unit.UnitAllegiance;
 import etherealtempest.info.Conveyor;
 import java.util.ArrayList;

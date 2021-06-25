@@ -59,7 +59,16 @@ public class FighterAnimationController {
         Node animationRoot = sprite.getParent();
         NextActionSequence nextSequence = next.run(decisionData);
         
-        currentAnimationQueue.addToQueue(nextSequence.generateBattleAnimation(params, animationRoot), animParams.onUpdate);
+        currentAnimationQueue.addToQueue(
+            nextSequence.generateBattleAnimation(params, animationRoot), 
+            animParams.onUpdate,
+            () -> { //onStart
+                
+            },
+            () -> { //onFinish
+                currentAnimationQueue.resetStarted();
+            }
+        );
     }
     
     private void callAttributeAnimation(ActionDecider.AttributeAnimation next, UpdateLoop onDashUpdate, AnimationParams animParams) {
@@ -92,6 +101,7 @@ public class FighterAnimationController {
     }
     
     public void nextDashAnimation(UpdateLoop onUpdate) {
+        //System.out.println("collision so dash isnt needed? " + sprite.collidesWith(fromOpponent.getSprite()));
         if (animationDecider.getOnDashCalled() != null && !sprite.collidesWith(fromOpponent.getSprite())) {
             callAnimation(
                 animationDecider.getOnDashCalled(), 

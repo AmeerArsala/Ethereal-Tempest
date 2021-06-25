@@ -11,6 +11,8 @@
       }
     }
   ],
+  "loopAnimationVisually": false,
+  "delayForIndefiniteChanges": 0.0,
   "impact": null,
   "otherActionFrames": [
     {
@@ -25,14 +27,14 @@
               "xFunction": "-0.025",
               "yFunction": "-32t + 0.025"
             },
-            "frames": 3
+            "domain": "0-2"
           }
         ],
         "thetaVelocities": [],
         "localScales": [],
         "colors": []
       },
-      "enemyChanges": {
+      "opponentChanges": {
         "velocities": [],
         "thetaVelocities": [],
         "localScales": [],
@@ -51,7 +53,7 @@
               "xFunction": "0.025",
               "yFunction": "-32t + 0.025"
             },
-            "frames": 3
+            "domain": "0-2"
           }
         ],
         "thetaVelocities": [],

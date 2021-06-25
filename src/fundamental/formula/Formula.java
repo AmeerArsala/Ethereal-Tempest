@@ -9,7 +9,7 @@ import battle.animation.config.EntityAnimation.AnimationSource;
 import com.google.gson.Gson;
 import fundamental.stats.Toll;
 import fundamental.stats.Toll.Exchange;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import fundamental.BattleVisual;
 import fundamental.unit.UnitAllegiance;
 import fundamental.tool.DamageTool;

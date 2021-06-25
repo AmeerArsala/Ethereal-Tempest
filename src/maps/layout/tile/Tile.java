@@ -96,10 +96,13 @@ public class Tile extends TileFoundation {
         Material mat = new Material(assetManager, "MatDefs/custom/TileBlend.j3md");
         mat.setTextureParam("TileTexArray", VarType.TextureArray, MapLevel.tileTextures);
         
-        int index = info.getVisuals().getGroundType().getIndex();
+        GroundType groundType = info.getVisuals().getGroundType();
+        int index = groundType.getIndex();
+        
         mat.setInt("CurrentIndex", index);
-        //mat.setTexture("BlendMap", MapLevel.OverflowBlendMap);
-        mat.setFloat("BlendAmplitude", 0.15f);
+        mat.setInt("CurrentPriority", groundType.getBlendPriority());
+        mat.setTexture("BlendMap", MapLevel.OverflowBlendMap);
+        //mat.setFloat("BlendAmplitude", 0.15f);
         
         boolean hasTop = coords.getY() + 1 < bounds.getYLength(coords.getLayer());
         boolean hasBottom = coords.getY() - 1 >= bounds.getMinimumY(coords.getLayer());
@@ -108,8 +111,10 @@ public class Tile extends TileFoundation {
         
         boolean allSame = true;
         if (hasTop) {
-            int topIndex = coords.add(0, 1).getRowYColXfrom(data).getVisuals().getGroundType().getIndex();
+            GroundType topGroundType = coords.add(0, 1).getRowYColXfrom(data).getVisuals().getGroundType();
+            int topIndex = topGroundType.getIndex();
             mat.setInt("TopIndex", topIndex);
+            mat.setInt("TopPriority", topGroundType.getBlendPriority());
             
             if (topIndex != index) {
                 allSame = false;
@@ -117,8 +122,10 @@ public class Tile extends TileFoundation {
         }
         
         if (hasBottom) {
-            int bottomIndex = coords.add(0, -1).getRowYColXfrom(data).getVisuals().getGroundType().getIndex();
+            GroundType bottomGroundType = coords.add(0, -1).getRowYColXfrom(data).getVisuals().getGroundType();
+            int bottomIndex = bottomGroundType.getIndex();
             mat.setInt("BottomIndex", bottomIndex);
+            mat.setInt("BottomPriority", bottomGroundType.getBlendPriority());
             
             if (bottomIndex != index) {
                 allSame = false;
@@ -126,8 +133,10 @@ public class Tile extends TileFoundation {
         }
         
         if (hasLeft) {
-            int leftIndex = coords.add(-1, 0).getRowYColXfrom(data).getVisuals().getGroundType().getIndex();
+            GroundType leftGroundType = coords.add(-1, 0).getRowYColXfrom(data).getVisuals().getGroundType();
+            int leftIndex = leftGroundType.getIndex();
             mat.setInt("LeftIndex", leftIndex);
+            mat.setInt("LeftPriority", leftGroundType.getBlendPriority());
             
             if (leftIndex != index) {
                 allSame = false;
@@ -135,8 +144,10 @@ public class Tile extends TileFoundation {
         }
         
         if (hasRight) {
-            int rightIndex = coords.add(1, 0).getRowYColXfrom(data).getVisuals().getGroundType().getIndex();
+            GroundType rightGroundType = coords.add(1, 0).getRowYColXfrom(data).getVisuals().getGroundType();
+            int rightIndex = rightGroundType.getIndex();
             mat.setInt("RightIndex", rightIndex);
+            mat.setInt("RightPriority", rightGroundType.getBlendPriority());
             
             if (rightIndex != index) {
                 allSame = false;

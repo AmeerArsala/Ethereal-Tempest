@@ -14,7 +14,6 @@ import fundamental.stats.Toll;
 import fundamental.talent.BattleTalent;
 import fundamental.talent.Talent;
 import fundamental.talent.TalentCondition.Occasion;
-import fundamental.unit.CharacterUnitInfo;
 import java.util.List;
 /**
  *

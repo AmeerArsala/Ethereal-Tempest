@@ -5,15 +5,18 @@
  */
 package battle.participant.visual;
 
+import battle.environment.BoxMetadata;
 import general.math.DomainBox;
 import com.jme3.asset.AssetManager;
-import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import general.math.FloatPair;
 import general.math.function.CartesianFunction;
 import general.math.function.MathFunction;
 import general.math.function.ParametricFunction4f;
 import general.math.function.RGBAFunction;
+import general.utils.helpers.MathUtils;
 import general.visual.ModifiedSprite;
 import general.visual.Sprite;
 
@@ -32,20 +35,28 @@ public class BattleSprite extends ModifiedSprite {
         )
     );
     
+    private final BoxMetadata battleBoxInfo;
+    
     private boolean allowDisplacement = true;
     private final boolean usesHitPoint;
     private HitPoint hitPoint = null;
     private Hurtbox hurtbox;
     private Vector2f damageNumberLocation;
     
-    public BattleSprite(Vector2f dimensions, AssetManager assetManager, boolean usesHitPoint) {
+    public BattleSprite(Vector2f dimensions, AssetManager assetManager, BoxMetadata battleBoxInfo, boolean usesHitPoint) {
         super(dimensions, assetManager);
+        this.battleBoxInfo = battleBoxInfo;
         this.usesHitPoint = usesHitPoint;
     }
     
-    public BattleSprite(float width, float height, AssetManager assetManager, boolean usesHitPoint) {
+    public BattleSprite(float width, float height, AssetManager assetManager, BoxMetadata battleBoxInfo, boolean usesHitPoint) {
         super(width, height, assetManager);
+        this.battleBoxInfo = battleBoxInfo;
         this.usesHitPoint = usesHitPoint;
+    }
+    
+    public BoxMetadata getBattleBoxInfo() {
+        return battleBoxInfo;
     }
     
     public boolean allowDisplacementTransformationsFromOpponent() { 
@@ -76,7 +87,7 @@ public class BattleSprite extends ModifiedSprite {
         allowDisplacement = allow;
     }
     
-    public void setHitPointIfAllowed(Vector2f hitPointInPercentage) {
+    public void setHitPointIfAllowed(Vector2f hitPointInPercentage) { //use sprite cell percentage
         if (usesHitPoint) {
             hitPoint = new HitPoint(hitPointInPercentage);
         }
@@ -86,21 +97,54 @@ public class BattleSprite extends ModifiedSprite {
         hurtbox = new Hurtbox(boxInPercentages);
     }
     
-    public boolean collidesWith(Vector2f nonRelativeHitPoint) { //non relative hit point
-        return hurtbox.nonRelativeDomainBox().pointIsWithinBox(nonRelativeHitPoint);
+    public boolean collidesWith(Vector2f percentagePoint) { //point that is a percentage of the box
+        /*
+        DomainBox percentages = hurtbox.toBattleBoxPercentages();
+        System.out.println("<COLLISION_CHECK>");
+        System.out.println("Hitpoint: " + percentagePoint);
+        System.out.println("Hurtbox Domain: " + percentages);
+        System.out.println("Collision Occurs? " + percentages.pointIsWithinBox(percentagePoint));
+        */
+        
+        return hurtbox.toBattleBoxPercentages().pointIsWithinBox(percentagePoint);
     }
     
     public boolean collidesWith(BattleSprite other) {
-        return other.collidesWith(hitPoint.nonRelativePoint());
+        return other.collidesWith(hitPoint.toBattleBoxPercentage());
     }
     
-    public Vector2f getPercentagePosition(Vector2f battleBoxDimensions) { //percentage of battleBox in terms of relative position 
-        Vector3f localTranslation = getLocalTranslation();
-        Vector2f unitVectorPos = new Vector2f(localTranslation.x / battleBoxDimensions.x, localTranslation.y / battleBoxDimensions.y);
+    public Vector2f getPercentagePosition() {
+        return getPercentagePosition(getLocalTranslation(), true);
+    }
+    
+    private Vector2f getPercentagePosition(Vector3f localTranslation, boolean tailorToXFacing) { //percentage of battleBox in terms of relative position 
+        Vector2f unitVectorPos = new Vector2f();
         
-        if (isMirrored()) {
-            return new Vector2f(1.0f - unitVectorPos.x, 1.0f - unitVectorPos.y);
+        if (!tailorToXFacing || xFacing == FACING_RIGHT) {
+            unitVectorPos.x = FastMath.abs(
+                MathUtils.percentDiffFromEdge(
+                    battleBoxInfo.getLeftEdgePositionPercent(), 
+                    battleBoxInfo.horizontalLength(), //used to be battleBoxInfo.getBoxDimensions().x
+                    localTranslation.x
+                )
+            );
+        } else { // xFacing == FACING_LEFT
+            unitVectorPos.x = FastMath.abs(
+                MathUtils.percentDiffFromEdge(
+                    battleBoxInfo.getRightEdgePositionPercent(), 
+                    battleBoxInfo.horizontalLength(), //used to be battleBoxInfo.getBoxDimensions().x
+                    localTranslation.x
+                )
+            );
         }
+        
+        unitVectorPos.y = FastMath.abs(
+            MathUtils.percentDiffFromEdge(
+                battleBoxInfo.getBottomEdgePositionPercent(), 
+                battleBoxInfo.verticalLength(), //used to be battleBoxInfo.getBoxDimensions().y
+                localTranslation.y
+            )
+        );
         
         return unitVectorPos;
     }
@@ -113,7 +157,7 @@ public class BattleSprite extends ModifiedSprite {
         }
         
         public DomainBox inPercentages() {
-            return boxPercentages.mirrorNew(xFacing != Sprite.FACING_LEFT, false); //mirror x if not facing left
+            return boxPercentages.mirrorNew(xFacing != FACING_LEFT, false); //mirror x if not facing left
         }
         
         public DomainBox relativeDomainBox() { //not in percentages
@@ -125,6 +169,16 @@ public class BattleSprite extends ModifiedSprite {
             Vector3f localTranslation = getLocalTranslation();
             return relativeDomainBox().addLocal(localTranslation.x, localTranslation.y);
         }
+        
+        public DomainBox toBattleBoxPercentages() {
+            DomainBox relativeBox = relativeDomainBox();
+            Vector3f localTranslation = getLocalTranslation();
+            
+            Vector2f pointA = getPercentagePosition(localTranslation.add(relativeBox.getDomainX().a, relativeBox.getDomainY().a, 0), false);
+            Vector2f pointB = getPercentagePosition(localTranslation.add(relativeBox.getDomainX().b, relativeBox.getDomainY().b, 0), false);
+            
+            return new DomainBox(new FloatPair(pointA.x, pointB.x), new FloatPair(pointA.y, pointB.y));
+        }
     }
     
     private class HitPoint {
@@ -135,7 +189,7 @@ public class BattleSprite extends ModifiedSprite {
         }
         
         public Vector2f inPercentages() {
-            float xVal =  hitPointPercentage.x;
+            float xVal = hitPointPercentage.x;
             if (xFacing != Sprite.FACING_LEFT) {
                 xVal = 1.0f - xVal; //mirror X if not facing left
             }
@@ -150,6 +204,15 @@ public class BattleSprite extends ModifiedSprite {
         public Vector2f nonRelativePoint() {
             Vector3f localTranslation = getLocalTranslation();
             return relativePoint().addLocal(localTranslation.x, localTranslation.y);
+        }
+        
+        public Vector3f nonRelative3DPoint() {
+            Vector2f relative = relativePoint();
+            return getLocalTranslation().add(relative.x, relative.y, 0);
+        }
+        
+        public Vector2f toBattleBoxPercentage() {
+            return getPercentagePosition(nonRelative3DPoint(), false);
         }
     }
 }

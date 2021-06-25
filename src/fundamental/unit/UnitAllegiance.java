@@ -13,16 +13,18 @@ import com.jme3.math.ColorRGBA;
  * @author night
  */
 public enum UnitAllegiance {
-    @SerializedName("Player") Player(0),
-    @SerializedName("Ally") Ally(-1),
-    @SerializedName("Enemy") Enemy(1),
-    @SerializedName("ThirdParty") ThirdParty(2),
-    @SerializedName("FourthParty") FourthParty(3),
-    @SerializedName("FifthParty") FifthParty(4);
+    @SerializedName("Player") Player(0, ColorRGBA.Blue),
+    @SerializedName("Ally") Ally(-1, ColorRGBA.Yellow),
+    @SerializedName("Enemy") Enemy(1, ColorRGBA.Red),
+    @SerializedName("ThirdParty") ThirdParty(2, ColorRGBA.Green),
+    @SerializedName("FourthParty") FourthParty(3, ColorRGBA.Magenta),
+    @SerializedName("FifthParty") FifthParty(4, ColorRGBA.White);
         
     private final int value;
-    private UnitAllegiance(int val) {
+    private final ColorRGBA lightColor;
+    private UnitAllegiance(int val, ColorRGBA lightCol) {
         value = val;
+        lightColor = lightCol;
     }
 
     public int getValue() {
@@ -31,6 +33,10 @@ public enum UnitAllegiance {
         
     public boolean alliedWith(UnitAllegiance otherAllegiance) {
         return value == otherAllegiance.getValue() || value + otherAllegiance.getValue() == -1;
+    }
+    
+    public ColorRGBA getLightColor() {
+        return lightColor;
     }
         
     public ColorRGBA getAssociatedColor() {
@@ -60,7 +66,7 @@ public enum UnitAllegiance {
                 barColor = ColorRGBA.White;
                 break;
             default:
-                barColor = new ColorRGBA(0.012f, 0.58f, 0.988f, 1f); //blue
+                barColor = ColorRGBA.randomColor().setAlpha(1f); //random
                 break;
         }
         

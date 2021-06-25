@@ -10,7 +10,7 @@ import battle.data.forecast.SingularForecast;
 import battle.participant.Combatant;
 import fundamental.stats.BaseStat;
 import battle.participant.BattleRole;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.info.Conveyor;
 import fundamental.stats.Bonus;
 import fundamental.stats.Bonus.BonusType;

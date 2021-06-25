@@ -3,14 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.layout.tile;
+package maps.layout.tile.move;
 
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
+import maps.layout.tile.Tile;
 
 
 /**

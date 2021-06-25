@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general;
+package general.tools;
 
 /**
  *
@@ -26,7 +26,7 @@ public class GameTimer {
             frameCount = 0;
         }
         
-       if (Float.MAX_VALUE - elapsedTime <= 7f) {
+       if (Float.MAX_VALUE - elapsedTime <= 5f) {
            elapsedTime = 0f;
        }
     }
@@ -56,11 +56,19 @@ public class GameTimer {
         elapsedTime = time;
     }
     
-    public void pause() { paused = true; }
-    public void resume() { paused = false; }
-    
     public void setPaused(boolean isPaused) {
         paused = isPaused;
     }
     
+    public void pause() { 
+        paused = true; 
+    }
+    
+    public void resume() { 
+        paused = false; 
+    }
+    
+    public void togglePause() {
+        paused = !paused;
+    }
 }

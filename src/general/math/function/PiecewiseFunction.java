@@ -13,7 +13,7 @@ import java.util.LinkedHashMap;
  * @author night
  */
 public class PiecewiseFunction extends MathFunction {
-    public static final FloatPair ZERO_TO_INFINITY = new FloatPair(0f);
+    //public static final FloatPair ZERO_TO_INFINITY = new FloatPair(0f, Float.POSITIVE_INFINITY);
     
     //defaultValue is the defaultValue put in place of the point that is not in the specified domain of the function
     protected final Float defaultValue; //null or 0
@@ -57,12 +57,13 @@ public class PiecewiseFunction extends MathFunction {
         return this;
     }
     
+    //adds an expression to the right
     public PiecewiseFunction addExpression(MathFunction func, Float length) {
         FloatPair expressionDomain;
-        if (length != null) {
+        if (length != Float.POSITIVE_INFINITY) {
             expressionDomain = new FloatPair(greatestIndividualDomainVal, greatestIndividualDomainVal + length);
         } else {
-            expressionDomain = new FloatPair(greatestIndividualDomainVal);
+            expressionDomain = new FloatPair(greatestIndividualDomainVal, Float.POSITIVE_INFINITY);
         }
         
         return putExpression(expressionDomain, func);
@@ -90,7 +91,7 @@ public class PiecewiseFunction extends MathFunction {
     
     @Override
     protected float modifyX(float x) {
-        if (domain.b == null) { return x; }
+        if (domain.b == Float.POSITIVE_INFINITY) { return x; }
         
         if (allowRepetition) {
             float next = x;

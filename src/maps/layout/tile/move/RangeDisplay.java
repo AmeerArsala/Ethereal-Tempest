@@ -3,12 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.layout.tile;
+package maps.layout.tile.move;
 
 import com.jme3.asset.AssetManager;
-import com.jme3.math.ColorRGBA;
-import etherealtempest.FSM.CursorState;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.Coords;
@@ -22,55 +20,35 @@ import maps.layout.occupant.VenturePeek;
  * @author night
  */
 public class RangeDisplay {
-    private static final float HOVERED_OPACITY = 0.5f;
-    private static final float SELECTED_OPACITY = 0.85f;
-    
-    private float tileOpacity = 0;
     private final AssetManager assetManager;
     private final MapLevel map; //maybe take off final later
-    private final List<TileFoundation> displayedMovSquares = new ArrayList<>();
-    private final List<TileFoundation> displayedAtkSquares = new ArrayList<>();
+    private final List<MoveSquare> displayedMovSquares = new ArrayList<>();
+    private final List<MoveSquare> displayedAtkSquares = new ArrayList<>();
     
     public RangeDisplay(MapLevel map, AssetManager assetManager) {
         this.map = map;
         this.assetManager = assetManager;
     }
     
-    public void updateOpacity(CursorState cs) {
-        tileOpacity = convertToOpacity(cs);
-    }
-    
-    private float convertToOpacity(CursorState cState) {
-        switch (cState) {
-            case AnyoneHovered: 
-                return HOVERED_OPACITY;
-            case AnyoneSelected:
-                return SELECTED_OPACITY;
-        }
-        
-        return 0f;
-    }
-    
-    public void displayRange(TangibleUnit tu, CursorState cState) {
+    public void displayRange(TangibleUnit tu, float tileOpacity) {
         cancelRange();
-        tileOpacity = convertToOpacity(cState);
         
         List<MapCoords> possibleSpaces = VenturePeek.filledCoordsForTilesOfRange(tu.getMOBILITY(), tu.getPos());
         for (MapCoords possible : possibleSpaces) {
             if (shouldDisplayTile(tu.getPos(), possible, tu.getMOBILITY(), map)) {
                 //reveal at specified opacity in blue tile if unit can move to it
-                TileFoundation movSquare = map.getMovSquareAt(possible);
-                movSquare.getPatchMaterial().setTexture("ColorMap", assetManager.loadTexture(TileFoundation.MOVEMENT));
-                movSquare.getPatchMaterial().setColor("Color", new ColorRGBA(1, 1, 1, tileOpacity));
+                MoveSquare movSquare = map.getMovSquareAt(possible);
+                movSquare.setTexture(assetManager.loadTexture(MoveSquare.MOVE_SQUARE_TEX_PATH));
+                movSquare.setOpacity(tileOpacity);
                 displayedMovSquares.add(movSquare);
             }
         }
         
         List<MapCoords> attackTilePositions = calculateAttackTilePositions(tu);
         attackTilePositions.forEach((coordinates) -> {
-            TileFoundation tile = map.getMovSquareAt(coordinates);
-            tile.getPatchMaterial().setTexture("ColorMap", assetManager.loadTexture(TileFoundation.ATTACK));
-            tile.getPatchMaterial().setColor("Color", new ColorRGBA(1, 1, 1, tileOpacity));
+            MoveSquare tile = map.getMovSquareAt(coordinates);
+            tile.setTexture(assetManager.loadTexture(MoveSquare.ATTACK_SQUARE_TEX_PATH));
+            tile.setOpacity(tileOpacity);
             displayedAtkSquares.add(tile);
         });
     }
@@ -106,14 +84,14 @@ public class RangeDisplay {
     
     public void cancelRange() {
         displayedMovSquares.forEach((square) -> {
-            square.getPatchMaterial().setColor("Color", new ColorRGBA(1, 1, 1, 0));
+            square.setOpacity(0);
         });
         
         displayedMovSquares.clear();
         
         displayedAtkSquares.forEach((square) -> {
-            square.getPatchMaterial().setTexture("ColorMap", assetManager.loadTexture(Tile.MOVEMENT));
-            square.getPatchMaterial().setColor("Color", new ColorRGBA(1, 1, 1, 0));
+            square.setTexture(assetManager.loadTexture(MoveSquare.MOVE_SQUARE_TEX_PATH));
+            square.setOpacity(0);
         });
             
         displayedAtkSquares.clear();
@@ -122,10 +100,6 @@ public class RangeDisplay {
     private boolean isXSpacesFromMovSquare(MapCoords coords, int X) {
         return displayedMovSquares.stream().anyMatch((square) -> (square.getPos().getCoords().nonDiagonalDistanceFrom(coords.getCoords()) == X));
     }
-    
-    /*public static boolean shouldDisplayTile(TangibleUnit tu, int x, int y, int layer, MapLevel mp) {
-        return x == tu.getPosX() && y == tu.getPosY() ? true : new Path(mp, tu.getPosX(), tu.getPosY(), x, y, layer, tu.getMobility()).wasSuccess();
-    }*/
     
     public static boolean shouldDisplayTile(Coords start, Coords dest, int layer, int moveCapacity) {
         return shouldDisplayTile(start, dest, layer, moveCapacity, MasterFsmState.getCurrentMap());

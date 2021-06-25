@@ -35,17 +35,6 @@ public class FontProperties {
     
     private final float fontQualityMultiplier;
     private final int literalFontSize; //font size that factors in quality; this field will be the one that the text sets as "font size"
-
-    public FontProperties(String fontPath, KeyType keyType, Style fontStyle, float fontSize, double fontSizeQuality) { // fontSizeQuality is what you actually want the font to look like
-        this.fontPath = fontPath;
-        this.keyType = keyType;
-        this.fontStyle = fontStyle;
-        this.fontSize = fontSize;
-        
-        fontQualityMultiplier = 1;
-        
-        literalFontSize = (int)(fontSizeQuality);
-    }
     
     public FontProperties(String fontPath, KeyType keyType, Style fontStyle, float fontSize) { //automatically does quality
         this.fontPath = fontPath;
@@ -63,6 +52,17 @@ public class FontProperties {
         }
 
         literalFontSize = (int)Math.floor(fontSize * fontQualityMultiplier);
+    }
+
+    public FontProperties(String fontPath, KeyType keyType, Style fontStyle, float fontSize, double fontSizeQuality) { // fontSizeQuality is what you actually want the font to look like
+        this.fontPath = fontPath;
+        this.keyType = keyType;
+        this.fontStyle = fontStyle;
+        this.fontSize = fontSize;
+        
+        fontQualityMultiplier = 1;
+        
+        literalFontSize = (int)(fontSizeQuality);
     }
     
     public FontProperties(String fontPath, KeyType keyType, Style fontStyle, float fontSize, float fontQualityMultiplier) {
@@ -131,7 +131,7 @@ public class FontProperties {
                 "\\:;\"<>,.?{}[]|`~'"
             );
         }
-
+        
         ttf.lock(true);
     }
     

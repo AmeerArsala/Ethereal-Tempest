@@ -6,6 +6,7 @@
 package general.math;
 
 import com.google.gson.annotations.Expose;
+import com.jme3.math.Vector3f;
 import general.math.function.ParametricFunction3f;
 import general.math.function.ParsedMathFunction;
 
@@ -38,6 +39,10 @@ public class ParametricFunctionStrings3f {
     public String getZFunctionString() { return zFunction; }
     
     public ParametricFunction3f getFunction() { return func; }
+    
+    public Vector3f output(float input) {
+        return new Vector3f(func.x(input), func.y(input), func.z(input));
+    }
     
     public void initialize() {
         String xFunc = xFunction != null ? xFunction : "0";

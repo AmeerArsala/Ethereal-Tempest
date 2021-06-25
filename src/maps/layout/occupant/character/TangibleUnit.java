@@ -5,7 +5,6 @@
  */
 package maps.layout.occupant.character;
 
-import fundamental.unit.PositionedUnitParameters;
 import battle.participant.BattleRole;
 import battle.participant.visual.BattleSprite;
 import fundamental.stats.BaseStat;
@@ -18,10 +17,10 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import java.util.ArrayList;
-import etherealtempest.FSM;
-import etherealtempest.FSM.UnitState;
-import etherealtempest.FsmState;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.FSM;
+import etherealtempest.fsm.FSM.UnitState;
+import etherealtempest.fsm.FsmState;
+import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.ai.AI;
 import etherealtempest.ai.AI.Behavior;
 import etherealtempest.ai.AI.Condition;
@@ -33,7 +32,7 @@ import fundamental.stats.Bonus.StatType;
 import fundamental.talent.TalentCondition.Occasion;
 import fundamental.unit.CharacterUnitInfo;
 import fundamental.unit.PositionedUnit;
-import general.GameTimer;
+import general.tools.GameTimer;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
 import general.visual.DeserializedParticleEffect;
 import java.util.LinkedHashMap;
@@ -42,8 +41,9 @@ import maps.flow.MapFlow;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
+import fundamental.unit.PositionedUnitParams;
 import maps.layout.occupant.VenturePeek;
-import maps.layout.tile.Path;
+import maps.layout.tile.move.Path;
 
 /**
  *
@@ -96,7 +96,7 @@ public class TangibleUnit extends PositionedUnit {
         }
     };
     
-    public TangibleUnit(Unit X, CharacterUnitInfo info, PositionedUnitParameters startingParams, UnitAllegiance startingAllegiance, AssetManager assetManager) {
+    public TangibleUnit(Unit X, CharacterUnitInfo info, PositionedUnitParams startingParams, UnitAllegiance startingAllegiance, AssetManager assetManager) {
         super(X, info, startingParams, startingAllegiance);
         
         //create visuals
@@ -148,6 +148,7 @@ public class TangibleUnit extends PositionedUnit {
     
     public void deselect() {
         isSelected = false;
+        visuals.setAnimationState(AnimationState.Idle);
     }
     
     public void remapPosition(MapCoords coords, MapLevel map) {

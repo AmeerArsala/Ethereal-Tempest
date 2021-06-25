@@ -11,6 +11,8 @@
       }
     }
   ],
+  "loopAnimationVisually": false,
+  "delayForIndefiniteChanges": 0.0,
   "impact": null,
   "otherActionFrames": [
     {
@@ -25,9 +27,15 @@
               "xFunction": "-0.025",
               "yFunction": "-32t + 0.025"
             },
-            "frames": 3
+            "domain": "0-2" //inclusive; goes for 3 frames after the ActionFrame, starting at the ActionFrame; frameSinceActionFrame: 0, framesSinceActionFrame: 1, and framesSinceActionFrame: 2
           }
         ],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      },
+      "opponentChanges": {
+        "velocities": [],
         "thetaVelocities": [],
         "localScales": [],
         "colors": []
@@ -45,9 +53,15 @@
               "xFunction": "0.025",
               "yFunction": "-32t + 0.025"
             },
-            "frames": 3
+            "domain": "0-2"
           }
         ],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      },
+      "opponentChanges": {
+        "velocities": [],
         "thetaVelocities": [],
         "localScales": [],
         "colors": []

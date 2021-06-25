@@ -5,12 +5,14 @@
  */
 package maps.layout;
 
+import general.math.DomainBox;
+
 /**
  *
  * @author night
  */
 public interface MapBounds {
-    public Coords[][] getBoundsForAllLayers();
+    public DomainBox[] getBoundsForAllLayers();
     
     public int getXLength(int layer);
     public int getMinimumX(int layer);

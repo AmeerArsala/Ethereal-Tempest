@@ -11,7 +11,7 @@ import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
 import com.jme3.font.Rectangle;
 import com.jme3.math.ColorRGBA;
-import etherealtempest.MasterFsmState;
+import etherealtempest.fsm.MasterFsmState;
 import fundamental.unit.UnitAllegiance;
 import etherealtempest.info.Conveyor;
 import fundamental.item.Item;

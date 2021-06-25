@@ -5,6 +5,7 @@
  */
 package etherealtempest.info;
 
+import general.procedure.RequestDealer;
 import battle.data.StrikeParticipant;
 import battle.participant.Combatant;
 import battle.participant.BattleRole;

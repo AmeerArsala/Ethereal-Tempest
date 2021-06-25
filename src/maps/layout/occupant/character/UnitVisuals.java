@@ -29,7 +29,7 @@ import etherealtempest.geometry.GeometricBody;
 import general.procedure.functional.SimpleProcedure;
 import general.procedure.ProcedureGroup;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
-import general.utils.GameUtils;
+import general.utils.helpers.GameUtils;
 import general.visual.DeserializedParticleEffect;
 import java.io.IOException;
 import java.io.Reader;
@@ -40,7 +40,7 @@ import java.util.List;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
-import maps.layout.tile.Path;
+import maps.layout.tile.move.Path;
 import maps.layout.tile.Tile;
 
 /**

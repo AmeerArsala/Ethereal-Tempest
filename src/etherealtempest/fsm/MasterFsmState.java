@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package etherealtempest;
+package etherealtempest.fsm;
 
 import etherealtempest.info.Conveyor;
 import com.jme3.asset.AssetManager;
-import etherealtempest.FSM.MapFlowState;
+import etherealtempest.fsm.FSM.MapFlowState;
 import maps.layout.MapLevel;
 
 /**

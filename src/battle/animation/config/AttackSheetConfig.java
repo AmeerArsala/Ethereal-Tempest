@@ -9,7 +9,7 @@ import general.math.DomainBox;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.jme3.math.Vector2f;
-import general.utils.GeneralUtils;
+import general.utils.helpers.GeneralUtils;
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;

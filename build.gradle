@@ -9,7 +9,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'idea'
 
 ext {
-    jmonkeyengine_version = '3.4.0-stable'
+    jmonkeyengine_version = '3.4.0-stable' //latest version: 3.4.0-stable
     license = file("$rootDir/license.txt")
 }
 

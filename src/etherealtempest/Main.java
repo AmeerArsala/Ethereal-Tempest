@@ -1,16 +1,19 @@
 package etherealtempest;
 
+import etherealtempest.fsm.FSM;
+import etherealtempest.fsm.FsmState;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.audio.AudioListenerState;
+import com.jme3.environment.EnvironmentCamera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Image;
 import com.jme3.texture.TextureArray;
 import edited.FlyCamera;
 import edited.state.FlyCamTrueAppState;
-import general.GameTimer;
+import general.tools.GameTimer;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.MapLevel;
@@ -57,6 +60,10 @@ public class Main extends SimpleApplication {
        tilesInitialization();
         
        stateManager.attach(new TestMap(this, getCamera(), flyCam, settings));
+       
+       EnvironmentCamera envCam = new EnvironmentCamera();
+       stateManager.attach(envCam);
+       envCam.initialize(stateManager, this); //Manually initialize so we can add a probe before the next update happens
     }
     
     public void tilesInitialization() {

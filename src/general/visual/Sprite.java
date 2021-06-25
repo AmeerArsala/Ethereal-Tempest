@@ -9,6 +9,7 @@ import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.Vector2f;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.MagFilter;
 import general.ui.GeometryPanel;
@@ -29,7 +30,7 @@ public class Sprite extends GeometryPanel {
     }
     
     public Sprite(float width, float height, AssetManager assetManager) {
-        super(width, height);
+        super(width, height, RenderQueue.Bucket.Transparent);
         
         mat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
         mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
@@ -37,7 +38,10 @@ public class Sprite extends GeometryPanel {
     }
     
     public String getTexturePath() { return spritesheetPath; } //use this if you want to compare whether textures are different
+    
+    public int getXFacing() { return xFacing; } 
     public boolean isFacingRight() { return xFacing == FACING_RIGHT; }
+    public boolean isFacingLeft() { return xFacing == FACING_LEFT; }
     
     @Override
     public Material getMaterial() {
@@ -51,19 +55,16 @@ public class Sprite extends GeometryPanel {
     
     @Override
     public Vector2f getPositiveDirection2DVector() {
-        Vector2f posDirVec = super.getPositiveDirection2DVector();
-        posDirVec.x *= xFacing;
-        
-        return posDirVec;
+        return new Vector2f(xFacing, 1);
     }
     
     @Override
     public void setMirrored(boolean mirrored) {
-        super.setMirrored(mirrored);
-        
-        if (!mirrored) {
+        if (mirrored != isMirrored()) {
             xFacing *= -1;
         }
+        
+        super.setMirrored(mirrored);
     }
     
     public void setXFacing(int facing) {

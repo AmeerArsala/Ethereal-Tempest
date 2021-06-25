@@ -9,30 +9,30 @@ package fundamental.unit;
  *
  * @author night
  */
-public class PositionedUnitParameters {
+public class PositionedUnitParams {
     public boolean hasStashAccess = false;
     public boolean isLeader = false;
     public boolean isBoss = false;
     
-    public PositionedUnitParameters() {}
+    public PositionedUnitParams() {}
     
-    public PositionedUnitParameters(boolean hasStashAccess, boolean isLeader, boolean isBoss) {
+    public PositionedUnitParams(boolean hasStashAccess, boolean isLeader, boolean isBoss) {
         this.hasStashAccess = hasStashAccess;
         this.isLeader = isLeader;
         this.isBoss = isBoss;
     }
     
-    public PositionedUnitParameters hasStashAccess(boolean hasStashAccess) {
+    public PositionedUnitParams hasStashAccess(boolean hasStashAccess) {
         this.hasStashAccess = hasStashAccess;
         return this;
     }
     
-    public PositionedUnitParameters isLeader(boolean isLeader) {
+    public PositionedUnitParams isLeader(boolean isLeader) {
         this.isLeader = isLeader;
         return this;
     }
     
-    public PositionedUnitParameters isBoss(boolean isBoss) {
+    public PositionedUnitParams isBoss(boolean isBoss) {
         this.isBoss = isBoss;
         return this;
     }

@@ -39,12 +39,14 @@ public class OrdinalQueue<T> {
     private class Task {
         public final T focus;
         public final UpdateLoop onUpdate;
+        public final Runnable onStart;
         public final Runnable onFinish;
         public final Lock lock; //will not run task until unlocked
         
-        public Task(T focus, UpdateLoop onUpdate, Runnable onFinish, Predicate<T> unlockCondition) {
+        public Task(T focus, UpdateLoop onUpdate, Runnable onStart, Runnable onFinish, Predicate<T> unlockCondition) {
             this.focus = focus;
             this.onUpdate = onUpdate;
+            this.onStart = onStart;
             this.onFinish = onFinish;
             lock = new Lock(unlockCondition);
         }
@@ -94,45 +96,25 @@ public class OrdinalQueue<T> {
                 if (tasks.isEmpty()) {
                     onCurrentQueueFinished.run();
                     onCurrentQueueFinished = () -> {};
+                } else {
+                    tasks.getFirst().onStart.run();
                 }
             }
         }
     }
     
-    public void addToQueue(T task, UpdateLoop onUpdate, Runnable onFinish, Predicate<T> unlockCondition) {
-        tasks.add(new Task(task, onUpdate, onFinish, unlockCondition));
+    public void applyToAll(Command<T> command) {
+        tasks.forEach((task) -> {
+            command.execute(task.focus);
+        });
     }
     
-    public void addToQueue(T task, UpdateLoop onUpdate, Predicate<T> unlockCondition) {
-        tasks.add(new Task(task, onUpdate, () -> {}, unlockCondition));
+    public int size() {
+        return tasks.size();
     }
     
-    public void addToQueue(T task, UpdateLoop onUpdate, Runnable onFinish) {
-        tasks.add(new Task(task, onUpdate, onFinish, (t) -> { return true; }));
-    }
-    
-    public void addToQueue(T task, UpdateLoop onUpdate) {
-        tasks.add(new Task(task, onUpdate, () -> {}, (t) -> { return true; }));
-    }
-    
-    public void addToQueue(T task, Predicate<T> unlockCondition) {
-        tasks.add(new Task(task, (tpf) -> {}, () -> {}, unlockCondition));
-    }
-    
-    public void addToQueue(T task, Runnable onFinish, Predicate<T> unlockCondition) {
-        tasks.add(new Task(task, (tpf) -> {}, onFinish, unlockCondition));
-    }
-    
-    public void addToQueue(T task, Runnable onFinish) {
-        tasks.add(new Task(task, (tpf) -> {}, onFinish, (t) -> { return true; }));
-    }
-    
-    public void addToQueue(T task) {
-        tasks.add(new Task(task, (tpf) -> {}, () -> {}, (t) -> { return true; }));
-    }
-    
-    public void onCurrentQueueFinished(Runnable action) {
-        onCurrentQueueFinished = action;
+    public boolean isEmpty() {
+        return tasks.isEmpty();
     }
     
     //removes first occurrence
@@ -153,17 +135,39 @@ public class OrdinalQueue<T> {
         tasks.clear();
     }
     
-    public void applyToAll(Command<T> command) {
-        tasks.forEach((task) -> {
-            command.execute(task.focus);
-        });
+    public void addToQueue(T task, UpdateLoop onUpdate, Runnable onStart, Runnable onFinish, Predicate<T> unlockCondition) {
+        tasks.add(new Task(task, onUpdate, onStart, onFinish, unlockCondition));
     }
     
-    public int size() {
-        return tasks.size();
+    public void addToQueue(T task, UpdateLoop onUpdate, Predicate<T> unlockCondition) {
+        tasks.add(new Task(task, onUpdate, () -> {}, () -> {}, unlockCondition));
     }
     
-    public boolean isEmpty() {
-        return tasks.isEmpty();
+    public void addToQueue(T task, UpdateLoop onUpdate, Runnable onStart, Runnable onFinish) {
+        tasks.add(new Task(task, onUpdate, onStart, onFinish, (t) -> { return true; }));
+    }
+    
+    public void addToQueue(T task, UpdateLoop onUpdate) {
+        tasks.add(new Task(task, onUpdate, () -> {}, () -> {}, (t) -> { return true; }));
+    }
+    
+    public void addToQueue(T task, Predicate<T> unlockCondition) {
+        tasks.add(new Task(task, (tpf) -> {}, () -> {}, () -> {}, unlockCondition));
+    }
+    
+    public void addToQueue(T task, Runnable onStart, Runnable onFinish, Predicate<T> unlockCondition) {
+        tasks.add(new Task(task, (tpf) -> {}, onStart, onFinish, unlockCondition));
+    }
+    
+    public void addToQueue(T task, Runnable onStart, Runnable onFinish) {
+        tasks.add(new Task(task, (tpf) -> {}, onStart, onFinish, (t) -> { return true; }));
+    }
+    
+    public void addToQueue(T task) {
+        tasks.add(new Task(task, (tpf) -> {}, () -> {}, () -> {}, (t) -> { return true; }));
+    }
+    
+    public void onCurrentQueueFinished(Runnable action) {
+        onCurrentQueueFinished = action;
     }
 }

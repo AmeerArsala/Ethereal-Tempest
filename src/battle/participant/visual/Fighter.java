@@ -14,14 +14,22 @@ import battle.data.StrikeTheater;
 import battle.data.StrikeTheater.Participant;
 import battle.data.forecast.IndividualForecast;
 import battle.data.forecast.SingularForecast;
+import battle.environment.BattleBox;
+import battle.environment.BoxMetadata;
 import battle.gui.CombatantUI;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
-import etherealtempest.FSM.FighterState;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.Spatial.CullHint;
+import etherealtempest.fsm.FSM.FighterState;
 import fundamental.unit.CharacterUnitInfo;
+import general.math.FloatPair;
 import general.procedure.functional.UpdateLoop;
+import general.utils.helpers.MathUtils;
 import general.visual.OverlaySheetConfig;
 import general.visual.Sprite;
 
@@ -53,13 +61,15 @@ public class Fighter {
             new Vector2f(0, 0), 
             new Vector2f(0, 0), 
             common.strikeTheater, 
-            0, //start index 
+            0, //start index (strikes start at index 0)
             forecast.getCombatant()
         );
         
+        boolean mirrorUI = !mirrored; //Example: initiator sprite isn't mirrored, but its UI is because it starts on the right
+        
         sprite = common.createBattleSprite(forecast, mirrored);
         controller = new FighterAnimationController(sprite, forecast.getActionDecider(), common.assetManager, decisionData);
-        visualizer = new FighterInfoVisualizer(sprite, new CombatantUI(forecast, common.assetManager, common.cam), common.battleBoxDimensions);
+        visualizer = new FighterInfoVisualizer(sprite, new CombatantUI(forecast, common.assetManager, common.cam, mirrorUI), common.battleBoxInfo.getBoxDimensions());
         
         visualizer.getFSM().setNewStateIfAllowed(FighterState.Fighting);
         updateStrikeRole();
@@ -80,6 +90,10 @@ public class Fighter {
     public FighterAnimationController getAnimationController() { return controller; }
     public FighterInfoVisualizer getInfoVisualizer() { return visualizer; }
     
+    public boolean canFinishWithAnInput() {
+        return visualizer.fightIsFullyDone() || visualizer.getFSM().getEnumState() == FighterState.LevelUpDone;
+    }
+    
     public void attachGUI() {
         common.localGuiNode.attachChild(visualizer.getGUI().getNode());
     }
@@ -88,14 +102,30 @@ public class Fighter {
         common.localGuiNode.detachChild(visualizer.getGUI().getNode());
     }
     
-    public boolean canFinishWithAnInput() {
-        return visualizer.fightIsFullyDone() || visualizer.getFSM().getEnumState() == FighterState.LevelUpDone;
+    public final void updateStrikeRole() {
+        currentRole = decisionData.getUserRoleForStrike(decisionData.getStrikeIndex());
     }
     
     public void preUpdate() {
         //update positions of user and opponent
-        decisionData.userPos.set(sprite.getPercentagePosition(common.battleBoxDimensions));
-        decisionData.opponentPos.set(fromOpponent.getSprite().getPercentagePosition(common.battleBoxDimensions));
+        decisionData.userPos.set(sprite.getPercentagePosition());
+        decisionData.opponentPos.set(fromOpponent.getSprite().getPercentagePosition());
+        
+        //update notifier
+        BattleAnimation.Queue animQueue = controller.getCurrentAnimationQueue();
+        if (!animQueue.isEmpty()) {
+            fromSelf.realImpactOccurred = animQueue.getCurrentTask().realImpactOccurred();
+            fromSelf.strikeFinished = animQueue.getCurrentTask().isStrikeFinished();
+            
+            if (fromSelf.realImpactOccurred) {
+                System.err.println("Impact Occurred!");
+            }
+        } else {
+            fromSelf.realImpactOccurred = false;
+            fromSelf.strikeFinished = false;
+        }
+        
+        fromSelf.fightFullyDone = visualizer.fightIsFullyDone();
     }
     
     public void update(float tpf) {
@@ -114,30 +144,40 @@ public class Fighter {
         visualizer.update(tpf);
     }
     
-    public void postUpdate(float tpf) {
-        //update notifier
-        fromSelf.realImpactOccurred = controller.getCurrentAnimation().realImpactOccurred();
-        fromSelf.strikeFinished = controller.getCurrentAnimation().isStrikeFinished();
-        fromSelf.fightFullyDone = visualizer.fightIsFullyDone();
+    public void onReceiveImpact() {
+        Strike currentStrike = decisionData.getCurrentStrike();
+        currentStrike.apply();
+        
+        controller.nextReceiveImpactAnimation(visualizer.onReceiveImpact(currentStrike));
     }
     
     public void onStrikeEnd() {
         decisionData.incrementStrikeIndex();
         if (!decisionData.isFightOver() && controller.getCurrentAnimation().getRemainingAttackBattleSegmentCount() - 1 <= 0) { //subtracting by 1 since it is inclusive of the current segment index which hasn't been incremented yet
             updateStrikeRole();
-            
-            if (currentRole == Participant.Striker) {
-                forecast.getCombatant().applySkillTollIfAny();
-                nextAttackAnimation();
-            }
+            attemptStrike();
         }
     }
     
-    public void onReceiveImpact() {
-        Strike currentStrike = decisionData.getCurrentStrike();
-        currentStrike.apply();
+    public void attemptStrike() {
+        if (currentRole == Participant.Striker) {
+            forecast.getCombatant().applySkillTollIfAny();
+            nextAttackAnimation();
+        }
+    }
+    
+    public void nextAnimation() {
+        if (currentRole == Participant.Victim && fromOpponent.realImpactOccurred()) {
+            onReceiveImpact();
+        }
+
+        BattleAnimation.Queue animQueue = controller.getCurrentAnimationQueue();
         
-        controller.nextReceiveImpactAnimation(visualizer.onReceiveImpact(currentStrike));
+        //TODO: work on idle here
+        
+        if (animQueue.getCurrentTask() != null) {
+            animQueue.startCurrentAnimationIfNotAlready();
+        }
     }
     
     //TODO: finish the onDashUpdate loops
@@ -174,53 +214,33 @@ public class Fighter {
         }
     }
     
-    public void nextAnimation() {
-        if (currentRole == Participant.Victim && fromOpponent.realImpactOccurred()) {
-            onReceiveImpact();
-        }
-
-        BattleAnimation.Queue animQueue = controller.getCurrentAnimationQueue();
-        
-        if (animQueue.isEmpty()) {
-            if (currentRole == Participant.Striker) {
-                forecast.getCombatant().applySkillTollIfAny();
-                nextAttackAnimation();
-            } else {
-                //TODO: work on idle here
-            }
-        }
-        
-        if (animQueue.getCurrentTask() != null) {
-            animQueue.startCurrentAnimationIfNotAlready();
-        }
-    }
-    
-    public final void updateStrikeRole() {
-        currentRole = decisionData.getUserRoleForStrike(decisionData.getStrikeIndex());
-    }
-    
     
     public static class CommonParams {
         public final AssetManager assetManager;
         public final Camera cam;
         public final Node localGuiNode;
         public final StrikeTheater strikeTheater;
-        public final Vector2f battleBoxDimensions;
         
-        public CommonParams(AssetManager assetManager, Camera cam, Node localGuiNode, StrikeTheater strikeTheater, Vector2f battleBoxDimensions) {
+        public final BoxMetadata battleBoxInfo;
+        public final Vector3f camLocation;
+        private final float zLocation; //startPosZ for BattleSprite/Fighter
+        
+        public CommonParams(AssetManager assetManager, Camera cam, Node localGuiNode, StrikeTheater strikeTheater, BattleBox battleBox) {
             this.assetManager = assetManager;
             this.cam = cam;
             this.localGuiNode = localGuiNode;
             this.strikeTheater = strikeTheater;
-            this.battleBoxDimensions = battleBoxDimensions;
+            
+            zLocation = battleBox.getViewInfo().getZLocation();
+            camLocation = battleBox.getViewInfo().getCameraLocation();
+            battleBoxInfo = battleBox.constructMetadata();
         }
         
         public BattleSprite createBattleSprite(IndividualForecast forecast, boolean mirrored) {
-            System.out.println("folderRoot: " + forecast.getActionDecider().getFolderRoot());
             return createBattleSprite(
                 forecast.getActionDecider().getFolderRoot(),
                 forecast.getCombatant().getUnit().getUnitInfo(), 
-                !forecast.getEquippedTool().getType().isFormula(),
+                !forecast.getEquippedTool().getType().isFormula(), //only use hitPoint if it isn't a formula
                 mirrored
             );
         }
@@ -233,19 +253,17 @@ public class Fighter {
             boolean hasOverlay = unitInfo.hasBattleOverlayConfig();
             
             OverlaySheetConfig.Scalar scalar = overlayConfig.getScalar();
-        
+            
             //calculate dimensions of sprite
-            Vector2f spriteDimensions;
-            if (scalar.isFromContainer()) {
-                spriteDimensions = battleBoxDimensions.mult(scalar.getFactor());
-                spriteDimensions.x *= overlayConfig.getSpriteWidthToHeightRatio();
-            } else {
-                //raw multiplier
-                spriteDimensions = new Vector2f(overlayConfig.getSpriteWidthToHeightRatio(), 1f).mult(scalar.getFactor());
+            float actualScalar = scalar.getFactor();
+            if (scalar.factorIsPercentageOfContainer()) {
+                actualScalar *= MathUtils.hypotenuse(battleBoxInfo.getBoxDimensions());
             }
             
+            Vector2f spriteDimensions = new Vector2f(overlayConfig.getSpriteWidthToHeightRatio(), 1f).multLocal(actualScalar);
+            
             //create sprite and overlay
-            BattleSprite sprite = new BattleSprite(spriteDimensions, assetManager, usesHitPoint);
+            BattleSprite sprite = new BattleSprite(spriteDimensions, assetManager, battleBoxInfo, usesHitPoint);
             
             sprite.setSpritesheetTexture(sheetConfig.getSpritesheetImagePath(), assetManager);
         
@@ -260,13 +278,22 @@ public class Fighter {
             sprite.setSizeY(sheetConfig.getRows());
             sprite.setSpritesheetPosition(0);
             
-            sprite.setXFacing(Sprite.FACING_LEFT); //all spritesheets must have the character facing left
+            sprite.setXFacing(Sprite.FACING_LEFT); //all spritesheets must have the character facing left in the image
             sprite.setMirrored(mirrored); //only the receiver starts mirrored; all spritesheets must have the character facing left
+            
+            float horizontalEdge, verticalEdge = battleBoxInfo.getBottomEdgePosition();
+            if (sprite.getXFacing() == Sprite.FACING_LEFT) {
+                horizontalEdge = battleBoxInfo.getRightEdgePosition();
+            } else { //sprite.getXFacing() == Sprite.FACING_RIGHT
+                horizontalEdge = battleBoxInfo.getLeftEdgePosition();
+            }
+            
+            sprite.setLocalTranslation(horizontalEdge, verticalEdge, zLocation);
+            sprite.setCullHint(CullHint.Never);
             
             sprite.setHitPointIfAllowed(sheetConfig.getHitPoint());
             sprite.setHurtbox(sheetConfig.getHurtbox());
             sprite.setAllowDisplacementTransformationsFromOpponent(sheetConfig.letEnemyChangeTransformationValues());
-            
             sprite.setDamageNumberLocation(sheetConfig.getDamageNumberLocation());
             
             return sprite;

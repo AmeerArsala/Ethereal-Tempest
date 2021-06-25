@@ -3,14 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package etherealtempest.info;
+package general.procedure;
 
 /**
  *
  * @author night
  * @param <D> data holder type
  */
-public abstract class Request<D extends Conveyor> {
+public abstract class Request<D> {
     public enum RequestType {
         Ordinal, //linear
         ASAP; //happens ASAP

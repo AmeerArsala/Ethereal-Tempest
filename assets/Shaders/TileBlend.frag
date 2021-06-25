@@ -14,6 +14,12 @@ uniform int m_BottomIndex;
 uniform int m_RightIndex;
 uniform int m_LeftIndex;
 
+uniform int m_CurrentPriority;
+uniform int m_TopPriority;
+uniform int m_BottomPriority;
+uniform int m_RightPriority;
+uniform int m_LeftPriority;
+
 varying vec2 texCoord;
 
 // 2D Random
@@ -34,59 +40,125 @@ vec4 getColor(int index) {
     return texture(m_TileTexArray, vec3(texCoord.x, texCoord.y, index));
 }
 
+vec4 getColor(int index, vec2 coord) {
+    return texture(m_TileTexArray, vec3(coord, index));
+}
+
+//the lower it is from 0.5, the more the first color dominates
+float getAlpha(int priority, int comparedPriority) { 
+    if (priority * -1.0 == comparedPriority) {
+        return 0.375;
+    }
+    
+    if (priority < comparedPriority) {
+        return 0.9; //mostly give itself over to the compared texture
+    }
+    
+    if (priority > comparedPriority) {
+        return 0.0; //completely dominate the compared texture
+    }
+    
+    return 0.5; // priority == comparedPriority
+}
+
+float getTopAlpha(bool usesPriority) {
+    if (!usesPriority) {
+        return 0.375;
+    }
+    
+    return getAlpha(m_CurrentPriority, m_TopPriority);
+}
+
+float getBottomAlpha(bool usesPriority) {
+    if (!usesPriority) {
+        return 0.375;
+    }
+    
+    return getAlpha(m_CurrentPriority, m_BottomPriority);
+}
+
+float getRightAlpha(bool usesPriority) {
+    if (!usesPriority) {
+        return 0.375;
+    }
+    
+    return getAlpha(m_CurrentPriority, m_RightPriority);
+}
+
+float getLeftAlpha(bool usesPriority) {
+    if (!usesPriority) {
+        return 0.375;
+    }
+    
+    return getAlpha(m_CurrentPriority, m_LeftPriority);
+}
+
 void main() {
     vec4 color;
     
-    float blendAmp = 0.15;
+    float blendAmp;
     #ifdef HAS_BLENDAMPLITUDE
         blendAmp = m_BlendAmplitude;
+    #else
+        blendAmp = 0.15;
     #endif
     
-    int topIndex = m_CurrentIndex;
+    int topIndex;
     #ifdef HAS_TOP
         topIndex = m_TopIndex;
+    #else
+        topIndex = m_CurrentIndex;
     #endif
     
-    int bottomIndex = m_CurrentIndex;
+    int bottomIndex;
     #ifdef HAS_BOTTOM
         bottomIndex = m_BottomIndex;
+    #else
+        bottomIndex = m_CurrentIndex;
     #endif
     
-    int leftIndex = m_CurrentIndex;
+    int leftIndex;
     #ifdef HAS_LEFT
         leftIndex = m_LeftIndex;
+    #else
+        leftIndex = m_CurrentIndex;
     #endif
     
-    int rightIndex = m_CurrentIndex;
+    int rightIndex;
     #ifdef HAS_RIGHT
         rightIndex = m_RightIndex;
+    #else
+        rightIndex = m_CurrentIndex;
     #endif
     
-    float xVariance, yVariance;
-    
+    vec2 variance;
     #ifdef HAS_BLENDMAP
-        xVariance = texture2D(m_BlendMap, texCoord).r;
-        yVariance = texture2D(m_BlendMap, texCoord).g;
+        variance = texture2D(m_BlendMap, texCoord).rg;
+    #else
+        variance = vec2(varyBlendAmp(texCoord.x, blendAmp), varyBlendAmp(texCoord.y, blendAmp));
     #endif
     
-    #ifndef HAS_BLENDMAP
-        xVariance = varyBlendAmp(texCoord.x, blendAmp);
-        yVariance = varyBlendAmp(texCoord.y, blendAmp);
-    #endif
+    bool top =    (topIndex != m_CurrentIndex)    && (texCoord.y > (1.0 - variance.y)); //(texCoord.y >= (1 - blendAmp))
+    bool bottom = (bottomIndex != m_CurrentIndex) && (texCoord.y < variance.y);         //(texCoord.y <= blendAmp)
+    bool left =   (leftIndex != m_CurrentIndex)   && (texCoord.x < variance.x);         //(texCoord.x <= blendAmp)
+    bool right =  (rightIndex != m_CurrentIndex)  && (texCoord.x > (1.0 - variance.y)); //(texCoord.x >= (1 - blendAmp))
     
-    bool top = (texCoord.y > (1 - xVariance)); //(texCoord.y >= (1 - blendAmp))
-    bool bottom = (texCoord.y < xVariance); //(texCoord.y <= blendAmp)
-    bool left = (texCoord.x < yVariance); //(texCoord.x <= blendAmp)
-    bool right = (texCoord.x > (1 - yVariance)); //(texCoord.x >= (1 - blendAmp))
+    bool usesPriority;
+    
+    #ifdef USES_PRIORITY
+        usesPriority = true;
+    #else
+        usesPriority = false;
+    #endif
     
     if (top) { //top
-        color = mix(getColor(topIndex), getColor(m_CurrentIndex), pow(texCoord.y, 2));
+        color = mix(getColor(m_CurrentIndex), getColor(topIndex, vec2(texCoord.x, 1.0 - texCoord.y)), getTopAlpha(usesPriority));
     } else if (bottom) { //bottom
-        color = mix(getColor(bottomIndex), getColor(m_CurrentIndex), pow(texCoord.y, 2));
+        color = mix(getColor(m_CurrentIndex), getColor(bottomIndex, vec2(texCoord.x, 1.0 - texCoord.y)), getBottomAlpha(usesPriority));
     } else if (left) { //left
-        color = mix(getColor(leftIndex), getColor(m_CurrentIndex), pow(texCoord.x, 2));
+        color = mix(getColor(m_CurrentIndex), getColor(leftIndex, vec2(1.0 - texCoord.x, texCoord.y)), getLeftAlpha(usesPriority));
     } else if (right) { //right
-        color = mix(getColor(rightIndex), getColor(m_CurrentIndex), pow(texCoord.x, 2));
+        color = mix(getColor(m_CurrentIndex), getColor(rightIndex, vec2(1.0 - texCoord.x, texCoord.y)), getRightAlpha(usesPriority));
     } else { //regular
         color = getColor(m_CurrentIndex);
     }

@@ -30,15 +30,15 @@ public class OverlaySheetConfig {
     
     public static class Scalar {
         private float factor;
-        private boolean fromContainer; // if true, treats it as a scalar based on the height of a container, but if false, treats it as a raw scale factor
+        private boolean factorIsPercentageOfContainer; // if true, treats it as a scalar based on the height of a container, but if false, treats it as a raw scale factor
         
-        public Scalar(float factor, boolean fromContainer) {
+        public Scalar(float factor, boolean factorIsPercentageOfContainer) {
             this.factor = factor;
-            this.fromContainer = fromContainer;
+            this.factorIsPercentageOfContainer = factorIsPercentageOfContainer;
         }
         
         public float getFactor() { return factor; }
-        public boolean isFromContainer() { return fromContainer; }
+        public boolean factorIsPercentageOfContainer() { return factorIsPercentageOfContainer; }
     }
     
     public String getOverlaySpritesheetFileName() { return overlaySpritesheetFileName; }

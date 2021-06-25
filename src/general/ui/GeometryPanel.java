@@ -26,12 +26,16 @@ public class GeometryPanel extends Node {
     private boolean isMirrored = false;
     
     public GeometryPanel(float width, float height) {
+        this(width, height, Bucket.Transparent);
+    }
+    
+    public GeometryPanel(float width, float height, Bucket queueBucket) {
         this.width = width;
         this.height = height;
         
         quad = new Quad(width, height);
         geometry = new Geometry("quad panel", quad);
-        geometry.setQueueBucket(Bucket.Transparent);
+        geometry.setQueueBucket(queueBucket);
         
         attachChild(geometry);
     }
@@ -46,6 +50,14 @@ public class GeometryPanel extends Node {
     public Vector2f getScaledDimensions() { //scaled dimensions
         Vector3f localScale = getLocalScale();
         return new Vector2f(width * localScale.x, height * localScale.y);
+    }
+    
+    public Vector3f getUnscaledDimensions3D() {
+        return new Vector3f(width, height, 0);
+    }
+    
+    public Vector3f getScaledDimensions3D() {
+        return getLocalScale().mult(new Vector3f(width, height, 1));
     }
     
     public Geometry getGeometry() { return geometry; }
@@ -97,7 +109,7 @@ public class GeometryPanel extends Node {
     }
     
     public Vector2f getPositiveDirection2DVector() {
-        return new Vector2f(isMirrored ? 1 : -1, 1);
+        return new Vector2f(isMirrored ? -1 : 1, 1);
     }
     
     public Vector2f vectorInPositiveDirection(Vector2f percentDimensions, boolean scaleDimensions) {

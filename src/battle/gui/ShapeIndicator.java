@@ -8,6 +8,7 @@ package battle.gui;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.Vector2f;
+import com.jme3.renderer.queue.RenderQueue;
 import enginetools.MaterialParamsProtocol;
 import etherealtempest.gui.ValueIndicator;
 import general.ui.GeometryPanel;
@@ -23,12 +24,14 @@ public class ShapeIndicator extends ValueIndicator {
     
     public ShapeIndicator(Vector2f xyDimensions, MaterialParamsProtocol params, AssetManager assetManager, Text2D text, float basePercent, int max) {
         super(text, basePercent, max);
-        shape = new GeometryPanel(xyDimensions.x, xyDimensions.y);
+        shape = new GeometryPanel(xyDimensions.x, xyDimensions.y, RenderQueue.Bucket.Gui);
         
         mat = new Material(assetManager, "MatDefs/custom/YFill.j3md");
         params.execute(mat);
         
         shape.setMaterial(mat);
+        
+        node.attachChild(shape);
     }
         
     @Override

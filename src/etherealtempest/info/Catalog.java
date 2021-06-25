@@ -17,7 +17,7 @@ import fundamental.talent.Talent;
 import java.util.Arrays;
 import java.util.List;
 import fundamental.stats.StatBundle;
-import general.utils.GeneralUtils;
+import general.utils.helpers.GeneralUtils;
 /**
  *
  * @author night

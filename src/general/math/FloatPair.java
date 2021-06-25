@@ -14,21 +14,24 @@ import java.util.Objects;
  */
 public class FloatPair {
     public float a;
-    public Float b;
+    public float b;
     
     public FloatPair(float a, float b) {
         this.a = a;
         this.b = b;
     }
     
-    public FloatPair(float a) {
+    /*public FloatPair(float a) {
         this.a = a;
         b = null;
-    }
+    }*/
+    
+    public float getA() { return a; }
+    public float getB() { return b; }
     
     public FloatPair add(float num) {
         a += num;
-        if (b != null) { b += num; }
+        b += num;
         
         return this;
     }
@@ -50,7 +53,7 @@ public class FloatPair {
     
     public FloatPair mult(float num) {
         a *= num;
-        if (b != null) { b *= num; }
+        b *= num;
         
         return this;
     }
@@ -101,7 +104,7 @@ public class FloatPair {
     
     @Override
     public String toString() {
-        return a + ", " + (b != null ? b : "infinite");
+        return a + ", " + b;
     }
     
     public String objectToString() {

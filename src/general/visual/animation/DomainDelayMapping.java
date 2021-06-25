@@ -5,6 +5,10 @@
  */
 package general.visual.animation;
 
+import general.math.IntPair;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author night
@@ -35,5 +39,15 @@ public class DomainDelayMapping {
     
     public int length() {
         return Math.abs(to - from) + 1;
+    }
+    
+    //generates an IntPair List with the y-values being the indexes; x-values are reserved for columns
+    public List<IntPair> generateIndexedList(int column) {
+        List<IntPair> indexedList = new ArrayList<>();
+        for (int i = from; i <= to; ++i) {
+            indexedList.add(new IntPair(column, i));
+        }
+        
+        return indexedList;
     }
 }
