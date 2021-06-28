@@ -5,6 +5,7 @@
  */
 package battle.animation.config;
 
+import battle.participant.visual.BattleParticleEffect;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.Reader;
@@ -22,9 +23,9 @@ public class PossibleConfig {
     private AttackSheetConfig spritesheet; //this will stay null if this animation is not from a spritesheet
     
     //if this is not null, it will already be configured
-    private ParticleEffectAnimationConfig particleEffect; //this will stay null if this animation is not from a particle effect
+    private BattleParticleEffect particleEffect; //this will stay null if this animation is not from a particle effect
     
-    public PossibleConfig(AttackSheetConfig spritesheet, ParticleEffectAnimationConfig particleEffect) {
+    public PossibleConfig(AttackSheetConfig spritesheet, BattleParticleEffect particleEffect) {
         this.spritesheet = spritesheet;
         this.particleEffect = particleEffect;
     }
@@ -33,7 +34,7 @@ public class PossibleConfig {
         this.spritesheet = spritesheet;
     }
     
-    public PossibleConfig(ParticleEffectAnimationConfig particleEffect) {
+    public PossibleConfig(BattleParticleEffect particleEffect) {
         this.particleEffect = particleEffect;
     }
     
@@ -41,7 +42,7 @@ public class PossibleConfig {
         return spritesheet;
     }
     
-    public ParticleEffectAnimationConfig getPossibleParticleEffect() {
+    public BattleParticleEffect getPossibleParticleEffect() {
         return particleEffect;
     }
     

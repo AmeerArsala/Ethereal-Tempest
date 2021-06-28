@@ -55,14 +55,6 @@ public class NextActionSequence {
             ++i;
         } while (i < nextActions.size());
         
-        for (BattleAnimationSegment BAS : battleAnimationSegments) {
-            for (VisibleEntityAnimation anim : BAS.getEntityAnimations()) {
-                if (anim.getInfo().getImpact() != null) {
-                    System.err.println("Impact found!");
-                }
-            }
-        }
-        
         return battleAnimationSegments;
     }
 }

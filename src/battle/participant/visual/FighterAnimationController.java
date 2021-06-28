@@ -27,8 +27,6 @@ public class FighterAnimationController {
     private final ActionDecider animationDecider;
     private final BattleAnimation.Queue currentAnimationQueue;
     
-    private Fighter.Notifier fromOpponent;
-    
     public FighterAnimationController(BattleSprite sprite, ActionDecider animationDecider, AssetManager assetManager, DecisionParams decisionData) {
         this.sprite = sprite;
         this.animationDecider = animationDecider;
@@ -36,10 +34,6 @@ public class FighterAnimationController {
         this.decisionData = decisionData;
         
         currentAnimationQueue = new BattleAnimation.Queue();
-    }
-    
-    public void giveNotifier(Fighter.Notifier myNotifier, FighterAnimationController adversary) {
-        adversary.fromOpponent = myNotifier;
     }
     
     public BattleSprite getSprite() { return sprite; }
@@ -54,8 +48,8 @@ public class FighterAnimationController {
         currentAnimationQueue.resetCurrentAnimation();
     }
     
-    private void callAnimation(ActionDecider.Procedure next, AnimationParams animParams) {
-        SpriteAnimationParams params = new SpriteAnimationParams(sprite, fromOpponent.getSprite(), assetManager, animParams.secondEndCondition);
+    private void callAnimation(ActionDecider.Procedure next, AnimationParams animParams, BattleSprite opponent) {
+        SpriteAnimationParams params = new SpriteAnimationParams(sprite, opponent, assetManager, animParams.secondEndCondition);
         Node animationRoot = sprite.getParent();
         NextActionSequence nextSequence = next.run(decisionData);
         
@@ -71,38 +65,33 @@ public class FighterAnimationController {
         );
     }
     
-    private void callAttributeAnimation(ActionDecider.AttributeAnimation next, UpdateLoop onDashUpdate, AnimationParams animParams) {
+    private void callAttributeAnimation(ActionDecider.AttributeAnimation next, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent) {
         if (next.usesDash()) { //uses default dash
-            nextDashAnimation(onDashUpdate);
+            nextDashAnimation(onDashUpdate, opponent);
         }
         
-        callAnimation(next.getOnCall(), animParams); //specify movement in the json file
+        callAnimation(next.getOnCall(), animParams, opponent); //specify movement in the json file
     }
     
-    private void callAnimationWithDash(ActionDecider.Procedure next, UpdateLoop onDashUpdate, AnimationParams animParams) {
-        nextDashAnimation(onDashUpdate);
-        callAnimation(next, animParams);
+    public void nextSkillAttackAnimation(String name, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent) {
+        callAttributeAnimation(animationDecider.getOnSkillAttackCalled(name), onDashUpdate, animParams, opponent);
     }
     
-    public void nextSkillAttackAnimation(String name, UpdateLoop onDashUpdate, AnimationParams animParams) {
-        callAttributeAnimation(animationDecider.getOnSkillAttackCalled(name), onDashUpdate, animParams); 
+    public void nextBattleTalentAttackAnimation(String name, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent) {
+        callAttributeAnimation(animationDecider.getOnBattleTalentAttackCalled(name), onDashUpdate, animParams, opponent);
     }
     
-    public void nextBattleTalentAttackAnimation(String name, UpdateLoop onDashUpdate, AnimationParams animParams) {
-        callAttributeAnimation(animationDecider.getOnBattleTalentAttackCalled(name), onDashUpdate, animParams);
-    }
-    
-    public void nextAttackAnimation(UpdateLoop onDashUpdate, AnimationParams animParams) {
+    public void nextAttackAnimation(UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent) {
         if (sprite.usesHitPoint()) { //uses dash in that case
-            callAnimationWithDash(animationDecider.getOnAttackCalled(), onDashUpdate, animParams);
-        } else {
-            callAnimation(animationDecider.getOnAttackCalled(), animParams);
+            nextDashAnimation(onDashUpdate, opponent);
         }
+        
+        callAnimation(animationDecider.getOnAttackCalled(), animParams, opponent);
     }
     
-    public void nextDashAnimation(UpdateLoop onUpdate) {
+    public void nextDashAnimation(UpdateLoop onUpdate, BattleSprite opponent) {
         //System.out.println("collision so dash isnt needed? " + sprite.collidesWith(fromOpponent.getSprite()));
-        if (animationDecider.getOnDashCalled() != null && !sprite.collidesWith(fromOpponent.getSprite())) {
+        if (animationDecider.getOnDashCalled() != null && !sprite.collidesWith(opponent)) {
             callAnimation(
                 animationDecider.getOnDashCalled(), 
                 new AnimationParams(
@@ -110,21 +99,22 @@ public class FighterAnimationController {
                     (enemySprite) -> {
                         return sprite.collidesWith(enemySprite);
                     }
-                )
+                ),
+                opponent
             );
         }
     }
     
-    public void nextReceiveImpactAnimation(AnimationParams animParams) { 
+    public void nextReceiveImpactAnimation(AnimationParams animParams, BattleSprite opponent) { 
         if (decisionData.getCurrentStrike().didHit()) { //assumes this unit is the victim for this strike
-            callAnimation(animationDecider.getOnGotHitCalled(), animParams);
+            callAnimation(animationDecider.getOnGotHitCalled(), animParams, opponent);
         } else {
-            callAnimation(animationDecider.getOnDodgeCalled(), animParams);
+            callAnimation(animationDecider.getOnDodgeCalled(), animParams, opponent);
         }
     }
     
-    public void nextIdleAnimation(AnimationParams animParams) {
-        callAnimation(animationDecider.getOnIdleCalled(), animParams);
+    public void nextIdleAnimation(AnimationParams animParams, BattleSprite opponent) {
+        callAnimation(animationDecider.getOnIdleCalled(), animParams, opponent);
     }
     
     public void update(float tpf) {

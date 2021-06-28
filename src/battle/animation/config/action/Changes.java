@@ -3,14 +3,18 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.animation.config;
+package battle.animation.config.action;
 
-import com.google.gson.annotations.Expose;
+import battle.participant.visual.BattleParticleEffect;
+import battle.participant.visual.BattleSprite;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
+import com.jme3.scene.Spatial;
 import general.math.ParametricFunctionStrings3f;
 import general.math.ParametricFunctionStrings4f;
-import general.utils.helpers.GeneralUtils;
+import general.utils.Duo;
 
 /**
  *
@@ -22,9 +26,6 @@ public class Changes {
     private Change3f[] thetaVelocities; //angular velocity in degrees; units: degrees/frame 
     private Change3f[] localScales; //not a velocity function
     private Change4f[] colors; //not a velocity function
-    
-    //@Expose(deserialize = false) 
-    //private ChangePack[] finiteChanges; //changes at all FINITE frames since action frame; this includes infinites up to the highest index of the arrays above
     
     public Changes() {}
     
@@ -40,24 +41,52 @@ public class Changes {
     Change3f[] getLocalScales() { return localScales; }
     Change4f[] getColors() { return colors; }
     
-    /*public ChangePack getChangePack(int framesSinceActionFrame) {
-        return finiteChanges.length > 0 && framesSinceActionFrame < finiteChanges.length ? finiteChanges[framesSinceActionFrame] : generateChangePack(framesSinceActionFrame);
-    }*/
+    static <S> Duo<Vector2f, Vector3f> obtainVariableChanges(S root) {
+        Vector2f percentagePos;
+        Vector3f localAngle;
+        
+        if (root instanceof BattleSprite) {
+            BattleSprite sprite = (BattleSprite)root;
+            percentagePos = sprite.getPercentagePosition();
+            localAngle = sprite.getLocalAngle();
+        } else { // user instanceof BattleParticleEffect.ParticleRootNode == true
+            BattleParticleEffect.ParticleRootNode particleRoot = (BattleParticleEffect.ParticleRootNode)root;
+            percentagePos = particleRoot.getPercentagePosition();
+            localAngle = particleRoot.getLocalAngle();
+        }
+        
+        return new Duo<>(percentagePos, localAngle);
+    }
     
-    public ChangePack generateChangePack(int framesSinceActionFrame) {
-        ParametricFunctionStrings4f colorStrings = getColorStrings(framesSinceActionFrame);
+    /**
+     * 
+     * @param framesSinceActionFrame
+     * @param user do NOT pass in something that is an instance of Spatial; either BattleSprite or BattleParticleEffect.ParticleRootNode
+     * @param opponent do NOT pass in something that is an instance of Spatial; either BattleSprite or BattleParticleEffect.ParticleRootNode
+     * @return 
+     */
+    public ChangePack generateChangePack(int framesSinceActionFrame, Spatial user, Spatial opponent) {
+        Duo<Vector2f, Vector3f> userVariableChanges = obtainVariableChanges(user);         // A is percentagePos, B is localAngle
+        Duo<Vector2f, Vector3f> opponentVariableChanges = obtainVariableChanges(opponent); // A is percentagePos, B is localAngle
         
         ColorRGBA rgba = null;
         String colorMatParam = null;
-        if (colorStrings != null) {
-            rgba = colorStrings.getRGBAFunction().rgba(framesSinceActionFrame);
-            colorMatParam = colorStrings.getColorMatParam();
+        
+        if (user instanceof BattleSprite) {
+            BattleSprite userSprite = (BattleSprite)user;
+            ColorRGBA opponentColor = opponent instanceof BattleSprite ? ((BattleSprite)opponent).getColor() : new ColorRGBA(1, 1, 1, 1);
+            
+            ParametricFunctionStrings4f colorStrings = getColorStrings(framesSinceActionFrame);
+            if (colorStrings != null) {
+                rgba = colorStrings.outputColor(framesSinceActionFrame, ConstantsDealer.ColorRGBA_Constants(userSprite.getColor(), opponentColor));
+                colorMatParam = colorStrings.getColorMatParam();
+            }
         }
         
         return new ChangePack(
-            getVelocity(framesSinceActionFrame),
-            getAngularVelocity(framesSinceActionFrame),
-            getLocalScale(framesSinceActionFrame),
+            getVelocity(framesSinceActionFrame, userVariableChanges.getA(), opponentVariableChanges.getA()),
+            getAngularVelocity(framesSinceActionFrame, userVariableChanges.getB(), opponentVariableChanges.getB()),
+            getLocalScale(framesSinceActionFrame, user.getLocalScale(), opponent.getLocalScale()),
             rgba,
             colorMatParam
         );
@@ -76,19 +105,32 @@ public class Changes {
         return -1;
     }
     
-    public Vector3f getVelocity(int framesSinceActionFrame) {
+    public Vector3f getVelocity(int framesSinceActionFrame, Vector2f userPos, Vector2f opponentPos) {
         int index = getChangeIndex(velocities, framesSinceActionFrame, "velocity");
-        return index == -1 ? null : velocities[index].getStrFunc().output(framesSinceActionFrame);
+
+        return index == -1 ? null : velocities[index].getStrFunc().outputVector(
+            framesSinceActionFrame,
+            ConstantsDealer.Vec3f_Constants(
+                new Vector3f(userPos.x, userPos.y, 0),        // userPos 
+                new Vector3f(opponentPos.x, opponentPos.y, 0) // opponentPos
+            )
+        );
     }
     
-    public Vector3f getAngularVelocity(int framesSinceActionFrame) {
+    public Vector3f getAngularVelocity(int framesSinceActionFrame, Vector3f userAngle, Vector3f opponentAngle) {
         int index = getChangeIndex(thetaVelocities, framesSinceActionFrame, "thetaVelocity");
-        return index == -1 ? null : thetaVelocities[index].getStrFunc().output(framesSinceActionFrame);
+        return index == -1 ? null : thetaVelocities[index].getStrFunc().outputVector(
+            framesSinceActionFrame,
+            ConstantsDealer.Vec3f_Constants(userAngle, opponentAngle)
+        );
     }
     
-    public Vector3f getLocalScale(int framesSinceActionFrame) {
+    public Vector3f getLocalScale(int framesSinceActionFrame, Vector3f userScale, Vector3f opponentScale) {
         int index = getChangeIndex(localScales, framesSinceActionFrame, "localScale");
-        return index == -1 ? null : localScales[index].getStrFunc().output(framesSinceActionFrame);
+        return index == -1 ? null : localScales[index].getStrFunc().outputVector(
+            framesSinceActionFrame,
+            ConstantsDealer.Vec3f_Constants(userScale, opponentScale)
+        );
     }
     
     public ParametricFunctionStrings4f getColorStrings(int framesSinceActionFrame) {
@@ -97,34 +139,22 @@ public class Changes {
     }
     
     public void initializeAll() {
+        char[] constants = ConstantsDealer.EXPRESSION_CONSTANTS;
         for (Change3f velocity : velocities) {
-            velocity.getStrFunc().initialize();
+            velocity.getStrFunc().initialize(constants);
         }
         
         for (Change3f thetaVelocity : thetaVelocities) {
-            thetaVelocity.getStrFunc().initialize();
+            thetaVelocity.getStrFunc().initialize(constants);
         }
         
         for (Change3f localScale : localScales) {
-            localScale.getStrFunc().initialize();
+            localScale.getStrFunc().initialize(constants);
         }
         
         for (Change4f color : colors) {
-            color.getStrFunc().initialize();
+            color.getStrFunc().initialize(constants);
         }
-        
-        /*
-        finiteChanges = new ChangePack[
-            GeneralUtils.highestInt(
-                new int[]{velocities.length, thetaVelocities.length, localScales.length, colors.length}
-            )
-        ];
-        
-        for (int i = 0; i < finiteChanges.length; ++i) { //i = framesSince
-            finiteChanges[i] = generateChangePack(i);
-        }
-        
-        */
     }
 }
 

@@ -6,29 +6,34 @@
 package battle.animation;
 
 import battle.animation.config.EntityAnimation;
+import battle.participant.visual.BattleParticleEffect;
 import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;
-import general.visual.DeserializedParticleEffect;
-import general.visual.animation.VisualTransition.Progress;
 
 /**
  *
  * @author night
  */
-public class VisibleEntityParticleEffectAnimation extends VisibleEntityAnimation<Node> {
-    private DeserializedParticleEffect particleEffect;
-    private boolean doesLoop;
+public class VisibleEntityParticleEffectAnimation extends VisibleEntityAnimation<BattleParticleEffect.ParticleRootNode> {
+    private final BattleParticleEffect particleEffect;
     
     public VisibleEntityParticleEffectAnimation(EntityAnimation config, SpriteAnimationParams params) {
-        super(config, new RootPackage<Node>(new Node()), params.opponentSprite, params.secondEndAnimationCondition, params.mirror);
-        initializeEffects(params.assetManager);
+        super(
+            config,
+            new RootPackage<BattleParticleEffect.ParticleRootNode>(initializeEffects(config, params.assetManager)), 
+            params.opponentSprite, 
+            params.secondEndAnimationCondition, 
+            params.mirror
+        );
+        
+        particleEffect = info.getConfig().getPossibleParticleEffect();
+        particleEffect.getParticleRootNode().setBattleBoxInfo(getBattleBoxInfo());
     }
     
-    private void initializeEffects(AssetManager assetManager) {
-        info.initializeParticleEffects(assetManager);
+    private static BattleParticleEffect.ParticleRootNode initializeEffects(EntityAnimation config, AssetManager assetManager) {
+        config.initializeParticleEffects(assetManager);
         
-        particleEffect = info.getConfig().getPossibleParticleEffect().getEffect();
-        doesLoop = info.getConfig().getPossibleParticleEffect().doesLoop();
+        BattleParticleEffect particleEffect = config.getConfig().getPossibleParticleEffect();
         
         particleEffect.onEffectStart((tpf) -> {
             if (particleEffect.useDestroyoflyer()) {
@@ -36,17 +41,14 @@ public class VisibleEntityParticleEffectAnimation extends VisibleEntityAnimation
                 particleEffect.getManualControl().setEnabled(true);
             }
         });
-    }
-    
-    public boolean doesLoop() {
-        return doesLoop;
+        
+        return particleEffect.getParticleRootNode();
     }
 
     @Override
     protected void updateAnimation(float tpf) {
-        if (doesLoop || particleEffect.getEffectProgress() != Progress.Finished) {
-            particleEffect.update(tpf);
-        }
+        particleEffect.getParticleRootNode().updateOrientation(opponentAnimationRoot.root.getXFacing());
+        particleEffect.update(tpf);
     }
     
     @Override
@@ -62,7 +64,7 @@ public class VisibleEntityParticleEffectAnimation extends VisibleEntityAnimation
 
     @Override
     protected void beginAnimation(Node animationRoot) {
-        entityAnimationRoot.root.attachChild(particleEffect.getNode());
+        entityAnimationRoot.root.attachChild(particleEffect.getModelRootNode());
     }
     
     @Override

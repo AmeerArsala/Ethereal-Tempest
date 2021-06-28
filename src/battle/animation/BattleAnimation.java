@@ -15,10 +15,12 @@ import java.util.List;
  */
 public class BattleAnimation {
     private final Node animationRoot;
-    private final List<BattleAnimationSegment> segments;
+    private final List<BattleAnimationSegment> segments; //do not make a get method of this
     
     private int index = 0;
     private boolean paused = true;
+    
+    private Runnable onStrikeFinished = () -> {};
     
     //use this constructor if you are already using a pre-existing Node
     public BattleAnimation(Node animationRoot, List<BattleAnimationSegment> segments) {
@@ -75,18 +77,21 @@ public class BattleAnimation {
             segments.get(index).update(tpf);
             
             //check if finished
-            if (segments.get(index).isFinished()) {
-                ++index;
+            //if the current segment is finished, index increments by 1, but before that, it checks if it was an attack. If so, the code below it executes
+            if (segments.get(index).isFinished() && segments.get(index++).isAttack()) {
+                onStrikeFinished.run();
             }
         }
     }
     
-    public boolean realImpactOccurred() {
-        return segments.get(index).realImpactOccurred();
+    public void onStrikeFinished(Runnable procedure) {
+        onStrikeFinished = procedure;
     }
     
-    public boolean isStrikeFinished() {
-        return segments.get(index).isAttack() && segments.get(index).isFinished();
+    public void onRealImpactOccurred(Runnable procedure) {
+        for (BattleAnimationSegment segment : segments) {
+            segment.onRealImpactOccurred(procedure);
+        }
     }
     
     //counts the remaining battle segments where 'isAttack' == true, starting from and including the current index
@@ -104,6 +109,8 @@ public class BattleAnimation {
     
     public static class Queue extends OrdinalQueue<BattleAnimation> {
         private boolean started = false;
+        private Runnable onStrikeFinished = () -> {};
+        private Runnable onRealImpactOccurred = () -> {};
         
         public Queue() {
             super(
@@ -112,9 +119,27 @@ public class BattleAnimation {
             );
         }
         
+        public void onStrikeFinished(Runnable userProcedure, Runnable opponentProcedure) {
+            onStrikeFinished = () -> {
+                userProcedure.run();
+                opponentProcedure.run();
+            };
+        }
+        
+        public void onRealImpactOccurred(Runnable userProcedure, Runnable opponentProcedure) {
+            onRealImpactOccurred = () -> {
+                userProcedure.run();
+                opponentProcedure.run();
+            };
+        }
+        
         public void startCurrentAnimationIfNotAlready() {
             if (!started) {
-                getCurrentTask().startAnimation();
+                BattleAnimation animation = getCurrentTask();
+                animation.onStrikeFinished(onStrikeFinished);
+                animation.onRealImpactOccurred(onRealImpactOccurred);
+                
+                animation.startAnimation();
                 started = true;
             }
         }
@@ -128,16 +153,11 @@ public class BattleAnimation {
         }
         
         public void resetStarted() { 
-            started = false; 
+            started = false;
         }
         
         public void resetCurrentAnimation() {
             getCurrentTask().reset();
-        }
-        
-        public boolean realImpactOccurred() {
-            BattleAnimation current = getCurrentTask();
-            return current != null ? current.realImpactOccurred() : false;
         }
     }
 }

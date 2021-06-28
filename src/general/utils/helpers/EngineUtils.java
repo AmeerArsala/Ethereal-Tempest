@@ -9,6 +9,7 @@ import com.atr.jme.font.shape.TrueTypeNode;
 import com.google.gson.Gson;
 import com.jme3.bounding.BoundingBox;
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.Panel;
@@ -103,6 +104,12 @@ public class EngineUtils {
             ex.printStackTrace();
             return null;
         }
+    }
+    
+    public static Vector3f getLocalAngle(Quaternion localRotation) {
+        float[] angles = localRotation.toAngles(null);
+        
+        return new Vector3f(angles[0], angles[1], angles[2]);
     }
     
 }

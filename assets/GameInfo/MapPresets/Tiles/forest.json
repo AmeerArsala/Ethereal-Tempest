@@ -16,56 +16,108 @@
     "wangTexture": false,
     "clones": [
       {
-        "x": 0,
-        "y": 0,
-        "z": 0,
-        "xAddedRandomness": 2,
-        "zAddedRandomness": 2,
-        "scaleX": 160,
-        "scaleY": 160,
-        "scaleZ": 160,
-        "scaleXAddedRandomness": 25,
-        "scaleYAddedRandomness": 25,
-        "scaleZAddedRandomness": 25
+        "translation": {
+          "vec": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "addedRandomness": {
+            "x": 2,
+            "z": 2
+          }
+        },
+        "angle": {},
+        "scale": {
+          "vec": {
+            "x": 1.6,
+            "y": 1.6,
+            "z": 1.6
+          },
+          "addedRandomness": {
+            "x": 0.25,
+            "y": 0.25,
+            "z": 0.25
+          }
+        }
       },
       {
-        "x": 12,
-        "y": 0,
-        "z": 0,
-        "xAddedRandomness": 2,
-        "zAddedRandomness": 2,
-        "scaleX": 160,
-        "scaleY": 160,
-        "scaleZ": 160,
-        "scaleXAddedRandomness": 25,
-        "scaleYAddedRandomness": 25,
-        "scaleZAddedRandomness": 25
+        "translation": {
+          "vec": {
+            "x": 12,
+            "y": 0,
+            "z": 0
+          },
+          "addedRandomness": {
+            "x": 2,
+            "z": 2
+          }
+        },
+        "angle": {},
+        "scale": {
+          "vec": {
+            "x": 1.6,
+            "y": 1.6,
+            "z": 1.6
+          },
+          "addedRandomness": {
+            "x": 0.25,
+            "y": 0.25,
+            "z": 0.25
+          }
+        }
       },
       {
-        "x": 0,
-        "y": 0,
-        "z": 12,
-        "xAddedRandomness": 2,
-        "zAddedRandomness": 2,
-        "scaleX": 160,
-        "scaleY": 160,
-        "scaleZ": 160,
-        "scaleXAddedRandomness": 25,
-        "scaleYAddedRandomness": 25,
-        "scaleZAddedRandomness": 25
+        "translation": {
+          "vec": {
+            "x": 0,
+            "y": 0,
+            "z": 12
+          },
+          "addedRandomness": {
+            "x": 2,
+            "z": 2
+          }
+        },
+        "angle": {},
+        "scale": {
+          "vec": {
+            "x": 1.6,
+            "y": 1.6,
+            "z": 1.6
+          },
+          "addedRandomness": {
+            "x": 0.25,
+            "y": 0.25,
+            "z": 0.25
+          }
+        }
       },
       {
-        "x": 12,
-        "y": 0,
-        "z": 12,
-        "xAddedRandomness": 2,
-        "zAddedRandomness": 2,
-        "scaleX": 160,
-        "scaleY": 160,
-        "scaleZ": 160,
-        "scaleXAddedRandomness": 25,
-        "scaleYAddedRandomness": 25,
-        "scaleZAddedRandomness": 25
+        "translation": {
+          "vec": {
+            "x": 12,
+            "y": 0,
+            "z": 12
+          },
+          "addedRandomness": {
+            "x": 2,
+            "z": 2
+          }
+        },
+        "angle": {},
+        "scale": {
+          "vec": {
+            "x": 1.6,
+            "y": 1.6,
+            "z": 1.6
+          },
+          "addedRandomness": {
+            "x": 0.25,
+            "y": 0.25,
+            "z": 0.25
+          }
+        }
       }
     ]
   }

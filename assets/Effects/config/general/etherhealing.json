@@ -1,6 +1,20 @@
 {
   "effectPath": "Effects/Creative Commons/tktk01/Cure7",
-  "x": 8,
-  "y": 3,
-  "z": 8
+  "translation": {
+    "vec": {
+      "x": 8,
+      "y": 3,
+      "z": 8
+    },
+    "addedRandomness": {}
+  },
+  "angle": {},
+  "scale": {
+    "vec": {
+      "x": 1,
+      "y": 1,
+      "z": 1
+    },
+    "addedRandomness": {}
+  }
 }

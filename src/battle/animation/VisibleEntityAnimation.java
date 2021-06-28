@@ -5,8 +5,8 @@
  */
 package battle.animation;
 
-import battle.animation.config.ActionFrame;
-import battle.animation.config.Changes;
+import battle.animation.config.action.ActionFrame;
+import battle.animation.config.action.Changes;
 import battle.animation.config.EntityAnimation;
 import battle.environment.BoxMetadata;
 import battle.participant.visual.BattleSprite;
@@ -44,8 +44,8 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
     public VisibleEntityAnimation(EntityAnimation config, RootPackage<R> root, RootPackage<BattleSprite> opponentRoot, Predicate<BattleSprite> otherEndCondition, boolean mirror) {
         info = config;
         doMirror = mirror;
-        entityAnimationRoot = new EntityRoot<>(root);
-        opponentAnimationRoot = new EntityRoot<>(opponentRoot);
+        entityAnimationRoot = new EntityRoot<>(root, false);
+        opponentAnimationRoot = new EntityRoot<>(opponentRoot, true);
         secondEndCondition = otherEndCondition;
     }
     
@@ -60,7 +60,7 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
     
     public final void update(float tpf) {
         if (!finished) {
-            if (allowVisualUpdate) { //update once and then set false until end of frame
+            if (allowVisualUpdate) { //update once and then set false until end of frame because it updates once per frame of animation
                 updateAnimation(tpf);
                 updateAction(tpf);
                 allowVisualUpdate = false;
@@ -126,89 +126,48 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
     protected abstract void updateAnimation(float tpf);
     protected abstract void beginAnimation(Node animationRoot);
     protected abstract void mirror();
-}
-
-// <S> is the User Spatial
-class EntityRoot<S extends Spatial> {
-    public final S root;
-    public final ProcedureGroup queue = new ProcedureGroup();
-    public final Vector3f positiveDirection;
-        
-    public EntityRoot(RootPackage<S> rootPackage) {
-        root = rootPackage.root;
-        positiveDirection = rootPackage.positiveDirectionVector;
+    
+    @Override
+    public String toString() {
+        return "VisibleEntityAnimation: " + info.getJsonPath();
     }
     
-    public void setPositiveDirection(boolean x, boolean y, boolean z) {
-        int $x = x ? 1 : -1;
-        int $y = y ? 1 : -1;
-        int $z = z ? 1 : -1;
+    //                        <S> is the User Spatial
+    protected class EntityRoot<S extends Spatial> {
+        private final boolean isOpponent;
         
-        positiveDirection.set($x, $y, $z);
-    }
+        public final S root;
+        public final ProcedureGroup queue = new ProcedureGroup();
+        public final Vector3f positiveDirection;
+        
+        public EntityRoot(RootPackage<S> rootPackage, boolean isOpponent) {
+            this.isOpponent = isOpponent;
+            root = rootPackage.root;
+            positiveDirection = rootPackage.positiveDirectionVector;
+        }
     
-    public void addChangesToQueueIfAny(Changes changes, BoxMetadata battleBoxInfo, boolean fromSelf) {
-        queue.add(new SimpleProcedure() {
-            private int framesSince = 0;
+        public void setPositiveDirection(boolean x, boolean y, boolean z) {
+            int $x = x ? 1 : -1;
+            int $y = y ? 1 : -1;
+            int $z = z ? 1 : -1;
+        
+            positiveDirection.set($x, $y, $z);
+        }
+    
+        public void addChangesToQueueIfAny(Changes changes, BoxMetadata battleBoxInfo, boolean fromSelf) {
+            queue.add(new SimpleProcedure() {
+                private int framesSince = 0;
                 
-            @Override
-            public boolean update(float tpf) {
-                //System.out.println(fromSelf ? "<USER_CHANGES>" : "<OPPONENT_CHANGES>");
-                return changes.generateChangePack(framesSince++).apply(root, battleBoxInfo, positiveDirection, fromSelf);
-            }
-        });
-    }
-    
-    public void addChangesToQueueIfAny(ActionFrame action, BoxMetadata battleBoxInfo, boolean isUser, boolean fromSelf) {
-        Changes changes = isUser ? action.getUserChanges() : action.getOpponentChanges();
-        addChangesToQueueIfAny(changes, battleBoxInfo, fromSelf);
-    }
-    
-    /*    
-    private boolean updateChanges(Changes changes, boolean fromSelf, int framesSince) {
-        //root, currentColor, positiveDirection, fromSelf 
-        Vector3f velocity = changes.getVelocity(framesSince);
-        Vector3f angularVelocity = changes.getAngularVelocity(framesSince);
-        Vector3f localScale = changes.getLocalScale(framesSince);
-        ColorRGBA color = changes.getColor(framesSince);
-        String colorMatParam = changes.getColorMatParam(framesSince);
-        
-        boolean rootIsBattleSprite = root instanceof BattleSprite;
-        
-        if (velocity == null && angularVelocity == null && localScale == null && color == null) {
-            if (rootIsBattleSprite && currentColor != null) {
-                //reset the color
-                ColorRGBA reset = new ColorRGBA(1f / currentColor.r, 1f / currentColor.g, 1f / currentColor.b, 1f / currentColor.a);
-                ((BattleSprite)root).setColor(colorMatParam, reset);
-                currentColor = ColorRGBA.White;
-            }
-             
-            System.out.println("phase over");
-            
-            return true;
+                @Override
+                public boolean update(float tpf) {
+                    //System.out.println(fromSelf ? "<USER_CHANGES>" : "<OPPONENT_CHANGES>");
+                    return changes.generateChangePack(
+                        framesSince++, 
+                        root,
+                        (isOpponent ? opponentAnimationRoot.root : entityAnimationRoot.root)
+                    ).apply(root, battleBoxInfo, positiveDirection, fromSelf);
+                }
+            });
         }
-        
-        if (fromSelf || (rootIsBattleSprite && ((BattleSprite)root).allowDisplacementTransformationsFromOpponent())) {
-            if (velocity != null) {
-                root.move(velocity.multLocal(positiveDirection)); //multiply by positiveDirection for mirroring
-                System.out.println(velocity);
-            }
-        
-            if (angularVelocity != null) {
-                root.rotate(angularVelocity.x, angularVelocity.y, angularVelocity.z);
-            }
-        
-            if (localScale != null) {
-                root.setLocalScale(localScale);
-            }
-        }
-                    
-        if (rootIsBattleSprite && color != null) {
-           ((BattleSprite)root).setColor(colorMatParam, color);
-            currentColor = color;
-        }
-    
-        return false;
     }
-    */
 }

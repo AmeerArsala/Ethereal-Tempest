@@ -19,11 +19,16 @@ public class BattleAnimationSegment {
     private final boolean isAttack;
     
     private int animationIndex = 0;
+    private Runnable onRealImpactOccurred = () -> {};
     
     public BattleAnimationSegment(List<VisibleEntityAnimation> entityAnimations, boolean concurrent, boolean isAttack) {
         this.entityAnimations = entityAnimations;
         this.concurrent = concurrent;
         this.isAttack = isAttack;
+        
+        for (VisibleEntityAnimation anim : entityAnimations) {
+            System.out.println(anim.toString());
+        }
     }
     
     public List<VisibleEntityAnimation> getEntityAnimations() {
@@ -57,15 +62,15 @@ public class BattleAnimationSegment {
         
         if (!concurrent) {
             VisibleEntityAnimation entityAnimation = firstUnfinishedAnimation();
-            if (entityAnimation == lastAnimation) { //real impacts only occur on the last animation
-                return lastAnimation.impactOccured();
-            }
-            
-            return false;
+            return entityAnimation == null ? false : entityAnimation.impactOccured();
         }
         
         //if it is concurrent
-        return lastAnimation.impactOccured();
+        return lastAnimation.impactOccured(); //real impacts only occur on the last animation on concurrent animations
+    }
+    
+    public void onRealImpactOccurred(Runnable prcdr) {
+        onRealImpactOccurred = prcdr;
     }
     
     private void procedure(Command<VisibleEntityAnimation> command) {
@@ -101,6 +106,11 @@ public class BattleAnimationSegment {
         if (!isFinished()) {
             procedure((entityAnimation) -> {
                 entityAnimation.update(tpf);
+                
+                if (realImpactOccurred()) {
+                    onRealImpactOccurred.run();
+                }
+                
                 listenForFinish(entityAnimation);
             });
         }

@@ -122,7 +122,7 @@ public class MapLevel {
         DeserializedParticleEffect[] effects = info.retrieveMapEffects(assetManager);
         if (effects != null) {
             for (DeserializedParticleEffect effect : effects) {
-                cursorNode.attachChild(effect.getNode());
+                cursorNode.attachChild(effect.getModelRootNode());
             }
         }
     }

@@ -2,12 +2,23 @@
   "effectPath": "Effects/Original/buff",
   "frames": 45,
   //"useDestroyoflyer": true,
-  "x": 13,
-  "y": 4,
-  "z": -28,
-  "scaleX": 750,
-  "scaleY": 750,
-  "scaleZ": 750/*,
+  "translation": {
+    "vec": {
+      "x": 13,
+      "y": 4,
+      "z": -28
+    },
+    "addedRandomness": {}
+  },
+  "angle": {},
+  "scale": {
+    "vec": {
+      "x": 7.5,
+      "y": 7.5,
+      "z": 7.5
+    },
+    "addedRandomness": {}
+  }/*,
   "useCustomDriver": true,
   "usePointFollowingSpatialShape": true,
   "loop": true*/

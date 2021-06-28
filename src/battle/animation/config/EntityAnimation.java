@@ -5,6 +5,7 @@
  */
 package battle.animation.config;
 
+import battle.animation.config.action.ActionFrame;
 import battle.animation.SpriteAnimationParams;
 import battle.animation.VisibleEntityAnimation;
 import battle.animation.VisibleEntityParticleEffectAnimation;
@@ -56,9 +57,11 @@ public class EntityAnimation {
         }
     }
     
+    @Expose(deserialize = false) private String jsonPath;
     @Expose(deserialize = false) private AnimationSource animSource;
     @Expose(deserialize = false) private PossibleConfig config; //spritesheet config or particle effect animation config, but not both
     @Expose(deserialize = false) private List<IntPair> localFrameConversion;
+    @Expose(deserialize = false) private int minLocalFrameForRegisteringImpact; //each impact can only be registered once
     
     private String configPath; //path to PossibleConfig (config)
     private Vector2f hitPoint; //hitbox
@@ -80,7 +83,7 @@ public class EntityAnimation {
     
     public void initializeParticleEffects(AssetManager assetManager) {
         if (animSource == AnimationSource.ParticleEffect) {
-            config.getPossibleParticleEffect().getEffect().initialize(assetManager);
+            config.getPossibleParticleEffect().initialize(assetManager);
         }
     }
     
@@ -111,6 +114,12 @@ public class EntityAnimation {
         if (otherActionFrames == null) {
             otherActionFrames = new ActionFrame[0];
         }
+        
+        minLocalFrameForRegisteringImpact = 0;
+    }
+    
+    public String getJsonPath() {
+        return jsonPath;
     }
     
     public AnimationSource getAnimationSource() {
@@ -197,16 +206,19 @@ public class EntityAnimation {
     }
     
     public boolean impactOccursAt(int localFrame) {
-        System.out.println("impact is null? " + (impact == null));
-        System.err.println("localFrame: " + localFrame + ", localFrameConversion.size(): " + localFrameConversion.size());
-        if (impact == null || localFrame >= localFrameConversion.size()) {
+        System.out.println(jsonPath + " -> " + "localFrame: " + localFrame + ", localFrameConversion.size(): " + localFrameConversion.size());
+        if (impact == null || localFrame >= localFrameConversion.size() || localFrame < minLocalFrameForRegisteringImpact) {
             return false;
         }
         
-        System.out.println("HEY");
-        
         IntPair info = localFrameConversion.get(localFrame);
-        return Objects.equals(info.getX(), impact.getColumn()) && info.getY() == impact.getFrame(); //x is column, y is segmentFrame; for particle effects, the first condition wlil be null == null
+        
+        if (Objects.equals(info.getX(), impact.getColumn()) && info.getY() == impact.getFrame()) { //x is column, y is segmentFrame; for particle effects, the first condition wlil be null == null
+            ++minLocalFrameForRegisteringImpact;
+            return true;
+        } else {
+            return false; 
+        }
     }
     
     public List<ActionFrame> getAllActionFrames() { //typically not in order because of impact
@@ -259,6 +271,7 @@ public class EntityAnimation {
             entityAnimation.initializeActionFrames();
             entityAnimation.initializeLocalFrameConversion();
             entityAnimation.initializeMiscProperties();
+            entityAnimation.jsonPath = jsonPath; //TODO: remove this later
             entityAnimation.animSource = AnimationSource.Spritesheet;
             
             return entityAnimation;
@@ -279,6 +292,7 @@ public class EntityAnimation {
             entityAnimation.initializeActionFrames();
             entityAnimation.initializeLocalFrameConversion();
             entityAnimation.initializeMiscProperties();
+            entityAnimation.jsonPath = jsonPath; //TODO: remove this later
             entityAnimation.animSource = AnimationSource.ParticleEffect;
             
             return entityAnimation;

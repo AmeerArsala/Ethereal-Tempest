@@ -7,12 +7,38 @@
       "animationSegment": {
         "from": 0,
         "to": 4,
-        "delay": 0.0
+        "delay": 0.075
       }
     }
   ],
   "loopAnimationVisually": false,
   "delayForIndefiniteChanges": 0.0,
   "impact": null,
-  "otherActionFrames": []
+  "otherActionFrames": [
+    {
+      "column": 6,
+      "frame": 0,
+      "soundPath": "", //TODO: add sound
+      "userChanges": {
+        "velocities": [
+          {
+            "strFunc": {
+              "parameter": "t",
+              "xFunction": "-U / 2" //U is original userPos from that frame, E is the enemyPos from that frame. W is the user sprite width
+            },
+            "domain": "0-1"
+          }
+        ],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      },
+      "opponentChanges": {
+        "velocities": [],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      }
+    }
+  ]
 }

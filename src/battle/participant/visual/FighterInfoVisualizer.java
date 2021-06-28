@@ -139,7 +139,7 @@ public class FighterInfoVisualizer {
         return new FighterAnimationController.AnimationParams(
             (tpf) -> {
                 //damage number rising
-                animation.update(tpf); 
+                animation.update(tpf);
             },
             (enemySprite) -> {
                 //return true if damage number is finished showing up and hp is finished draining
@@ -329,7 +329,7 @@ public class FighterInfoVisualizer {
         FontProperties fontParams = new FontProperties("Interface/Fonts/Montaga-Regular.ttf", FontProperties.KeyType.BMP, Style.Plain, fontSize);
         
         Text2D dmgText = new Text2D(text, textColor, textParams, fontParams, assetManager);
-        dmgText.setOutlineMaterial(textColor, ColorRGBA.Black);
+        //dmgText.setOutlineMaterial(textColor, ColorRGBA.Black);
         
         return dmgText;
     }

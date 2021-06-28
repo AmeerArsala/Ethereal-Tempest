@@ -351,6 +351,7 @@ public class TangibleUnit extends PositionedUnit {
                     }
                     
                     tempBonuses.addBonus(bonus.setTurnApplied(conv.getCurrentTurn())); //adds the stat modifier regardless
+                    System.out.println("Bonus added: " + bonus.StatBonusAsString());
                 }
             }
             

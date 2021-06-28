@@ -1,6 +1,21 @@
 {
   "effectPath": "Effects/Original/debuff", //.efkproj
-  "x": 8,
-  "y": 0,
-  "z": 8
+  "frames": 45,
+  "translation": {
+    "vec": {
+      "x": 13,
+      "y": 4,
+      "z": -28
+    },
+    "addedRandomness": {}
+  },
+  "angle": {},
+  "scale": {
+    "vec": {
+      "x": 7.5,
+      "y": 7.5,
+      "z": 7.5
+    },
+    "addedRandomness": {}
+  }
 }

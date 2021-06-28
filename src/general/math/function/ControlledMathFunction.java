@@ -8,6 +8,7 @@ package general.math.function;
 import com.jme3.math.FastMath;
 import general.tools.universal.ArrayManipulator;
 import general.math.FloatPair;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 

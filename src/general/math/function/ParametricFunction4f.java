@@ -5,6 +5,8 @@
  */
 package general.math.function;
 
+import com.jme3.math.Vector4f;
+
 /**
  *
  * @author night
@@ -16,6 +18,11 @@ public class ParametricFunction4f extends ParametricFunction {
         super(r, g);
         this.b = b;
         this.a = a;
+    }
+    
+    //copy constructor
+    public ParametricFunction4f(ParametricFunction4f rgba) {
+        this(rgba.getRFunc(), rgba.getGFunc(), rgba.b, rgba.a);
     }
     
     public ParametricFunction4f(MathFunction[] rgba) {
@@ -64,6 +71,39 @@ public class ParametricFunction4f extends ParametricFunction {
     public Float a(float input) {
         return a.output(input);
     }
+    
+    public Float w(float input) { //as in xyzw
+        return a.output(input);
+    }
+    
+    public MathFunction getRFunc() {
+        return getXFunc();
+    }
+    
+    public MathFunction getGFunc() {
+        return getYFunc();
+    }
+    
+    public MathFunction getBFunc() {
+        return b;
+    }
+    
+    public MathFunction getAFunc() {
+        return a;
+    }
+    
+    public MathFunction getZFunc() {
+        return b;
+    }
+    
+    public MathFunction getWFunc() {
+        return a;
+    }
+    
+    public Vector4f outputVec4(float input) {
+        return new Vector4f(x(input), y(input), b.output(input), a.output(input));
+    }
+    
     
     public static ParametricFunction4f CONSTANT(float r, float g, float b, float a) {
         return new ParametricFunction4f(MathFunction.CONSTANT(r), MathFunction.CONSTANT(g), MathFunction.CONSTANT(b), MathFunction.CONSTANT(a));

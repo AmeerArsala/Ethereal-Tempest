@@ -5,6 +5,8 @@
  */
 package general.math.function;
 
+import com.jme3.math.Vector2f;
+
 /**
  *
  * @author night
@@ -27,7 +29,8 @@ public class ParametricFunction { //ParametricFunction2f
         y = xy[1];
     }
     
-    protected ParametricFunction(ParametricFunction template) {
+    //copy constructor
+    public ParametricFunction(ParametricFunction template) {
         x = template.x;
         y = template.y;
     }
@@ -38,6 +41,18 @@ public class ParametricFunction { //ParametricFunction2f
     
     public Float y(float input) {
         return y.output(input);
+    }
+    
+    public MathFunction getXFunc() {
+        return x;
+    }
+    
+    public MathFunction getYFunc() {
+        return y;
+    }
+    
+    public Vector2f outputVec2(float input) {
+        return new Vector2f(x.output(input), y.output(input));
     }
     
     public ParametricFunction setInstanceGenType(short type) {

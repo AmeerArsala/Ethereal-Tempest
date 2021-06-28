@@ -5,88 +5,138 @@
  */
 package general.visual;
 
+import com.google.gson.annotations.Expose;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import enginetools.Vector3F;
 
 /**
  *
  * @author night
  */
-public class DeserializedModel { //this class is for gson stuff
-    protected Node modelRoot; //the parent of actual thing
+public class DeserializedModel {
+    //public static final float SCALE_DIVIDEND = 100f;
+    
+    @Expose(deserialize = false)
+    private Node modelRoot; //the parent of actual thing
         
     //gson this area
-    protected Float x = 0f, y = 0f, z = 0f; // relative/local; this would apply to model
-    protected Float rotX = 0f, rotY = 0f, rotZ = 0f; // this would apply to modelRoot
-    protected Float scaleX = 1f, scaleY = 1f, scaleZ = 1f; // relative/local; this would apply to model
-        
-    //all below would go from -(input) to (input) EXCLUSIVE NOT INCLUSIVE in terms of the RNG; also gson this area; ROTATION IS ALWAYS IN DEGREES
-    protected Float xAddedRandomness = 0f, yAddedRandomness = 0f, zAddedRandomness = 0f; // relative/local; this would apply to model
-    protected Float rotXAddedRandomness = 0f, rotYAddedRandomness = 0f, rotZAddedRandomness = 0f; // this would apply to modelRoot
-    protected Float scaleXAddedRandomness = 0f, scaleYAddedRandomness = 0f, scaleZAddedRandomness = 0f; // relative/local; this would apply to model
+    //added randomness would go from -(input) to (input) EXCLUSIVE NOT INCLUSIVE in terms of the RNG; also gson this area; ROTATION IS ALWAYS IN DEGREES
+    private DualVector3F translation = new DualVector3F( // relative/local; this would apply to model
+        new Vector3F(0f, 0f, 0f), //xyz
+        new Vector3F(0f, 0f, 0f)  //added randomness
+    );
+    
+    private DualVector3F angle = new DualVector3F( // this would apply to modelRoot
+        new Vector3F(0f, 0f, 0f), //xyz
+        new Vector3F(0f, 0f, 0f)  //added randomness
+    );
+    
+    private DualVector3F scale = new DualVector3F( // relative/local; this would apply to model
+        new Vector3F(1f, 1f, 1f), //xyz
+        new Vector3F(0f, 0f, 0f)  //added randomness
+    );
         
     public DeserializedModel() {}
         
-    public DeserializedModel
-    (
-        Float x, Float y, Float z,
-        Float rotX, Float rotY, Float rotZ,
-        Float scaleX, Float scaleY, Float scaleZ,
-        Float xAddedRandomness, Float yAddedRandomness, Float zAddedRandomness,
-        Float rotXAddedRandomness, Float rotYAddedRandomness, Float rotZAddedRandomness,
-        Float scaleXAddedRandomness, Float scaleYAddedRandomness, Float scaleZAddedRandomness
-    ) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.rotX = rotX;
-        this.rotY = rotY;
-        this.rotZ = rotZ;
-        this.scaleX = scaleX;
-        this.scaleY = scaleY;
-        this.scaleZ = scaleZ;
-        this.xAddedRandomness = xAddedRandomness;
-        this.yAddedRandomness = yAddedRandomness;
-        this.zAddedRandomness = zAddedRandomness;
-        this.rotXAddedRandomness = rotXAddedRandomness;
-        this.rotYAddedRandomness = rotYAddedRandomness;
-        this.rotZAddedRandomness = rotZAddedRandomness;
-        this.scaleXAddedRandomness = scaleXAddedRandomness;
-        this.scaleYAddedRandomness = scaleYAddedRandomness;
-        this.scaleZAddedRandomness = scaleZAddedRandomness;
+    public DeserializedModel(DualVector3F translation, DualVector3F angle, DualVector3F scale) {
+        this.translation = translation;
+        this.angle = angle;
+        this.scale = scale;
+    }
+    
+    protected DeserializedModel instantiateTransformations() {
+        translation = new DualVector3F();
+        angle = new DualVector3F();
+        scale = new DualVector3F();
+        
+        return this;
     }
         
-    public Node getNode() {
+    public Node getModelRootNode() {
         return modelRoot;
     }
-        
-    protected float randomize(Float factor) { //EXCLUSIVE NOT INCLUSIVE
-        return factor != null ? (float)(( (2 * factor) * Math.random() ) - factor) : 0;
+    
+    public final void instantiateModelRootNode() {
+        createModelRootNode(modelRoot);
+    }
+    
+    protected void createModelRootNode(Node root) {
+        modelRoot = new Node("DeserializedModel class: modelRoot");
+    }
+    
+    public void attachChildToModelRootNode(Spatial child) {
+        modelRoot.attachChild(child);
+    }
+    
+    //EXCLUSIVE NOT INCLUSIVE
+    public static float randomize(float factor) {
+        return (float)(( (2 * factor) * Math.random() ) - factor);
+    }
+    
+    //EXCLUSIVE NOT INCLUSIVE
+    public static Vector3f randomize(Vector3f addedRandomness) {
+        return new Vector3f(randomize(addedRandomness.x), randomize(addedRandomness.y), randomize(addedRandomness.z));
     }
         
-    protected float x() { return x != null ? x : 0; }
-    protected float y() { return y != null ? y : 0; }
-    protected float z() { return z != null ? z : 0; }
+    protected Vector3f translation() { return translation != null ? translation.vec(0) : Vector3F.fill(0); }
+    protected Vector3f translationAddedRandomness() { return translation != null ? translation.addedRandomness(0) : Vector3F.fill(0); }
     
-    protected float rotX() { return rotX != null ? (rotX * (FastMath.PI / 180f)) : 0; } //converts degrees to radians
-    protected float rotY() { return rotY != null ? (rotY * (FastMath.PI / 180f)) : 0; } //converts degrees to radians
-    protected float rotZ() { return rotZ != null ? (rotZ * (FastMath.PI / 180f)) : 0; } //converts degrees to radians
+    protected Vector3f angle() { return angle != null ? angle.vec(0).multLocal(FastMath.PI / 180f) : Vector3F.fill(0); } //converts degrees to radians
+    protected Vector3f angleAddedRandomness() { return angle != null ? angle.addedRandomness(0).multLocal(FastMath.PI / 180f) : Vector3F.fill(0); } //converts degrees to radians
     
-    protected float scaleX() { return scaleX != null ? scaleX / 100f : 1; }
-    protected float scaleY() { return scaleY != null ? scaleY / 100f : 1; }
-    protected float scaleZ() { return scaleZ != null ? scaleZ / 100f : 1; }
+    protected Vector3f scale() { return scale != null ? scale.vec(1) : Vector3F.fill(1); }
+    protected Vector3f scaleAddedRandomness() { return scale != null ? scale.addedRandomness(0) : Vector3F.fill(0); }
     
+    public Vector3f getLocalAngleOfModelRootNode() {
+        Quaternion rot = modelRoot.getLocalRotation();
+        float[] angles = rot.toAngles(null);
+        
+        return new Vector3f(angles[0], angles[1], angles[2]);
+    }
+    
+    /**
+     * 
+     * @param model the CHILD of modelRoot
+     */
     public void applyTransformations(Node model) {
-        Float x2 = x() + randomize(xAddedRandomness), y2 = y() + randomize(yAddedRandomness), z2 = z() + randomize(zAddedRandomness);
-        model.setLocalTranslation(x2, y2, z2);
-            
-        Float scaleX2 = scaleX() + randomize(scaleXAddedRandomness / 100f), scaleY2 = scaleY() + randomize(scaleYAddedRandomness / 100f), scaleZ2 = scaleZ() + randomize(scaleZAddedRandomness / 100f);
-        model.setLocalScale(scaleX2, scaleY2, scaleZ2);
-            
-        Float rotX2 = rotX() + randomize(rotXAddedRandomness), rotY2 = rotY() + randomize(rotYAddedRandomness), rotZ2 = rotZ() + randomize(rotZAddedRandomness);
+        Vector3f translationRandomDeltas = randomize(translationAddedRandomness());
+        Vector3f translation2 = translation().addLocal(translationRandomDeltas);
+        model.setLocalTranslation(translation2);
+        
+        Vector3f scaleRandomDeltas = randomize(scaleAddedRandomness());
+        Vector3f scale2 = scale().addLocal(scaleRandomDeltas);
+        model.setLocalScale(scale2);
+        
+        Vector3f angleRandomDeltas = randomize(angleAddedRandomness());
+        Vector3f angle2 = angle().addLocal(angleRandomDeltas);
+        
         Quaternion rotation = new Quaternion();
-        rotation.fromAngles(rotX2, rotY2, rotZ2);
+        rotation.fromAngles(angle2.x, angle2.y, angle2.z);
         modelRoot.setLocalRotation(rotation);
+    }
+    
+    public static class DualVector3F {
+        public Vector3F vec;
+        public Vector3F addedRandomness;
+        
+        public DualVector3F(Vector3F vec, Vector3F addedRandomness) {
+            this.vec = vec;
+            this.addedRandomness = addedRandomness;
+        }
+        
+        public DualVector3F() {}
+        
+        
+        public Vector3f vec(float defaultVal) {
+            return vec != null ? vec.toVector3f(defaultVal) : Vector3F.fill(defaultVal);
+        }
+        
+        public Vector3f addedRandomness(float defaultVal) {
+            return addedRandomness != null ? addedRandomness.toVector3f(defaultVal) : Vector3F.fill(defaultVal);
+        }
     }
 }

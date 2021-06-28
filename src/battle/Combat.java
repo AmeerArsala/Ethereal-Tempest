@@ -26,8 +26,7 @@ public class Combat {
         initiator = new Fighter(forecast.getInitiatorForecast(), common, false); // mirror == false
         receiver = new Fighter(forecast.getReceiverForecast(), common, true);    // mirror == true
         
-        initiator.giveNotifier(receiver);
-        receiver.giveNotifier(initiator);
+        Fighter.match(initiator, receiver);
 
         initiator.attachGUI();
         receiver.attachGUI();
@@ -56,11 +55,15 @@ public class Combat {
     
     public void update(float tpf) {
         if (!isFinished()) {
-            initiator.preUpdate();
-            receiver.preUpdate();
-        
+            //initiator.preUpdate();
+            //receiver.preUpdate();
+            
             initiator.update(tpf * flowSpeed);
             receiver.update(tpf * flowSpeed);
+            
+            //post update because they can only happen after BOTH the initiator and receiver have updated
+            initiator.updatePosData();
+            receiver.updatePosData();
         }
     }
     

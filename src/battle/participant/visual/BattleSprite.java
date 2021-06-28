@@ -8,9 +8,11 @@ package battle.participant.visual;
 import battle.environment.BoxMetadata;
 import general.math.DomainBox;
 import com.jme3.asset.AssetManager;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import enginetools.Vector2F;
 import general.math.FloatPair;
 import general.math.function.CartesianFunction;
 import general.math.function.MathFunction;
@@ -36,9 +38,10 @@ public class BattleSprite extends ModifiedSprite {
     );
     
     private final BoxMetadata battleBoxInfo;
+    private final boolean usesHitPoint;
     
     private boolean allowDisplacement = true;
-    private final boolean usesHitPoint;
+    private ColorRGBA color = new ColorRGBA(1, 1, 1, 1);
     private HitPoint hitPoint = null;
     private Hurtbox hurtbox;
     private Vector2f damageNumberLocation;
@@ -59,12 +62,16 @@ public class BattleSprite extends ModifiedSprite {
         return battleBoxInfo;
     }
     
+    public boolean usesHitPoint() {
+        return usesHitPoint;
+    }
+    
     public boolean allowDisplacementTransformationsFromOpponent() { 
         return allowDisplacement;
     }
     
-    public boolean usesHitPoint() {
-        return usesHitPoint;
+    public ColorRGBA getColor() {
+        return color;
     }
     
     public Vector2f getHitPoint() {
@@ -121,32 +128,29 @@ public class BattleSprite extends ModifiedSprite {
         Vector2f unitVectorPos = new Vector2f();
         
         if (!tailorToXFacing || xFacing == FACING_RIGHT) {
-            unitVectorPos.x = FastMath.abs(
-                MathUtils.percentDiffFromEdge(
-                    battleBoxInfo.getLeftEdgePositionPercent(), 
-                    battleBoxInfo.horizontalLength(), //used to be battleBoxInfo.getBoxDimensions().x
-                    localTranslation.x
-                )
-            );
+            //left side
+            unitVectorPos.x = FastMath.abs(battleBoxInfo.percentDiffFromLeftEdge(localTranslation.x));
         } else { // xFacing == FACING_LEFT
-            unitVectorPos.x = FastMath.abs(
-                MathUtils.percentDiffFromEdge(
-                    battleBoxInfo.getRightEdgePositionPercent(), 
-                    battleBoxInfo.horizontalLength(), //used to be battleBoxInfo.getBoxDimensions().x
-                    localTranslation.x
-                )
-            );
+            //right side
+            unitVectorPos.x = FastMath.abs(battleBoxInfo.percentDiffFromRightEdge(localTranslation.x));
         }
         
-        unitVectorPos.y = FastMath.abs(
-            MathUtils.percentDiffFromEdge(
-                battleBoxInfo.getBottomEdgePositionPercent(), 
-                battleBoxInfo.verticalLength(), //used to be battleBoxInfo.getBoxDimensions().y
-                localTranslation.y
-            )
-        );
+        unitVectorPos.y = FastMath.abs(battleBoxInfo.percentDiffFromBottomEdge(localTranslation.y));
         
         return unitVectorPos;
+    }
+    
+    public Vector2f getPercentageDimensions() { //in terms of battleBox %
+        Vector2f a = new HitPoint(new Vector2f(0.0f, 0.0f)).toBattleBoxPercentage();
+        Vector2f b = new HitPoint(new Vector2f(1.0f, 1.0f)).toBattleBoxPercentage();
+        
+        return Vector2F.absLocal(b.subtractLocal(a));
+    }
+    
+    @Override
+    public void setColor(String colorMatParam, ColorRGBA color1) {
+        color = color1;
+        super.setColor(colorMatParam, color);
     }
     
     private class Hurtbox {
@@ -212,7 +216,7 @@ public class BattleSprite extends ModifiedSprite {
         }
         
         public Vector2f toBattleBoxPercentage() {
-            return getPercentagePosition(nonRelative3DPoint(), false);
+            return getPercentagePosition(nonRelative3DPoint(), false); //false to make using the left side a standard
         }
     }
 }

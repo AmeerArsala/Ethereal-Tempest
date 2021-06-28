@@ -8,6 +8,7 @@ package battle.participant.visual;
 import battle.animation.BattleAnimation;
 import battle.animation.config.AttackSheetConfig;
 import battle.animation.config.PossibleConfig;
+import battle.animation.config.action.ConstantsDealer;
 import battle.data.DecisionParams;
 import battle.data.Strike;
 import battle.data.StrikeTheater;
@@ -18,6 +19,7 @@ import battle.environment.BattleBox;
 import battle.environment.BoxMetadata;
 import battle.gui.CombatantUI;
 import com.jme3.asset.AssetManager;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
@@ -25,9 +27,9 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.Spatial.CullHint;
+import enginetools.Vector3F;
 import etherealtempest.fsm.FSM.FighterState;
 import fundamental.unit.CharacterUnitInfo;
-import general.math.FloatPair;
 import general.procedure.functional.UpdateLoop;
 import general.utils.helpers.MathUtils;
 import general.visual.OverlaySheetConfig;
@@ -50,8 +52,11 @@ public class Fighter {
     private final FighterAnimationController controller;
     private final FighterInfoVisualizer visualizer;
     
+    private final Runnable onRealImpactOccurred, onStrikeEnd;
+    
     private Participant currentRole;
-    private Notifier fromSelf, fromOpponent;
+    private BattleSprite opponentSprite;
+    private int minStrikeGroupIndexToReceiveImpact = 0;
     
     public Fighter(SingularForecast forecast, CommonParams common, boolean mirrored) {
         this.forecast = forecast;
@@ -73,13 +78,35 @@ public class Fighter {
         
         visualizer.getFSM().setNewStateIfAllowed(FighterState.Fighting);
         updateStrikeRole();
+        
+        onRealImpactOccurred = () -> {
+            if (currentRole == Participant.Victim) {
+                receiveImpact();
+            } else { // currentRole == Participant.Striker
+                //TODO: do something here
+            }
+        };
+        
+        onStrikeEnd = () -> {
+            decisionData.incrementStrikeIndex();
+            
+            boolean noAttackSegmentsRemaining = (controller.getCurrentAnimationQueue().isEmpty() || controller.getCurrentAnimation().getRemainingAttackBattleSegmentCount() <= 0); 
+            if (!decisionData.isFightOver() && noAttackSegmentsRemaining) {
+                updateStrikeRole();
+                attemptStrike();
+            }
+        };
     }
     
-    public void giveNotifier(Fighter opponent) {
-        fromSelf = new Notifier(sprite);
-        opponent.fromOpponent = fromSelf;
-        
-        controller.giveNotifier(fromSelf, opponent.controller);
+    public static void match(Fighter A, Fighter B) {
+        A.stickOpponent(B);
+        B.stickOpponent(A);
+    }
+    
+    private void stickOpponent(Fighter opponent) {
+        opponentSprite = opponent.sprite;
+        controller.getCurrentAnimationQueue().onStrikeFinished(onStrikeEnd, opponent.onStrikeEnd);
+        controller.getCurrentAnimationQueue().onRealImpactOccurred(onRealImpactOccurred, opponent.onRealImpactOccurred);
     }
     
     public SingularForecast getForecast() { return forecast; }
@@ -106,71 +133,52 @@ public class Fighter {
         currentRole = decisionData.getUserRoleForStrike(decisionData.getStrikeIndex());
     }
     
-    public void preUpdate() {
-        //update positions of user and opponent
-        decisionData.userPos.set(sprite.getPercentagePosition());
-        decisionData.opponentPos.set(fromOpponent.getSprite().getPercentagePosition());
-        
-        //update notifier
-        BattleAnimation.Queue animQueue = controller.getCurrentAnimationQueue();
-        if (!animQueue.isEmpty()) {
-            fromSelf.realImpactOccurred = animQueue.getCurrentTask().realImpactOccurred();
-            fromSelf.strikeFinished = animQueue.getCurrentTask().isStrikeFinished();
-            
-            if (fromSelf.realImpactOccurred) {
-                System.err.println("Impact Occurred!");
-            }
-        } else {
-            fromSelf.realImpactOccurred = false;
-            fromSelf.strikeFinished = false;
-        }
-        
-        fromSelf.fightFullyDone = visualizer.fightIsFullyDone();
-    }
-    
     public void update(float tpf) {
         if (decisionData.isFightOver()) {
             visualizer.onFightOver();
         } else {
-            //onStrikeFinished
-            if (fromSelf.strikeFinished() || fromOpponent.strikeFinished()) {
-                onStrikeEnd();
-            } else {
-                nextAnimation();
-            }
+            nextAnimation();
         }
         
         controller.update(tpf);
         visualizer.update(tpf);
     }
     
-    public void onReceiveImpact() {
+    public void updatePosData() {
+        //update positions of user and opponent
+        decisionData.userPos.set(sprite.getPercentagePosition());
+        decisionData.opponentPos.set(opponentSprite.getPercentagePosition());
+    }
+    
+    private void receiveImpact() {
+        if (decisionData.getStrikeIndex() < minStrikeGroupIndexToReceiveImpact) {
+            return;
+        }
+        
         Strike currentStrike = decisionData.getCurrentStrike();
         currentStrike.apply();
         
-        controller.nextReceiveImpactAnimation(visualizer.onReceiveImpact(currentStrike));
-    }
-    
-    public void onStrikeEnd() {
-        decisionData.incrementStrikeIndex();
-        if (!decisionData.isFightOver() && controller.getCurrentAnimation().getRemainingAttackBattleSegmentCount() - 1 <= 0) { //subtracting by 1 since it is inclusive of the current segment index which hasn't been incremented yet
-            updateStrikeRole();
-            attemptStrike();
-        }
+        minStrikeGroupIndexToReceiveImpact = decisionData.getStrikeIndex() + 1;
+        
+        controller.nextReceiveImpactAnimation(visualizer.onReceiveImpact(currentStrike), opponentSprite);
     }
     
     public void attemptStrike() {
         if (currentRole == Participant.Striker) {
             forecast.getCombatant().applySkillTollIfAny();
             nextAttackAnimation();
+            setConstants(ConstantsDealer.USER_DIMENSIONS, ConstantsDealer.USER_VEC4, ConstantsDealer.USER_COLOR_CONSTANT);
+        } else { // currentRole == Participant.Victim
+            setConstants(ConstantsDealer.OPPONENT_DIMENSIONS, ConstantsDealer.OPPONENT_VEC4, ConstantsDealer.OPPONENT_COLOR_CONSTANT);
         }
     }
     
+    private void setConstants(Vector3f dimensions, Vector4f vec4f, ColorRGBA color) {
+        dimensions.set(Vector3F.fit(sprite.getPercentageDimensions(), 0f));
+        //TODO: set vec4f and color params
+    }
+    
     public void nextAnimation() {
-        if (currentRole == Participant.Victim && fromOpponent.realImpactOccurred()) {
-            onReceiveImpact();
-        }
-
         BattleAnimation.Queue animQueue = controller.getCurrentAnimationQueue();
         
         //TODO: work on idle here
@@ -195,7 +203,7 @@ public class Fighter {
                 //onDashUpdate
             };
             
-            controller.nextSkillAttackAnimation(skillName, onDashUpdate, animParams);
+            controller.nextSkillAttackAnimation(skillName, onDashUpdate, animParams, opponentSprite);
         } else if (strike.getStriker().triggeredBattleTalent()) { //battle talent attack
             String triggeredTalentName = strike.getStriker().getTriggeredBattleTalent().getName();
             
@@ -203,14 +211,14 @@ public class Fighter {
                 //onDashUpdate
             };
             
-            controller.nextBattleTalentAttackAnimation(triggeredTalentName, onDashUpdate, animParams);
+            controller.nextBattleTalentAttackAnimation(triggeredTalentName, onDashUpdate, animParams, opponentSprite);
         } else { //regular attack
             
             onDashUpdate = (tpf) -> {
                 //onDashUpdate
             };
             
-            controller.nextAttackAnimation(onDashUpdate, animParams);
+            controller.nextAttackAnimation(onDashUpdate, animParams, opponentSprite);
         }
     }
     
@@ -300,6 +308,7 @@ public class Fighter {
         }
     }
     
+    /*
     public static class Notifier {
         private final BattleSprite sprite;
         
@@ -317,4 +326,5 @@ public class Fighter {
         public boolean strikeFinished() { return strikeFinished; }
         public boolean fightFullyDone() { return fightFullyDone; }
     }
+    */
 }

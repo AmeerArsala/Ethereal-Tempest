@@ -1,12 +1,29 @@
 {
   "effectPath": "Effects/Original/EmberSparks",
-  "scaleX": 2000,
-  "scaleY": 2000,
-  "scaleZ": 2000,
-  "rotX": -60,
-  "x": 30,
-  "y": -60,
-  "z": 60,
+  "translation": {
+    "vec": {
+      "x": 30,
+      "y": -60,
+      "z": 60
+    },
+    "addedRandomness": {}
+  },
+  "angle": {
+    "vec": {
+      "x": -60, //in degrees
+      "y": 0,
+      "z": 0
+    },
+    "addedRandomness": {}
+  },
+  "scale": {
+    "vec": {
+      "x": 20,
+      "y": 20,
+      "z": 20
+    },
+    "addedRandomness": {}
+  },
   "frames": 120,
   "useCustomDriver": true,
   "loop": true,

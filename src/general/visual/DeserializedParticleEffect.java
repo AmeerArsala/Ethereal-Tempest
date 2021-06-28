@@ -65,22 +65,11 @@ public class DeserializedParticleEffect extends DeserializedModel {
         
     public DeserializedParticleEffect
     (
-        Float x, Float y, Float z,
-        Float rotX, Float rotY, Float rotZ,
-        Float scaleX, Float scaleY, Float scaleZ,
-        Float xAddedRandomness, Float yAddedRandomness, Float zAddedRandomness,
-        Float rotXAddedRandomness, Float rotYAddedRandomness, Float rotZAddedRandomness,
-        Float scaleXAddedRandomness, Float scaleYAddedRandomness, Float scaleZAddedRandomness,
+        DualVector3F translation, DualVector3F angle, DualVector3F scale,
         String effectPath, Integer frames, Boolean useDestroyoflyer, Boolean useCustomDriver, Boolean usePointFollowingSpatialShape,
         Boolean loop, Float initialDelay, Float minimumDelay, Float maximumDelay, Integer maxInstances
     ) {
-        super
-        (
-            x, y, z, rotX, rotY, rotZ, scaleX, scaleY, scaleZ, 
-            xAddedRandomness, yAddedRandomness, zAddedRandomness,
-            rotXAddedRandomness, rotYAddedRandomness, rotZAddedRandomness,
-            scaleXAddedRandomness, scaleYAddedRandomness, scaleZAddedRandomness
-        );
+        super(translation, angle, scale);
         
         this.effectPath = effectPath;
         this.frames = frames;
@@ -108,7 +97,7 @@ public class DeserializedParticleEffect extends DeserializedModel {
     //no maxInstances() method
     
     public void initialize(AssetManager assetManager) {
-        modelRoot = new Node();
+        instantiateModelRootNode();
         particleNode = new Node();
         
         counter = new GameTimer();
@@ -126,7 +115,7 @@ public class DeserializedParticleEffect extends DeserializedModel {
         } else {
             effectPath += riccardoSuffix;
             effectControl = new EffekseerEmitterControl(assetManager, effectPath);
-        
+            
             if (useCustomDriver()) {
                 constructDriver();
             }
@@ -135,7 +124,7 @@ public class DeserializedParticleEffect extends DeserializedModel {
         }
         
         applyTransformations(particleNode);
-        modelRoot.attachChild(particleNode);
+        attachChildToModelRootNode(particleNode);
     }
     
     public void resetManualControl(AssetManager assetManager) {
@@ -167,7 +156,7 @@ public class DeserializedParticleEffect extends DeserializedModel {
         effectControl.setDriver(driver.spawner(spawner));
     }
     
-    protected Node getParticleNode() { //DO NOT ATTACH THIS TO THE ROOT NODE; ATTACH modelRoot INSTEAD. use getNode() to get it
+    protected Node getParticleNode() { //DO NOT ATTACH THIS TO THE ROOT NODE; ATTACH modelRoot INSTEAD. use getModelRootNode() to get it
         return particleNode;
     }
     

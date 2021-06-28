@@ -140,7 +140,7 @@ public abstract class ValueIndicator {
             
             return transition.getTransitionProgress() == Progress.Finished;
         });
-    } 
+    }
     
     public void update(float tpf) {
         queue.update(tpf);

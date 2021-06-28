@@ -176,7 +176,7 @@ public class Talent extends Attribute {
                             List<Bonus> bonuses = new ArrayList<>();
                             int length = BaseStat.values().length;
                             
-                            List<BaseStat> blacklistedStats = Arrays.asList(BaseStat.MaxHP, BaseStat.CurrentHP, BaseStat.MaxTP, BaseStat.CurrentTP, BaseStat.Adrenaline);
+                            List<BaseStat> blacklistedStats = Arrays.asList(BaseStat.Level, BaseStat.MaxHP, BaseStat.CurrentHP, BaseStat.MaxTP, BaseStat.CurrentTP, BaseStat.Adrenaline);
                             BaseStat stat;
                             
                             do {

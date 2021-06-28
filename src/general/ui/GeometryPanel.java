@@ -6,6 +6,7 @@
 package general.ui;
 
 import com.jme3.material.Material;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
@@ -115,5 +116,12 @@ public class GeometryPanel extends Node {
     public Vector2f vectorInPositiveDirection(Vector2f percentDimensions, boolean scaleDimensions) {
         Vector2f dims = scaleDimensions ? getScaledDimensions() : getUnscaledDimensions();
         return dims.multLocal(percentDimensions).multLocal(getPositiveDirection2DVector());
+    }
+    
+    public Vector3f getLocalAngle() {
+        Quaternion rot = getLocalRotation();
+        float[] angles = rot.toAngles(null);
+        
+        return new Vector3f(angles[0], angles[1], angles[2]);
     }
 }

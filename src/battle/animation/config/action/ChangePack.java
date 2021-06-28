@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.animation.config;
+package battle.animation.config.action;
 
 import battle.environment.BoxMetadata;
 import battle.participant.visual.BattleSprite;
@@ -34,13 +34,16 @@ public class ChangePack {
     //I would just set currentColor but there is a warning that says "the assigned value is never used" and I don't want to mess with that
     public <S extends Spatial> boolean apply(S root, BoxMetadata battleBoxInfo, Vector3f positiveDirection, boolean fromSelf) {
         if (velocity == null && thetaVelocity == null && localScale == null && color == null /*&& colorMatParam == null*/) {
-            System.out.println("PHASE_END\n");
+            System.out.println("Attempting to apply ChangePack Changes...CHANGEPACK_END\n");
             return true;
         }
         
+        System.out.println("Attempting to apply ChangePack Changes..."); //remove later
+        
         if (fromSelf || (root instanceof BattleSprite && ((BattleSprite)root).allowDisplacementTransformationsFromOpponent())) {
             if (velocity != null) {
-                root.move(velocity.multLocal(battleBoxInfo.horizontalLength()).multLocal(positiveDirection)); //multiply by positiveDirection for mirroring
+                float boxWidth = battleBoxInfo.horizontalLength(); //the actual width of the box, not the one specified originally
+                root.move(velocity.multLocal(boxWidth).multLocal(positiveDirection)); //multiply by positiveDirection for mirroring
                 System.out.println("DeltaPos: " + velocity);
             }
             
@@ -57,7 +60,7 @@ public class ChangePack {
            ((BattleSprite)root).setColor(colorMatParam, color);
         }
         
-        System.out.println("PHASE_CONTINUE\n");
+        System.out.println("CHANGEPACK_CONTINUE\n");
         return false;
     }
 }

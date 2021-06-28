@@ -9,6 +9,7 @@
  */
 package general.math.function;
 
+import general.math.IntMatcher;
 import general.math.IntPair;
 import java.util.ArrayList;
 import java.util.Arrays;

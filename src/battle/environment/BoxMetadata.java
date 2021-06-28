@@ -6,6 +6,7 @@
 package battle.environment;
 
 import com.jme3.math.Vector2f;
+import general.utils.helpers.MathUtils;
 
 /**
  *
@@ -76,5 +77,37 @@ public class BoxMetadata {
     
     public float verticalLength() {
         return (topEdgePositionPercent - bottomEdgePositionPercent) * boxDimensions.y;
+    }
+    
+    public float percentDiffFromLeftEdge(float localTranslationX) {
+        return percentDiffFromHorizontalEdge(leftEdgePositionPercent, localTranslationX);
+    }
+    
+    public float percentDiffFromRightEdge(float localTranslationX) {
+        return percentDiffFromHorizontalEdge(rightEdgePositionPercent, localTranslationX);
+    }
+    
+    public float percentDiffFromTopEdge(float localTranslationY) {
+        return percentDiffFromVerticalEdge(topEdgePositionPercent, localTranslationY);
+    }
+    
+    public float percentDiffFromBottomEdge(float localTranslationY) {
+        return percentDiffFromVerticalEdge(bottomEdgePositionPercent, localTranslationY);
+    }
+    
+    private float percentDiffFromHorizontalEdge(float posPercent, float localTranslationX) {
+        return MathUtils.percentDiffFromEdge(
+            posPercent, 
+            horizontalLength(), //used to be boxDimensions.x
+            localTranslationX
+        );
+    }
+    
+    private float percentDiffFromVerticalEdge(float posPercent, float localTranslationY) {
+        return MathUtils.percentDiffFromEdge(
+            posPercent, 
+            verticalLength(), //used to be boxDimensions.y
+            localTranslationY
+        );
     }
 }

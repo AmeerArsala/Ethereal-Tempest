@@ -70,7 +70,6 @@ public class BattleEnvironment {
         scene.attachChild(skybox);
         */
         
-        
         //mess with this stuff outside of the constructor probably
         //AmbientLight al = new AmbientLight();
         //scene.addLight(al);

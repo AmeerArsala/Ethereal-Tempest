@@ -123,6 +123,7 @@ public class Fight {
     public void update(float tpf) {
         switch (fsm.getEnumState()) {
             case TransitioningIn:
+                //TODO: add a transition
                 fsm.setNewStateIfAllowed(State.InProgress); //this is just for the time being; add a transition later
                 break;
             case InProgress:
@@ -133,6 +134,7 @@ public class Fight {
                 }
                 break;
             case TransitioningOut:
+                //TODO: add a transition
                 fsm.setNewStateIfAllowed(State.Finished); //this is just for the time being; add a transition later
                 break;
             default:

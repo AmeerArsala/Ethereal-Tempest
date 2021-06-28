@@ -42,9 +42,10 @@ public class VisibleEntitySpriteAnimation extends VisibleEntityAnimation<BattleS
 
     @Override
     protected void beginAnimation(Node animationRoot) {
-        System.err.println("BEGIN ANIMATION PHASE");
+        System.out.println("BEGIN SPRITE ANIMATION PHASE: " + info.getJsonPath());
         
         BattleSprite sprite = entityAnimationRoot.root;
+        
         /*AttackSheetConfig sheetConfig = info.getConfig().getPossibleSpritesheet();
         
         //entityAnimationRoot.root = sprite (it is of type Sprite)
@@ -61,8 +62,8 @@ public class VisibleEntitySpriteAnimation extends VisibleEntityAnimation<BattleS
         }*/
         
         if (info.getHitPoint() != null) {
-            System.err.println("NOTICE: HITPOINT SET");
             sprite.setHitPointIfAllowed(info.getHitPoint());
+            //System.err.println("NOTICE: HITPOINT MAY HAVE BEEN SET -VisibleEntitySpriteAnimation");
         }
     }
     

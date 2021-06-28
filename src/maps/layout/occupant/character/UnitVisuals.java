@@ -204,13 +204,13 @@ public class UnitVisuals {
         particleEffect.onEffectStart((tpf) -> {
             Quaternion rotation = new Quaternion();
             rotation.fromAngles((FastMath.PI / -3f), (FastMath.PI / -2f), 0);
-            particleEffect.getNode().setLocalRotation(rotation);
+            particleEffect.getModelRootNode().setLocalRotation(rotation);
                 
-            node.attachChild(particleEffect.getNode());
+            node.attachChild(particleEffect.getModelRootNode());
         });
         
         particleEffect.onEffectFinish((tpf) -> {
-            node.detachChild(particleEffect.getNode());
+            node.detachChild(particleEffect.getModelRootNode());
             effectQueue.removeFirst();
         });
         
