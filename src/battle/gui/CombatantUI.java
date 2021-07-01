@@ -25,7 +25,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialParamsProtocol;
-import enginetools.SpatialOperator;
+import enginetools.math.SpatialOperator;
 import etherealtempest.Globals;
 import etherealtempest.gui.broad.RadialProgressBar;
 import fundamental.stats.BaseStat;

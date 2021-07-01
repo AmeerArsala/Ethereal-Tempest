@@ -24,7 +24,7 @@ import com.jme3.scene.Spatial;
 import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialCreator;
 import enginetools.MaterialParamsProtocol;
-import enginetools.SpatialOperator;
+import enginetools.math.SpatialOperator;
 import etherealtempest.Globals;
 import etherealtempest.gui.broad.ShapeIndicator;
 import etherealtempest.gui.specific.LevelUpPanel;

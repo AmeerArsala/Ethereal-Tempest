@@ -14,7 +14,7 @@ import com.jme3.texture.Texture;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import enginetools.MaterialCreator;
-import enginetools.SpatialOperator;
+import enginetools.math.SpatialOperator;
 import general.math.function.RGBAFunction;
 import general.ui.GeometryPanel;
 import general.ui.Padding;

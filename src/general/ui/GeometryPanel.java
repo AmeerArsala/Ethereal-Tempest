@@ -14,7 +14,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
-import enginetools.SpatialOperator;
+import enginetools.math.SpatialOperator;
 
 /**
  *

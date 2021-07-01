@@ -11,7 +11,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialParamsProtocol;
-import enginetools.SpatialOperator;
+import enginetools.math.SpatialOperator;
 import general.ui.GeometryPanel;
 import general.ui.text.Text2D;
 

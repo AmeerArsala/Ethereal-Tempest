@@ -14,7 +14,7 @@ import com.jme3.font.Rectangle;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
-import enginetools.ParamSetter;
+import general.utils.ParamSetter;
 import etherealtempest.fsm.FSM;
 import etherealtempest.fsm.FSM.FighterState;
 import etherealtempest.fsm.FsmState;

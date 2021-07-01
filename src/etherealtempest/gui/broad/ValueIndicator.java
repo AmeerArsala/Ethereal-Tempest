@@ -7,7 +7,7 @@ package etherealtempest.gui.broad;
 
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import enginetools.SpatialOperator;
+import enginetools.math.SpatialOperator;
 import general.tools.GameTimer;
 import general.procedure.ProcedureGroup;
 import general.math.FloatPair;

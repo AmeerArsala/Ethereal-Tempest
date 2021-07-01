@@ -13,13 +13,13 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.Panel;
-import enginetools.ParamSetter;
 import general.math.Theta3D;
 import general.math.function.CartesianFunction;
 import general.math.function.MathFunction;
 import general.math.function.ParametricFunction3f;
 import general.math.function.ParametricFunction4f;
 import general.ui.GeometryPanel;
+import general.utils.ParamSetter;
 import general.utils.helpers.EngineUtils;
 import general.visual.animation.VisualTransition.Progress;
 

@@ -12,7 +12,7 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.simsilica.lemur.LayerComparator;
-import enginetools.Vector3F;
+import enginetools.math.Vector3F;
 import general.visual.DeserializedModel;
 import general.visual.DistinctOccupantModel;
 
