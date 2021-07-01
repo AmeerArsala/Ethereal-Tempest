@@ -5,20 +5,21 @@
  */
 package enginetools.math;
 
+import java.util.Random;
+import java.io.Serializable;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
 import general.math.FloatOperation;
-import general.math.function.ControlledMathFunction.Operation;
-import java.util.Random;
+//import general.math.function.ControlledMathFunction.Operation;
 
 /**
  *
  * @author night
  */
-public class Vector4F {
+public class Vector4F implements Serializable {
     public Float x;
     public Float y;
     public Float z;

@@ -5,16 +5,17 @@
  */
 package enginetools.math;
 
+import java.io.Serializable;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import general.math.FloatOperation;
-import general.math.function.ControlledMathFunction.Operation;
+//import general.math.function.ControlledMathFunction.Operation;
 
 /**
  *
  * @author night
  */
-public class Vector2F {
+public class Vector2F implements Serializable {
     public Float x;
     public Float y;
     
