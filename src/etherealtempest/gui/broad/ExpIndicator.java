@@ -3,14 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.gui;
+package etherealtempest.gui.broad;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.renderer.queue.RenderQueue;
-import etherealtempest.gui.RadialProgressBar;
-import etherealtempest.gui.ValueIndicator;
+import enginetools.MaterialCreator;
 import general.ui.GeometryPanel;
 import general.ui.text.Text2D;
 import general.visual.animation.Animation;
@@ -24,15 +23,15 @@ public class ExpIndicator extends ValueIndicator {
     private final RadialProgressBar expbar;
     private final GeometryPanel levelUpTextPanel;
     
-    public ExpIndicator(RadialProgressBar expbar, Text2D label, AssetManager assetManager, float basePercent, int max) {
-        super(expbar.getChildrenNode(), label, basePercent, max);
+    public ExpIndicator(String name, RadialProgressBar expbar, Text2D label, AssetManager assetManager, float basePercent, int max) {
+        super(name, expbar.getChildrenNode(), label, basePercent, max);
         this.expbar = expbar;
         
         float heightToWidthRatio = 25.5f / 100.5f;
         float width = expbar.getInnerRadius() * 2, height = width * heightToWidthRatio;
         levelUpTextPanel = new GeometryPanel(width, height, RenderQueue.Bucket.Gui);
         
-        Material levelUpTextMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        Material levelUpTextMat = new Material(assetManager, MaterialCreator.UNSHADED);
         levelUpTextMat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/common/levelup.png"));
         levelUpTextMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         
@@ -65,7 +64,7 @@ public class ExpIndicator extends ValueIndicator {
         VisualTransition VT = new VisualTransition(levelUpTextPanel, Animation.ZoomIn().setLength(seconds));
         VT.setResetProtocol(onFinish);
         
-        addTransitionToQueue(VT);
+        addTransitionToGroup(VT);
     }
     
     public void levelUp(float seconds) {

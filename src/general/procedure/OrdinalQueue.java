@@ -9,6 +9,7 @@ import general.procedure.functional.UpdateCommand;
 import general.procedure.functional.UpdateLoop;
 import com.simsilica.lemur.Command;
 import java.util.LinkedList;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -103,10 +104,10 @@ public class OrdinalQueue<T> {
         }
     }
     
-    public void applyToAll(Command<T> command) {
-        tasks.forEach((task) -> {
-            command.execute(task.focus);
-        });
+    public void applyToAll(Consumer<T> command) {
+        for (Task task : tasks) {
+            command.accept(task.focus);
+        }
     }
     
     public int size() {

@@ -10,13 +10,16 @@ package general.utils;
  * @author night
  * @param <ONE> type1
  * @param <TWO> type2
+ * @param <THREE> type3
  */
-public class Duo<ONE, TWO> {
+public class Trio<ONE, TWO, THREE> {
     public final ONE first;
     public final TWO second;
+    public final THREE third;
     
-    public Duo(ONE first, TWO second) {
+    public Trio(ONE first, TWO second, THREE third) {
         this.first = first;
         this.second = second;
+        this.third = third;
     }
 }

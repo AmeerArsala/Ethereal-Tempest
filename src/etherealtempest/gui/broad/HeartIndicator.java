@@ -3,10 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.gui;
+package etherealtempest.gui.broad;
 
 import etherealtempest.geometry.Heart;
-import etherealtempest.gui.ValueIndicator;
 import general.ui.text.Text2D;
 
 /**
@@ -16,8 +15,8 @@ import general.ui.text.Text2D;
 public class HeartIndicator extends ValueIndicator {
     private final Heart heart;
         
-    public HeartIndicator(Heart hpHeart, Text2D text, float basePercent, int max) {
-        super(text, basePercent, max);
+    public HeartIndicator(String name, Heart hpHeart, Text2D text, float basePercent, int max) {
+        super(name, text, basePercent, max);
         heart = hpHeart;
         node.attachChild(heart);
     }

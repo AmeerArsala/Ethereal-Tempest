@@ -7,6 +7,8 @@ package enginetools;
 
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
+import general.math.FloatOperation;
+import general.math.function.ControlledMathFunction.Operation;
 
 /**
  *
@@ -67,6 +69,50 @@ public class Vector2F {
     public static Vector2f absLocal(Vector2f vec) {
         vec.x = FastMath.abs(vec.x);
         vec.y = FastMath.abs(vec.y);
+        
+        return vec;
+    }
+    
+    public static Vector2f pow(Vector2f vec, float pwr) {
+        return new Vector2f(FastMath.pow(vec.x, pwr), FastMath.pow(vec.y, pwr));
+    }
+
+    public static Vector2f powLocal(Vector2f vec, float pwr) {
+        vec.x = FastMath.pow(vec.x, pwr);
+        vec.y = FastMath.pow(vec.y, pwr);
+        
+        return vec;
+    }
+    
+    public static Vector2f pow(Vector2f vec, Vector2f pows) {
+        return new Vector2f(FastMath.pow(vec.x, pows.x), FastMath.pow(vec.y, pows.y));
+    }
+    
+    public static Vector2f powLocal(Vector2f vec, Vector2f pows) {
+        vec.x = FastMath.pow(vec.x, pows.x);
+        vec.y = FastMath.pow(vec.y, pows.y);
+        
+        return vec;
+    }
+    
+    public static Vector2f sqrt(Vector2f vec) {
+        return new Vector2f(FastMath.sqrt(vec.x), FastMath.sqrt(vec.y));
+    }
+    
+    public static Vector2f sqrtLocal(Vector2f vec) {
+        vec.x = FastMath.sqrt(vec.x);
+        vec.y = FastMath.sqrt(vec.y);
+        
+        return vec;
+    }
+    
+    public static Vector2f operate(Vector2f vec, FloatOperation operation) {
+        return new Vector2f(operation.calculate(vec.x), operation.calculate(vec.y));
+    }
+    
+    public static Vector2f operateLocal(Vector2f vec, FloatOperation operation) {
+        vec.x = operation.calculate(vec.x);
+        vec.y = operation.calculate(vec.y);
         
         return vec;
     }

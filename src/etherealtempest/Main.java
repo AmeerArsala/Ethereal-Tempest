@@ -56,9 +56,9 @@ public class Main extends SimpleApplication {
        
        debugFlyCam();
        flyCam.setMoveSpeed(350);
-
+       
        tilesInitialization();
-        
+       
        stateManager.attach(new TestMap(this, getCamera(), flyCam, settings));
        
        EnvironmentCamera envCam = new EnvironmentCamera();

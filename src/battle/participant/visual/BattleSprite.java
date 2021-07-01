@@ -18,7 +18,6 @@ import general.math.function.CartesianFunction;
 import general.math.function.MathFunction;
 import general.math.function.ParametricFunction4f;
 import general.math.function.RGBAFunction;
-import general.utils.helpers.MathUtils;
 import general.visual.ModifiedSprite;
 import general.visual.Sprite;
 
@@ -27,13 +26,13 @@ import general.visual.Sprite;
  * @author night
  */
 public class BattleSprite extends ModifiedSprite {
-    public static final float DIE_FUNCTION_LENGTH = 1.5f;
+    public static final float DIE_FUNCTION_LENGTH = 1f;
     public static final RGBAFunction DIE_FUNCTION = new RGBAFunction(
         new ParametricFunction4f(
             MathFunction.CONSTANT(1f),                                         // R
-            CartesianFunction.pointSlopeLine(1f, 0f, 0f, DIE_FUNCTION_LENGTH), // G; 1.5 seconds
-            CartesianFunction.pointSlopeLine(1f, 0f, 0f, DIE_FUNCTION_LENGTH), // B; 1.5 seconds
-            CartesianFunction.pointSlopeLine(1f, 0f, 0f, DIE_FUNCTION_LENGTH)  // A; 1.5 seconds
+            CartesianFunction.pointSlopeLine(1f, 0f, 0f, DIE_FUNCTION_LENGTH), // G
+            CartesianFunction.pointSlopeLine(1f, 0f, 0f, DIE_FUNCTION_LENGTH), // B
+            CartesianFunction.pointSlopeLine(1f, 0f, 0f, DIE_FUNCTION_LENGTH)  // A
         )
     );
     

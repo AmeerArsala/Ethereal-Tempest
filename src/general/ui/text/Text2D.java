@@ -51,12 +51,14 @@ public class Text2D extends Node {
         textContainer = ttf.getFormattedText(sc, ColorRGBA.White);
         textContainer.getMaterial().setColor("Color", textColor);
         textContainer.getMaterial().getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        textContainer.getMaterial().getAdditionalRenderState().setDepthWrite(false);
         styleText(textParams.createStyleCalls());
         
         attachChild(textContainer);
         
         outlineMaterial = new Material(assetManager, "MatDefs/TTF/TTF_BitmapOutlined.j3md");
         outlineMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        outlineMaterial.getAdditionalRenderState().setDepthWrite(false);
     }
     
     public TrueTypeContainer getTextContainer() { return textContainer; } // use this method for all the other things to do with the text

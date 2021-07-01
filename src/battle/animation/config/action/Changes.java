@@ -14,7 +14,7 @@ import com.jme3.math.Vector4f;
 import com.jme3.scene.Spatial;
 import general.math.ParametricFunctionStrings3f;
 import general.math.ParametricFunctionStrings4f;
-import general.utils.Duo;
+import general.utils.IdentifiedDuo;
 
 /**
  *
@@ -41,7 +41,7 @@ public class Changes {
     Change3f[] getLocalScales() { return localScales; }
     Change4f[] getColors() { return colors; }
     
-    static <S> Duo<Vector2f, Vector3f> obtainVariableChanges(S root) {
+    static <S> IdentifiedDuo<Vector2f, Vector3f> obtainVariableChanges(S root) {
         Vector2f percentagePos;
         Vector3f localAngle;
         
@@ -49,13 +49,13 @@ public class Changes {
             BattleSprite sprite = (BattleSprite)root;
             percentagePos = sprite.getPercentagePosition();
             localAngle = sprite.getLocalAngle();
-        } else { // user instanceof BattleParticleEffect.ParticleRootNode == true
+        } else { // root instanceof BattleParticleEffect.ParticleRootNode == true
             BattleParticleEffect.ParticleRootNode particleRoot = (BattleParticleEffect.ParticleRootNode)root;
             percentagePos = particleRoot.getPercentagePosition();
             localAngle = particleRoot.getLocalAngle();
         }
         
-        return new Duo<>(percentagePos, localAngle);
+        return new IdentifiedDuo<>(percentagePos, localAngle);
     }
     
     /**
@@ -66,8 +66,8 @@ public class Changes {
      * @return 
      */
     public ChangePack generateChangePack(int framesSinceActionFrame, Spatial user, Spatial opponent) {
-        Duo<Vector2f, Vector3f> userVariableChanges = obtainVariableChanges(user);         // A is percentagePos, B is localAngle
-        Duo<Vector2f, Vector3f> opponentVariableChanges = obtainVariableChanges(opponent); // A is percentagePos, B is localAngle
+        IdentifiedDuo<Vector2f, Vector3f> userVariableChanges = obtainVariableChanges(user);         // A is percentagePos, B is localAngle
+        IdentifiedDuo<Vector2f, Vector3f> opponentVariableChanges = obtainVariableChanges(opponent); // A is percentagePos, B is localAngle
         
         ColorRGBA rgba = null;
         String colorMatParam = null;

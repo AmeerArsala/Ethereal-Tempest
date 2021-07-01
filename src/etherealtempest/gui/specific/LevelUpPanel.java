@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.gui;
+package etherealtempest.gui.specific;
 
 import com.atr.jme.font.util.StringContainer.Align;
 import com.atr.jme.font.util.StringContainer.VAlign;

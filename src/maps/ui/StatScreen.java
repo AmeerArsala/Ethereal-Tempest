@@ -50,7 +50,7 @@ import etherealtempest.info.Conveyor;
 import fundamental.formation.Formation;
 import fundamental.formation.FormationTechnique;
 import fundamental.stats.StatBundle;
-import etherealtempest.gui.RadialProgressBar;
+import etherealtempest.gui.broad.RadialProgressBar;
 import fundamental.stats.Bonus.BonusType;
 import general.utils.helpers.EngineUtils;
 import general.utils.helpers.EngineUtils.CenterAxis;

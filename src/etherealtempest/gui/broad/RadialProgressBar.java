@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package etherealtempest.gui;
+package etherealtempest.gui.broad;
 
 import com.jme3.asset.AssetManager;
 import etherealtempest.mesh.RadialMesh;
@@ -12,6 +12,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import enginetools.MaterialCreator;
 
 /**
@@ -22,9 +23,9 @@ public class RadialProgressBar extends Node {
     private float innerRadius, outerRadius;
     private ColorRGBA color;
     
-    private final RadialMesh outerMeshComplete; //z = 0 (bottom layer)
-    private RadialMesh outerMeshCurrent; //z = 1 (middle layer)
-    private final RadialMesh innerMeshCurrent; //z = 2 (top layer)
+    private final RadialMesh outerMeshComplete; // z = 0 (bottom layer)
+    private RadialMesh outerMeshCurrent;        // z = 1 (middle layer)
+    private final RadialMesh innerMeshCurrent;  // z = 2 (top layer)
     
     private final Geometry outerComplete, innerCurrent;
     private Geometry outerCurrent;
@@ -70,20 +71,20 @@ public class RadialProgressBar extends Node {
         outerCurrent.setMaterial(progress);
         //outerCurrent.setQueueBucket(Bucket.Opaque);
         
-        childrenNode = new Node();
+        childrenNode = new Node(); //node for children
         
         attachChild(outerComplete);
         attachChild(innerCurrent);
         attachChild(outerCurrent); //actual bar
         
-        outerCurrent.move(0, 0, 1);
-        innerCurrent.move(0, 0, 2);
+        outerCurrent.move(0, 0, 1); // z = 1 (middle layer)
+        innerCurrent.move(0, 0, 2); // z = 2 (top layer)
         
         attachChild(childrenNode);
         
-        rotate(0, 0, FastMath.PI / 2);
-        childrenNode.rotate(0, 0, FastMath.PI / -2f);
-        childrenNode.move(0, 0, 3);
+        rotate(0, 0, FastMath.PI / 2); //z pos correction for UI
+        childrenNode.rotate(0, 0, FastMath.PI / -2f); //children node counteract this
+        childrenNode.move(0, 0, 3); 
     }
     
     private void updatePercentage() {
@@ -110,5 +111,4 @@ public class RadialProgressBar extends Node {
     public Node getChildrenNode() {
         return childrenNode;
     }
-    
 }

@@ -14,6 +14,7 @@ import com.jme3.texture.Texture;
 import com.simsilica.lemur.Container;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import enginetools.MaterialCreator;
+import enginetools.SpatialOperator;
 import general.math.function.RGBAFunction;
 import general.ui.GeometryPanel;
 import general.ui.Padding;
@@ -90,9 +91,13 @@ public abstract class BasicMenuOption<DATA> extends MenuOption<DATA> {
         bgMat.setTexture("ColorMap", containerDefault);
         option.setMaterial(bgMat);
         
-        Vector3f displacement = EngineUtils.centerEntity(text.getTextBoxBounds(), panelSize, Arrays.asList(CenterAxis.X, CenterAxis.Y));
-        text.move(0, text.getTextHeight(), 0);
-        text.move(displacement.add(deltaPadding));
+        //Vector3f displacement = EngineUtils.centerEntity(text.getTextBoxBounds(), panelSize, Arrays.asList(CenterAxis.X, CenterAxis.Y));
+        //text.move(0, text.getTextHeight(), 0);
+        //text.move(displacement.add(deltaPadding));
+        
+        SpatialOperator anchor = new SpatialOperator(text, text.getTextBounds(), new Vector3f(0.5f, 0.5f, 0));
+        anchor.alignToLocally(text.getLocalTranslation().add(panelSize));
+        text.move(deltaPadding);
         
         option.attachChild(text);
         optionNode.attachChild(option);

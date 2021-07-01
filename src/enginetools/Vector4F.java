@@ -10,6 +10,8 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
+import general.math.FloatOperation;
+import general.math.function.ControlledMathFunction.Operation;
 import java.util.Random;
 
 /**
@@ -112,6 +114,58 @@ public class Vector4F {
         vec.y = FastMath.abs(vec.y);
         vec.z = FastMath.abs(vec.z);
         vec.w = FastMath.abs(vec.w);
+        
+        return vec;
+    }
+    
+    public static Vector4f pow(Vector4f vec, float pwr) {
+        return new Vector4f(FastMath.pow(vec.x, pwr), FastMath.pow(vec.y, pwr), FastMath.pow(vec.z, pwr), FastMath.pow(vec.w, pwr));
+    }
+    
+    public static Vector4f powLocal(Vector4f vec, float pwr) {
+        vec.x = FastMath.pow(vec.x, pwr);
+        vec.y = FastMath.pow(vec.y, pwr);
+        vec.z = FastMath.pow(vec.z, pwr);
+        vec.w = FastMath.pow(vec.w, pwr);
+        
+        return vec;
+    }
+    
+    public static Vector4f pow(Vector4f vec, Vector4f pows) {
+        return new Vector4f(FastMath.pow(vec.x, pows.x), FastMath.pow(vec.y, pows.y), FastMath.pow(vec.z, pows.z), FastMath.pow(vec.w, pows.w));
+    }
+    
+    public static Vector4f powLocal(Vector4f vec, Vector4f pows) {
+        vec.x = FastMath.pow(vec.x, pows.x);
+        vec.y = FastMath.pow(vec.y, pows.y);
+        vec.z = FastMath.pow(vec.z, pows.z);
+        vec.w = FastMath.pow(vec.w, pows.w);
+        
+        return vec;
+    }
+    
+    public static Vector4f sqrt(Vector4f vec) {
+        return new Vector4f(FastMath.sqrt(vec.x), FastMath.sqrt(vec.y), FastMath.sqrt(vec.z), FastMath.sqrt(vec.w));
+    }
+    
+    public static Vector4f sqrtLocal(Vector4f vec) {
+        vec.x = FastMath.sqrt(vec.x);
+        vec.y = FastMath.sqrt(vec.y);
+        vec.z = FastMath.sqrt(vec.z);
+        vec.w = FastMath.sqrt(vec.w);
+        
+        return vec;
+    }
+    
+    public static Vector4f operate(Vector4f vec, FloatOperation operation) {
+        return new Vector4f(operation.calculate(vec.x), operation.calculate(vec.y), operation.calculate(vec.z), operation.calculate(vec.w));
+    }
+    
+    public static Vector4f operateLocal(Vector4f vec, FloatOperation operation) {
+        vec.x = operation.calculate(vec.x);
+        vec.y = operation.calculate(vec.y);
+        vec.z = operation.calculate(vec.z);
+        vec.w = operation.calculate(vec.w);
         
         return vec;
     }

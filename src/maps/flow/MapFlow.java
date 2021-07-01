@@ -18,6 +18,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
+import enginetools.SpatialOperator;
 import etherealtempest.fsm.FSM;
 import etherealtempest.fsm.FSM.MapFlowState;
 import etherealtempest.fsm.FSM.UnitState;
@@ -249,7 +250,11 @@ public class MapFlow { //eventually make this the map controller
         turn = partiesInvolved.get(phaseIndex);
         
         Text2D phaseText = createPhaseText(getPhaseString());
-        phaseText.setLocalTranslation(EngineUtils.centerEntity(phaseText.getTextBounds(), Globals.getScreenDimensions(), Arrays.asList(CenterAxis.X, CenterAxis.Y)));
+        
+        Vector3f center = new Vector3f(0.5f, 0.5f, 0);
+        SpatialOperator anchor = new SpatialOperator(phaseText, phaseText.getTextBounds(), center);
+        anchor.alignTo(Globals.getScreenDimensions().multLocal(center));
+        //phaseText.setLocalTranslation(EngineUtils.centerEntity(phaseText.getTextBounds(), Globals.getScreenDimensions(), Arrays.asList(CenterAxis.X, CenterAxis.Y)));
         //phaseText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
         
         localGuiNode.attachChild(phaseText);

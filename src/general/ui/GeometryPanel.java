@@ -14,6 +14,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
+import enginetools.SpatialOperator;
 
 /**
  *
@@ -23,6 +24,7 @@ public class GeometryPanel extends Node {
     protected final float width, height;
     private final Quad quad;
     private final Geometry geometry;
+    private final SpatialOperator anchor;
     
     private boolean isMirrored = false;
     
@@ -39,32 +41,53 @@ public class GeometryPanel extends Node {
         geometry.setQueueBucket(queueBucket);
         
         attachChild(geometry);
+        
+        anchor = new SpatialOperator(this, getScaledDimensions3D(), new Vector3f());
     }
     
     public float getWidth() { return width; }
     public float getHeight() { return height; }
     
-    public Vector2f getUnscaledDimensions() {
+    public final Vector2f getUnscaledDimensions() {
         return new Vector2f(width, height);
     }
     
-    public Vector2f getScaledDimensions() { //scaled dimensions
+    public final Vector2f getScaledDimensions() { //scaled dimensions
         Vector3f localScale = getLocalScale();
         return new Vector2f(width * localScale.x, height * localScale.y);
     }
     
-    public Vector3f getUnscaledDimensions3D() {
+    public final Vector3f getUnscaledDimensions3D() {
         return new Vector3f(width, height, 0);
     }
     
-    public Vector3f getScaledDimensions3D() {
+    public final Vector3f getScaledDimensions3D() {
         return getLocalScale().mult(new Vector3f(width, height, 1));
     }
     
-    public Geometry getGeometry() { return geometry; }
-    public Quad getQuad() { return quad; }
+    public Geometry getGeometry() { 
+        return geometry; 
+    }
     
-    public boolean isMirrored() { return isMirrored; }
+    public Quad getQuad() { 
+        return quad; 
+    }
+    
+    public SpatialOperator getOperator() {
+        anchor.getDimensions().set(getScaledDimensions3D()); //update dimensions
+        return anchor;
+    }
+    
+    public SpatialOperator getOperator(float percentX, float percentY) {
+        anchor.getDimensions().set(getScaledDimensions3D()); //update dimensions
+        anchor.getPointInPercents().set(percentX, percentY, 0);
+        
+        return anchor;
+    }
+    
+    public boolean isMirrored() { 
+        return isMirrored; 
+    }
     
     public Material getMaterial() {
         return geometry.getMaterial();
@@ -124,4 +147,6 @@ public class GeometryPanel extends Node {
         
         return new Vector3f(angles[0], angles[1], angles[2]);
     }
+    
+    
 }

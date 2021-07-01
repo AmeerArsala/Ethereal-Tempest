@@ -22,7 +22,7 @@ import fundamental.formula.Formula;
 import fundamental.item.Item;
 import fundamental.item.weapon.Weapon;
 import fundamental.skill.Skill;
-import etherealtempest.gui.ActionMenu;
+import etherealtempest.gui.specific.ActionMenu;
 import fundamental.formation.FormationTechnique;
 import fundamental.item.Inventory;
 import general.math.function.RGBAFunction;

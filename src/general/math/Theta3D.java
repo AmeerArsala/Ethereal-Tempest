@@ -25,7 +25,7 @@ public class Theta3D {
         
         float c = FastMath.sqrt(FastMath.pow(deltaX, 2) + FastMath.pow(deltaY, 2));
         
-        thetaZ = FastMath.atan(deltaZ / c);
+        thetaZ = FastMath.atan(c / deltaZ); //used to be deltaZ / c
     }
     
     public float getXYAngle() { return thetaXY; }

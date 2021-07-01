@@ -71,92 +71,119 @@ public class Catalog {
     
     public static Unit UNIT_Morva() {
         return new Unit(
-                "Morva", //name
-                JobClass.Freeblade, //class
-                Arrays.asList //base stats
-                (
-                    new StatBundle<>(BaseStat.Level, 1),  //level
-                    new StatBundle<>(BaseStat.MaxHP, 28), //max hp
-                    new StatBundle<>(BaseStat.MaxTP, 0), //max tp
-                    new StatBundle<>(BaseStat.Strength, 8),  //strength
-                    new StatBundle<>(BaseStat.Ether, 5),  //ether
-                    new StatBundle<>(BaseStat.Agility, 16), //agility
-                    new StatBundle<>(BaseStat.Dexterity, 5),  //dexterity
-                    new StatBundle<>(BaseStat.Comprehension, 6),  //comprehension
-                    new StatBundle<>(BaseStat.Defense, 5),  //defense
-                    new StatBundle<>(BaseStat.Resilience, 2),  //resilience
-                    new StatBundle<>(BaseStat.Mobility, 4),  //mobility
-                    new StatBundle<>(BaseStat.Physique, 9),  //physique
-                    new StatBundle<>(BaseStat.Adrenaline, 10)  //adrenaline
-                ),
-                Arrays.asList //growth rates
-                (
-                    new StatBundle<>(BaseStat.Level, 100),  //level
-                    new StatBundle<>(BaseStat.MaxHP, 60), //max hp
-                    new StatBundle<>(BaseStat.MaxTP, 10), //max tp
-                    new StatBundle<>(BaseStat.Strength, 55),  //strength
-                    new StatBundle<>(BaseStat.Ether, 45),  //ether
-                    new StatBundle<>(BaseStat.Agility, 45), //agility
-                    new StatBundle<>(BaseStat.Dexterity, 55),  //dexterity
-                    new StatBundle<>(BaseStat.Comprehension, 45),  //comprehension
-                    new StatBundle<>(BaseStat.Defense, 40),  //defense
-                    new StatBundle<>(BaseStat.Resilience, 30),  //resilience
-                    new StatBundle<>(BaseStat.Mobility, 5),  //mobility
-                    new StatBundle<>(BaseStat.Physique, 15),  //physique
-                    new StatBundle<>(BaseStat.Adrenaline, 50)  //adrenaline
-                ),
-                Arrays.asList(Weapon.Firangi(), ConsumableItem.Apple()), //base inventory
-                Arrays.asList(Formula.Anemo_Schism()), //base formulas
-                Arrays.asList(Talent.EyeOfTheStorm(), Talent.Opportunist(), Talent.Optimism()), //base talents
-                Arrays.asList(Skill.Heavy_Swing), //base skills
-                Arrays.asList(), //base abilities
-                Arrays.asList(Formation.Trigonal_Planar()) //base formations
-            );
+            "Morva",            // Name
+            JobClass.Freeblade, // Class
+            Arrays.asList       // Base Stats
+            (
+                new StatBundle<>(BaseStat.Level, 1),          // Level
+                new StatBundle<>(BaseStat.MaxHP, 28),         // Max HP
+                new StatBundle<>(BaseStat.MaxTP, 0),          // Max TP
+                new StatBundle<>(BaseStat.Strength, 8),       // Strength
+                new StatBundle<>(BaseStat.Ether, 5),          // Ether
+                new StatBundle<>(BaseStat.Agility, 16),       // Agility
+                new StatBundle<>(BaseStat.Dexterity, 5),      // Dexterity
+                new StatBundle<>(BaseStat.Comprehension, 6),  // Comprehension
+                new StatBundle<>(BaseStat.Defense, 5),        // Defense
+                new StatBundle<>(BaseStat.Resilience, 2),     // Resilience
+                new StatBundle<>(BaseStat.Mobility, 4),       // Mobility
+                new StatBundle<>(BaseStat.Physique, 9),       // Physique
+                new StatBundle<>(BaseStat.Adrenaline, 10)     // Adrenaline
+            ),
+            Arrays.asList       // Growth Rates
+            (
+                new StatBundle<>(BaseStat.Level, 100),         // Level
+                new StatBundle<>(BaseStat.MaxHP, 60),          // Max HP
+                new StatBundle<>(BaseStat.MaxTP, 10),          // Max TP
+                new StatBundle<>(BaseStat.Strength, 55),       // Strength
+                new StatBundle<>(BaseStat.Ether, 45),          // Ether
+                new StatBundle<>(BaseStat.Agility, 45),        // Agility
+                new StatBundle<>(BaseStat.Dexterity, 55),      // Dexterity
+                new StatBundle<>(BaseStat.Comprehension, 45),  // Comprehension
+                new StatBundle<>(BaseStat.Defense, 40),        // Defense
+                new StatBundle<>(BaseStat.Resilience, 30),     // Resilience
+                new StatBundle<>(BaseStat.Mobility, 5),        // Mobility
+                new StatBundle<>(BaseStat.Physique, 15),       // Physique
+                new StatBundle<>(BaseStat.Adrenaline, 50)      // Adrenaline
+            ),
+            Arrays.asList(       // Base Inventory
+                Weapon.Firangi(),
+                ConsumableItem.Apple()
+            ),
+            Arrays.asList(       // Base Formulas
+                Formula.Anemo_Schism()
+            ),
+            Arrays.asList(       // Base Talents
+                Talent.EyeOfTheStorm(),
+                Talent.Opportunist(),
+                Talent.Optimism()
+            ),
+            Arrays.asList(       // Base Skills
+                Skill.Heavy_Swing
+            ),
+            Arrays.asList(       // Base Abilities
+                
+            ),
+            Arrays.asList(       // Base Formations
+                Formation.Trigonal_Planar()
+            )
+        );
     }
     
     public static Unit UNIT_EvilMorva() {
         return new Unit(
-                "Morva", //name
-                JobClass.Freeblade, //class
-                Arrays.asList //base stats
-                (
-                    new StatBundle<>(BaseStat.Level, 1),  //level
-                    new StatBundle<>(BaseStat.MaxHP, 19), //max hp
-                    new StatBundle<>(BaseStat.MaxTP, 0), //max tp
-                    new StatBundle<>(BaseStat.Strength, 9),  //strength
-                    new StatBundle<>(BaseStat.Ether, 2),  //ether
-                    new StatBundle<>(BaseStat.Agility, 8), //agility
-                    new StatBundle<>(BaseStat.Dexterity, 5),  //dexterity
-                    new StatBundle<>(BaseStat.Comprehension, 3),  //comprehension
-                    new StatBundle<>(BaseStat.Defense, 5),  //defense
-                    new StatBundle<>(BaseStat.Resilience, 2),  //resilience
-                    new StatBundle<>(BaseStat.Mobility, 4),  //mobility
-                    new StatBundle<>(BaseStat.Physique, 7),  //physique
-                    new StatBundle<>(BaseStat.Adrenaline, 15)  //adrenaline
-                ),
-                Arrays.asList //growth rates
-                (
-                    new StatBundle<>(BaseStat.Level, 100),  //level
-                    new StatBundle<>(BaseStat.MaxHP, 60), //max hp
-                    new StatBundle<>(BaseStat.MaxTP, 10), //max tp
-                    new StatBundle<>(BaseStat.Strength, 55),  //strength
-                    new StatBundle<>(BaseStat.Ether, 45),  //ether
-                    new StatBundle<>(BaseStat.Agility, 45), //agility
-                    new StatBundle<>(BaseStat.Dexterity, 55),  //dexterity
-                    new StatBundle<>(BaseStat.Comprehension, 45),  //comprehension
-                    new StatBundle<>(BaseStat.Defense, 40),  //defense
-                    new StatBundle<>(BaseStat.Resilience, 30),  //resilience
-                    new StatBundle<>(BaseStat.Mobility, 5),  //mobility
-                    new StatBundle<>(BaseStat.Physique, 15),  //physique
-                    new StatBundle<>(BaseStat.Adrenaline, 50)  //adrenaline
-                ),
-                Arrays.asList(Weapon.Cutlass()), //base inventory
-                Arrays.asList(), //base formulas
-                Arrays.asList(Talent.Optimism()), //base talents
-                Arrays.asList(), //base skills
-                Arrays.asList(), //base abilities
-                Arrays.asList()  //base formations
-            );
+            "Morva",            // Name
+            JobClass.Freeblade, // Class
+            Arrays.asList       // Base Stats
+            (
+                new StatBundle<>(BaseStat.Level, 1),          // Level
+                new StatBundle<>(BaseStat.MaxHP, 19),         // Max HP
+                new StatBundle<>(BaseStat.MaxTP, 0),          // Max TP
+                new StatBundle<>(BaseStat.Strength, 9),       // Strength
+                new StatBundle<>(BaseStat.Ether, 2),          // Ether
+                new StatBundle<>(BaseStat.Agility, 8),        // Agility
+                new StatBundle<>(BaseStat.Dexterity, 5),      // Dexterity
+                new StatBundle<>(BaseStat.Comprehension, 3),  // Comprehension
+                new StatBundle<>(BaseStat.Defense, 5),        // Defense
+                new StatBundle<>(BaseStat.Resilience, 2),     // Resilience
+                new StatBundle<>(BaseStat.Mobility, 4),       // Mobility
+                new StatBundle<>(BaseStat.Physique, 7),       // Physique
+                new StatBundle<>(BaseStat.Adrenaline, 15)     // Adrenaline
+            ),
+            Arrays.asList       // Growth Rates
+            (
+                new StatBundle<>(BaseStat.Level, 100),         // Level
+                new StatBundle<>(BaseStat.MaxHP, 60),          // Max HP
+                new StatBundle<>(BaseStat.MaxTP, 10),          // Max TP
+                new StatBundle<>(BaseStat.Strength, 55),       // Strength
+                new StatBundle<>(BaseStat.Ether, 45),          // Ether
+                new StatBundle<>(BaseStat.Agility, 45),        // Agility
+                new StatBundle<>(BaseStat.Dexterity, 55),      // Dexterity
+                new StatBundle<>(BaseStat.Comprehension, 45),  // Comprehension
+                new StatBundle<>(BaseStat.Defense, 40),        // Defense
+                new StatBundle<>(BaseStat.Resilience, 30),     // Resilience
+                new StatBundle<>(BaseStat.Mobility, 5),        // Mobility
+                new StatBundle<>(BaseStat.Physique, 15),       // Physique
+                new StatBundle<>(BaseStat.Adrenaline, 50)      // Adrenaline
+            ),
+            Arrays.asList(       // Base Inventory
+                Weapon.Cutlass()
+            ),
+            Arrays.asList(       // Base Formulas
+                
+            ),
+            Arrays.asList(       // Base Talents
+                Talent.Optimism()
+            ),
+            Arrays.asList(       // Base Skills
+                
+            ),
+            Arrays.asList(       // Base Abilities
+                
+            ),
+            Arrays.asList(       // Base Formations
+                
+            )
+        );
     }
     
     

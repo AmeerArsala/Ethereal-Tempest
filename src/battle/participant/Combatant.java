@@ -162,11 +162,33 @@ public class Combatant {
     public int getDefaultDamage() { return defaultDamage; } //full damage on hit including extra damage
     
     public void appendToBaseStat(BaseStat stat, int value) {
-        combatBaseStats.replace(stat, combatBaseStats.get(stat) + value);
+        int nextVal = combatBaseStats.get(stat) + value;
+        if (stat == BaseStat.CurrentHP) {
+            int maxHP = combatBaseStats.get(BaseStat.MaxHP);
+            if (nextVal > maxHP) {
+                nextVal = maxHP;
+            }
+        } else if (stat == BaseStat.CurrentTP) {
+            int maxTP = combatBaseStats.get(BaseStat.MaxTP);
+            if (nextVal > maxTP) {
+                nextVal = maxTP;
+            }
+        }
+        
+        if (nextVal < 0) {
+            nextVal = 0;
+        }
+        
+        combatBaseStats.replace(stat, nextVal);
     }
     
     public void appendToBattleStat(BattleStat stat, int value) {
-        combatBattleStats.replace(stat, combatBattleStats.get(stat) + value);
+        int nextVal = combatBattleStats.get(stat) + value;
+        if (nextVal < 0) {
+            nextVal = 0;
+        }
+        
+        combatBattleStats.replace(stat, nextVal);
     }
     
     public void setDefaultDamage(int dmg) { 
@@ -277,187 +299,4 @@ public class Combatant {
                 + "CRIT EVA: " + combatBattleStats.get(BattleStat.CritEvasion) + "\n"
                 + "AS: " + combatBattleStats.get(BattleStat.AttackSpeed) + "\n";
     }
-    
-    /*
-    public ProgressBar getHPbar() { return hpBar; }
-    public ProgressBar getTPbar() { return tpBar; }
-    
-    public EffekseerControl getEffectControl() { return effectControl; }
-    public Node getEffectsNode() { return effects; }
-    
-    public TrueTypeFont getExpFont() { return expFont; }
-    
-    public Material getLevelUpText() {
-        return levelUpText;
-    }
-    
-    public void setHPbar(ProgressBar hpb) {
-        hpBar = hpb;
-    }
-    
-    public void setTPbar(ProgressBar tpb) {
-        tpBar = tpb; 
-    }
-    
-    public void setEffectControl(EffekseerControl efc) {
-        effectControl = efc; 
-    }
-    
-    public void setExpFont(TrueTypeFont ttf) {
-        expFont = ttf;
-    }
-    
-    public void setLevelUpText(Material txt) {
-        levelUpText = txt;
-    }
-
-    public void initializeExpCircle(Node actualGuiNode) {
-        if (tu.getStat(BaseStat.currentHP) > 0) {
-            figure.expbar = new RadialProgressBar(52.5f, 70.75f, tu.getAllegiance().getAssociatedColor(), 2);
-            figure.expbar.move(300, 560, 0);
-
-            expText = expFont.getText("  EXP\n " + tu.currentEXP + "/100", 3, ColorRGBA.White);
-            expText.move(-45, 45, 0);
-            expText.scale(0.7f);
-            figure.expbar.getChildrenNode().attachChild(expText);
-        
-            actualGuiNode.attachChild(figure.expbar);
-        }
-    }
-    
-    public void gainExp() {
-        figure.expbar.setCirclePercent(tu.currentEXP / 100f);
-                        
-        String extraSpace = "   ";
-        float disX = 0;
-        if (tu.currentEXP >= 100) {
-            extraSpace = "     ";
-            disX = -12.5f;
-        }
-                        
-        figure.expbar.getChildrenNode().detachChild(expText);
-        expText = expFont.getText(extraSpace + "EXP\n " + tu.currentEXP + "/100", 3, ColorRGBA.White);
-        expText.move(-45 + disX, 45, 0);
-        expText.scale(0.7f);
-        figure.expbar.getChildrenNode().attachChild(expText);
-                        
-        //TODO: PLAY A SOUND
-                        
-        tu.currentEXP++;
-        figure.expGained--;
-    }
-    
-    public void attemptInitializeLevelUpVisual(Node actualGuiNode) {
-        if (tu.currentEXP >= 100) {
-            initializeLevelUpVisual();
-        } else if (tu.getStat(BaseStat.currentHP) > 0) {
-            actualGuiNode.detachChild(figure.expbar);
-        }
-    }
-    
-    private void initializeLevelUpVisual() {
-        figure.expbar.getChildrenNode().detachAllChildren();
-        figure.expbar.getChildrenNode().move(-10, 50, 0);
-        Quad lvlupquad = new Quad(100.5f, 25.5f);
-        Geometry lvlupgeom = new Geometry("lvlupQuad", lvlupquad);
-        lvlupgeom.setMaterial(levelUpText.clone());
-        figure.expbar.getChildrenNode().attachChild(lvlupgeom);
-        levelUpTransition = new VisualTransition(lvlupgeom, Animation.ZoomIn().setLength(0.1f));
-        levelUpTransition.beginTransitions();
-    }
-    
-    public boolean attemptLevelUpTransition(float tpf) {
-        if (levelUpTransition != null) {
-            levelUpTransition.update(tpf);
-            return levelUpTransition.getTransitionProgress() == Progress.Finished;
-        }
-        
-        return true;
-    }
-    
-    private boolean leveledUp = false;
-    
-    public boolean attemptLevelUp(float tpf) {
-        boolean done = true;
-        
-        if (tu.currentEXP >= 100) {
-            leveledUp = true;
-            tu.currentEXP -= 100;
-        }
-        
-        if (leveledUp) {
-            done = figure.updateArrows(tpf);
-        }
-        
-        return done;
-    }
-    
-    void updateEffects(float tpf) {
-        if (tu.getEquippedFormula() != null && figure.allowEffectUpdate) {
-            if (!controlAdded) {
-                effects.addControl(effectControl);
-                controlAdded = true;
-            }
-            effectControl.update(tpf);
-            if (figure.effIndex == tu.getEquippedFormula().getVisuals().getAnimationInfo().getImpactFrame()) {
-                figure.impactStatus = ImpactType.All;
-            } else if (figure.effIndex == tu.getEquippedFormula().getVisuals().getAnimationInfo().getFrames()) {
-                figure.index++; //take it off freeze
-                figure.amassingTPF = 0;
-                figure.allowEffectUpdate = false;
-                figure.effIndex = 0;
-                effects.removeControl(effectControl);
-                controlAdded = false;
-                effectControl = tu.getEquippedFormula().getVisuals().resetControl();
-            }
-            figure.effIndex++;
-        }
-    }
-    
-    void updateBars(float tpf) {
-        updateHP();
-        updateTP();
-    }
-    
-    void EtherInitialize() {
-        setHPtoSubtract(tu.getEquippedFormula().getHPUsage());
-        setTPtoSubtract(tu.getEquippedFormula().getTPUsage());
-   
-        setEffectControl(tu.getEquippedFormula().getVisuals().getControl());
-    }
-    
-    private void updateHP() {
-        if (hpToSubtract != 0) {
-            hpBar.setProgressPercent(((double)combatBaseStats.get(BaseStat.currentHP)) / combatBaseStats.get(BaseStat.maxHP)); //currentHP / maxHP
-            hpBar.setMessage("HP: " + combatBaseStats.get(BaseStat.currentHP) + "/" + combatBaseStats.get(BaseStat.maxHP));
-            
-            int modifier;
-            if (hpToSubtract > 0) {
-                modifier = 1;
-            } else {
-                modifier = -1;
-            }
-            
-            combatBaseStats.replace(BaseStat.currentHP, combatBaseStats.get(BaseStat.currentHP) - modifier);
-            hpToSubtract -= modifier;
-        }
-    }
-    
-    private void updateTP() {
-        if (tpToSubtract != 0) {
-            tpBar.setProgressPercent(((double)combatBaseStats.get(BaseStat.currentTP)) / combatBaseStats.get(BaseStat.maxTP)); //currentTP / maxTP
-            tpBar.setMessage("TP: " + combatBaseStats.get(BaseStat.currentTP) + "/" + combatBaseStats.get(BaseStat.maxTP));
-            
-            int modifier;
-            if (tpToSubtract > 0) {
-                modifier = 1;
-            } else {
-                modifier = -1;
-            }
-            
-            combatBaseStats.replace(BaseStat.currentTP, combatBaseStats.get(BaseStat.currentTP) - modifier);
-            tpToSubtract -= modifier;
-        }
-    }
-    */
 }

@@ -6,6 +6,7 @@
 package general.math.function;
 
 import com.jme3.math.FastMath;
+import general.math.FloatOperation;
 import general.tools.universal.ArrayManipulator;
 import general.math.FloatPair;
 import java.security.SecureRandom;
@@ -228,10 +229,6 @@ public class ControlledMathFunction extends MathFunction {
         
         public float calculateIntegral(float x) {
             return integral.calculate(x);
-        }
-        
-        private interface FloatOperation {
-            public float calculate(float x);
         }
     }
 

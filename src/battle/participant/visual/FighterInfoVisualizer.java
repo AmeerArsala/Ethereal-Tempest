@@ -199,7 +199,9 @@ public class FighterInfoVisualizer {
         
         BaseStat defensiveStat = ((DamageTool)currentStrike.getStriker().combatant.getUnit().getEquippedTool()).getDamageMeasuredAgainstStat();
         
-        gui.getHPHeart().queueToPercent(
+        System.out.println("current to max hp ratio: " + gui.getCombatant().getCurrentToMaxHPRatio());
+        
+        gui.getHPHeart().proceedToPercent(
             gui.getCombatant().getCurrentToMaxHPRatio(),
             gui.getCombatant().secondsToDrain(
                 BaseStat.CurrentHP, 
@@ -218,7 +220,7 @@ public class FighterInfoVisualizer {
         }
         
         float seconds = 0.25f;
-        gui.getHPHeart().queueToPercent(
+        gui.getHPHeart().proceedToPercent(
             gui.getCombatant().getCurrentToMaxHPRatio(),
             seconds
         );
@@ -240,7 +242,7 @@ public class FighterInfoVisualizer {
         }
         
         float seconds = 0.25f;
-        gui.getTPBall().queueToPercent(gui.getCombatant().getCurrentToMaxTPRatio(), seconds);
+        gui.getTPBall().proceedToPercent(gui.getCombatant().getCurrentToMaxTPRatio(), seconds);
         
         int dmg = gui.getCombatant().getBaseStat(BaseStat.CurrentHP) - gui.getHPHeart().getCurrentNumber();
         

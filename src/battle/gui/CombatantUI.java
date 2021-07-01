@@ -5,8 +5,10 @@
  */
 package battle.gui;
 
+import etherealtempest.gui.specific.LevelUpPanel;
+import etherealtempest.gui.broad.ShapeIndicator;
+import etherealtempest.gui.broad.ExpIndicator;
 import battle.data.forecast.SingularForecast;
-import battle.participant.BattleRole;
 import battle.participant.Combatant;
 import battle.participant.Combatant.AttackType;
 import com.atr.jme.font.util.StringContainer.Align;
@@ -15,33 +17,26 @@ import com.atr.jme.font.util.StringContainer.WrapMode;
 import com.atr.jme.font.util.Style;
 import com.jme3.asset.AssetManager;
 import com.jme3.font.Rectangle;
-import com.jme3.material.Material;
-import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import enginetools.MaterialCreator;
+import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialParamsProtocol;
+import enginetools.SpatialOperator;
 import etherealtempest.Globals;
-import etherealtempest.geometry.Heart;
-import etherealtempest.gui.RadialProgressBar;
+import etherealtempest.gui.broad.RadialProgressBar;
 import fundamental.stats.BaseStat;
 import general.ui.GeometryPanel;
-import general.ui.text.FontProperties.KeyType;
 import general.ui.text.Text2D;
-import general.ui.text.TextProperties;
 import general.ui.text.quickparams.TextDisplacementParams;
 import general.ui.text.quickparams.UIFontParams;
-import general.utils.helpers.EngineUtils;
-import general.utils.helpers.EngineUtils.CenterAxis;
+import general.utils.Duo;
 import general.utils.helpers.GameUtils;
 import general.visual.animation.Animation;
 import general.visual.animation.VisualTransition;
-import java.util.Arrays;
 
 /**
  *
@@ -74,43 +69,50 @@ public class CombatantUI {
         Vector2f tpBallDims = new Vector2f(1, 581f / 429f).multLocal(0.05f * Globals.getScreenWidth());
         float portraitDims = 0.16f * Globals.getScreenWidth();
         
-        hpHeart = createIndicator(
+        hpHeart = GuiFactory.createIndicator(
             "HP",
             hpHeartDims,
             new UIFontParams("Interface/Fonts/DIOGENES.ttf", 23f, Style.Plain, 3),
-            generateHeartMatParams(),
+            heartMatParams(),
+            assetManager,
             forecast.getCombatant().getBaseStat(BaseStat.CurrentHP),
             forecast.getCombatant().getBaseStat(BaseStat.MaxHP)
         );
         
-        EngineUtils.center(
-            hpHeart.getText(), 
-            hpHeart.getGeometryPanel(),
-            hpHeart.getText().getTextBounds(), 
-            hpHeart.getGeometryPanel().getScaledDimensions3D(), 
-            Arrays.asList(CenterAxis.X, CenterAxis.Y)
-        );
+        hpHeart.alignTextTo(0.5f, 0.6f);
         
-        hpHeart.getText().move(0, hpHeart.getGeometryPanel().getHeight() / 3.5f, 5);
+        //hpHeart.getText().move(0, hpHeart.getGeometryPanel().getHeight() / 3.5f, 5);
         
-        tpBall = createIndicator(
+        tpBall = GuiFactory.createIndicator(
             "TP",
             tpBallDims,
             new UIFontParams("Interface/Fonts/DIOGENES.ttf", 23f, Style.Plain, 3),
-            generateTPBallMatParams(),
+            tpBallMatParams(),
+            assetManager,
             forecast.getCombatant().getBaseStat(BaseStat.CurrentTP),
             forecast.getCombatant().getBaseStat(BaseStat.MaxTP)
         );
         
-        portrait = createPortrait(portraitDims, portraitDims);
-        nametag = createNametag(new UIFontParams("Interface/Fonts/IMFellDWPica-Regular.ttf", 35f, Style.Plain, 3));
+        portrait = GuiFactory.createPanel(
+            portraitDims, portraitDims, 
+            assetManager, 
+            "Textures/portraits/" + forecast.getCombatant().getUnit().getUnitInfo().getPortraitTextureName(),
+            ColorRGBA.White, 
+            false //don't mirror portrait texture
+        );
+        
+        nametag = GuiFactory.createNametag(
+            forecast.getCombatant().getUnit().getName(), 
+            new UIFontParams("Interface/Fonts/IMFellDWPica-Regular.ttf", 35f, Style.Plain, 3), 
+            assetManager
+        );
         
         UIFontParams equippedToolFontParams = new UIFontParams("Interface/Fonts/Linux Libertine/LinLibertine_R.ttf", 18f, Style.Plain, 3);
         UIFontParams forecastInfoFontParams = new UIFontParams("Interface/Fonts/Linux Libertine/LinLibertine_R.ttf", 23f, Style.Plain, 3);
-        DualPanel equippedToolAndForecastInfo = createEquippedToolAndForecastInfoPanels(equippedToolFontParams, forecastInfoFontParams);
+        Duo<GeometryPanel, GeometryPanel> equippedToolAndForecastInfo = createEquippedToolAndForecastInfoPanels(equippedToolFontParams, forecastInfoFontParams);
         
-        tool = equippedToolAndForecastInfo.panelA;
-        forecastInfo = equippedToolAndForecastInfo.panelB;
+        tool = equippedToolAndForecastInfo.first;
+        forecastInfo = equippedToolAndForecastInfo.second;
         
         Vector3f portraitTranslation = new Vector3f(0, Globals.getScreenHeight() - portraitDims, 1f);
         Vector3f nametagTranslation = new Vector3f((portrait.getWidth() - nametag.getWidth()) / 2f, portraitTranslation.y - (nametag.getHeight() / 2f), 1.5f);
@@ -128,8 +130,24 @@ public class CombatantUI {
         
         float frameWidth = portraitDims * 2.25f;
         float frameHeight = (460f / 965f) * frameWidth;
-        portraitFrame = createPortraitFrame(frameWidth, frameHeight);
+        
+        portraitFrame = GuiFactory.createPanel(
+            frameWidth, frameHeight,
+            assetManager,
+            "Interface/GUI/ui_boxes/battlePortraitFrame.png",
+            forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor(),
+            mirrorUI
+        );
+        
         setLocalTranslationOf(portraitFrame, portraitTranslation.subtract(0.005f * Globals.getScreenWidth(), 0.02f * Globals.getScreenHeight(), 1), frameWidth);
+        
+        LayerComparator.setLayer(portraitFrame, 1);
+        LayerComparator.setLayer(portrait, 2);
+        LayerComparator.setLayer(nametag, 3);
+        LayerComparator.setLayer(tool, 1);
+        LayerComparator.setLayer(forecastInfo, 1);
+        LayerComparator.setLayer(hpHeart.getNode(), 4);
+        LayerComparator.setLayer(tpBall.getNode(), 4);
         
         uiNode.attachChild(portraitFrame);
         uiNode.attachChild(portrait);
@@ -138,16 +156,6 @@ public class CombatantUI {
         uiNode.attachChild(forecastInfo);
         uiNode.attachChild(hpHeart.getNode());
         uiNode.attachChild(tpBall.getNode());
-    }
-    
-    private class DualPanel {
-        public final GeometryPanel panelA;
-        public final GeometryPanel panelB;
-        
-        public DualPanel(GeometryPanel panelA, GeometryPanel panelB) {
-            this.panelA = panelA;
-            this.panelB = panelB;
-        }
     }
     
     public Node getNode() { return uiNode; }
@@ -171,14 +179,6 @@ public class CombatantUI {
     public ExpIndicator getExpBar() { return expbar; }
     public LevelUpPanel getLevelUpPanel() { return levelUpPanel; } 
     
-    private void setLocalTranslationOf(Spatial spatial, Vector3f localTranslation, float width) {
-        if (mirrorUI) {
-            spatial.setLocalTranslation(Globals.getScreenWidth() - width - localTranslation.x, localTranslation.y, localTranslation.z);
-        } else {
-            spatial.setLocalTranslation(localTranslation);
-        }
-    }
-    
     public void update(float tpf) {
         hpHeart.update(tpf);
         tpBall.update(tpf);
@@ -201,12 +201,12 @@ public class CombatantUI {
         initializeEXPbar();
         
         int currentEXP = forecast.getCombatant().addExpGained(); //add exp gained
-        expbar.queueToValue(currentEXP, currentEXP / 100f);
+        expbar.proceedToValue(currentEXP, currentEXP / 100f);
     }
     
     public void levelUp() {
         if (levelUpPanel == null) {
-            levelUpPanel = createLevelUpPanel();
+            levelUpPanel = GuiFactory.createLevelUpPanel(forecast, assetManager);
         }
         
         float translation = 0.05f * Globals.getScreenHeight();
@@ -232,92 +232,20 @@ public class CombatantUI {
                     levelUpPanel.levelUp();
                 });
                 
-                expbar.addTransitionToQueue(transition);
+                expbar.addTransitionToGroup(transition);
             }
         );
     }
     
-    private Text2D generateText(String text, ColorRGBA color, Rectangle rectangle, UIFontParams params, TextDisplacementParams displacementParams) {
-        TextProperties textParams = 
-            TextProperties.builder()
-                .horizontalAlignment(displacementParams.hAlign)
-                .verticalAlignment(displacementParams.vAlign)
-                .kerning(params.kerning)
-                .wrapMode(displacementParams.wrapMode)
-                .textBox(rectangle)
-                .build();
-        
-        return new Text2D(text, color, textParams, params.createFontProperties(KeyType.BMP), assetManager);
-    }
-    
-    private GeometryPanel createPortrait(float width, float height) {
-        GeometryPanel panel = new GeometryPanel(width, height, RenderQueue.Bucket.Gui);
-        
-        Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
-        String texturePath = "Textures/portraits/" + forecast.getCombatant().getUnit().getUnitInfo().getPortraitTextureName();
-        mat.setTexture("ColorMap", assetManager.loadTexture(texturePath));
-        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        
-        panel.setMaterial(mat);
-        
-        return panel;
-    }
-    
-    private GeometryPanel createPortraitFrame(float width, float height) {
-        GeometryPanel panel = new GeometryPanel(width, height, RenderQueue.Bucket.Gui);
-        
-        Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
-        mat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/ui_boxes/battlePortraitFrame.png"));
-        mat.setColor("Color", forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());
-        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        
-        panel.setMaterial(mat);
-        
+    private void setLocalTranslationOf(Spatial spatial, Vector3f localTranslation, float width) {
         if (mirrorUI) {
-            panel.mirror();
+            spatial.setLocalTranslation(Globals.getScreenWidth() - width - localTranslation.x, localTranslation.y, localTranslation.z);
+        } else {
+            spatial.setLocalTranslation(localTranslation);
         }
-        
-        return panel;
     }
     
-    private GeometryPanel createNametag(UIFontParams params) {
-        String text = forecast.getCombatant().getUnit().getName();
-        
-        Rectangle rect = new Rectangle(
-            0f,  // x
-            0f,  // y
-            3 * text.length() * (params.fontSize + params.kerning), // width
-            3 * (params.fontSize + params.kerning)  // height
-        );
-        
-        TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
-        
-        Text2D nameText = generateText(text, ColorRGBA.White, rect, params, displacementParams);
-        //nameText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
-        
-        float width = (626f / 475f) * nameText.getTextWidth();
-        float height = (216f / 125f) * nameText.getTextHeight();
-        
-        if (text.length() < 10) {
-            width *= 10f / text.length();
-        }
-        
-        GeometryPanel nametagPanel = new GeometryPanel(width, height, RenderQueue.Bucket.Gui);
-        
-        Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
-        mat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/ui_boxes/emptyname.png"));
-        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        
-        nametagPanel.setMaterial(mat);
-        nametagPanel.attachChild(nameText);
-        
-        EngineUtils.center(nameText, nametagPanel, nameText.getTextBounds(), nametagPanel.getScaledDimensions3D(), Arrays.asList(CenterAxis.X, CenterAxis.Y));
-        nameText.move(0, nameText.getTextHeight(), 5);
-        
-        return nametagPanel;
-    }
-    
-    private DualPanel createEquippedToolAndForecastInfoPanels(UIFontParams equippedToolParams, UIFontParams forecastInfoParams) {
+    private Duo<GeometryPanel, GeometryPanel> createEquippedToolAndForecastInfoPanels(UIFontParams equippedToolParams, UIFontParams forecastInfoParams) {
         Combatant participant = forecast.getCombatant();
         
         //START equippedTool initialization
@@ -360,129 +288,50 @@ public class CombatantUI {
                 rectangleWidth, // width
                 equippedToolParams.fontSize + equippedToolParams.kerning // height
             );
-        
-            TextDisplacementParams equippedToolDisplacementParams = new TextDisplacementParams(Align.Center, VAlign.Center, WrapMode.CharClip);
-            Text2D equippedToolText2D = generateText(equippedName, ColorRGBA.White, equippedToolRectangle, equippedToolParams, equippedToolDisplacementParams);
-            GeometryPanel equippedToolPanel = createBattlePanelFromText(equippedToolText2D, 1.625f);
-            EngineUtils.center(
-                equippedToolText2D,
-                equippedToolPanel,
-                equippedToolText2D.getTextBoxBounds(), 
-                equippedToolPanel.getScaledDimensions3D(),  
-                Arrays.asList(CenterAxis.X, CenterAxis.Y)
-            );
             
-            Vector3f toolTranslation = new Vector3f(0, equippedToolText2D.getTextHeight(), 0);
-            equippedToolText2D.move(toolTranslation);
+            TextDisplacementParams equippedToolDisplacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
+            Text2D equippedToolText2D = GuiFactory.generateText(equippedName, ColorRGBA.White, equippedToolRectangle, equippedToolParams, equippedToolDisplacementParams, assetManager);
+            GeometryPanel equippedToolPanel = GuiFactory.createBattlePanelFromText(equippedToolText2D, 1.625f, assetManager, forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());
+            
+            SpatialOperator toolTextAnchor = new SpatialOperator(equippedToolText2D, equippedToolText2D.getTextBounds(), new Vector3f(0.5f, 0.5f, 0f));
+            toolTextAnchor.alignTo(equippedToolPanel.getOperator(0.5f, 0.5f));
+            equippedToolText2D.move(0, equippedToolText2D.getTextHeight(), 0);
             
             //START equippedTool icon initialization
                 Vector3f iconDimensions = new Vector3f(equippedToolRectangle.height, equippedToolRectangle.height, 0f); //width is same as height to make it a square
-        
-                GeometryPanel equippedIcon = createEquippedIcon(iconPath, iconDimensions, equippedToolPanel.getScaledDimensions3D());
+                
+                GeometryPanel equippedIcon = GuiFactory.createEquippedIcon(iconPath, iconDimensions, equippedToolPanel.getScaledDimensions3D(), assetManager, mirrorUI);
                 equippedIcon.setMirrored(mirrorUI);
                 //equippedIcon.move(toolTranslation);
                 
                 equippedToolPanel.attachChild(equippedIcon);
             //END equippedTool icon initialization
-            
+            LayerComparator.setLayer(equippedToolPanel, 1);
+            LayerComparator.setLayer(equippedToolText2D, 2);
+            LayerComparator.setLayer(equippedIcon, 3);
         //END equippedTool GeometryPanel initialization
         
         //START forecastInfo GeometryPanel initialization
             float forecastInfoRectangleHeight = (lines.length * (forecastInfoParams.fontSize + forecastInfoParams.kerning)) + forecastInfoParams.kerning;
-        
+            
             Rectangle forecastInfoRectangle = new Rectangle(
                 forecastInfoParams.kerning, // x
                 forecastInfoRectangleHeight - forecastInfoParams.kerning, // y
                 rectangleWidth, // width
                 forecastInfoRectangleHeight // height
             );
-        
+            
             TextDisplacementParams forecastInfoDisplacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
-            Text2D forecastInfoText2D = generateText(forecastText, ColorRGBA.White, forecastInfoRectangle, forecastInfoParams, forecastInfoDisplacementParams);
-            GeometryPanel forecastInfoPanel = createBattlePanelFromText(forecastInfoText2D, 1.25f);
+            Text2D forecastInfoText2D = GuiFactory.generateText(forecastText, ColorRGBA.White, forecastInfoRectangle, forecastInfoParams, forecastInfoDisplacementParams, assetManager);
+            GeometryPanel forecastInfoPanel = GuiFactory.createBattlePanelFromText(forecastInfoText2D, 1.25f, assetManager, forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());
             
             forecastInfoText2D.move(0.1f * forecastInfoPanel.getWidth(), 0.15f * forecastInfoPanel.getHeight(), 0);
         //END forecastInfo GeometryPanel initialization
         
-        return new DualPanel(equippedToolPanel, forecastInfoPanel);
+        return new Duo<>(equippedToolPanel, forecastInfoPanel);
     }
     
-    private GeometryPanel createBattlePanelFromText(Text2D panelText, float heightScalar) {
-        GeometryPanel battlePanel = new GeometryPanel((591f / 559f) * panelText.getTextBoxWidth(), (205f / 176f) * heightScalar * panelText.getTextBoxHeight(), RenderQueue.Bucket.Gui);
-        
-        Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
-        mat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/ui_boxes/box5.png"));
-        mat.setColor("Color", forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());
-        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        
-        battlePanel.setMaterial(mat);
-        battlePanel.attachChild(panelText);
-        
-        return battlePanel;
-    }
-    
-    private GeometryPanel createEquippedIcon(String iconPath, Vector3f iconDimensions, Vector3f backgroundDimensions) {
-        Material iconMat = new Material(assetManager, "MatDefs/custom/Discard.j3md");
-        iconMat.setTexture("ColorMap", assetManager.loadTexture(iconPath));
-        iconMat.setFloat("MaxAlphaDiscard", 0.1f);
-        
-        float x;
-        if (mirrorUI) {
-            x = 1.25f * iconDimensions.x;
-        } else {
-            x = backgroundDimensions.x - (2 * iconDimensions.x);
-        }
-        
-        GeometryPanel equippedIcon = new GeometryPanel(iconDimensions.x, iconDimensions.y, RenderQueue.Bucket.Gui);
-        equippedIcon.setMaterial(iconMat);
-        equippedIcon.setLocalTranslation(
-            EngineUtils.centerEntity(iconDimensions, backgroundDimensions, Arrays.asList(CenterAxis.Y))
-                .setX(x)
-        );
-        
-        return equippedIcon;
-    }
-    
-    /*private HeartIndicator createHeartShape(Heart heart, UIFontParams params) {
-        String text = forecast.getCombatant().getBaseStat(BaseStat.CurrentHP) + "/" + forecast.getCombatant().getBaseStat(BaseStat.MaxHP);
-        
-        Rectangle rect = new Rectangle(
-            0f,  // x
-            0f,  // y
-            heart.getScalar(),            // width
-            (2f / 5f) * heart.getScalar() // height
-        );
-        
-        TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Center, VAlign.Center, WrapMode.CharClip);
-        
-        Text2D hpText = generateText(text, ColorRGBA.White, rect, params, displacementParams);
-        hpText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
-        
-        return new HeartIndicator(heart, hpText, forecast.getCombatant().getCurrentToMaxHPRatio(), forecast.getCombatant().getBaseStat(BaseStat.MaxHP));
-    }*/
-    
-    private ShapeIndicator createIndicator(String statName, Vector2f xyDimensions, UIFontParams params, MaterialParamsProtocol matParams, int current, int max) {
-        String text = statName + ": " + current + "/" + max;
-        
-        Rectangle rect = new Rectangle(
-            0f,  // x
-            0f,  // y
-            xyDimensions.x * 2, // width
-            (4f / 5f) * xyDimensions.x  // height
-        );
-        
-        TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
-        
-        Text2D visibleText = generateText(text, ColorRGBA.White, rect, params, displacementParams);
-        visibleText.move(0, 0, 3);
-        //visibleText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
-        
-        float currentPercent = ((float)current) / max;
-        
-        return new ShapeIndicator(xyDimensions, matParams, assetManager, visibleText, currentPercent, max);
-    }
-    
-    private MaterialParamsProtocol generateHeartMatParams() {
+    private MaterialParamsProtocol heartMatParams() {
         return (mat) -> {
             float $75 = 75f / 255f;
             
@@ -501,7 +350,7 @@ public class CombatantUI {
         };
     }
     
-    private MaterialParamsProtocol generateTPBallMatParams() {
+    private MaterialParamsProtocol tpBallMatParams() {
         return (mat) -> {
             float $75 = 75f / 255f;
             
@@ -520,10 +369,6 @@ public class CombatantUI {
         };
     }
     
-    private LevelUpPanel createLevelUpPanel() {
-        return new LevelUpPanel(forecast.getCombatant().getUnit(), new Vector3f(Globals.getScreenWidth(), Globals.getScreenHeight(), 1f), assetManager);
-    }
-    
     public void initializeEXPbar() {
         if (expbar != null && uiNode.hasChild(expbar.getExpCircle())) {
             uiNode.detachChild(expbar.getExpCircle());
@@ -538,7 +383,7 @@ public class CombatantUI {
         
         String text = "  EXP\n " + forecast.getCombatant().getUnit().currentEXP + "/100";
         
-        Text2D expText = generateText(
+        Text2D expText = GuiFactory.generateText(
             text, 
             ColorRGBA.White,
             new Rectangle(0f, 0f, innerToOuterRadiusRatio * outerRadius * 2, innerToOuterRadiusRatio * outerRadius * 2),
@@ -552,14 +397,13 @@ public class CombatantUI {
                 Align.Center,
                 VAlign.Center,
                 WrapMode.Word
-            )
+            ),
+            assetManager
         );
         
-        expbar = new ExpIndicator(expCircle, expText, assetManager, forecast.getCombatant().getUnit().currentEXP / 100f, 100);
+        expbar = new ExpIndicator("EXP", expCircle, expText, assetManager, forecast.getCombatant().getUnit().currentEXP / 100f, 100);
         
         setLocalTranslationOf(expbar.getExpCircle(), nametag.getLocalTranslation().add(0.05f * Globals.getScreenWidth(), (-2 * outerRadius) - nametag.getHeight(), 0f), expbar.getExpCircle().getOuterRadius());
         uiNode.attachChild(expbar.getExpCircle());
     }
-    
-    
 }

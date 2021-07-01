@@ -3,9 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package etherealtempest.gui;
+package etherealtempest.gui.broad;
 
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import enginetools.SpatialOperator;
 import general.tools.GameTimer;
 import general.procedure.ProcedureGroup;
 import general.math.FloatPair;
@@ -22,31 +24,39 @@ import general.visual.animation.VisualTransition.Progress;
 public abstract class ValueIndicator {
     protected final Node node;
     
-    protected final ProcedureGroup queue = new ProcedureGroup();
+    protected final ProcedureGroup procedures = new ProcedureGroup();
     
+    protected final String label;
     protected final Text2D text;
+    protected final SpatialOperator textAnchor;
+    
     protected final int maxNumber;
     
     protected float percentFull;
     private float percentOnLastUpdate = 0f;
     
-    public ValueIndicator(Text2D label, float basePercent, int max) {
-        node = new Node();
-        text = label;
-        percentFull = basePercent;
-        maxNumber = max;
-        node.attachChild(text);
+    public ValueIndicator(String name, Text2D text2D, float basePercent, int max) {
+        this(name, new Node("ValueIndicator: " + name), text2D, basePercent, max);
     }
     
-    public ValueIndicator(Node primeNode, Text2D label, float basePercent, int max) {
+    public ValueIndicator(String name, Node primeNode, Text2D text2D, float basePercent, int max) {
+        label = name;
         node = primeNode;
-        text = label;
+        text = text2D;
         percentFull = basePercent;
         maxNumber = max;
-        node.attachChild(text);
+        textAnchor = new SpatialOperator(text, text.getTextBounds(), new Vector3f(0.5f, 0.5f, 0));
     }
     
     protected abstract void updatePercentVisually();
+    
+    public void showText() {
+        node.attachChild(text);
+    }
+    
+    public String getLabel() {
+        return label;
+    }
     
     public Node getNode() { 
         return node; 
@@ -56,8 +66,12 @@ public abstract class ValueIndicator {
         return text;
     }
     
+    public SpatialOperator getTextAnchor() {
+        return textAnchor;
+    }
+    
     public boolean isQueueEmpty() {
-        return queue.isEmpty();
+        return procedures.isEmpty();
     }
     
     public float getPercent() {
@@ -78,7 +92,7 @@ public abstract class ValueIndicator {
     }
     
     protected void updateText() {
-        text.setText(getCurrentNumber() + "/" + maxNumber);
+        text.setText(label + ": " + getCurrentNumber() + "/" + maxNumber);
     }
     
     public void updateVisuals() {
@@ -87,21 +101,21 @@ public abstract class ValueIndicator {
         percentOnLastUpdate = percentFull;
     }
     
-    public void queueToValue(float value, float seconds) {
-        queueToPercent(value / maxNumber, seconds);
+    public void proceedToValue(float value, float seconds) {
+        ValueIndicator.this.proceedToPercent(value / maxNumber, seconds);
     }
     
     //for regular use
-    public void queueToPercent(float percent, float seconds) {
+    public void proceedToPercent(float percent, float seconds) {
         GameTimer local = new GameTimer();
         float slope = (percent - percentFull) / seconds; //seconds = (seconds - 0f)
-        queue.add((tpf) -> {
+        procedures.add((tpf) -> {
             percentFull += slope;
             
             local.update(tpf);
             
             if (local.getTime() >= seconds) {
-                setPercent(percentFull + slope); 
+                setPercent(percent); 
                 return true;
             }
             
@@ -110,16 +124,16 @@ public abstract class ValueIndicator {
     }
     
     //use this if you want it to follow a relative curve
-    public void queueToPercent(ControlledMathFunction percentCurve, FloatPair domain) {
-        queueToPercent((MathFunction)percentCurve.derivative(), domain);
+    public void proceedToPercent(ControlledMathFunction percentCurve, FloatPair domain) {
+        proceedToPercent((MathFunction)percentCurve.derivative(), domain);
     }
     
     //use this if you have a velocity function
-    public void queueToPercent(MathFunction velocity, FloatPair domain) {
+    public void proceedToPercent(MathFunction velocity, FloatPair domain) {
         GameTimer local = new GameTimer();
         float seconds = domain.b - domain.a;
         
-        queue.add((tpf) -> {
+        procedures.add((tpf) -> {
             percentFull += velocity.output(domain.a + local.getTime());
             
             local.update(tpf);
@@ -133,9 +147,9 @@ public abstract class ValueIndicator {
         });
     }
     
-    public void addTransitionToQueue(VisualTransition transition) {
+    public void addTransitionToGroup(VisualTransition transition) {
         transition.beginTransitions();
-        queue.add((tpf) -> {
+        procedures.add((tpf) -> {
             transition.update(tpf);
             
             return transition.getTransitionProgress() == Progress.Finished;
@@ -143,9 +157,9 @@ public abstract class ValueIndicator {
     }
     
     public void update(float tpf) {
-        queue.update(tpf);
+        procedures.update(tpf);
         
-        if (!queue.isEmpty() && percentOnLastUpdate != percentFull) {
+        if (!procedures.isEmpty() && percentOnLastUpdate != percentFull) {
             updateVisuals();
         }
     }

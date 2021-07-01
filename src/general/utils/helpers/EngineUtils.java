@@ -48,7 +48,8 @@ public class EngineUtils {
         Z
     }
     
-    public static Vector3f centerEntity(Vector3f entityDimensions, Vector3f backgroundDimensions, List<CenterAxis> centerAxes) {
+    
+    private static Vector3f centerEntity(Vector3f entityDimensions, Vector3f backgroundDimensions, List<CenterAxis> centerAxes) {
         float centerX = (backgroundDimensions.x - entityDimensions.x) / 2f;
         float centerY = (backgroundDimensions.y - entityDimensions.y) / 2f;
         float centerZ = (backgroundDimensions.z - entityDimensions.z) / 2f;
@@ -60,6 +61,7 @@ public class EngineUtils {
         );
     }
     
+    /*
     public static Vector3f deltaToCenter(Vector3f entityPos, Vector3f entityDimensions, Vector3f bgDimensions, Vector3f bgPos, List<CenterAxis> axes) {
         // offset = bgPos - entityPos + ((bgDimensions - entityDimensions) / 2)
         Vector3f offset = bgPos.subtract(entityPos).add((bgDimensions.subtract(entityDimensions)).divide(2f));
@@ -81,6 +83,7 @@ public class EngineUtils {
         entity.move(entity.worldToLocal(worldOffset, null));
     }
     
+    */
     public static Vector3f generateBoundsToCenter(TrueTypeNode label) {
         return new Vector3f
         (

@@ -39,7 +39,7 @@ import com.jme3.scene.Spatial.CullHint;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
-import etherealtempest.gui.ActionMenu;
+import etherealtempest.gui.specific.ActionMenu;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

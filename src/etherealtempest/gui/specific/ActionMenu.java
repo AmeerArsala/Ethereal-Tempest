@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package etherealtempest.gui;
+package etherealtempest.gui.specific;
 
 import etherealtempest.info.Conveyor;
 import com.jme3.asset.AssetManager;
