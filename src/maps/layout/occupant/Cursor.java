@@ -39,6 +39,7 @@ import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
 import maps.layout.OnTile;
+import maps.layout.occupant.character.Movement;
 import maps.layout.tile.Tile;
 
 /**
@@ -149,37 +150,39 @@ public class Cursor extends Node implements OnTile {
     
     private FSM<CursorState> fsm = new FSM<CursorState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState<CursorState> st) {
-            if (st.getEnum() != CursorState.AnyoneHovered || (st.getEnum() == CursorState.AnyoneHovered && state.getEnum() == CursorState.CursorDefault)) {
-                state = st; //maybe change this if needed
-                square.getMaterial().setColor("Color", state.getEnum().getCorrespondingColor());
-                pointer.getMaterial().setColor("Color", state.getEnum().getCorrespondingColor());
-                
-                switch (st.getEnum()) {
-                    case AnyoneSelectingTarget:
-                        selectionDifferenceXY.setCoords(0, 0);
-                        break;
-                    case CursorDefault:
-                        rangeDisplay.cancelRange();
-                        break;
-                    default:
-                        break;
-                }
-            }
-            
+        protected void onAttemptStateSet(FsmState<CursorState> st) {
             if (st.getEnum() == CursorState.Idle) {
                 interpreter.clear();
             }
         }
         
         @Override
-        public void forceState(FsmState<CursorState> st) {
-            if (st.getEnum() == CursorState.Idle) {
-                interpreter.clear();
-            }
+        public boolean stateAllowed(FsmState<CursorState> st) {
+            FsmState<CursorState> currentState = getState();
+            return st.getEnum() != CursorState.AnyoneHovered || (st.getEnum() == CursorState.AnyoneHovered && currentState.getEnum() == CursorState.CursorDefault);
+        }
+
+        @Override
+        public void onStateSet(FsmState<CursorState> currentState, FsmState<CursorState> previousState) {
+            square.getMaterial().setColor("Color", currentState.getEnum().getCorrespondingColor());
+            pointer.getMaterial().setColor("Color", currentState.getEnum().getCorrespondingColor());
             
-            state = st;
-            square.getMaterial().setColor("Color", state.getEnum().getCorrespondingColor());
+            switch (currentState.getEnum()) {
+                case AnyoneSelectingTarget:
+                    selectionDifferenceXY.setCoords(0, 0);
+                    break;
+                case CursorDefault:
+                    rangeDisplay.cancelRange();
+                    break;
+                default:
+                    break;
+            }
+        }
+        
+        @Override
+        public void forceState(FsmState<CursorState> st) {
+            super.forceState(st);
+            square.getMaterial().setColor("Color", st.getEnum().getCorrespondingColor());
         }
     };
     
@@ -449,6 +452,10 @@ public class Cursor extends Node implements OnTile {
             }
             
             if (name.equals("select")) {
+                if (fsm.getEnumState() == CursorState.AnyoneMoving) {
+                    Movement.keyToIncreaseSpeedPressed = keyPressed;
+                }
+                
                 if (keyPressed && !translatingX && !translatingY) {
                     TangibleUnit tu = MasterFsmState.getCurrentMap().getTileAt(pos).getOccupier();
                     

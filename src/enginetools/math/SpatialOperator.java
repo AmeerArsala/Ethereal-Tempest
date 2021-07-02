@@ -14,44 +14,72 @@ import com.jme3.scene.Spatial;
  * @author night
  */
 public class SpatialOperator {
+    public static final Vector3f ORIGIN_BOTTOM_LEFT = new Vector3f(0, 0, 0);
+    public static final Vector3f ORIGIN_TOP_LEFT = new Vector3f(0, 1, 0);
+    public static final Vector3f DEFAULT_POSITIVE_DIRECTION = new Vector3f(1, 1, 1);
+    
     private final Spatial spatial;
     private final Vector3f dimensions;
     private final Vector3f pointInPercents; //in percent of dimensions; think of SpatialOperator to be "operating" at this point. This is the 'p' value
+    private final Vector3f originPointInPercents; //in percent of dimensions
+    private final Vector3f positiveDirection;
     
-    public SpatialOperator(Spatial spatial, Vector3f dimensions, Vector3f pointInPercents) {
+    public SpatialOperator(Spatial spatial, Vector3f dimensions, Vector3f pointInPercents, Vector3f originPointInPercents, Vector3f positiveDirection) {
         this.spatial = spatial;
         this.dimensions = dimensions;
         this.pointInPercents = pointInPercents;
+        this.originPointInPercents = originPointInPercents;
+        this.positiveDirection = positiveDirection;
+    }
+    
+    public SpatialOperator(Spatial spatial, Vector3f dimensions, Vector3f pointInPercents, Vector3f originPointInPercents) {
+        this(spatial, dimensions, pointInPercents, originPointInPercents, DEFAULT_POSITIVE_DIRECTION);
+    }
+    
+    public SpatialOperator(Spatial spatial, Vector3f dimensions, Vector3f pointInPercents) {
+        this(spatial, dimensions, pointInPercents, ORIGIN_BOTTOM_LEFT, DEFAULT_POSITIVE_DIRECTION);
     }
     
     public Spatial getSpatial() { return spatial; }
     public Vector3f getDimensions() { return dimensions; }
     public Vector3f getPointInPercents() { return pointInPercents; }
+    public Vector3f getOriginPointInPercents() { return originPointInPercents; }
+    public Vector3f getPositiveDirection() { return positiveDirection; }
+    
+    public Vector3f bottomLeftOriginInPercents() {
+        return originPointInPercents.mult(-1);
+    }
+    
+    public Vector3f relativePointPos() {
+        Vector3f origin = bottomLeftOriginInPercents();
+        Vector3f relativePercentagePos = origin.addLocal(pointInPercents);
+        return relativePercentagePos.multLocal(dimensions);
+    }
     
     public Vector3f calculateLocalPoint() { //point NOT in percents; this is the F value
         // F = localTranslation + (p * dimensions)
-        return spatial.getLocalTranslation().add(pointInPercents.mult(dimensions));
+        return spatial.getLocalTranslation().add(relativePointPos());
     }
     
     public Vector3f calculateWorldPoint() { //point NOT in percents; this is the F value
         // F = localTranslation + (p * dimensions)
-        return spatial.getWorldTranslation().add(pointInPercents.mult(dimensions));
+        return spatial.getWorldTranslation().add(relativePointPos());
     }
     
     public Vector3f calculateLocalDeltasTo(SpatialOperator other) {
-        return other.calculateLocalPoint().subtractLocal(calculateLocalPoint());
+        return other.calculateLocalPoint().subtractLocal(calculateLocalPoint()).multLocal(positiveDirection);
     }
     
     public Vector3f calculateWorldDeltasTo(SpatialOperator other) {
-        return other.calculateWorldPoint().subtractLocal(calculateWorldPoint());
+        return other.calculateWorldPoint().subtractLocal(calculateWorldPoint()).multLocal(positiveDirection);
     }
     
     public Vector3f calculateLocalDeltasTo(Vector3f localPoint) {
-        return localPoint.subtract(calculateLocalPoint());
+        return localPoint.subtract(calculateLocalPoint()).multLocal(positiveDirection);
     }
     
     public Vector3f calculateWorldDeltasTo(Vector3f worldPoint) {
-        return worldPoint.subtract(calculateWorldPoint());
+        return worldPoint.subtract(calculateWorldPoint()).multLocal(positiveDirection);
     }
     
     public float localMagnitude() {
@@ -64,12 +92,12 @@ public class SpatialOperator {
         return FastMath.sqrt(worldTranslationSquared.x + worldTranslationSquared.y + worldTranslationSquared.z);
     }
     
-    public Vector3f calculateLocalDeltasAsResultOf(Plane rotationPlane, float deltaTheta) {
+    public Vector3f calculateLocalDeltaThetas(Plane rotationPlane, float deltaTheta) {
         Vector3f localTranslation = spatial.getLocalTranslation();
         return rotationPlane.applyPolar(localTranslation, deltaTheta).subtractLocal(localTranslation);
     }
     
-    public Vector3f calculateWorldDeltasAsResultOf(Plane rotationPlane, float deltaTheta) {
+    public Vector3f calculateWorldDeltaThetas(Plane rotationPlane, float deltaTheta) {
         Vector3f worldTranslation = spatial.getWorldTranslation();
         return rotationPlane.applyPolar(worldTranslation, deltaTheta).subtractLocal(worldTranslation);
     }
@@ -118,8 +146,8 @@ public class SpatialOperator {
     public void rotateSpatial(float xAngle, float yAngle, float zAngle) {
         spatial.rotate(xAngle, yAngle, zAngle);
         spatial
-            .move(calculateLocalDeltasAsResultOf(Plane.ZY, xAngle))
-            .move(calculateLocalDeltasAsResultOf(Plane.XZ, yAngle))
-            .move(calculateLocalDeltasAsResultOf(Plane.XY, zAngle));
+            .move(calculateLocalDeltaThetas(Plane.ZY, xAngle))
+            .move(calculateLocalDeltaThetas(Plane.XZ, yAngle))
+            .move(calculateLocalDeltaThetas(Plane.XY, zAngle));
     }
 }

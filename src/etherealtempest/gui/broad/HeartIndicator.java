@@ -19,6 +19,7 @@ public class HeartIndicator extends ValueIndicator {
         super(name, text, basePercent, max);
         heart = hpHeart;
         node.attachChild(heart);
+        node.attachChild(text);
     }
     
     public Heart getHeart() {

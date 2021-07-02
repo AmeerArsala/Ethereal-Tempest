@@ -95,8 +95,8 @@ public abstract class BasicMenuOption<DATA> extends MenuOption<DATA> {
         //text.move(0, text.getTextHeight(), 0);
         //text.move(displacement.add(deltaPadding));
         
-        SpatialOperator anchor = new SpatialOperator(text, text.getTextBounds(), new Vector3f(0.5f, 0.5f, 0));
-        anchor.alignToLocally(text.getLocalTranslation().add(panelSize));
+        SpatialOperator anchor = text.createSpatialOperator(0.5f, 0.5f);
+        anchor.alignTo(text.getLocalTranslation().add(panelSize.divide(2)));
         text.move(deltaPadding);
         
         option.attachChild(text);

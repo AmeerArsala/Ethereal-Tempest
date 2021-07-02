@@ -90,46 +90,26 @@ public class MapFlow { //eventually make this the map controller
     
     private final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState<MapFlowState> st) {
-            Occasion occasionState = Occasion.correspondingOccasion(st.getEnum()); //no null will be returned, only Occasion.Indifferent
+        public boolean stateAllowed(FsmState<MapFlowState> st) {
+            return true; //maybe change this later
+        }
+
+        @Override
+        public void onStateSet(FsmState<MapFlowState> currentState, FsmState<MapFlowState> previousState) {
+            Occasion occasionState = Occasion.correspondingOccasion(currentState.getEnum()); //no null will be returned, only Occasion.Indifferent
             
             boolean occasionChanged;
-            if (state != null) {
-                occasionChanged = occasionState != Occasion.correspondingOccasion(state.getEnum());
+            if (previousState != null) {
+                occasionChanged = occasionState != Occasion.correspondingOccasion(previousState.getEnum());
             } else { 
                 occasionChanged = true; 
             }
             
             if (occasionChanged) { //combatants need to be in conveyor
-                Conveyor data = constructConveyor();
-                
-                boolean beforeOrAfterCombat = occasionState == Occasion.BeforeCombat || occasionState == Occasion.AfterCombat;
-                if (beforeOrAfterCombat) { //SPECIFICALLY for Before or After Combat combatants
-                    initiator = cursor.selectedUnit;
-                    receiver = cursor.receivingEnd;
-                    data.setUnit(initiator).setEnemyUnit(receiver);
-                    
-                    data.createCombatants();
-                    initiator.onOccasion(data, occasionState);
-                    
-                    data.swapUnits();
-                    
-                    data.createCombatants();
-                    receiver.onOccasion(data, occasionState);
-                }
-                
-                //data.setEnemyUnit(null);
-                
-                for (TangibleUnit unit : units) {
-                    if (unit.getFSM().getEnumState() != UnitState.Dead) {
-                        if (!beforeOrAfterCombat || (beforeOrAfterCombat && !unit.equals(initiator) && !unit.equals(receiver))) {
-                            unit.onOccasion(data.setUnit(unit), occasionState);
-                        }
-                    }
-                }
+                onOccasionChanged(occasionState);
             }
             
-            switch(st.getEnum()) {
+            switch(currentState.getEnum()) {
                 case DuringBattle:
                     cursor.getFSM().forceState(CursorState.Idle);
                     currentFight.begin();
@@ -139,8 +119,35 @@ public class MapFlow { //eventually make this the map controller
                     receiver = null;
                     break;
             }
-            
-            state = st;
+        }
+        
+        private void onOccasionChanged(Occasion occasionState) {
+            Conveyor data = constructConveyor();
+                
+            boolean beforeOrAfterCombat = occasionState == Occasion.BeforeCombat || occasionState == Occasion.AfterCombat;
+            if (beforeOrAfterCombat) { //SPECIFICALLY for Before or After Combat combatants
+                initiator = cursor.selectedUnit;
+                receiver = cursor.receivingEnd;
+                data.setUnit(initiator).setEnemyUnit(receiver);
+                    
+                data.createCombatants();
+                initiator.onOccasion(data, occasionState);
+                   
+                data.swapUnits();
+                    
+                data.createCombatants();
+                receiver.onOccasion(data, occasionState);
+            }
+                
+            //data.setEnemyUnit(null);
+                
+            for (TangibleUnit unit : units) {
+                if (unit.getFSM().getEnumState() != UnitState.Dead) {
+                    if (!beforeOrAfterCombat || (beforeOrAfterCombat && !unit.equals(initiator) && !unit.equals(receiver))) {
+                        unit.onOccasion(data.setUnit(unit), occasionState);
+                    }
+                }
+            }
         }
     };
     
@@ -195,19 +202,20 @@ public class MapFlow { //eventually make this the map controller
         queue.update(tpf);
         cursor.update(tpf);
         
+        boolean unitsShouldUpdate;
         if (syncTimer.getTime() >= 1f / 60f) {
-            syncUpdate(tpf);
+            unitsShouldUpdate = true;
             syncTimer.reset();
+        } else {
+            unitsShouldUpdate = false;
+        }
+        
+        for (TangibleUnit unit : units) {
+            unit.update(tpf, cam, unitsShouldUpdate);
         }
         
         updateAI(tpf);
         syncTimer.update(tpf);
-    }
-    
-    public void syncUpdate(float tpf) {
-        for (TangibleUnit unit : units) {
-            unit.update(tpf, cam);
-        }
     }
     
     public void updateAI(float tpf) { //use this for the phase switching animations and stuff  
@@ -252,7 +260,7 @@ public class MapFlow { //eventually make this the map controller
         Text2D phaseText = createPhaseText(getPhaseString());
         
         Vector3f center = new Vector3f(0.5f, 0.5f, 0);
-        SpatialOperator anchor = new SpatialOperator(phaseText, phaseText.getTextBounds(), center);
+        SpatialOperator anchor = phaseText.createSpatialOperator(center.x, center.y);
         anchor.alignTo(Globals.getScreenDimensions().multLocal(center));
         //phaseText.setLocalTranslation(EngineUtils.centerEntity(phaseText.getTextBounds(), Globals.getScreenDimensions(), Arrays.asList(CenterAxis.X, CenterAxis.Y)));
         //phaseText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);

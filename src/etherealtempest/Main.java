@@ -13,6 +13,7 @@ import com.jme3.texture.Image;
 import com.jme3.texture.TextureArray;
 import edited.FlyCamera;
 import edited.state.FlyCamTrueAppState;
+import etherealtempest.fsm.FSM.GameState;
 import general.tools.GameTimer;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +27,15 @@ import maps.state.TestMap;
  */
 public class Main extends SimpleApplication {
     
-    public static final FSM GameFSM = new FSM() {
+    public static final FSM<GameState> GameFSM = new FSM<GameState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState st) {
-            state = st; //change later
+        public boolean stateAllowed(FsmState<GameState> st) {
+            return true; //change later
+        }
+
+        @Override
+        public void onStateSet(FsmState<GameState> currentState, FsmState<GameState> lastState) {
+            //TODO: add stuff here
         }
     };
     
@@ -52,7 +58,7 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-       settings.setFrameRate(120); //cap at 120fps
+       //settings.setFrameRate(120); //cap at 120fps
        
        debugFlyCam();
        flyCam.setMoveSpeed(350);

@@ -36,12 +36,8 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
-import java.util.List;
-import maps.layout.Coords;
-import maps.layout.MapLevel;
 import maps.layout.MapCoords;
 import maps.layout.tile.move.Path;
-import maps.layout.tile.Tile;
 
 /**
  *
@@ -49,8 +45,6 @@ import maps.layout.tile.Tile;
  */
 public class UnitVisuals {
     protected final Node node;
-    
-    protected float MOVE_SPEED = 20f;
     
     private final GeometricBody<Quad> spriteBody;
     private final GeometricBody<Quad> outlineBody;
@@ -265,25 +259,6 @@ public class UnitVisuals {
         updateOutline();
     }
     
-    protected void updatePathProgress(float tpf, float accumulatedMovTime, Path pathway) {
-        //distanceperframe must be a power of 2 and <= 16
-        //this would come out to = 160 * tpf, or 160 distance per second
-        //MOVE_SPEED * Tile.LENGTH MUST = A MULTIPLE OF 40
-        float distanceperframe = MOVE_SPEED * Tile.LENGTH * tpf;
-        float accumulatedDistance = MOVE_SPEED * accumulatedMovTime * Tile.LENGTH;
-        
-        int i = (int)(accumulatedDistance / Tile.LENGTH); //tilesTraversed
-        List<Tile> path = pathway.getPath();
-        
-        Coords last = i > 0 ? path.get(i - 1).getPos().getCoords() : pathway.getInitialPos().getCoords();
-            
-        //these will always be 1, 0, or -1
-        Coords deltaXY = path.get(i).getPos().getCoords().subtract(last);
-        
-        animState = AnimationState.directionalValueOf(deltaXY);
-        node.move(deltaXY.toVector3fZX().multLocal(distanceperframe));
-    }
-    
     protected void updateEffects(float tpf) {
         effectQueue.getFirst().update(tpf);
     }
@@ -314,5 +289,15 @@ public class UnitVisuals {
       
         rot.fromAngles(0, deltaTheta, 0);
         point.setLocalRotation(rot);
+    }
+    
+    public Movement createMovement(MapCoords start, MapCoords end, int moveCapacity) {
+        return new Movement(
+            new Path(start, end, moveCapacity),
+            (deltaXY, deltaPosition) -> {
+                animState = AnimationState.directionalValueOf(deltaXY);
+                node.move(deltaPosition);
+            }
+        );
     }
 }

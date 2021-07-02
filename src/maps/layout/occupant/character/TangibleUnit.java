@@ -42,6 +42,7 @@ import maps.layout.MapLevel;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
 import fundamental.unit.PositionedUnitParams;
+import general.tools.input.ComplexInputReader;
 import maps.layout.occupant.VenturePeek;
 import maps.layout.tile.move.Path;
 
@@ -57,15 +58,14 @@ public class TangibleUnit extends PositionedUnit {
     
     private final FSM<UnitState> fsm = new FSM<UnitState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState<UnitState> st) {
-            if (state == null || (state.getEnum() != UnitState.Dead && state.getEnum() != UnitState.Done)) { //you can forceState() to forcefully change it
-                state = st;
-                onStateSet();
-            }
+        public boolean stateAllowed(FsmState<UnitState> st) {
+            FsmState<UnitState> currentState = getState();
+            return currentState == null || (currentState.getEnum() != UnitState.Dead && currentState.getEnum() != UnitState.Done);
         }
         
-        private void onStateSet() {
-            switch (state.getEnum()) {
+        @Override
+        public void onStateSet(FsmState<UnitState> currentState, FsmState<UnitState> previousState) {
+            switch (currentState.getEnum()) {
                 case Active:
                     //TODO: CHANGE LATER FOR IT TO BE ON LESS THAN FULL HP OR TP (remove the commented conditions in the if statements)
                     if (/* currentHP < getMaxHP() && */ !visuals.node.hasChild(visuals.getHPNode())) {
@@ -77,10 +77,10 @@ public class TangibleUnit extends PositionedUnit {
                     }
                     break;
                 case Done: //onActionCommitted
-                    tempBonuses.updateOnActionCommitted();
+                    tempBonuses.updateOnActionCommitted(); //removes bonuses that are through next action
                         
                     isSelected = false;
-                    state = new FsmState(UnitState.Active); //this is temporary and just for testing purposes
+                    forceState(UnitState.Active); //this is temporary and just for testing purposes
                     break;
                 case Dying:
                     visuals.detachBars();
@@ -103,7 +103,7 @@ public class TangibleUnit extends PositionedUnit {
         visuals = new UnitVisuals(name, X.getJobClass().getName(), allegiance.getAssociatedColor(), assetManager);
         
         //set state
-        fsm.setNewStateIfAllowed(new FsmState(UnitState.Active));
+        fsm.setNewStateIfAllowed(new FsmState<>(UnitState.Active));
         
         //update sprite
         visuals.updateSprite();
@@ -176,49 +176,14 @@ public class TangibleUnit extends PositionedUnit {
         visuals.setBaseOutlineColor(allegiance.getAssociatedColor());
     }
     
-    public void moveTo(MapCoords destination) {
-        previousPos.set(pos);
-        
-        Path path = new Path(pos, destination, getMOBILITY());
-        GameTimer timer = new GameTimer();
-        
-        visuals.addToQueue((tpf) -> {
-            visuals.updateSprite();
-            
-            int tilesTraversed = (int)(visuals.MOVE_SPEED * timer.getTime()); //this is equivalent to (int)(accumulatedDistance / MapLevel.TILE_LENGTH)
-                
-            if (pos.equals(path.getFinalPos()) || tilesTraversed >= path.getPath().size()) { //onFinish
-                //set to idle if there is a special idle
-                if (visuals.hasExtraIdle()) {
-                    visuals.setAnimationState(AnimationState.Idle2);
-                }
-                
-                remapPosition(path.getFinalPos());
-                //pos.set(path.getFinalPos());
-                    
-                //open menu
-                GameProtocols.OpenPostActionMenu();
-                
-                fsm.setNewStateIfAllowed(UnitState.Active);
-                return true;
-            }
-            
-            visuals.updatePathProgress(tpf, timer.getTime(), path);
-            timer.update(tpf);
-            return false;
-        });
-        
-        fsm.setNewStateIfAllowed(UnitState.Idle);
-    }
-    
-    public void update(float tpf, Camera cam) {
-        updateAI(tpf);
+    public void update(float tpf, Camera cam, boolean shouldUpdate) {
+        if (shouldUpdate) {
+            updateAI(tpf);
+        }
         
         visuals.updateHP(getCurrentToMaxHPratio());
         visuals.updateTP(getCurrentToMaxTPratio());
         visuals.update(tpf, cam);
-        
-        //System.out.println(fsm.getEnumState());
     }
     
     public void updateAI(float tpf) {
@@ -234,6 +199,36 @@ public class TangibleUnit extends PositionedUnit {
             default: 
                 break;
         }
+    }
+    
+    public void moveTo(MapCoords destination) {
+        previousPos.set(pos);
+        Movement moveSeq = visuals.createMovement(pos, destination, getMOBILITY());
+        
+        visuals.addToQueue((tpf) -> {
+            visuals.updateSprite();
+            
+            if (moveSeq.isFinished()) {
+                //set to idle if there is a special idle
+                if (visuals.hasExtraIdle()) {
+                    visuals.setAnimationState(AnimationState.Idle2);
+                }
+                
+                //set final position
+                remapPosition(moveSeq.getPath().getFinalPos());
+                
+                //open post action menu
+                GameProtocols.OpenPostActionMenu();
+                
+                fsm.setNewStateIfAllowed(UnitState.Active);
+                return true;
+            }
+            
+            moveSeq.update(tpf);
+            return false;
+        });
+        
+        fsm.setNewStateIfAllowed(UnitState.Idle);
     }
     
     public void die() {

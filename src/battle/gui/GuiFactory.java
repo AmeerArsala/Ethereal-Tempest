@@ -120,9 +120,9 @@ public class GuiFactory {
 
         nametagPanel.attachChild(nameText);
         
-        SpatialOperator nametagAnchor = new SpatialOperator(nameText, nameText.getTextBounds(), new Vector3f(0.5f, 0.5f, 0));
+        SpatialOperator nametagAnchor = nameText.createSpatialOperator(0.5f, 0.5f);
         nametagAnchor.alignTo(nametagPanel.getOperator(0.5f, 0.5f));
-        nameText.move(0, nameText.getTextHeight(), 5);
+        //nameText.move(0, nameText.getTextHeight(), 5);
         
         LayerComparator.setLayer(nametagPanel, 3);
         LayerComparator.setLayer(nameText, 4);

@@ -45,7 +45,7 @@ public abstract class ValueIndicator {
         text = text2D;
         percentFull = basePercent;
         maxNumber = max;
-        textAnchor = new SpatialOperator(text, text.getTextBounds(), new Vector3f(0.5f, 0.5f, 0));
+        textAnchor = text.createSpatialOperator(0.5f, 0.5f);
     }
     
     protected abstract void updatePercentVisually();
@@ -102,7 +102,7 @@ public abstract class ValueIndicator {
     }
     
     public void proceedToValue(float value, float seconds) {
-        ValueIndicator.this.proceedToPercent(value / maxNumber, seconds);
+        proceedToPercent(value / maxNumber, seconds);
     }
     
     //for regular use

@@ -141,13 +141,13 @@ public class CombatantUI {
         
         setLocalTranslationOf(portraitFrame, portraitTranslation.subtract(0.005f * Globals.getScreenWidth(), 0.02f * Globals.getScreenHeight(), 1), frameWidth);
         
-        LayerComparator.setLayer(portraitFrame, 1);
-        LayerComparator.setLayer(portrait, 2);
-        LayerComparator.setLayer(nametag, 3);
-        LayerComparator.setLayer(tool, 1);
-        LayerComparator.setLayer(forecastInfo, 1);
-        LayerComparator.setLayer(hpHeart.getNode(), 4);
-        LayerComparator.setLayer(tpBall.getNode(), 4);
+        LayerComparator.setLayer(portraitFrame, 0);
+        LayerComparator.setLayer(portrait, 1);
+        LayerComparator.setLayer(nametag, 2);
+        LayerComparator.setLayer(tool, 0);
+        LayerComparator.setLayer(forecastInfo, 0);
+        LayerComparator.setLayer(hpHeart.getNode(), 3);
+        LayerComparator.setLayer(tpBall.getNode(), 3);
         
         uiNode.attachChild(portraitFrame);
         uiNode.attachChild(portrait);
@@ -293,9 +293,9 @@ public class CombatantUI {
             Text2D equippedToolText2D = GuiFactory.generateText(equippedName, ColorRGBA.White, equippedToolRectangle, equippedToolParams, equippedToolDisplacementParams, assetManager);
             GeometryPanel equippedToolPanel = GuiFactory.createBattlePanelFromText(equippedToolText2D, 1.625f, assetManager, forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());
             
-            SpatialOperator toolTextAnchor = new SpatialOperator(equippedToolText2D, equippedToolText2D.getTextBounds(), new Vector3f(0.5f, 0.5f, 0f));
+            SpatialOperator toolTextAnchor = equippedToolText2D.createSpatialOperator(0.5f, 0.5f);
             toolTextAnchor.alignTo(equippedToolPanel.getOperator(0.5f, 0.5f));
-            equippedToolText2D.move(0, equippedToolText2D.getTextHeight(), 0);
+            //equippedToolText2D.move(0, equippedToolText2D.getTextHeight(), 0);
             
             //START equippedTool icon initialization
                 Vector3f iconDimensions = new Vector3f(equippedToolRectangle.height, equippedToolRectangle.height, 0f); //width is same as height to make it a square
@@ -394,8 +394,8 @@ public class CombatantUI {
                 3
             ),
             new TextDisplacementParams(
-                Align.Center,
-                VAlign.Center,
+                Align.Left,
+                VAlign.Top,
                 WrapMode.Word
             ),
             assetManager

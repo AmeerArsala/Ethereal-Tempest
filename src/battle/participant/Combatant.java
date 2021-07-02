@@ -214,14 +214,15 @@ public class Combatant {
         FloatPair domain = new FloatPair(0.2f, 1.25f);
         
         float multiplier = 0.5f; //base is 0.5f
+        float damage = dmg + 1f;
         float defense = combatBaseStats.get(defensiveStat);
-        float attack = dmg + defense;
+        float attack = damage + defense; // damage = attack - defense
         
         if (isCrit) {
             multiplier /= 2f;
         }
         
-        float seconds = multiplier * (combatBaseStats.get(statToDrain) / dmg) * (defense / attack);
+        float seconds = multiplier * (combatBaseStats.get(statToDrain) / damage) * (defense / attack);
         
         return domain.bound(seconds);
     }

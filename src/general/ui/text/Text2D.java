@@ -20,6 +20,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.Command;
+import enginetools.math.SpatialOperator;
 import general.tools.universal.CustomException;
 
 /**
@@ -184,5 +185,14 @@ public class Text2D extends Node {
         if (textContainer.getMaterial() == outlineMaterial) {
             outlineMaterial.setColor("Outline", outlineColor);
         }
+    }
+    
+    public SpatialOperator createSpatialOperator(float percentX, float percentY) {
+        return new SpatialOperator(
+            this,
+            getTextBounds(),
+            new Vector3f(percentX, percentY, 0),
+            SpatialOperator.ORIGIN_TOP_LEFT
+        );
     }
 }

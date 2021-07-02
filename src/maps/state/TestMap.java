@@ -116,12 +116,16 @@ public class TestMap extends AbstractAppState {
     protected final ProcedureGroup queue = new ProcedureGroup();
     protected final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState<MapFlowState> st) {
-            state = st; //maybe change this if needed
-            if (st.getEnum() != MapFlowState.GuiClosed) {
-                mapFlow.getFSM().setNewStateIfAllowed(st);
+        public boolean stateAllowed(FsmState<MapFlowState> st) {
+            return true; //maybe change this if needed
+        }
+
+        @Override
+        public void onStateSet(FsmState<MapFlowState> currentState, FsmState<MapFlowState> previousState) {
+            if (currentState.getEnum() != MapFlowState.GuiClosed) {
+                mapFlow.getFSM().setNewStateIfAllowed(currentState);
                 
-                switch (st.getEnum()) {
+                switch (currentState.getEnum()) {
                     case PreBattle:
                         initializeBattle();
                         break;
@@ -169,7 +173,7 @@ public class TestMap extends AbstractAppState {
         stats = new StatScreen(assetManager);
         postAction = new ActionMenu(assetManager);
         
-        this.analogListener = new AnalogListener() {
+        analogListener = new AnalogListener() {
             @Override
             public void onAnalog(String name, float value, float tpf) {
                 int fps = (int)(1 / tpf);
@@ -177,7 +181,7 @@ public class TestMap extends AbstractAppState {
             }
         };
         
-        this.actionListener = new ActionListener() {
+        actionListener = new ActionListener() {
             @Override
             public void onAction(String name, boolean keyPressed, float tpf) {
                 int fps = (int)(1 / tpf);

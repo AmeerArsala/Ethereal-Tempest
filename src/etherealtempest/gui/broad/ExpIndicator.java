@@ -26,6 +26,7 @@ public class ExpIndicator extends ValueIndicator {
     public ExpIndicator(String name, RadialProgressBar expbar, Text2D label, AssetManager assetManager, float basePercent, int max) {
         super(name, expbar.getChildrenNode(), label, basePercent, max);
         this.expbar = expbar;
+        node.attachChild(text);
         
         float heightToWidthRatio = 25.5f / 100.5f;
         float width = expbar.getInnerRadius() * 2, height = width * heightToWidthRatio;

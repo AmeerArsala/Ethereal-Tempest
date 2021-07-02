@@ -14,43 +14,79 @@ import maps.layout.occupant.Cursor;
  * @param <T> enum type
  */
 public abstract class FSM<T extends Enum> {
-    protected FsmState<T> state;
+    private FsmState<T> state, lastState = null;
     
     public FSM() {}
     
-    public FSM(FsmState<T> state) {
+    public FSM(FsmState<T> state, boolean callOnStateSet) {
         this.state = state;
-    }
-    
-    public FSM(T st) {
-        state = new FsmState<>(st);
-    }
-    
-    public abstract void setNewStateIfAllowed(FsmState<T> st); //does not set last enum unless it is abstracted as such
-    
-    public void setNewStateIfAllowed(T st) {
-        if (state != null) {
-            setNewStateIfAllowed(new FsmState<>(st, state.getEnum()));
-        } else {
-            setNewStateIfAllowed(new FsmState<>(st));
+        
+        if (callOnStateSet) {
+            onStateSet();
         }
     }
     
-    //does not set last enum
+    public FSM(T st, boolean callOnStateSet) {
+        state = new FsmState<>(st);
+        
+        if (callOnStateSet) {
+            onStateSet();
+        }
+    }
+    
+    public abstract boolean stateAllowed(FsmState<T> st);
+    public abstract void onStateSet(FsmState<T> currentState, FsmState<T> previousState);
+    
+    private void onStateSet() {
+        onStateSet(state, lastState);
+    }
+    
+    //OVERRIDE IF NEEDED
+    protected void onAttemptStateSet(FsmState<T> st) {}
+    
+    //returns whether the state was set
+    public final boolean setNewStateIfAllowed(FsmState<T> st) {
+        onAttemptStateSet(st);
+        
+        boolean stateSet = stateAllowed(st);
+        if (stateSet) {
+            if (state != null) {
+                lastState = state.copy();
+            }
+        
+            state = st;
+            onStateSet(state, lastState);
+        }
+        
+        return stateSet;
+    }
+    
+    //returns whether the state was set
+    public final boolean setNewStateIfAllowed(T st) {
+        return setNewStateIfAllowed(new FsmState<>(st));
+    }
+    
     public void forceState(FsmState<T> st) {
+        onAttemptStateSet(st);
+        
+        if (state != null) {
+            lastState = state.copy();
+        }
+        
         state = st;
     }
     
-    public void forceState(T st) {
-        if (state != null) {
-            state = new FsmState<>(st, state.getEnum());
-        } else {
-            state = new FsmState<>(st);
-        }
+    
+    public final void forceState(T st) {
+        forceState(new FsmState<>(st));
     }
     
     public FsmState<T> getState() {
         return state;
+    }
+    
+    public FsmState<T> getLastState() {
+        return lastState;
     }
     
     public T getEnumState() {
@@ -58,7 +94,11 @@ public abstract class FSM<T extends Enum> {
     }
     
     public T getLastEnumState() {
-        return state.getLastEnum();
+        return lastState.getEnum();
+    }
+    
+    public enum GameState {
+        
     }
     
     public enum LevelState {

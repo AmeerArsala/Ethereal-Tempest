@@ -34,24 +34,29 @@ public class ShapeIndicator extends ValueIndicator {
         
         shape.setMaterial(mat);
 
-        LayerComparator.setLayer(shape, 1);
-        LayerComparator.setLayer(text, 5);
+        //LayerComparator.setLayer(shape, 0);
+        //LayerComparator.setLayer(text, 1);
         
         node.attachChild(shape);
         node.attachChild(text);
-        
-        text.move(0, -text.getTextHeight(), 0);
     }
-        
+    
+    /*
     @Override
     public void update(float tpf) {
         super.update(tpf);
+    }
+    */
+    
+    @Override
+    protected void updateText() {
+        super.updateText();
+        alignTextTo(equilibrium.x, equilibrium.y);
     }
 
     @Override
     protected void updatePercentVisually() {
         mat.setFloat("PercentFilled", percentFull);
-        //alignTextTo(equilibrium.x, equilibrium.y);
     }
     
     public Material getMaterial() {
@@ -71,6 +76,6 @@ public class ShapeIndicator extends ValueIndicator {
         
         SpatialOperator shapeAnchor = shape.getOperator(percentX, percentY);
         textAnchor.getDimensions().set(text.getTextBounds());
-        textAnchor.alignTo(shapeAnchor);
+        textAnchor.alignToLocally(shapeAnchor);
     }
 }

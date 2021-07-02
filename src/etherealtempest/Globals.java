@@ -18,6 +18,8 @@ import java.util.concurrent.Future;
  * @author night
  */
 public class Globals {
+    public static final int STANDARD_FPS = 60;
+    
     static final GameTimer timer = new GameTimer();
     static final ProcedureGroup tasks = new ProcedureGroup();
     static Main app;

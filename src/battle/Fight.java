@@ -36,9 +36,13 @@ public class Fight {
     
     private final FSM<State> fsm = new FSM<State>() {
         @Override
-        public void setNewStateIfAllowed(FsmState<State> st) {
-            state = st;
-            switch (st.getEnum()) {
+        public boolean stateAllowed(FsmState<State> st) {
+            return true;
+        }
+
+        @Override
+        public void onStateSet(FsmState<State> currentState, FsmState<State> previousState) {
+            switch (currentState.getEnum()) {
                 case TransitioningIn:
                     break;
                 case TransitioningOut:

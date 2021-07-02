@@ -40,15 +40,14 @@ public class FighterInfoVisualizer {
     private final GameTimer counter = new GameTimer();
     private final FSM<FighterState> fsm = new FSM<FighterState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState<FighterState> st) {
-            if (state != st) {
-                state = st;
-                onStateChanged();
-            }
+        public boolean stateAllowed(FsmState<FighterState> st) {
+            return getState() != st; //must be a changed state
         }
-        
-        private void onStateChanged() {
-            switch (state.getEnum()) {
+
+        @Override
+        public void onStateSet(FsmState<FighterState> currentState, FsmState<FighterState> previousState) {
+            //onStateChanged
+            switch (currentState.getEnum()) {
                 case Fighting:
                     break;
                 case ApplyingDeath:

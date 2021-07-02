@@ -96,8 +96,13 @@ public class StatScreen extends Node {
     
     private final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
         @Override
-        public void setNewStateIfAllowed(FsmState<MapFlowState> st) {
-            state = st; //change later maybe
+        public boolean stateAllowed(FsmState<MapFlowState> st) {
+            return true; //maybe change this
+        }
+
+        @Override
+        public void onStateSet(FsmState<MapFlowState> currentState, FsmState<MapFlowState> previousState) {
+            //maybe add something here
         }
     
     };
