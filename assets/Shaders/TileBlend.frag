@@ -46,6 +46,10 @@ vec4 getColor(int index, vec2 coord) {
 
 //the lower it is from 0.5, the more the first color dominates
 float getAlpha(int priority, int comparedPriority) { 
+    if (priority == 0) {
+        return 0.5; //no blending
+    }
+    
     if (priority * -1.0 == comparedPriority) {
         return 0.375;
     }

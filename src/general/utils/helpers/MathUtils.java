@@ -35,5 +35,4 @@ public class MathUtils {
         float diffFromEdge = localTranslation - actualEdgePos;
         return (diffFromEdge / sideLength);
     }
-    
 }

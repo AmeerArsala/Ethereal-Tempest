@@ -56,12 +56,14 @@ public class UnitVisuals {
     
     private final LinkedList<DeserializedParticleEffect> effectQueue = new LinkedList<>();
     private final ProcedureGroup queue = new ProcedureGroup();
+    private final AssetManager assetManager;
     
     private final Spritesheet spritesheetInfo;
     private AnimationState animState = AnimationState.Idle;
     
     public UnitVisuals(String name, String jobClassName, ColorRGBA baseOutlineColor, AssetManager assetManager) {
         this.baseOutlineColor = baseOutlineColor;
+        this.assetManager = assetManager;
         
         node = new Node(name + ": visual node");
         
@@ -132,10 +134,10 @@ public class UnitVisuals {
         tpNode.attachChild(tpMidNode);
         
         //set layers
-        LayerComparator.setLayer(spriteBody.getGeometry(), 5); //middle 
-        LayerComparator.setLayer(outlineBody.getGeometry(), 4); //bottom
-        LayerComparator.setLayer(hpNode, 6); //top
-        LayerComparator.setLayer(tpNode, 6); //top
+        LayerComparator.setLayer(spriteBody.getGeometry(), 6); //middle 
+        LayerComparator.setLayer(outlineBody.getGeometry(), 5); //bottom
+        LayerComparator.setLayer(hpNode, 7); //top
+        LayerComparator.setLayer(tpNode, 7); //top
         
         //attach to node
         node.attachChild(spriteBody.getGeometry());

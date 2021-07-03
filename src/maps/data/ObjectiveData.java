@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.flow;
+package maps.data;
 
 import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.info.Conveyor;

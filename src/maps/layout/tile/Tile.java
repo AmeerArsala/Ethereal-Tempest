@@ -17,6 +17,7 @@ import fundamental.unit.UnitAllegiance;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import maps.data.MapTextures;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapBounds;
@@ -43,16 +44,13 @@ public class Tile extends TileFoundation {
     
     public boolean isOccupied = false;
     
-    public Tile(int posx, int posy, int layer, List<TileData[][]> info, MapBounds bounds, AssetManager assetManager) { //for actual tile
+    public Tile(int posx, int posy, int layer, List<TileData[][]> data, MapBounds bounds, AssetManager assetManager) { //for actual tile
         super(posx, posy, layer);
-        this.info = info.get(layer)[posy][posx];
+        info = data.get(layer)[posy][posx];
         
         node = new Node();
-        this.info.getVisuals().finishAssimilation(node);
-        
-        /*Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        mat.setTexture("ColorMap", assetManager.loadTexture(info.getVisuals().getTileTexturePath()));*/
-        initializeTexture(info, bounds, assetManager);
+        info.getVisuals().finishAssimilation(node);
+        initializeTexture(data, bounds, assetManager);
     }
     
     public String getName() { 
@@ -94,14 +92,14 @@ public class Tile extends TileFoundation {
     
     private void initializeTexture(List<TileData[][]> data, MapBounds bounds, AssetManager assetManager) {
         Material mat = new Material(assetManager, "MatDefs/custom/TileBlend.j3md");
-        mat.setTextureParam("TileTexArray", VarType.TextureArray, MapLevel.tileTextures);
+        mat.setTextureParam("TileTexArray", VarType.TextureArray, MapTextures.Tiles.TileTextures);
         
         GroundType groundType = info.getVisuals().getGroundType();
         int index = groundType.getIndex();
         
         mat.setInt("CurrentIndex", index);
         mat.setInt("CurrentPriority", groundType.getBlendPriority());
-        mat.setTexture("BlendMap", MapLevel.OverflowBlendMap);
+        mat.setTexture("BlendMap", MapTextures.Tiles.OverflowBlendMap);
         //mat.setFloat("BlendAmplitude", 0.15f);
         
         boolean hasTop = coords.getY() + 1 < bounds.getYLength(coords.getLayer());

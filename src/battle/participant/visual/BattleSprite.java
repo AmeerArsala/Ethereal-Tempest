@@ -26,7 +26,7 @@ import general.visual.Sprite;
  * @author night
  */
 public class BattleSprite extends ModifiedSprite {
-    public static final float DIE_FUNCTION_LENGTH = 1f;
+    public static final float DIE_FUNCTION_LENGTH = 1.5f;
     public static final RGBAFunction DIE_FUNCTION = new RGBAFunction(
         new ParametricFunction4f(
             MathFunction.CONSTANT(1f),                                         // R

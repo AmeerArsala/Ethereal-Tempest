@@ -12,7 +12,7 @@ import battle.participant.BattleRole;
 import com.jme3.asset.AssetManager;
 import java.util.ArrayList;
 import java.util.List;
-import maps.flow.Objective;
+import maps.data.Objective;
 import maps.layout.Coords;
 import maps.layout.occupant.Cursor;
 import maps.layout.occupant.MapEntity;

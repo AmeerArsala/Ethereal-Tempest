@@ -5,7 +5,7 @@
  */
 package general.utils;
 
-import com.google.gson.annotations.SerializedName;
+//import com.google.gson.annotations.SerializedName;
 
 /**
  *

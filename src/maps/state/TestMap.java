@@ -21,22 +21,17 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
-import com.jme3.export.Savable;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
-import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Spatial.CullHint;
-import com.jme3.texture.Texture;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import etherealtempest.gui.specific.ActionMenu;
@@ -74,11 +69,12 @@ import general.procedure.ProcedureGroup;
 import java.util.HashMap;
 import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
-import maps.layout.MapData;
+import maps.data.MapData;
 import maps.layout.occupant.MapEntity;
 import fundamental.unit.PositionedUnitParams;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
+import maps.data.MapLevelLoader;
 import maps.layout.tile.Tile;
 
 /**
@@ -86,7 +82,7 @@ import maps.layout.tile.Tile;
  * @author night
  */
 public class TestMap extends AbstractAppState {
-    private final SimpleApplication app0;
+    private final SimpleApplication app;
     private final Node rootNode, guiNode;
     private final Node localRootNode = new Node("Default 01"), localGuiNode = new Node("Map GUI");
     private final InputManager inputManager;
@@ -101,11 +97,11 @@ public class TestMap extends AbstractAppState {
     private ViewPort screenView;
      
     private EffekseerRenderer effekseerRenderer;
-    private FlyByCamera flCam;
+    private FlyByCamera flyCam;
     //private Savable savestate;
     
     //private Node battleScene;
-    protected MapLevel map00;
+    protected MapLevel mapLevel;
     protected MapFlow mapFlow;
     
     //GUI
@@ -137,8 +133,9 @@ public class TestMap extends AbstractAppState {
         
     };
     
-    public TestMap(SimpleApplication app, Camera cm, FlyByCamera fyCam, AppSettings appSettings) {
-        app0 = app;
+    public TestMap(SimpleApplication application, MapLevel currentMapLevel, Camera cm, FlyByCamera fyCam, AppSettings appSettings) {
+        app = application;
+        mapLevel = currentMapLevel;
         
         rootNode = app.getRootNode();
         guiNode = app.getGuiNode();
@@ -152,14 +149,14 @@ public class TestMap extends AbstractAppState {
         cam = cm;
         cam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
         
-        flCam = fyCam;
+        flyCam = fyCam;
         
-        flCam.setEnabled(false);
+        flyCam.setEnabled(false);
 
         //audioRenderer = app.getAudioRenderer();
         
         //initialize gui
-        GuiGlobals.initialize(app0);
+        GuiGlobals.initialize(app);
         
         //load glass style
         BaseStyles.loadGlassStyle();
@@ -197,10 +194,10 @@ public class TestMap extends AbstractAppState {
                 
                 //opening stat screen
                 if (name.equals("C") && keyPressed) {
-                    if (stats.getState().getEnum() != MapFlowState.StatScreenOpened && stats.getState().getEnum() != MapFlowState.StatScreenSelecting && mapFlow.getCursor().getCurrentTile(map00).getOccupier() != null) {
+                    if (stats.getState().getEnum() != MapFlowState.StatScreenOpened && stats.getState().getEnum() != MapFlowState.StatScreenSelecting && mapFlow.getCursor().getCurrentTile(mapLevel).getOccupier() != null) {
                         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault).setAssetManager(assetManager));
                         stats.forceState(MapFlowState.StatScreenOpened);
-                        stats.startUnitViewGUI(mapFlow.getCursor().getCurrentTile(map00).getOccupier(), mapFlow.constructConveyor());
+                        stats.startUnitViewGUI(mapFlow.getCursor().getCurrentTile(mapLevel).getOccupier(), mapFlow.constructConveyor());
                         mapFlow.getCursor().getFSM().forceState(CursorState.Idle);
                         return;
                     }
@@ -237,8 +234,13 @@ public class TestMap extends AbstractAppState {
         };
     }
     
-    public Node getLocalRootNode() { return localRootNode; }
-    public Node getLocalGuiNode() { return localGuiNode; }
+    public Node getLocalRootNode() { 
+        return localRootNode; 
+    }
+    
+    public Node getLocalGuiNode() { 
+        return localGuiNode; 
+    }
     
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -264,13 +266,12 @@ public class TestMap extends AbstractAppState {
         skybox.setQueueBucket(RenderQueue.Bucket.Sky);
         skybox.setCullHint(CullHint.Never);
         rootNode.attachChild(skybox);*/
-        
-        //localGuiNode.setLocalTranslation(0, Globals.getScreenHeight(), 0);
+
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
         postAction.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, (7 / 17f) * Globals.getScreenHeight(), postAction.getNode().getLocalTranslation().z);
         
-        effekseerRenderer = EffekseerRenderer.addToViewPort(stManager, app0.getViewPort(), assetManager, settings.isGammaCorrection());
+        effekseerRenderer = EffekseerRenderer.addToViewPort(stManager, app.getViewPort(), assetManager, settings.isGammaCorrection());
         
         GameProtocols.setOpenPostActionMenu(() -> {
             localGuiNode.attachChild(postAction.getNode());
@@ -278,21 +279,17 @@ public class TestMap extends AbstractAppState {
             postAction.initialize(mapFlow.constructConveyor().setUnit(mapFlow.getCursor().selectedUnit));
         });
         
-        initializeMappings();
+        initializeControlMappings();
         initializeMap();
     }
     
     public void initializeMap() {
-        MapData mapData = MapData.deserializePreset("TestMap");
+        localRootNode.attachChild(mapLevel.getMiscNode());
+        localRootNode.attachChild(mapLevel.getTileNode());
         
-        map00 = new MapLevel("test map", 16, 16, 1, mapData, assetManager);
-        localRootNode.attachChild(map00.getMiscNode());
-        localRootNode.attachChild(map00.getTileNode());
-        MasterFsmState.setCurrentDefaultMap(map00);
+        mapFlow = new MapFlow(Arrays.asList(Turn.Player, Turn.Enemy), mapLevel.getMapData().retrieveObjective(), localRootNode, localGuiNode, cam, assetManager);
         
-        mapFlow = new MapFlow(Arrays.asList(Turn.Player, Turn.Enemy), mapData.retrieveObjective(), localRootNode, localGuiNode, cam, assetManager);
-        
-        map00.generateWeather(assetManager, mapData, mapFlow.getCursor());
+        mapLevel.generateWeather(assetManager, mapFlow.getCursor());
         localRootNode.attachChild(mapFlow.getCursor());
         
         //initialize what's going on in the map
@@ -326,9 +323,9 @@ public class TestMap extends AbstractAppState {
                 
                 do {
                     coords.setCoords((int)(Tile.LENGTH * Math.random()), (int)(Tile.LENGTH * Math.random()));
-                } while (map00.getTileAt(coords).isOccupied); //no spawning in the same tile
+                } while (mapLevel.getTileAt(coords).isOccupied); //no spawning in the same tile
                 
-                units.get(k).remapPosition(coords, map00);
+                units.get(k).remapPosition(coords, mapLevel);
             }
         });
         
@@ -342,10 +339,9 @@ public class TestMap extends AbstractAppState {
         
         mapFlow.getCursor().setPosition(mapFlow.getUnits().get(0).getPos()); //change position later
         mapFlow.goToNextPhase();
-        
     }
     
-    public void initializeMappings() {
+    public void initializeControlMappings() {
         inputManager.addMapping("move up", new KeyTrigger(KeyInput.KEY_UP));
         inputManager.addMapping("move down", new KeyTrigger(KeyInput.KEY_DOWN));
         inputManager.addMapping("move left", new KeyTrigger(KeyInput.KEY_LEFT));
@@ -427,7 +423,7 @@ public class TestMap extends AbstractAppState {
         mapFlow.update(tpf);
         queue.update(tpf);
         
-        if (accumulatedTPF >= (1f / 60f)) {
+        if (accumulatedTPF >= (1f / Globals.STANDARD_FPS)) {
             syncUpdate(accumulatedTPF);
             accumulatedTPF = 0;
         }
@@ -497,15 +493,8 @@ public class TestMap extends AbstractAppState {
         
         mapFlow.setCurrentFight(fight);
         
-        /*
-        fightCam.setLocation(new Vector3f(battleScene.getChild("FullPlane").getWorldTranslation().x, battleScene.getChild("FullPlane").getWorldTranslation().y + 2.5f, battleScene.getChild("FullPlane").getWorldTranslation().z + 13.25f));
-        Quaternion cameraRotation = new Quaternion();
-        cameraRotation.fromAngles(0, FastMath.PI, 0);
-        fightCam.setRotation(cameraRotation);
-        */
-        
         rootNode.detachChild(localRootNode);
-        flCam.setEnabled(true);
+        //flCam.setEnabled(true);
         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.DuringBattle).setAssetManager(assetManager));
     }
     

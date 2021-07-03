@@ -90,6 +90,9 @@ public class StrikeTheater {
                 break;
             }
         }
+        
+        System.out.println("strikes size: " + strikes.size());
+        System.out.println("actualStrikes size: " + actualStrikes.size());
     }
     
     public List<Strike> getStrikes() {

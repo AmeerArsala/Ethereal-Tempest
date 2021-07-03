@@ -5,11 +5,11 @@
  */
 package maps.layout;
 
+import maps.data.MapData;
 import maps.layout.tile.Tile;
 import com.jme3.asset.AssetManager;
+import com.jme3.light.AmbientLight;
 import com.jme3.scene.Node;
-import com.jme3.texture.Texture;
-import com.jme3.texture.TextureArray;
 import general.math.DomainBox;
 import general.math.FloatPair;
 import java.util.ArrayList;
@@ -28,20 +28,17 @@ import maps.layout.tile.move.MoveSquare;
 public class MapLevel {
     public static final float LAYER_Y_DEVIATION = 50f; //maybe rework this later
     
-    public static TextureArray tileTextures;
-    public static Texture OverflowBlendMap;
-    
     private final int tilesX, tilesY, layers;
     private final DomainBox[] layerBounds; // bounds go: [a, b)
-    //private final Coords[][] layerBounds;
     
     private MapBounds bounds;
+    private MapData info;
     
     private final String terrainName;
     private final Node tileNode = new Node("tile node for tiles and terrain");
     private final Node extraMapStuff = new Node("extra map things");
     
-    private Tile[][][] fullmap; // a 3d array of layers, it's a 3d array due to multiple elevations 
+    private Tile[][][] fullmap;      // a 3d array of layers, it's a 3d array due to multiple elevations 
     private MoveSquare[][][] movSet; // for movement squares
     
     //basic needs
@@ -57,6 +54,7 @@ public class MapLevel {
     //most often used
     public MapLevel(String terrainName, int tilesX, int tilesY, int layers, MapData data, AssetManager assetManager) {
         this(terrainName, tilesX, tilesY, layers);
+        info = data;
         
         //default settings/bounds
         for (int l = 0; l < layers; l++) {
@@ -67,19 +65,21 @@ public class MapLevel {
         }
         
         setBounds();
-        generateTiles(assetManager, data);
+        generateTiles(assetManager);
     }
     
     //with bounds included in constructor
     public MapLevel(String terrainName, int tilesX, int tilesY, int layers, DomainBox[] boundsForEachLayer, MapData data, AssetManager assetManager) {
         this(terrainName, tilesX, tilesY, layers);
+        info = data;
         System.arraycopy(boundsForEachLayer, 0, layerBounds, 0, layers); 
         
         setBounds();
-        generateTiles(assetManager, data);
+        generateTiles(assetManager);
     }
     
     public String getName() { return terrainName; }
+    public MapData getMapData() { return info; }
     
     public int getTilesX() { return tilesX; }
     public int getTilesY() { return tilesY; }
@@ -93,7 +93,7 @@ public class MapLevel {
         return extraMapStuff;
     }
     
-    private void generateTiles(AssetManager assetManager, MapData info) {
+    private void generateTiles(AssetManager assetManager) {
         List<TileData[][]> tileInfo = info.interpret(assetManager);
 
         //make new instances
@@ -116,9 +116,12 @@ public class MapLevel {
                 }
             }
         }
+        
+        //tileNode.addLight(new AmbientLight());
+        //extraMapStuff.addLight(new AmbientLight());
     }
     
-    public void generateWeather(AssetManager assetManager, MapData info, Node cursorNode) {
+    public void generateWeather(AssetManager assetManager, Node cursorNode) {
         DeserializedParticleEffect[] effects = info.retrieveMapEffects(assetManager);
         if (effects != null) {
             for (DeserializedParticleEffect effect : effects) {

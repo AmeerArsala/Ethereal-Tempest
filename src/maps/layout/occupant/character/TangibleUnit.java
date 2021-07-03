@@ -42,9 +42,7 @@ import maps.layout.MapLevel;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
 import fundamental.unit.PositionedUnitParams;
-import general.tools.input.ComplexInputReader;
 import maps.layout.occupant.VenturePeek;
-import maps.layout.tile.move.Path;
 
 /**
  *

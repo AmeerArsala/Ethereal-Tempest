@@ -3,10 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.layout;
+package maps.data;
 
 import com.google.gson.Gson;
 import com.jme3.asset.AssetManager;
+import com.jme3.texture.Image;
+import com.jme3.texture.TextureArray;
+import general.utils.helpers.GeneralUtils;
 import general.visual.DeserializedParticleEffect;
 import java.io.IOException;
 import java.io.Reader;
@@ -14,7 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import maps.flow.Objective;
+import maps.layout.MapLevel;
 import maps.layout.tile.TileData;
 
 /**
@@ -23,16 +26,50 @@ import maps.layout.tile.TileData;
  */
 public class MapData { // use gson
     //TODO: ADD WEATHER, LIGHTING, ETC.
+    private String mapName;
+    private int maxRows;
+    private int maxColumns;
     private String objectiveName; //case sensitive
+    private String[] tileTexturesUsed;
     private Translation[] translations;
     private MapLayerData[] layers;
     private String[] weatherAndEffects; //PATH TO JSONS
     
-    public MapData(String objectiveName, Translation[] translations, MapLayerData[] layers, String[] weatherAndEffects) {
+    public MapData(String mapName, int maxRows, int maxColumns, String objectiveName, String[] tileTexturesUsed, Translation[] translations, MapLayerData[] layers, String[] weatherAndEffects) {
+        this.mapName = mapName;
+        this.maxRows = maxRows;
+        this.maxColumns = maxColumns;
         this.objectiveName = objectiveName;
+        this.tileTexturesUsed = tileTexturesUsed;
         this.translations = translations;
         this.layers = layers;
         this.weatherAndEffects = weatherAndEffects;
+    }
+    
+    public String getMapName() { return mapName; }
+    public String getObjectiveName() { return objectiveName; }
+    
+    public Objective retrieveObjective() {
+        return new Objective(objectiveName);
+    }
+    
+    public String[] getTileTextureNamesUsed() { return tileTexturesUsed; }
+    
+    public int getMaxRows() { return maxRows; }
+    public int getMaxColumns() { return maxColumns; }
+    
+    private MapData initialize() {
+        //add empty space to tiles that aren't defined
+        for (MapLayerData layer : layers) {
+            if (layer.columnCount < maxColumns) {
+                int diff = maxColumns - layer.columnCount;
+                for (int i = 0; i < layer.layer.length; ++i) {
+                    layer.layer[i] += "nothing*" + diff;
+                }
+            }
+        }
+        
+        return this;
     }
     
     private class MapLayerData {
@@ -57,7 +94,7 @@ public class MapData { // use gson
     
     public String matchPath(String shorthand) {
         for (Translation translation : translations) {
-            if (translation.shorthand.equals(shorthand)) {
+            if (translation.shorthand.equals(shorthand) || translation.tileDataPath.equals(shorthand)) {
                 return translation.tileDataPath;
             }
         }
@@ -69,7 +106,7 @@ public class MapData { // use gson
         List<TileData[][]> data = new ArrayList<>();
         for (MapLayerData mapLayer : layers) {
             String[] rows = mapLayer.layer;
-            TileData[][] layerData = new TileData[rows.length][mapLayer.columnCount];
+            TileData[][] layerData = new TileData[maxRows][maxColumns];
             
             for (int row = 0; row < rows.length; row++) { //bottom-up
                 int columnsAdded = 0; //adding columns for multiplication
@@ -98,10 +135,6 @@ public class MapData { // use gson
         return data;
     }
     
-    public Objective retrieveObjective() {
-        return new Objective(objectiveName);
-    }
-    
     public DeserializedParticleEffect[] retrieveMapEffects(AssetManager assetManager) {
         if (weatherAndEffects != null) {
             DeserializedParticleEffect[] effects = new DeserializedParticleEffect[weatherAndEffects.length];
@@ -115,12 +148,16 @@ public class MapData { // use gson
         return null;
     }
     
-    public static MapData deserializePreset(String presetName) {
+    public MapLevel createMap(AssetManager assetManager) {
+        return new MapLevel(mapName, maxColumns, maxRows, layers.length, this, assetManager);
+    }
+    
+    public static MapData deserialize(String presetName) {
         try {
             Gson gson = new Gson();
             Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\MapPresets\\Maps\\" + presetName + ".json"));
             
-            return gson.fromJson(reader, MapData.class);
+            return gson.fromJson(reader, MapData.class).initialize();
         }
         catch (IOException ex) {
             ex.printStackTrace();

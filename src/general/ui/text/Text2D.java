@@ -195,4 +195,18 @@ public class Text2D extends Node {
             SpatialOperator.ORIGIN_TOP_LEFT
         );
     }
+    
+    public void fitInTextBox(float extraPaddingX, float extraPaddingY) {
+        Vector3f textBounds = getTextBounds(), textBoxBounds = getTextBoxBounds();
+        Rectangle textBox = new Rectangle(
+            0,
+            0,
+            Math.max(textBounds.x, textBoxBounds.x) + extraPaddingX,
+            Math.max(textBounds.y, textBoxBounds.y) + extraPaddingY
+        );
+    }
+    
+    public void fitInTextBox(float extraPadding) {
+        fitInTextBox(extraPadding, extraPadding);
+    }
 }

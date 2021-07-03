@@ -5,6 +5,7 @@
  */
 package maps.flow;
 
+import maps.data.Objective;
 import battle.Fight;
 import battle.data.Strike;
 import com.atr.jme.font.util.StringContainer.Align;

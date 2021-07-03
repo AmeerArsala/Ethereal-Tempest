@@ -286,7 +286,7 @@ public abstract class Animation {
                 float dx = magnitude * FastMath.sin(theta);
                 float dy = magnitude * FastMath.cos(theta);
                 
-                target.setLocalTranslation(anim.originalTargetPosition.add(dx, dy, 0).mult(Y / anim.endingValue));
+                target.setLocalTranslation(anim.originalTargetPosition.add(dx, dy, 0).multLocal(Y / anim.endingValue));
             }
         };
     }

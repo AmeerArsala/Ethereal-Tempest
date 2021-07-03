@@ -5,12 +5,12 @@
  */
 package etherealtempest.gui.broad;
 
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import enginetools.math.SpatialOperator;
 import general.tools.GameTimer;
 import general.procedure.ProcedureGroup;
 import general.math.FloatPair;
+import general.math.function.CartesianFunction;
 import general.math.function.ControlledMathFunction;
 import general.math.function.MathFunction;
 import general.ui.text.Text2D;
@@ -108,10 +108,9 @@ public abstract class ValueIndicator {
     //for regular use
     public void proceedToPercent(float percent, float seconds) {
         GameTimer local = new GameTimer();
-        float slope = (percent - percentFull) / seconds; //seconds = (seconds - 0f)
+        CartesianFunction func = CartesianFunction.pointSlopeLine(percentFull, percent, 0, seconds);
         procedures.add((tpf) -> {
-            percentFull += slope;
-            
+            percentFull = func.output(local.getTime());
             local.update(tpf);
             
             if (local.getTime() >= seconds) {

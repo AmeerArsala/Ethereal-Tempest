@@ -452,7 +452,7 @@ public class Cursor extends Node implements OnTile {
             }
             
             if (name.equals("select")) {
-                if (fsm.getEnumState() == CursorState.AnyoneMoving) {
+                if (fsm.getEnumState() == CursorState.AnyoneMoving || fsm.getEnumState() == CursorState.AnyoneSelected) {
                     Movement.keyToIncreaseSpeedPressed = keyPressed;
                 }
                 

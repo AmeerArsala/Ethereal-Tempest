@@ -10,7 +10,7 @@ package fundamental.unit;
  * @author night
  */
 public class CharacterUnitInfo {
-    private String portraitTextureName; // example: "Morva.png"
+    private String portraitTextureName;     // example: "Morva.png"
     private String battleOverlayConfigName; // example: "morva.json"
 
     private int wins = 0, losses = 0, fights = 0;

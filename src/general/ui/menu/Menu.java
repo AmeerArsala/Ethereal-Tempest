@@ -138,7 +138,7 @@ public abstract class Menu<O extends MenuOption<DATA>, DATA> {
     protected final Runnable closeMenuProtocol;
     
     protected O parentOption = null;
-    
+    protected Node menuRoot;
     protected boolean active = false;
     
     protected final Node optionsNode = new Node();
@@ -159,6 +159,7 @@ public abstract class Menu<O extends MenuOption<DATA>, DATA> {
     
     public String getTitle() { return menuName; }
     public Node getNode() { return optionsNode; }
+    public Node getMenuRootNode() { return menuRoot; }
     
     public ArrayList<O> getAvailableOptions() { return availableOptions; }
     public O getCurrentOption() { return availableOptions.get(currentIndex); }
@@ -174,6 +175,10 @@ public abstract class Menu<O extends MenuOption<DATA>, DATA> {
     
     public void setActive(boolean activo) {
         active = activo;
+    }
+    
+    public void setMenuRootNode(Node master) {
+        menuRoot = master;
     }
     
     public void setParentOption(O parent) {
@@ -371,7 +376,8 @@ public abstract class Menu<O extends MenuOption<DATA>, DATA> {
     protected boolean ignoreInputs() { return false; }
     
     private void goBackToPreviousMenu() {
-        Node masterNode = getRootMenu().getNode().getParent();
+        Menu master = getRootMenu();
+        Node masterNode = master.menuRoot != null ? master.menuRoot : master.getNode().getParent();
         
         transitionOut(TransitionType.OnDeselect);
         parentOption.getParentMenu().transitionIn(TransitionType.OnDeselect, masterNode);

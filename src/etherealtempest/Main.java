@@ -1,5 +1,6 @@
 package etherealtempest;
 
+import maps.data.MapLevelLoader;
 import etherealtempest.fsm.FSM;
 import etherealtempest.fsm.FsmState;
 import com.jme3.app.DebugKeysAppState;
@@ -14,9 +15,11 @@ import com.jme3.texture.TextureArray;
 import edited.FlyCamera;
 import edited.state.FlyCamTrueAppState;
 import etherealtempest.fsm.FSM.GameState;
+import etherealtempest.fsm.MasterFsmState;
 import general.tools.GameTimer;
 import java.util.ArrayList;
 import java.util.List;
+import maps.data.MapData;
 import maps.layout.MapLevel;
 import maps.state.TestMap;
 
@@ -30,7 +33,7 @@ public class Main extends SimpleApplication {
     public static final FSM<GameState> GameFSM = new FSM<GameState>() {
         @Override
         public boolean stateAllowed(FsmState<GameState> st) {
-            return true; //change later
+            return true; //should probably change this later
         }
 
         @Override
@@ -59,29 +62,25 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleInitApp() {
        //settings.setFrameRate(120); //cap at 120fps
-       
        debugFlyCam();
        flyCam.setMoveSpeed(350);
        
-       tilesInitialization();
+       String map = "TestMap";
+       MapData mapData = MapData.deserialize(map);
        
-       stateManager.attach(new TestMap(this, getCamera(), flyCam, settings));
+       MapLevelLoader.loadTileTextures(assetManager, mapData);
+       MapLevelLoader.loadMapGuiTextures(assetManager);
+       MapLevelLoader.loadMapArrowTextures(assetManager);
+       MapLevelLoader.loadUnitTextures(assetManager);
+       
+       MapLevel mapLevel = mapData.createMap(assetManager);
+       MasterFsmState.setCurrentDefaultMap(mapLevel);
+       
+       stateManager.attach(new TestMap(this, mapLevel, getCamera(), flyCam, settings));
        
        EnvironmentCamera envCam = new EnvironmentCamera();
        stateManager.attach(envCam);
        envCam.initialize(stateManager, this); //Manually initialize so we can add a probe before the next update happens
-    }
-    
-    public void tilesInitialization() {
-        final String prefix = "Textures/tiles/";
-        String[] names = {"grass.jpg", "dirt.jpg", "rock.jpg", "plains.jpg", "sand.jpg", "mossystone.jpg"};
-        List<Image> textures = new ArrayList<>();
-        for (String name : names) {
-            textures.add(assetManager.loadTexture(prefix + name).getImage());
-        }
-        
-        MapLevel.tileTextures = new TextureArray(textures);
-        MapLevel.OverflowBlendMap = assetManager.loadTexture(prefix + "BlendMap.png");
     }
 
     @Override

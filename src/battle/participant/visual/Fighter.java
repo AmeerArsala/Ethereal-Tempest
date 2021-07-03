@@ -73,7 +73,7 @@ public class Fighter {
         
         sprite = common.createBattleSprite(forecast, mirrored);
         controller = new FighterAnimationController(sprite, forecast.getActionDecider(), common.assetManager, decisionData);
-        visualizer = new FighterInfoVisualizer(sprite, new CombatantUI(forecast, common.assetManager, common.cam, mirrorUI), common.battleBoxInfo.getBoxDimensions());
+        visualizer = new FighterInfoVisualizer(sprite, new CombatantUI(forecast, common.assetManager, common.cam, mirrorUI), common.battleBoxInfo);
         
         visualizer.getFSM().setNewStateIfAllowed(FighterState.Fighting);
         updateStrikeRole();

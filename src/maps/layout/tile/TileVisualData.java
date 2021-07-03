@@ -8,6 +8,7 @@ package maps.layout.tile;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
@@ -27,7 +28,8 @@ public class TileVisualData { //TODO: Add Shaders to this
         @SerializedName("Rock") Rock(2, "rock.jpg", 3),
         @SerializedName("Plains") Plains(3, "plains.jpg", -9),
         @SerializedName("Sand") Sand(4, "sand.jpg", 8),
-        @SerializedName("Mossy Stone") MossyStone(5, "mossystone.jpg", -11);
+        @SerializedName("Mossy Stone") MossyStone(5, "mossystone.jpg", -11),
+        @SerializedName("Air") Air(6, "nothing.jpg", 0);
         
         private final int index;
         private final String path;
@@ -98,7 +100,7 @@ public class TileVisualData { //TODO: Add Shaders to this
             modelTemplateForAssimilation = (Node)assetManager.loadModel(modelPath);
         }
         
-        LayerComparator.setLayer(root, 3);
+        LayerComparator.setLayer(root, 4);
     }
     
     public void finishAssimilation(Node tileRootNode) {

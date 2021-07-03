@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.flow;
+package maps.data;
 
 import etherealtempest.info.Conveyor;
 import com.google.gson.Gson;
@@ -17,7 +17,7 @@ import java.nio.file.Paths;
  * @author night
  */
 public class Objective {
-    private static final int MAX_TURN_LIMIT = 99;
+    public static final int MAX_TURN_LIMIT = 99;
     
     private final String objectiveName;
     private final int turnLimit;

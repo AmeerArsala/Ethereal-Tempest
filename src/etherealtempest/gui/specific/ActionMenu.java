@@ -72,7 +72,6 @@ public class ActionMenu {
         
         @Override
         protected void onDeselect() {
-            System.out.println("Hi ddy.");
             conv.getCursor().goBackFromMenu();
         }
 
@@ -84,6 +83,7 @@ public class ActionMenu {
     
     public ActionMenu(AssetManager assetManager) {
         menuNode.attachChild(rootMenu.getNode());
+        rootMenu.setMenuRootNode(menuNode);
         
         //do stuff with the panel here
         
