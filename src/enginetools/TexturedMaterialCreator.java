@@ -7,6 +7,7 @@ package enginetools;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
+import com.jme3.texture.Texture;
 
 /**
  *
@@ -14,31 +15,31 @@ import com.jme3.material.Material;
  */
 public class TexturedMaterialCreator extends MaterialCreator {
     private final String textureParam;
-    private final String texturePath;
+    private final Texture texture;
     
-    public TexturedMaterialCreator(String textureParam, String texturePath) {
+    public TexturedMaterialCreator(String textureParam, Texture texture) {
         this.textureParam = textureParam;
-        this.texturePath = texturePath;
+        this.texture = texture;
     }
     
-    public TexturedMaterialCreator(String textureParam, String texturePath, MaterialParamsProtocol paramsProtocol) {
+    public TexturedMaterialCreator(String textureParam, Texture texture, MaterialParamsProtocol paramsProtocol) {
         super(MaterialCreator.UNSHADED, paramsProtocol);
         this.textureParam = textureParam;
-        this.texturePath = texturePath;
+        this.texture = texture;
     }
     
-    public TexturedMaterialCreator(String materialPath, String textureParam, String texturePath, MaterialParamsProtocol paramsProtocol) {
+    public TexturedMaterialCreator(String materialPath, String textureParam, Texture texture, MaterialParamsProtocol paramsProtocol) {
         super(materialPath, paramsProtocol);
         this.textureParam = textureParam;
-        this.texturePath = texturePath;
+        this.texture = texture;
     }
     
     public String getTextureParam() { return textureParam; }
-    public String getTexturePath() { return texturePath; }
+    public Texture getTexture() { return texture; }
     
     @Override
     protected void initialization(AssetManager assetManager, Material mat) {
-        mat.setTexture(textureParam, assetManager.loadTexture(texturePath));
+        mat.setTexture(textureParam, texture);
     }
     
 }

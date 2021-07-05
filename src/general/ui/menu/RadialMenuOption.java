@@ -27,8 +27,8 @@ import general.visual.animation.VisualTransition;
 public abstract class RadialMenuOption<DATA> extends MenuOption<DATA> {
     public static final ColorRGBA HoveredOrange = new ColorRGBA(1f, 119f / 255f, 0f, 1f);
     
-    public static final String DEFAULT_HOVERED = "Interface/GUI/action_menu/hoveredbg.png";
-    public static final String DEFAULT_NOT_HOVERED = "Interface/GUI/action_menu/nothoveredbg.png";
+    //public static final String DEFAULT_HOVERED = "Interface/GUI/action_menu/hoveredbg.png";
+    //public static final String DEFAULT_NOT_HOVERED = "Interface/GUI/action_menu/nothoveredbg.png";
     
     static final float SIZE = 50f;
     static final float icoSizeDim = SIZE *  200f / 256f;
@@ -88,8 +88,8 @@ public abstract class RadialMenuOption<DATA> extends MenuOption<DATA> {
         iconMat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
         iconGeom.setMaterial(iconMat);
         
-        panelHoveredTex = assetManager.loadTexture(params.getHoveredTexturePath());
-        panelUnhoveredTex = assetManager.loadTexture(params.getNotHoveredTexturePath());
+        panelHoveredTex = params.getHoveredTexture();
+        panelUnhoveredTex = params.getNotHoveredTexture();
         
         setHovered(false);
         
@@ -135,26 +135,26 @@ public abstract class RadialMenuOption<DATA> extends MenuOption<DATA> {
 
 class CustomMenuAssetParams {
     private final TexturedMaterialCreator panel, icon;
-    private final String notHoveredTexturePath;
+    private final Texture notHoveredTexture;
     
     public CustomMenuAssetParams(String iconPath) {
         this(iconPath, RadialMenuOption.DEFAULT_HOVERED, RadialMenuOption.DEFAULT_NOT_HOVERED);
     }
     
-    public CustomMenuAssetParams(String iconPath, String hoveredTexPath, String notHoveredTexPath) {
-        notHoveredTexturePath = notHoveredTexPath;
-        panel = new TexturedMaterialCreator("ColorMap", hoveredTexPath);
-        icon = new TexturedMaterialCreator("ColorMap", iconPath);
+    public CustomMenuAssetParams(Texture iconTex, Texture hoveredTex, Texture notHoveredTex) {
+        notHoveredTexture = notHoveredTex;
+        panel = new TexturedMaterialCreator("ColorMap", hoveredTex);
+        icon = new TexturedMaterialCreator("ColorMap", iconTex);
     }
     
-    public CustomMenuAssetParams(TexturedMaterialCreator panel, TexturedMaterialCreator icon, String notHoveredTexturePath) {
+    public CustomMenuAssetParams(TexturedMaterialCreator panel, TexturedMaterialCreator icon, Texture notHoveredTexture) {
         this.panel = panel;
         this.icon = icon;
-        this.notHoveredTexturePath = notHoveredTexturePath;
+        this.notHoveredTexture = notHoveredTexture;
     }
     
-    public String getHoveredTexturePath() { return panel.getTexturePath(); }
-    public String getNotHoveredTexturePath() { return notHoveredTexturePath; }
+    public Texture getHoveredTexture() { return panel.getTexture(); }
+    public Texture getNotHoveredTexture() { return notHoveredTexture; }
     
     public Material constructPanelMaterial(AssetManager assetManager) {
         return panel.createMaterial(assetManager);

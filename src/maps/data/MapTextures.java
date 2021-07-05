@@ -21,13 +21,14 @@ public class MapTextures {
     }
     
     public static final class GUI {
-        public static TextureArray StatScreenTextures;
-        public static TextureArray CombatantGuiTextures;
-        public static TextureArray ActionMenuTextures;
+        
+        //public static TextureArray StatScreenTextures;
+        //public static TextureArray CombatantGuiTextures;
+        //public static TextureArray ActionMenuTextures;
     }
     
     public static final class Sprites {
-        public static TextureArray MapSpritesheetTextures;
-        public static TextureArray CombatSpritesheetTextures;
+       //public static TextureArray MapSpritesheetTextures;
+        //public static TextureArray CombatSpritesheetTextures;
     }
 }

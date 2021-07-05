@@ -24,15 +24,15 @@ import general.ui.menu.RadialMenu;
  */
 public class ActionMenu {
     //icons
-    public static final String ATTACK = "Interface/GUI/action_menu/option_icons/Attack.png";
-    public static final String ETHER = "Interface/GUI/action_menu/option_icons/Ether.png";
-    public static final String ABILITY = "Interface/GUI/action_menu/option_icons/Ability.png";
-    public static final String SKILL = "Interface/GUI/action_menu/option_icons/Skill.png";
-    public static final String ITEM = "Interface/GUI/action_menu/option_icons/Item.png";
-    public static final String TRADE = "Interface/GUI/action_menu/option_icons/Trade.png";
-    public static final String FORMATION = "Interface/GUI/action_menu/option_icons/Formation.png";
-    public static final String STANDBY = "Interface/GUI/action_menu/option_icons/Standby.png";
-    public static final String CHAIN_ATTACK = "Interface/GUI/action_menu/option_icons/Chain Attack.png";
+    //public static final String ATTACK = "Interface/GUI/action_menu/option_icons/Attack.png";
+    //public static final String ETHER = "Interface/GUI/action_menu/option_icons/Ether.png";
+    //public static final String ABILITY = "Interface/GUI/action_menu/option_icons/Ability.png";
+    //public static final String SKILL = "Interface/GUI/action_menu/option_icons/Skill.png";
+    //public static final String ITEM = "Interface/GUI/action_menu/option_icons/Item.png";
+    //public static final String TRADE = "Interface/GUI/action_menu/option_icons/Trade.png";
+    //public static final String FORMATION = "Interface/GUI/action_menu/option_icons/Formation.png";
+    //public static final String STANDBY = "Interface/GUI/action_menu/option_icons/Standby.png";
+    //public static final String CHAIN_ATTACK = "Interface/GUI/action_menu/option_icons/Chain Attack.png";
     
     private static final FloatPair SHAKE_DOMAIN = new FloatPair(0f, Float.POSITIVE_INFINITY); // Domain: [0f, infinity)
     private static final FloatPair SHAKE_RANGE = new FloatPair(-2f, 2f); // Range: [-2f, 2f] 
