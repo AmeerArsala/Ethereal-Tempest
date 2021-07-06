@@ -37,6 +37,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
 import maps.layout.MapCoords;
+import maps.layout.tile.Tile;
+import maps.layout.tile.TileFoundation;
 import maps.layout.tile.move.Path;
 
 /**
@@ -121,13 +123,15 @@ public class UnitVisuals {
         hpMidNode.scale(0.3f);
         tpMidNode.scale(0.3f);
         
-        hpMidNode.move(0, 8f, 8f);
-        tpMidNode.move(10f, 10, 20f);
+        float halfTile = Tile.LENGTH / 2f;
+        float tpDeltaXY = Tile.LENGTH * (5f / 8f);
+        hpMidNode.move(0, halfTile, halfTile);
+        tpMidNode.move(tpDeltaXY, tpDeltaXY, tpDeltaXY * 2);
         
         tpMidNode.setLocalRotation(rotation);
         
         Quaternion hpRotation = new Quaternion();
-        hpRotation.fromAngles((FastMath.PI / -2f), 0, FastMath.PI / 4f); //FastMath.PI / 2f
+        hpRotation.fromAngles((FastMath.PI / -2f), 0, FastMath.PI / 4f);
         hpMidNode.setLocalRotation(hpRotation);
         
         hpNode.attachChild(hpMidNode);
@@ -156,32 +160,6 @@ public class UnitVisuals {
         sprite.setQueueBucket(Bucket.Transparent);
         sprite.setLocalRotation(rotation);
     } 
-    
-    private Spritesheet deserializeSpritesheet(String name, String jobClassName) {
-        try {
-            Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\Sprites\\Map\\" + jobClassName + "\\" + name + "\\config.json"));
-            
-            return gson.fromJson(reader, Spritesheet.class).setFolderName(name).setAnimations();
-        }
-        catch (IOException ex) {
-            return attemptGenericDeserialization(jobClassName); //will use generic if name not found in folders
-        }
-    }
-    
-    private Spritesheet attemptGenericDeserialization(String jobClassName) {
-        String folderName = "generic";
-        
-        try {
-            Gson gson = new Gson();
-            Reader reader = Files.newBufferedReader(Paths.get("assets\\Sprites\\Map\\" + jobClassName + "\\" + folderName + "\\config.json"));
-            return gson.fromJson(reader, Spritesheet.class).setFolderName(folderName).setAnimations();
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
-        }
-    }
     
     public Node getNode() { return node; }
     
@@ -295,11 +273,47 @@ public class UnitVisuals {
     
     public Movement createMovement(MapCoords start, MapCoords end, int moveCapacity) {
         return new Movement(
-            new Path(start, end, moveCapacity),
+            new Path(start, end, moveCapacity).TilePath(),
             (deltaXY, deltaPosition) -> {
                 animState = AnimationState.directionalValueOf(deltaXY);
                 node.move(deltaPosition);
             }
         );
+    }
+    
+    public Movement birthMovement(TileFoundation[] tilePath) {
+        return new Movement(
+            tilePath, 
+            (deltaXY, deltaPosition) -> {
+                animState = AnimationState.directionalValueOf(deltaXY);
+                node.move(deltaPosition);
+            }
+        );
+    }
+    
+    public static Spritesheet deserializeSpritesheet(String name, String jobClassName) {
+        try {
+            Gson gson = new Gson();
+            Reader reader = Files.newBufferedReader(Paths.get("assets\\Sprites\\Map\\" + jobClassName + "\\" + name + "\\config.json"));
+            
+            return gson.fromJson(reader, Spritesheet.class).setFolderName(name).setAnimations();
+        }
+        catch (IOException ex) {
+            return deserializeGenericSpritesheet(jobClassName); //will use generic if name not found in folders
+        }
+    }
+    
+    public static Spritesheet deserializeGenericSpritesheet(String jobClassName) {
+        String folderName = "generic";
+        
+        try {
+            Gson gson = new Gson();
+            Reader reader = Files.newBufferedReader(Paths.get("assets\\Sprites\\Map\\" + jobClassName + "\\" + folderName + "\\config.json"));
+            return gson.fromJson(reader, Spritesheet.class).setFolderName(folderName).setAnimations();
+        }
+        catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
     }
 }

@@ -4,7 +4,7 @@
   "maxColumns": 16,
   "objectiveName": "Battle of Annihilation",
   "weatherAndEffects": [ "MapWeather\\FlameSparkField.json" ],
-  "tileTexturesUsed": ["grass.jpg", "dirt.jpg", "rock.jpg", "plains.jpg", "sand.jpg", "mossystone.jpg", "nothing.jpg"], //ALWAYS put nothing.png in here
+  "tileTexturesUsed": [ "grass.jpg", "dirt.jpg", "rock.jpg", "plains.jpg", "sand.jpg", "mossystone.jpg", "nothing.jpg" ], //ALWAYS put nothing.png in here
   "translations": [
     {
       "shorthand": "g",
@@ -39,23 +39,45 @@
     {
       "columnCount": 16,
       "layer": [ // the columns must add to 16
-        "s*5 f*2 r m*3 d*5",       // 15
-        "s*4 g*3 r m*3 d*5",       // 14
-        "s*3 g*5 m*3 d*5",         // 13
-        "s*2 g*6 m*3 d*5",         // 12
-        "s g*5 p*2 m*3 p*2 d*3",   // 11
+        "s*5 f*2 r m*3 d*5", // 15
+        "s*4 g*3 r m*3 d*5", // 14
+        "s*3 g*5 m*3 d*5", // 13
+        "s*2 g*6 m*3 d*5", // 12
+        "s g*5 p*2 m*3 p*2 d*3", // 11
         "g*3 p*4 g m*3 f p*2 d*2", // 10
-        "p*6 g*2 m*3 f p*3 d",     // 9
-        "p*5 g*3 m*3 g g*4",       // 8
-        "p*4 g*4 m*3 g*5",         // 7
-        "p*5 g*3 m*3 g*5",         // 6
-        "p*7 g m*3 g*5",           // 5
-        "p*7 g m*3 g*4 d",         // 4
-        "p*5 g*4 m*2 f*3 d*2",     // 3
-        "p*6 g*4 m g*2 d*3",       // 2
-        "p*7 g*5 d*4",             // 1
-        "p*8 g*3 d*5"              // 0
+        "p*6 g*2 m*3 f p*3 d", // 9
+        "p*5 g*3 m*3 g g*4", // 8
+        "p*4 g*4 m*3 g*5", // 7
+        "p*5 g*3 m*3 g*5", // 6
+        "p*7 g m*3 g*5", // 5
+        "p*7 g m*3 g*4 d", // 4
+        "p*5 g*4 m*2 f*3 d*2", // 3
+        "p*6 g*4 m g*2 d*3", // 2
+        "p*7 g*5 d*4", // 1
+        "p*8 g*3 d*5" // 0
       ]
     }
   ]
+  /*    the sequence below represents the one above
+    ^
+    |  
+  15| g g g p r r d d d g  g  g  m  m  m  m
+  14| g g g g g g g g g g  g  g  g  g  g  g
+  13| g g g g g g g g g g  g  g  g  g  g  d
+  12| d d d d d d d d d d  d  d  p  p  p  p
+  11| m m m m m m m m p p  p  p  p  d  d  d
+  10| r r r r r p p p p p  g  g  g  g  g  g
+   9| g g g p p p p g g g  g  g  g  d  d  d
+   8| d d d d d d d p p p  m  m  g  g  g  g
+   7| g g g g g g g g g g  g  g  g  g  g  g
+   6| g g g g g g g g g g  g  g  g  g  g  g
+   5| g g g g g g g g g g  g  g  g  g  g  g
+   4| g g g g g g g g m m  m  m  p  p  p  p
+   3| r r r d d d d d d d  d  d  g  g  g  g
+   2| p p p p p p p p g g  g  g  g  g  g  g
+   1| g g g g g g g g p p  p  p  p  p  p  p
+   0| d d d d r r r r p p  p  p  p  p  p  p
+    +=|=|=|=|=|=|=|=|=|=|==|==|==|==|==|==|====>
+      0 1 2 3 4 5 6 7 8 9  10 11 12 13 14 15
+*/
 }

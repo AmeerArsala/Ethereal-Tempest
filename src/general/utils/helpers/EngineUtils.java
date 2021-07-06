@@ -99,9 +99,8 @@ public class EngineUtils {
     
     public static <T> T deserialize(String jsonPath, Class<T> classOfT) {
         try {
-            Gson gson = new Gson();
             Reader reader = Files.newBufferedReader(Paths.get(jsonPath));
-            return gson.fromJson(reader, classOfT);
+            return new Gson().fromJson(reader, classOfT);
         }
         catch (IOException ex) {
             ex.printStackTrace();

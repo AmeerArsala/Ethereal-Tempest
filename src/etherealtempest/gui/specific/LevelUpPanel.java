@@ -33,6 +33,7 @@ import general.visual.animation.Animation;
 import general.visual.animation.VisualTransition;
 import general.visual.animation.VisualTransition.Progress;
 import java.util.HashMap;
+import maps.data.MapTextures;
 import maps.layout.occupant.character.TangibleUnit;
 
 /**
@@ -94,7 +95,7 @@ public class LevelUpPanel {
         
         Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        mat.setTexture("ColorMap", assetManager.loadTexture("Textures/gui/page.jpg"));
+        mat.setTexture("ColorMap", MapTextures.GUI.Fighter.LevelUpPage);
         
         panel.setMaterial(mat);
         
@@ -307,7 +308,7 @@ public class LevelUpPanel {
             
             Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
             mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-            mat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/common/arrow.png"));
+            mat.setTexture("ColorMap", MapTextures.GUI.Fighter.Arrow);
             
             arrowPanel.setMaterial(mat);
             
@@ -321,7 +322,7 @@ public class LevelUpPanel {
                 assetManager
             );
             
-            difference.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
+            //difference.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
             
             difference.setLocalTranslation(1.25f * arrowPanel.getWidth(), height / 2f, 2f);
             arrowPanel.attachChild(difference);

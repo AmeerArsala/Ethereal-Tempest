@@ -8,6 +8,7 @@ package maps.layout;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import general.utils.helpers.MathUtils;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +31,14 @@ public class Coords {
     public int y() { return y; }
         
     public int getRange() { return range != null ? range : 0; }
-        
+    
+    public Coords set(Coords otro) {
+        x = otro.x;
+        y = otro.y;
+        range = otro.range;
+        return this;
+    }
+    
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
         
@@ -136,6 +144,14 @@ public class Coords {
         return Math.abs(other.x - x) + Math.abs(other.y - y);
     }
     
+    public int sum() {
+        return x + y;
+    }
+    
+    public int product() {
+        return x * y;
+    }
+    
     public Coords signsOf() {
         return new Coords(FastMath.sign(x), FastMath.sign(y));
     }
@@ -182,6 +198,12 @@ public class Coords {
     
     public Vector2f toVector2f() {
         return new Vector2f(x, y);
+    }
+    
+    public Vector2f toPolar() {
+        float r = MathUtils.hypotenuse(x, y);
+        float theta = FastMath.atan(((float)y) / x);
+        return new Vector2f(r, theta);
     }
     
     public Vector3f toVector3fXY() {

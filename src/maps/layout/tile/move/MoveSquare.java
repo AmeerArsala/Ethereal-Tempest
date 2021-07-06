@@ -12,6 +12,8 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.LayerComparator;
+import maps.data.MapTextures;
+import maps.layout.MapCoords;
 import maps.layout.tile.TileFoundation;
 
 /**
@@ -19,17 +21,22 @@ import maps.layout.tile.TileFoundation;
  * @author night
  */
 public class MoveSquare extends TileFoundation {
-    public static final String MOVE_SQUARE_TEX_PATH = "Textures/tiles/movsquare.png";
-    public static final String ATTACK_SQUARE_TEX_PATH = "Textures/tiles/atksquare.png";
-
+    public MoveSquare(MapCoords mapCoords, AssetManager assetManager) {
+        super(mapCoords);
+        initialize(assetManager);
+    }
+    
     public MoveSquare(int posX, int posY, int layer, AssetManager assetManager) {
         super(posX, posY, layer);
-        
+        initialize(assetManager);
+    }
+    
+    private void initialize(AssetManager assetManager) {
         patchMesh = createMesh();
-        tgeometry = new Geometry("movesquare: (" + posX + ", " + posY + ")", patchMesh);
+        tgeometry = new Geometry("movesquare: " + coords.toString(), patchMesh);
         
-        Material movsquare = new Material(assetManager, "MatDefs/custom/RangeTile.j3md"); // MatDefs/custom/RangeTile.j3md vs. Common/MatDefs/Misc/Unshaded.j3md
-        movsquare.setTexture("ColorMap", assetManager.loadTexture(MOVE_SQUARE_TEX_PATH));
+        Material movsquare = new Material(assetManager, "MatDefs/custom/RangeTile.j3md");
+        movsquare.setTexture("ColorMap", MapTextures.Tiles.Blue_Move);
         movsquare.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         movsquare.setColor("Color", new ColorRGBA(1, 1, 1, 0));
         movsquare.setFloat("RequiredOpacityToAnimate", 0.5f);

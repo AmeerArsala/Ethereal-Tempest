@@ -6,6 +6,7 @@
 package maps.layout.tile.move;
 
 import etherealtempest.fsm.MasterFsmState;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.Coords;
@@ -19,6 +20,7 @@ import maps.layout.tile.Tile;
  * @author night
  * 
  * Uses the old path algorithm
+ * Not really used but has some uses
  * 
  */
 public class OldPath {
@@ -168,9 +170,9 @@ public class OldPath {
         
     }
     
-    public void printPath() {
+    public void printPath(PrintStream printStream) { //you can pass in stuff like System.out and System.err
         pathSequence.forEach((coord) -> {
-            System.out.println(coord.toString());
+            printStream.println(coord.toString());
         });
     }
 }

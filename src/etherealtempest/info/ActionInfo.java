@@ -39,6 +39,7 @@ import general.visual.animation.Animation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import maps.data.MapTextures;
 import maps.layout.occupant.Cursor.Purpose;
 import maps.layout.occupant.character.TangibleUnit;
 
@@ -154,7 +155,7 @@ public class ActionInfo {
     
     
     private static RadialMenuOption<Conveyor> Attack() {
-        return new RadialMenuOption<Conveyor>("Attack", ActionMenu.ATTACK) { //add a submenu here maybe ?
+        return new RadialMenuOption<Conveyor>("Attack", MapTextures.GUI.ActionMenu.ATTACK) { //add a submenu here maybe ?
             private Conveyor conv;
             
             @Override
@@ -175,7 +176,7 @@ public class ActionInfo {
     }
     
     private static RadialMenuOption<Conveyor> Ether() {
-        return new RadialMenuOption<Conveyor>("Ether", ActionMenu.ETHER) { //add a submenu here
+        return new RadialMenuOption<Conveyor>("Ether", MapTextures.GUI.ActionMenu.ETHER) { //add a submenu here
             @Override
             protected void initialize(AssetManager assetManager, Conveyor data) {
                 //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -189,7 +190,7 @@ public class ActionInfo {
     }
     
     private static RadialMenuOption<Conveyor> Skill() {
-        return new RadialMenuOption<Conveyor>("Skill", ActionMenu.SKILL) { //add a submenu here
+        return new RadialMenuOption<Conveyor>("Skill", MapTextures.GUI.ActionMenu.SKILL) { //add a submenu here
             @Override
             protected void initialize(AssetManager assetManager, Conveyor data) {
                 //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -203,7 +204,7 @@ public class ActionInfo {
     }
     
     private static RadialMenuOption<Conveyor> Ability() {
-        return new RadialMenuOption<Conveyor>("Ability", ActionMenu.ABILITY) { //add a submenu here
+        return new RadialMenuOption<Conveyor>("Ability", MapTextures.GUI.ActionMenu.ABILITY) { //add a submenu here
             @Override
             protected void initialize(AssetManager assetManager, Conveyor data) {
                 //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -217,7 +218,7 @@ public class ActionInfo {
     }
     
     private static RadialMenuOption<Conveyor> Item() {
-        return new RadialMenuOption<Conveyor>("Item", ActionMenu.ITEM) {  //add a submenu here
+        return new RadialMenuOption<Conveyor>("Item", MapTextures.GUI.ActionMenu.ITEM) {  //add a submenu here
             @Override
             protected void initialize(AssetManager assetManager, Conveyor data) {
                 BasicMenu.Settings itemMenuSettings = 
@@ -316,7 +317,7 @@ public class ActionInfo {
     }
     
     private static RadialMenuOption<Conveyor> Trade() {
-        return new RadialMenuOption<Conveyor>("Trade", ActionMenu.TRADE) { //add a submenu here
+        return new RadialMenuOption<Conveyor>("Trade", MapTextures.GUI.ActionMenu.TRADE) { //add a submenu here
             @Override
             protected void initialize(AssetManager assetManager, Conveyor data) {
                 //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -330,7 +331,7 @@ public class ActionInfo {
     }
     
     private static RadialMenuOption<Conveyor> Formation() {
-        return new RadialMenuOption<Conveyor>("Formation", ActionMenu.FORMATION) { //add a submenu here
+        return new RadialMenuOption<Conveyor>("Formation", MapTextures.GUI.ActionMenu.FORMATION) { //add a submenu here
             @Override
             protected void initialize(AssetManager assetManager, Conveyor data) {
                 //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -344,7 +345,7 @@ public class ActionInfo {
     }
     
     private static RadialMenuOption<Conveyor> ChainAttack() {
-        return new RadialMenuOption<Conveyor>("Chain Attack", ActionMenu.CHAIN_ATTACK) {  //add a submenu here
+        return new RadialMenuOption<Conveyor>("Chain Attack", MapTextures.GUI.ActionMenu.CHAIN_ATTACK) {  //add a submenu here
             @Override
             protected void initialize(AssetManager assetManager, Conveyor data) {
                 //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -358,7 +359,7 @@ public class ActionInfo {
     }
     
     private static RadialMenuOption<Conveyor> Standby() {
-        return new RadialMenuOption<Conveyor>("Standby", ActionMenu.STANDBY) { //no submenu needed here
+        return new RadialMenuOption<Conveyor>("Standby", MapTextures.GUI.ActionMenu.STANDBY) { //no submenu needed here
             private Conveyor conv;
             
             @Override
@@ -375,7 +376,7 @@ public class ActionInfo {
     }
     
     /*private static RadialMenuOption<Conveyor> Talk() {
-        return new RadialMenuOption<Conveyor>("Talk", RadialMenuOption.TALK) {
+        return new RadialMenuOption<Conveyor>("Talk", MapTextures.GUI.ActionMenu.TALK) {
             @Override
             protected void initialize(AssetManager assetManager, Conveyor data) {
                 //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

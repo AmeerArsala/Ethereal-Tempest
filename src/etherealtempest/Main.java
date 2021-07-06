@@ -69,8 +69,8 @@ public class Main extends SimpleApplication {
        MapData mapData = MapData.deserialize(map);
        
        MapLevelLoader.loadTileTextures(assetManager, mapData);
+       MapLevelLoader.loadMoveArrowTextures(assetManager);
        MapLevelLoader.loadMapGuiTextures(assetManager);
-       MapLevelLoader.loadMapArrowTextures(assetManager);
        MapLevelLoader.loadUnitTextures(assetManager);
        
        MapLevel mapLevel = mapData.createMap(assetManager);

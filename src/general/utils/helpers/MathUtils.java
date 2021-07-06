@@ -23,6 +23,10 @@ public class MathUtils {
         return FastMath.sqrt(FastMath.pow(mona.x, 2) + FastMath.pow(mona.y, 2));
     }
     
+    public static float hypotenuse(float x, float y) {
+        return FastMath.sqrt(FastMath.pow(x, 2) + FastMath.pow(y, 2));
+    }
+    
     /**
      * 
      * @param edgePosPercent battleBoxInfo.getLeftEdgePositionPercent() or battleBoxInfo.getRightEdgePositionPercent()

@@ -9,7 +9,9 @@ import com.jme3.math.Vector3f;
 import java.util.List;
 import java.util.function.BiConsumer;
 import maps.layout.Coords;
+import maps.layout.MapCoords;
 import maps.layout.tile.Tile;
+import maps.layout.tile.TileFoundation;
 import maps.layout.tile.move.Path;
 
 /**
@@ -22,21 +24,24 @@ public class Movement {
     
     public static boolean keyToIncreaseSpeedPressed = false;
     
-    private final Path path;
+    private final TileFoundation[] tilePath;
     private final BiConsumer<Coords, Vector3f> deltaReactor; //deltaCoords, deltaPosition
     
     private float tilesTraversed = 0f;
     private float speed = DEFAULT_SPEED; //in percent of tile lengths (moves 'speed' tiles every second)
     
-    public Movement(Path pathway, BiConsumer<Coords, Vector3f> reactor) {
-        path = pathway;
+    public Movement(TileFoundation[] pathway, BiConsumer<Coords, Vector3f> reactor) {
+        tilePath = pathway;
         deltaReactor = reactor;
     }
     
-    public Path getPath() { return path; }
+    public TileFoundation[] getTilePath() { return tilePath; }
     public int getTilesTraversed() { return (int)tilesTraversed; }
     public float getSpeed() { return speed; }
-    public boolean isFinished() { return tilesTraversed >= path.getPathSize(); }
+    public boolean isFinished() { return tilesTraversed >= tilePath.length; }
+    
+    public MapCoords getInitialPos() { return tilePath[0].getPos(); }
+    public MapCoords getFinalPos() { return tilePath[tilePath.length - 1].getPos(); }
     
     public void update(float tpf) {
         if (!isFinished()) {
@@ -45,10 +50,9 @@ public class Movement {
             } else {
                 speed = DEFAULT_SPEED;
             }
-            
-            List<Tile> tilePath = path.getPath();
-            Coords last = tilesTraversed >= 1 ? tilePath.get((int)(tilesTraversed - 1)).getPos().getCoords() : path.getInitialPos().getCoords();
-            Coords next = tilePath.get((int)tilesTraversed).getPos().getCoords();
+
+            Coords last = tilesTraversed >= 1 ? tilePath[((int)(tilesTraversed - 1))].getPos().getCoords() : tilePath[0].getPos().getCoords();
+            Coords next = tilePath[(int)tilesTraversed].getPos().getCoords();
             
             Coords deltaXY = next.subtract(last); //its coordinates will always be 1, 0, or -1
             

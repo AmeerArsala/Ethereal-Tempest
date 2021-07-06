@@ -7,7 +7,6 @@ package general.procedure;
 
 import general.procedure.functional.UpdateCommand;
 import general.procedure.functional.UpdateLoop;
-import com.simsilica.lemur.Command;
 import java.util.LinkedList;
 import java.util.function.Consumer;
 import java.util.function.Predicate;

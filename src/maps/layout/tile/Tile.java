@@ -18,10 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import maps.data.MapTextures;
-import maps.layout.Coords;
-import maps.layout.MapLevel;
 import maps.layout.MapBounds;
-import maps.layout.MapCoords;
 import maps.layout.occupant.MapEntity;
 import maps.layout.occupant.character.TangibleUnit;
 import maps.layout.tile.TileOptionData.TileType;
@@ -37,18 +34,17 @@ public class Tile extends TileFoundation {
     private final Node node;
     
     private TileData info = null;
-    private boolean gottenAnnexed = false; //move this stuff to tiledata
+    private boolean gottenAnnexed = false; //move this stuff to TileData
     
     private TangibleUnit occupier = null;
     private MapEntity structure = null;
     
     public boolean isOccupied = false;
     
-    public Tile(int posx, int posy, int layer, List<TileData[][]> data, MapBounds bounds, AssetManager assetManager) { //for actual tile
-        super(posx, posy, layer);
-        info = data.get(layer)[posy][posx];
-        
+    public Tile(int posX, int posY, int layer, List<TileData[][]> data, MapBounds bounds, AssetManager assetManager) { //for actual tile
+        super(posX, posY, layer);
         node = new Node();
+        info = data.get(layer)[posY][posX];
         info.getVisuals().finishAssimilation(node);
         initializeTexture(data, bounds, assetManager);
     }
@@ -62,28 +58,17 @@ public class Tile extends TileFoundation {
     public MapEntity getStructureOccupier() { return structure; }
     
     public Node getNode() { return node; }
-    
-    public Vector3f getWorldTranslation() { return node != null ? node.getWorldTranslation() : tgeometry.getWorldTranslation(); }
-    public Vector3f getLocalTranslation() { return node != null ? node.getLocalTranslation() : tgeometry.getLocalTranslation(); }
+    public Vector3f getWorldTranslation() { return node.getWorldTranslation(); }
+    public Vector3f getLocalTranslation() { return node.getLocalTranslation(); }
     
     @Override
     public void setLocalTranslation(Vector3f translation) {
-        if (node != null) {
-            node.setLocalTranslation(translation);
-            return;
-        }
-        
-        tgeometry.setLocalTranslation(translation); 
+        node.setLocalTranslation(translation); 
     }
     
     @Override
     public void setLocalTranslation(float x, float y, float z) {
-        if (node != null) {
-            node.setLocalTranslation(x, y, z);
-            return;
-        }
-        
-        tgeometry.setLocalTranslation(x, y, z);
+        node.setLocalTranslation(x, y, z);
     }
     
     public void setTileData(TileData TD) {
@@ -101,6 +86,8 @@ public class Tile extends TileFoundation {
         mat.setInt("CurrentPriority", groundType.getBlendPriority());
         mat.setTexture("BlendMap", MapTextures.Tiles.OverflowBlendMap);
         //mat.setFloat("BlendAmplitude", 0.15f);
+        
+        mat.getAdditionalRenderState().setDepthWrite(false);
         
         boolean hasTop = coords.getY() + 1 < bounds.getYLength(coords.getLayer());
         boolean hasBottom = coords.getY() - 1 >= bounds.getMinimumY(coords.getLayer());
@@ -152,14 +139,12 @@ public class Tile extends TileFoundation {
             }
         }
         
-        mat.getAdditionalRenderState().setDepthWrite(false);
-        
         if (info.getVisuals().getIsWangTexture()) {
             info.getVisuals().setIsWangTexture(allSame);
         }
         
         patchMesh = createMesh();
-        tgeometry = new Geometry("tile: (" + coords.getX() + ", " + coords.getY() + ")", patchMesh);
+        tgeometry = new Geometry("tile: " + coords.toString(), patchMesh);
         tgeometry.setMaterial(mat);
         
         node.attachChild(tgeometry);
@@ -169,11 +154,10 @@ public class Tile extends TileFoundation {
     @Override
     protected void generateTile(List<Vector3f> vertices, List<Vector2f> textureCoords, List<Integer> indices) {
         //frame the tile
-        float sideLength = 2f * RADIUS_FOR_SQUARE;
-        vertices.add(new Vector3f(0, 0, 0)); //bottom left (0)
-        vertices.add(new Vector3f(sideLength, 0, 0)); //top left (1)
-        vertices.add(new Vector3f(sideLength, 0, sideLength)); //top right (2)
-        vertices.add(new Vector3f(0, 0, sideLength)); //bottom right (3)
+        vertices.add(new Vector3f(0, 0, 0));           //bottom left (0)
+        vertices.add(new Vector3f(LENGTH, 0, 0));      //top left (1)
+        vertices.add(new Vector3f(LENGTH, 0, LENGTH)); //top right (2)
+        vertices.add(new Vector3f(0, 0, LENGTH));      //bottom right (3)
         
         indices.addAll(Arrays.asList(1, 0, 3,  3, 2, 1));
         

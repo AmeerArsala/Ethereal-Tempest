@@ -23,6 +23,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.texture.Texture;
 import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialParamsProtocol;
 import enginetools.math.SpatialOperator;
@@ -37,6 +38,7 @@ import general.utils.Duo;
 import general.utils.helpers.GameUtils;
 import general.visual.animation.Animation;
 import general.visual.animation.VisualTransition;
+import maps.data.MapTextures;
 
 /**
  *
@@ -55,8 +57,8 @@ public class CombatantUI {
     private final GeometryPanel tool, forecastInfo;
     //private final HeartIndicator hpHeart;
     private final ShapeIndicator hpHeart, tpBall;
+    private final ExpIndicator expbar;
     
-    private ExpIndicator expbar;
     private LevelUpPanel levelUpPanel;
     
     public CombatantUI(SingularForecast forecast, AssetManager assetManager, Camera cam, boolean mirrorUI) {
@@ -65,9 +67,13 @@ public class CombatantUI {
         this.assetManager = assetManager;
         this.mirrorUI = mirrorUI;
         
-        Vector2f hpHeartDims = new Vector2f(1, 600f / 582f).multLocal(0.1f * Globals.getScreenWidth());
-        Vector2f tpBallDims = new Vector2f(1, 581f / 429f).multLocal(0.05f * Globals.getScreenWidth());
-        float portraitDims = 0.16f * Globals.getScreenWidth();
+        final float SCREEN_WIDTH = Globals.getScreenWidth();
+        final float SCREEN_HEIGHT = Globals.getScreenHeight();
+        
+        Vector2f hpHeartDims = new Vector2f(1, 600f / 582f).multLocal(0.1f * SCREEN_WIDTH);
+        Vector2f tpBallDims = new Vector2f(1, 581f / 429f).multLocal(0.05f * SCREEN_WIDTH);
+        float portraitDims = 0.16f * SCREEN_WIDTH;
+        float outerRadius = 0.075f * SCREEN_WIDTH;
         
         hpHeart = GuiFactory.createIndicator(
             "HP",
@@ -81,8 +87,6 @@ public class CombatantUI {
         
         hpHeart.alignTextTo(0.5f, 0.6f);
         
-        //hpHeart.getText().move(0, hpHeart.getGeometryPanel().getHeight() / 3.5f, 5);
-        
         tpBall = GuiFactory.createIndicator(
             "TP",
             tpBallDims,
@@ -93,10 +97,19 @@ public class CombatantUI {
             forecast.getCombatant().getBaseStat(BaseStat.MaxTP)
         );
         
+        expbar = GuiFactory.createExpBar(
+            new UIFontParams("Interface/Fonts/Neuton-Regular.ttf", 28, Style.Plain, 3), 
+            ColorRGBA.White, 
+            outerRadius,
+            forecast.getCombatant().getUnit().currentEXP,
+            100, //max exp
+            assetManager
+        );
+        
         portrait = GuiFactory.createPanel(
             portraitDims, portraitDims, 
             assetManager, 
-            "Textures/portraits/" + forecast.getCombatant().getUnit().getUnitInfo().getPortraitTextureName(),
+            assetManager.loadTexture("Textures/portraits/" + forecast.getCombatant().getUnit().getUnitInfo().getPortraitTextureName()), //TODO: change later
             ColorRGBA.White, 
             false //don't mirror portrait texture
         );
@@ -114,12 +127,13 @@ public class CombatantUI {
         tool = equippedToolAndForecastInfo.first;
         forecastInfo = equippedToolAndForecastInfo.second;
         
-        Vector3f portraitTranslation = new Vector3f(0, Globals.getScreenHeight() - portraitDims, 1f);
+        Vector3f portraitTranslation = new Vector3f(0, SCREEN_HEIGHT - portraitDims, 1f);
         Vector3f nametagTranslation = new Vector3f((portrait.getWidth() - nametag.getWidth()) / 2f, portraitTranslation.y - (nametag.getHeight() / 2f), 1.5f);
-        Vector3f forecastInfoTranslation = new Vector3f(0.0125f * Globals.getScreenWidth(), 0.0125f * Globals.getScreenHeight(), 0f);
+        Vector3f forecastInfoTranslation = new Vector3f(0.0125f * SCREEN_WIDTH, 0.0125f * SCREEN_HEIGHT, 0f);
         Vector3f toolTranslation = forecastInfoTranslation.mult(new Vector3f(1f, 10f, 1f));
-        Vector3f hpHeartTranslation = new Vector3f(forecastInfoTranslation.x, Globals.getScreenHeight() - forecastInfoTranslation.y - hpHeartDims.y, 0).mult(new Vector3f(2f, 0.925f, 1f)).addLocal(forecastInfo.getWidth(), 0, 0);
-        Vector3f tpBallTranslation = new Vector3f(hpHeartTranslation.x, Globals.getScreenHeight() - hpHeartTranslation.y, 0).multLocal(1.15f, 0.15f, 1f);
+        Vector3f hpHeartTranslation = new Vector3f(forecastInfoTranslation.x, SCREEN_HEIGHT - forecastInfoTranslation.y - hpHeartDims.y, 0).mult(new Vector3f(2f, 0.925f, 1f)).addLocal(forecastInfo.getWidth(), 0, 0);
+        Vector3f tpBallTranslation = new Vector3f(hpHeartTranslation.x, SCREEN_HEIGHT - hpHeartTranslation.y, 0).multLocal(1.15f, 0.15f, 1f);
+        Vector3f expBarTranslation = nametagTranslation.add(0.05f * SCREEN_WIDTH, (-2 * outerRadius) - (0.25f * nametag.getHeight()), 0f);
         
         setLocalTranslationOf(portrait, portraitTranslation, portraitDims);
         setLocalTranslationOf(nametag, nametagTranslation, nametag.getWidth());
@@ -127,6 +141,7 @@ public class CombatantUI {
         setLocalTranslationOf(forecastInfo, forecastInfoTranslation, forecastInfo.getWidth());
         setLocalTranslationOf(hpHeart.getNode(), hpHeartTranslation, hpHeartDims.x);
         setLocalTranslationOf(tpBall.getNode(), tpBallTranslation, tpBallDims.x);
+        setLocalTranslationOf(expbar.getExpCircle(), expBarTranslation, outerRadius * 2);
         
         float frameWidth = portraitDims * 2.25f;
         float frameHeight = (460f / 965f) * frameWidth;
@@ -134,12 +149,12 @@ public class CombatantUI {
         portraitFrame = GuiFactory.createPanel(
             frameWidth, frameHeight,
             assetManager,
-            "Interface/GUI/ui_boxes/battlePortraitFrame.png",
+            MapTextures.GUI.Fighter.FighterBorder,
             forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor(),
             mirrorUI
         );
         
-        setLocalTranslationOf(portraitFrame, portraitTranslation.subtract(0.005f * Globals.getScreenWidth(), 0.02f * Globals.getScreenHeight(), 1), frameWidth);
+        setLocalTranslationOf(portraitFrame, portraitTranslation.subtract(0.005f * SCREEN_WIDTH, 0.02f * SCREEN_HEIGHT, 1), frameWidth);
         
         LayerComparator.setLayer(portraitFrame, 0);
         LayerComparator.setLayer(portrait, 1);
@@ -148,6 +163,7 @@ public class CombatantUI {
         LayerComparator.setLayer(forecastInfo, 0);
         LayerComparator.setLayer(hpHeart.getNode(), 3);
         LayerComparator.setLayer(tpBall.getNode(), 3);
+        LayerComparator.setLayer(expbar.getExpCircle(), 3);
         
         uiNode.attachChild(portraitFrame);
         uiNode.attachChild(portrait);
@@ -156,6 +172,7 @@ public class CombatantUI {
         uiNode.attachChild(forecastInfo);
         uiNode.attachChild(hpHeart.getNode());
         uiNode.attachChild(tpBall.getNode());
+        //Do not attach expbar.getExpCircle() yet
     }
     
     public Node getNode() { return uiNode; }
@@ -177,7 +194,27 @@ public class CombatantUI {
     public ShapeIndicator getTPBall() { return tpBall; }
     
     public ExpIndicator getExpBar() { return expbar; }
-    public LevelUpPanel getLevelUpPanel() { return levelUpPanel; } 
+    public LevelUpPanel getLevelUpPanel() { return levelUpPanel; }
+    
+    /**
+     * 
+     * @param spatial Spatial to translate
+     * @param localTranslation the base desired X (no negative values)
+     * @param width width of the Spatial
+     * @return the desired x value
+     */
+    private float setLocalTranslationOf(Spatial spatial, Vector3f localTranslation, float width) {
+        float desiredX;
+        if (mirrorUI) {
+            desiredX = Globals.getScreenWidth() - width - localTranslation.x;
+            spatial.setLocalTranslation(desiredX, localTranslation.y, localTranslation.z);
+        } else {
+            desiredX = localTranslation.x;
+            spatial.setLocalTranslation(localTranslation);
+        }
+        
+        return desiredX;
+    }
     
     public void update(float tpf) {
         hpHeart.update(tpf);
@@ -198,10 +235,12 @@ public class CombatantUI {
     
     public void gainExp() {
         forecast.calculateExpToGain(); //sets exp to gain
-        initializeEXPbar();
+        if (!uiNode.hasChild(expbar.getExpCircle())) {
+            uiNode.attachChild(expbar.getExpCircle());
+        }
         
-        int currentEXP = forecast.getCombatant().addExpGained(); //add exp gained
-        expbar.proceedToValue(currentEXP, currentEXP / 100f);
+        int nextExpValue = forecast.getCombatant().addExpGained(); //add exp gained
+        expbar.proceedToValue(nextExpValue, nextExpValue / Combatant.MAX_EXP_VALUE);
     }
     
     public void levelUp() {
@@ -237,25 +276,18 @@ public class CombatantUI {
         );
     }
     
-    private void setLocalTranslationOf(Spatial spatial, Vector3f localTranslation, float width) {
-        if (mirrorUI) {
-            spatial.setLocalTranslation(Globals.getScreenWidth() - width - localTranslation.x, localTranslation.y, localTranslation.z);
-        } else {
-            spatial.setLocalTranslation(localTranslation);
-        }
-    }
-    
     private Duo<GeometryPanel, GeometryPanel> createEquippedToolAndForecastInfoPanels(UIFontParams equippedToolParams, UIFontParams forecastInfoParams) {
         Combatant participant = forecast.getCombatant();
         
         //START equippedTool initialization
-            String equippedName, iconPath;
+            String equippedName;
+            Texture iconTex;
             if (participant.getAttackType() == AttackType.Weapon) {
                 equippedName = participant.getUnit().getEquippedWPN().getName();
-                iconPath = participant.getUnit().getEquippedWPN().getIconPath();
+                iconTex = participant.getUnit().getEquippedWPN().getWeaponData().getType().getIconTexture();
             } else { // participant.getAttackType() == AttackType.Formula
                 equippedName = participant.getUnit().getEquippedFormula().getName();
-                iconPath = participant.getUnit().getEquippedFormula().getIconPath();
+                iconTex = participant.getUnit().getEquippedFormula().getActualFormulaData().getType().getIconTexture();
             }
         //END equippedTool initialization
         
@@ -300,7 +332,7 @@ public class CombatantUI {
             //START equippedTool icon initialization
                 Vector3f iconDimensions = new Vector3f(equippedToolRectangle.height, equippedToolRectangle.height, 0f); //width is same as height to make it a square
                 
-                GeometryPanel equippedIcon = GuiFactory.createEquippedIcon(iconPath, iconDimensions, equippedToolPanel.getScaledDimensions3D(), assetManager, mirrorUI);
+                GeometryPanel equippedIcon = GuiFactory.createEquippedIcon(iconTex, iconDimensions, equippedToolPanel.getScaledDimensions3D(), assetManager, mirrorUI);
                 equippedIcon.setMirrored(mirrorUI);
                 //equippedIcon.move(toolTranslation);
                 
@@ -339,7 +371,7 @@ public class CombatantUI {
             float hpHeartYStart = 0.03952f;
             float hpHeartYEnd = 0.97251f;
             
-            mat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/common/heart.png"));
+            mat.setTexture("ColorMap", MapTextures.GUI.Fighter.HP_Heart);
             mat.setColor("Color", ColorRGBA.Red);
             mat.setColor("OnlyChangeColor", ColorRGBA.White);
             mat.setColor("BackgroundColor", new ColorRGBA($75, $75, $75, 1f)); //gray
@@ -358,7 +390,7 @@ public class CombatantUI {
             float tpBallYStart = 0.36317f;
             float tpBallYEnd = 0.93287f;
             
-            mat.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/common/tpBall.png"));
+            mat.setTexture("ColorMap", MapTextures.GUI.Fighter.TP_Ball);
             mat.setColor("Color", GameUtils.TP_COLOR_PINK);
             mat.setColor("OnlyChangeColor", ColorRGBA.White);
             mat.setColor("BackgroundColor", new ColorRGBA($75, $75, $75, 1f)); //gray
@@ -367,43 +399,5 @@ public class CombatantUI {
             mat.setFloat("PercentFilled", forecast.getCombatant().getCurrentToMaxTPRatio());
             mat.setBoolean("UsesGradient", false);
         };
-    }
-    
-    public void initializeEXPbar() {
-        if (expbar != null && uiNode.hasChild(expbar.getExpCircle())) {
-            uiNode.detachChild(expbar.getExpCircle());
-        }
-        
-        int specificity = 2;
-        ColorRGBA color = forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor();
-        float outerRadius = 0.1f * Globals.getScreenWidth();
-        float innerToOuterRadiusRatio = 52.5f / 70.75f;
-        
-        RadialProgressBar expCircle = new RadialProgressBar(innerToOuterRadiusRatio * outerRadius, outerRadius, color, specificity, assetManager);  
-        
-        String text = "  EXP\n " + forecast.getCombatant().getUnit().currentEXP + "/100";
-        
-        Text2D expText = GuiFactory.generateText(
-            text, 
-            ColorRGBA.White,
-            new Rectangle(0f, 0f, innerToOuterRadiusRatio * outerRadius * 2, innerToOuterRadiusRatio * outerRadius * 2),
-            new UIFontParams(
-                "Interface/Fonts/Neuton-Regular.ttf",  
-                28,
-                Style.Plain,
-                3
-            ),
-            new TextDisplacementParams(
-                Align.Left,
-                VAlign.Top,
-                WrapMode.Word
-            ),
-            assetManager
-        );
-        
-        expbar = new ExpIndicator("EXP", expCircle, expText, assetManager, forecast.getCombatant().getUnit().currentEXP / 100f, 100);
-        
-        setLocalTranslationOf(expbar.getExpCircle(), nametag.getLocalTranslation().add(0.05f * Globals.getScreenWidth(), (-2 * outerRadius) - nametag.getHeight(), 0f), expbar.getExpCircle().getOuterRadius());
-        uiNode.attachChild(expbar.getExpCircle());
     }
 }

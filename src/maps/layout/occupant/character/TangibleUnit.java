@@ -43,6 +43,7 @@ import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
 import fundamental.unit.PositionedUnitParams;
 import maps.layout.occupant.VenturePeek;
+import maps.layout.tile.TileFoundation;
 
 /**
  *
@@ -199,10 +200,8 @@ public class TangibleUnit extends PositionedUnit {
         }
     }
     
-    public void moveTo(MapCoords destination) {
+    public void moveWith(Movement moveSeq) {
         previousPos.set(pos);
-        Movement moveSeq = visuals.createMovement(pos, destination, getMOBILITY());
-        
         visuals.addToQueue((tpf) -> {
             visuals.updateSprite();
             
@@ -213,7 +212,7 @@ public class TangibleUnit extends PositionedUnit {
                 }
                 
                 //set final position
-                remapPosition(moveSeq.getPath().getFinalPos());
+                remapPosition(moveSeq.getFinalPos());
                 
                 //open post action menu
                 GameProtocols.OpenPostActionMenu();
@@ -227,6 +226,14 @@ public class TangibleUnit extends PositionedUnit {
         });
         
         fsm.setNewStateIfAllowed(UnitState.Idle);
+    }
+    
+    public void moveWith(TileFoundation[] tilePath) {
+        moveWith(visuals.birthMovement(tilePath));
+    }
+    
+    public void moveTo(MapCoords destination) {
+        moveWith(visuals.createMovement(pos, destination, getMOBILITY()));
     }
     
     public void die() {

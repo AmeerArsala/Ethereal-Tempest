@@ -21,14 +21,31 @@ import com.jme3.scene.Node;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.Command;
 import enginetools.math.SpatialOperator;
-import general.tools.universal.CustomException;
 
 /**
  *
  * @author NiteZ
  */
 public class Text2D extends Node {
-    private final Material outlineMaterial;
+    public static final class FormatParams {
+        public final ColorRGBA color;
+        public final TextProperties textParams;
+        public final FontProperties fontParams;
+        public final TrueTypeFont font;
+        
+        public FormatParams(ColorRGBA color, TextProperties textParams, FontProperties fontParams, TrueTypeFont font) {
+            this.color = color;
+            this.textParams = textParams;
+            this.fontParams = fontParams;
+            this.font = font;
+        }
+        
+        public FormatParams(ColorRGBA color, TextProperties textParams, FontProperties fontParams, AssetManager assetManager) {
+            this(color, textParams, fontParams, fontParams.retrieveFont(assetManager));
+        }
+    }
+    
+    public static final String OUTLINE_MAT_ASSETKEYNAME = "MatDefs/TTF/TTF_BitmapOutlined.j3md";
     
     private final FontProperties fontProperties;
     private final TrueTypeFont ttf;
@@ -36,12 +53,19 @@ public class Text2D extends Node {
     private final TrueTypeContainer textContainer;
     private ColorRGBA textColor, outlineColor;
     
+    public Text2D(String text, Text2D.FormatParams formatParams) {
+        this(text, formatParams.color, formatParams.textParams, formatParams.fontParams, formatParams.font);
+    }
+    
     public Text2D(String text, ColorRGBA color, TextProperties textParams, FontProperties fontParams, AssetManager assetManager) {
-        super("2D Text: " + "\"" + text + "\"");
+        this(text, color, textParams, fontParams, fontParams.retrieveFont(assetManager));
+    }
+    
+    public Text2D(String text, ColorRGBA color, TextProperties textParams, FontProperties fontParams, TrueTypeFont font) {
+        super("Text2D: " + "\"" + text + "\"");
         fontProperties = fontParams;
         textColor = color;
-        
-        ttf = fontProperties.retrieveFont(assetManager);
+        ttf = font;
         
         if (textParams.getTextBox() != null) {
             sc = new StringContainer(ttf, text, textParams.getKerning(), textParams.getTextBox());
@@ -56,27 +80,11 @@ public class Text2D extends Node {
         styleText(textParams.createStyleCalls());
         
         attachChild(textContainer);
-        
-        outlineMaterial = new Material(assetManager, "MatDefs/TTF/TTF_BitmapOutlined.j3md");
-        outlineMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        outlineMaterial.getAdditionalRenderState().setDepthWrite(false);
     }
     
-    public TrueTypeContainer getTextContainer() { return textContainer; } // use this method for all the other things to do with the text
+    public TrueTypeContainer getTextContainer() { return textContainer; } //use this method for all the other things to do with the text
     public FontProperties getFontProperties() { return fontProperties; }
     public ColorRGBA getTextColor() { return textColor; }
-    
-    public ColorRGBA getOutlineColor() throws CustomException {
-        if (textContainer.getMaterial() != outlineMaterial) {
-            throw new CustomException("Text is Not Using Outline Material");
-        }
-        
-        return outlineColor;
-    }
-    
-    public boolean usingTextOutline() { 
-        return textContainer.getMaterial() == outlineMaterial; 
-    }
     
     public TextProperties salvageTextProperties() {
         return new TextProperties(sc.getTextBox(), sc.getKerning(), sc.getWrapMode(), sc.getAlignment(), sc.getVerticalAlignment());
@@ -94,7 +102,30 @@ public class Text2D extends Node {
     public float getTextBoxHeight() { return textContainer.getHeight(); } //height of the textbox with all its padding and everything
     public Vector3f getTextBoxBounds() { return new Vector3f(textContainer.getWidth(), textContainer.getHeight(), 0.0001f); }
     
-    public Material getMaterial() { return textContainer.getMaterial(); }
+    public Material getMaterial() { 
+        return textContainer.getMaterial(); 
+    }
+    
+    public static Material createTextOutlineMaterial(AssetManager assetManager) {
+        Material outlineMaterial = new Material(assetManager, OUTLINE_MAT_ASSETKEYNAME);
+        outlineMaterial.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        outlineMaterial.getAdditionalRenderState().setDepthWrite(false);
+        
+        return outlineMaterial;
+    }
+    
+    public ColorRGBA getTextOutlineColor() {
+        if (!usingTextOutline()) {
+            return null;
+        }
+        
+        return outlineColor;
+    }
+    
+    public boolean usingTextOutline() {
+        String assetKeyName = textContainer.getMaterial().getAssetName();
+        return assetKeyName != null && assetKeyName.equals(OUTLINE_MAT_ASSETKEYNAME); 
+    }
     
     public final void styleText(Command<StringContainer> styleCalls) {
         styleCalls.execute(sc);
@@ -151,19 +182,7 @@ public class Text2D extends Node {
         textContainer.setMaterial(mat);
     }
     
-    public void setOutlineMaterial(ColorRGBA nativeColor, ColorRGBA textOutlineColor) {
-        textColor = nativeColor;
-        outlineColor = textOutlineColor;
-        
-        if (textContainer.getMaterial() != outlineMaterial) {
-            textContainer.setMaterial(outlineMaterial);
-        }
-        
-        outlineMaterial.setColor("Color", textColor);
-        outlineMaterial.setColor("Outline", outlineColor);
-    }
-    
-    public void setTextTexture(Texture tex) {
+    public void setTexture(Texture tex) {
         textContainer.getMaterial().setTexture("Texture", tex);
     }
     
@@ -172,18 +191,33 @@ public class Text2D extends Node {
         textContainer.getMaterial().setColor("Color", textColor);
     }
     
+    public void setTextOutlineColor(ColorRGBA color) throws IllegalStateException {
+        if (!usingTextOutline()) {
+            throw new IllegalStateException("You cannot set the outline color if it is not using an outline!");
+        }
+        
+        outlineColor = color;
+        textContainer.getMaterial().setColor("Outline", outlineColor);
+    }
+    
+    public void setTextAndOutlineColors(ColorRGBA nativeColor, ColorRGBA textOutlineColor) throws IllegalStateException {
+        if (!usingTextOutline()) {
+            throw new IllegalStateException("You cannot set the outline color if it is not using an outline!");
+        }
+        
+        textColor = nativeColor;
+        outlineColor = textOutlineColor;
+        
+        textContainer.getMaterial().setColor("Color", textColor);
+        textContainer.getMaterial().setColor("Outline", outlineColor);
+    }
+    
     public void setTextAlpha(float alpha) {
         setTextColor(new ColorRGBA(textColor.r, textColor.g, textColor.b, alpha));
         
-        if (textContainer.getMaterial() == outlineMaterial) {
+        if (usingTextOutline()) {
             outlineColor = new ColorRGBA(outlineColor.r, outlineColor.g, outlineColor.b, alpha);
-            outlineMaterial.setColor("Outline", outlineColor);
-        }
-    }
-    
-    public void setOutlineColorIfUsingOutline(ColorRGBA outlineColor) {
-        if (textContainer.getMaterial() == outlineMaterial) {
-            outlineMaterial.setColor("Outline", outlineColor);
+            textContainer.getMaterial().setColor("Outline", outlineColor);
         }
     }
     
@@ -204,6 +238,8 @@ public class Text2D extends Node {
             Math.max(textBounds.x, textBoxBounds.x) + extraPaddingX,
             Math.max(textBounds.y, textBoxBounds.y) + extraPaddingY
         );
+        
+        setTextBox(textBox);
     }
     
     public void fitInTextBox(float extraPadding) {

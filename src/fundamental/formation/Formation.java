@@ -21,32 +21,33 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import maps.layout.Coords;
 import maps.layout.MapCoords;
+import general.utils.Duo;
 
 /**
  *
  * @author night
  */
 public class Formation extends Gear {
-    private static final HashMap<BaseStat, String> typeMap = new HashMap<>();
+    private static final HashMap<BaseStat, Duo<String, Integer>> typeMap = new HashMap<>();
     
     static {
-        typeMap.put(BaseStat.MaxHP, "Aquarius");
-        typeMap.put(BaseStat.MaxTP, "Pisces");
-        typeMap.put(BaseStat.Strength, "Leo");
-        typeMap.put(BaseStat.Ether, "Scorpio");
-        typeMap.put(BaseStat.Agility, "Aries");
-        typeMap.put(BaseStat.Comprehension, "Libra");
-        typeMap.put(BaseStat.Dexterity, "Gemini");
-        typeMap.put(BaseStat.Defense, "Virgo");
-        typeMap.put(BaseStat.Resilience, "Capricorn");
-        typeMap.put(BaseStat.Mobility, "Sagittarius");
-        typeMap.put(BaseStat.Physique, "Taurus");
-        typeMap.put(BaseStat.Adrenaline, "Cancer");
+        typeMap.put(BaseStat.MaxHP, new Duo<>("Aquarius", 0));
+        typeMap.put(BaseStat.MaxTP, new Duo<>("Pisces", 1));
+        typeMap.put(BaseStat.Strength, new Duo<>("Leo", 2));
+        typeMap.put(BaseStat.Ether, new Duo<>("Scorpio", 3));
+        typeMap.put(BaseStat.Agility, new Duo<>("Aries", 4));
+        typeMap.put(BaseStat.Comprehension, new Duo<>("Libra", 5));
+        typeMap.put(BaseStat.Dexterity, new Duo<>("Gemini", 6));
+        typeMap.put(BaseStat.Defense, new Duo<>("Virgo", 7));
+        typeMap.put(BaseStat.Resilience, new Duo<>("Capricorn", 8));
+        typeMap.put(BaseStat.Mobility, new Duo<>("Sagittarius", 9));
+        typeMap.put(BaseStat.Physique, new Duo<>("Taurus", 10));
+        typeMap.put(BaseStat.Adrenaline, new Duo<>("Cancer", 11));
     }
     
     private int tier;
+    private int formationTypeIndex;
     private String formationType;
     private List<FormationTechnique> techniques;
     
@@ -72,13 +73,16 @@ public class Formation extends Gear {
     
     private void initializeFormationType(StatBundle statBonus) {
         if (statBonus != null && statBonus.getStatType() == StatType.Base) {
-            formationType = typeMap.get((BaseStat)statBonus.getStat());
+            Duo<String, Integer> type = typeMap.get((BaseStat)statBonus.getStat());
+            formationType = type.first;
+            formationTypeIndex = type.second;
         } else {
             formationType = "Wildcard";
         }
     }
     
     public int getTier() { return tier; }
+    public int getFormationTypeIndex() { return formationTypeIndex; }
     public String getFormationType() { return formationType; }
     public List<FormationTechnique> getTechniques() { return techniques; }
     

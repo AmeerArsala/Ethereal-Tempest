@@ -18,6 +18,7 @@ import com.simsilica.lemur.event.MouseEventControl;
 import enginetools.TexturedMaterialCreator;
 import general.math.function.ParametricFunction;
 import general.visual.animation.VisualTransition;
+import maps.data.MapTextures;
 
 /**
  *
@@ -37,7 +38,7 @@ public abstract class RadialMenuOption<DATA> extends MenuOption<DATA> {
     private static final float MIN_PADDING = 30f;
 
     
-    private final String iconPath;
+    private final Texture iconTex;
     
     private final Quad panelBG = new Quad(SIZE, SIZE), icon = new Quad(icoSizeDim, icoSizeDim);
     private final Geometry panelGeom = new Geometry("panel", panelBG), iconGeom = new Geometry("icon", icon);
@@ -52,10 +53,9 @@ public abstract class RadialMenuOption<DATA> extends MenuOption<DATA> {
     
     private final VisualTransition transitionEvent = new VisualTransition(optionNode);
     
-    public RadialMenuOption(String optionName, String icoPath) {
+    public RadialMenuOption(String optionName, Texture iconTex) {
         super(optionName);
-        
-        iconPath = icoPath;
+        this.iconTex = iconTex;
         
         iconGeom.setLocalTranslation(iconTranslation); //fitting the geometry on top of the background
         
@@ -72,7 +72,7 @@ public abstract class RadialMenuOption<DATA> extends MenuOption<DATA> {
     public VisualTransition getTransitionEvent() { return transitionEvent; }
     
     public final void initializeAssets(AssetManager assetManager, ParametricFunction idleGraph, boolean idleOnlyOnHovered, float startingAngle, int menuListSize) {
-        initializeAssets(assetManager, new CustomMenuAssetParams(iconPath), idleGraph, idleOnlyOnHovered, startingAngle, menuListSize);
+        initializeAssets(assetManager, new CustomMenuAssetParams(iconTex), idleGraph, idleOnlyOnHovered, startingAngle, menuListSize);
     }
     
     //CustomMenuAssetParams is only accessible within the package, making this method follow that convention
@@ -137,8 +137,8 @@ class CustomMenuAssetParams {
     private final TexturedMaterialCreator panel, icon;
     private final Texture notHoveredTexture;
     
-    public CustomMenuAssetParams(String iconPath) {
-        this(iconPath, RadialMenuOption.DEFAULT_HOVERED, RadialMenuOption.DEFAULT_NOT_HOVERED);
+    public CustomMenuAssetParams(Texture iconTex) {
+        this(iconTex, MapTextures.GUI.ActionMenu.HoveredBG, MapTextures.GUI.ActionMenu.NotHoveredBG);
     }
     
     public CustomMenuAssetParams(Texture iconTex, Texture hoveredTex, Texture notHoveredTex) {

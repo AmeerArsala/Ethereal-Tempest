@@ -20,34 +20,21 @@ import maps.layout.occupant.character.TangibleUnit;
  * @author night
  */
 public class Combatant {
+    public static final int MAX_EXP_VALUE = 100;
+    
     public BattleRole battle_role;
     
     private final TangibleUnit tu;
-    
     private final AttackType attackType;
-    
     private final HashMap<BaseStat, Integer> combatBaseStats = new HashMap<>(); //raw base stats
     private final HashMap<BattleStat, Integer> combatBattleStats = new HashMap<>();
     
+    private boolean isUsingSkill;
     private int defaultDamage;
     
-    public int damageDone = 0, damageTaken = 0, tpLost = 0, expGained = 0, hitsDodged = 0, numOfCrits = 0;
+    public int expGained = 0;
+    public int damageDone = 0, damageTaken = 0, tpLost = 0, hitsDodged = 0, numOfCrits = 0;
     public float durabilityUsed = 0.0f;
-    
-    private boolean isUsingSkill;
-    private Runnable applySkillToll = () -> {}; //also checks and applies any HP, TP, or Durability subtraction costs
-    
-    /*private final Node effects = new Node();
-    
-    private ProgressBar hpBar, tpBar;
-    private EffekseerControl effectControl;
-    private TrueTypeFont expFont;
-    
-    private VisualTransition levelUpTransition = null;
-    private Material levelUpText;
-    
-    public boolean controlAdded = false;
-    public TrueTypeNode expText;*/
     
     public enum AttackType {
         Weapon,
@@ -201,7 +188,7 @@ public class Combatant {
         tu.setRawStat(BaseStat.CurrentHP, combatBaseStats.get(BaseStat.CurrentHP));
         tu.setRawStat(BaseStat.CurrentTP, combatBaseStats.get(BaseStat.CurrentTP));
         
-        tu.getUnitInfo().addTotalExpGained(expGained);
+        //tu.getUnitInfo().addTotalExpGained(expGained); <-- this was already added on addExpGained()
         tu.getUnitInfo().addTotalDamageDone(damageDone);
         tu.getUnitInfo().addTotalDamageTaken(damageTaken);
         tu.getUnitInfo().addTotalDurabilityUsed(durabilityUsed);

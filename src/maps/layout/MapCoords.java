@@ -53,9 +53,10 @@ public class MapCoords {
         return layer;
     }
     
-    public void set(MapCoords cds) {
+    public MapCoords set(MapCoords cds) {
         coords.setCoords(cds.coords);
         layer = cds.layer;
+        return this;
     }
     
     public void setCoords(Coords cds) {

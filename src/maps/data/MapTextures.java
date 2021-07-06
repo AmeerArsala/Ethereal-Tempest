@@ -14,10 +14,15 @@ import com.jme3.texture.TextureArray;
  */
 public class MapTextures {
     public static final class Tiles {
+        public static Texture Cursor;
+        
         public static Texture OverflowBlendMap;
         public static TextureArray TileTextures;
-        public static TextureArray MoveTileTextures;
         public static TextureArray MoveArrowTextures;
+        
+        //maybe change this later
+        public static Texture Blue_Move;
+        public static Texture Red_Attack;
     }
     
     public static final class GUI {

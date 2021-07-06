@@ -8,7 +8,6 @@ package maps.layout;
 import maps.data.MapData;
 import maps.layout.tile.Tile;
 import com.jme3.asset.AssetManager;
-import com.jme3.light.AmbientLight;
 import com.jme3.scene.Node;
 import general.math.DomainBox;
 import general.math.FloatPair;
@@ -106,12 +105,12 @@ public class MapLevel {
                     
                     //for actual tiles
                     fullmap[l][x][y] = new Tile(x, y, l, tileInfo, bounds, assetManager);
-                    fullmap[l][x][y].setLocalTranslation(tilesY * y, LAYER_Y_DEVIATION * l, tilesX * x);
+                    fullmap[l][x][y].setLocalTranslation(Tile.LENGTH * y, LAYER_Y_DEVIATION * l, Tile.LENGTH * x);
                     tileNode.attachChild(fullmap[l][x][y].getNode());
                     
                     //for move squares
                     movSet[l][x][y] = new MoveSquare(x, y, l, assetManager);
-                    movSet[l][x][y].setLocalTranslation(tilesY * y, LAYER_Y_DEVIATION * l, tilesX * x);
+                    movSet[l][x][y].setLocalTranslation(Tile.LENGTH * y, LAYER_Y_DEVIATION * l, Tile.LENGTH * x);
                     extraMapStuff.attachChild(movSet[l][x][y].getGeometry());
                 }
             }

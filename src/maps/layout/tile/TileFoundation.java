@@ -33,6 +33,10 @@ public class TileFoundation {
         coords.setPosition(posX, posY, layer);
     }
     
+    protected TileFoundation(MapCoords pos) {
+        coords.setPosition(pos);
+    }
+    
     public MapCoords getPos() { return coords; }
     
     public Geometry getGeometry() { return tgeometry; }

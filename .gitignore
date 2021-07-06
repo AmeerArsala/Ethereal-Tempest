@@ -6,11 +6,12 @@ assets/Models
 assets/Scenes
 assets/Sounds
 assets/Textures
-assets/MatDefs/
-assets/Effects/
-!assets/Effects/config
+assets/MatDefs
 !assets/MatDefs/custom/
 !assets/MatDefs/TTF/
+assets/Effects/Creative Commons
+assets/Effects/Original/Textures
+assets/Effects/Original/Derived Textures
 assets/Sprites/unfinished
 assets/Sprites/other
 
@@ -21,7 +22,6 @@ assets/Sprites/other
 *.jpg
 *.jpeg
 *.gif
-*.efkefc
 *.efkproj
 
 ##############################

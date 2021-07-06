@@ -9,6 +9,7 @@ import java.io.Serializable;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import general.math.FloatOperation;
+import general.utils.helpers.MathUtils;
 //import general.math.function.ControlledMathFunction.Operation;
 
 /**
@@ -105,6 +106,36 @@ public class Vector2F implements Serializable {
         vec.y = FastMath.sqrt(vec.y);
         
         return vec;
+    }
+    
+    public static Vector2f toPolar(Vector2f xy) {
+        float r = MathUtils.hypotenuse(xy);
+        float theta = FastMath.atan(xy.y / xy.x);
+        return new Vector2f(r, theta);
+    }
+    
+    public static Vector2f toPolarLocal(Vector2f xy) {
+        float r = MathUtils.hypotenuse(xy);
+        float theta = FastMath.atan(xy.y / xy.x);
+        
+        xy.x = r;
+        xy.y = theta;
+        return xy;
+    }
+    
+    public static Vector2f toCartesian(Vector2f rtheta) {
+        float r = rtheta.x;
+        float theta = rtheta.y;
+        return new Vector2f(r * FastMath.cos(theta), r * FastMath.sin(theta));
+    }
+    
+    public static Vector2f toCartesianLocal(Vector2f rtheta) {
+        float r = rtheta.x;
+        float theta = rtheta.y;
+        
+        rtheta.x = r * FastMath.cos(theta);
+        rtheta.y = r * FastMath.sin(theta);
+        return rtheta;
     }
     
     public static Vector2f operate(Vector2f vec, FloatOperation operation) {

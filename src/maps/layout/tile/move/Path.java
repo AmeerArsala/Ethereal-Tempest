@@ -6,14 +6,17 @@
 package maps.layout.tile.move;
 
 import etherealtempest.fsm.MasterFsmState;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapBounds;
 import maps.layout.MapCoords;
 import maps.layout.tile.Tile;
+import maps.layout.tile.TileFoundation;
 
 /**
  *
@@ -34,8 +37,8 @@ public class Path {
     private int remainingMoves;
     private int optionCheckStartIndex = 0;
     
-    public Path(int startPosX, int startPosY, int destX, int destY, int layer, int spaceLimit) {
-        this(new MapCoords(new Coords(startPosX, startPosY), layer), new MapCoords(new Coords(destX, destY), layer), spaceLimit, MasterFsmState.getCurrentMap());
+    public Path(int startPosX, int startPosY, int destX, int destY, int layer, int moveCapacity) {
+        this(new MapCoords(new Coords(startPosX, startPosY), layer), new MapCoords(new Coords(destX, destY), layer), moveCapacity, MasterFsmState.getCurrentMap());
     }
     
     public Path(Coords start, Coords end, int layer, int moveCapacity) {
@@ -56,8 +59,18 @@ public class Path {
         
         success = (end.getLayer() == start.getLayer()) && moveCapacity >= end.spacesFrom(start) && !map.getTileAt(end).isOccupied;
         if (success) {
-            biasX = start.getY() == end.getY();
+            biasX = shouldBiasX(start, end);
             generatePath();
+        }
+    }
+    
+    public static boolean shouldBiasX(MapCoords start, MapCoords end) {
+        if (start.getY() == end.getY()) {
+            return true;
+        } else if (start.getX() == end.getX()) {
+            return false;
+        } else {
+            return new Random(System.currentTimeMillis()).nextBoolean();
         }
     }
     
@@ -74,11 +87,20 @@ public class Path {
     public MapCoords getFinalPos() { return end; }
     public int getMoveCapacity() { return moveCapacity; }
     
+    public TileFoundation[] TilePath() {
+        TileFoundation[] tilePath = new TileFoundation[path.size()];
+        for (int i = 0; i < tilePath.length; i++) {
+            tilePath[i] = path.get(i);
+        }
+        
+        return tilePath;
+    }
+    
     private boolean isWithinBounds(MapCoords test) {
         return mapBounds.isWithinBounds(test);
     }
     
-    boolean sequenceHasCoords(MapCoords cds) {
+    public boolean sequenceHasCoords(MapCoords cds) {
         return pathSequence.stream().anyMatch((point) -> (point.equals(cds)));
     }
     
@@ -228,9 +250,9 @@ public class Path {
         });
     }
     
-    public void printPath() {
+    public void printPath(PrintStream printStream) { //you can pass in stuff like System.out and System.err
         pathSequence.forEach((coord) -> {
-            System.out.println(coord.toString());
+            printStream.println(coord.toString());
         });
     }
 }

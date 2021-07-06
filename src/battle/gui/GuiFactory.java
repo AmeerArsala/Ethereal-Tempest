@@ -13,6 +13,7 @@ import com.atr.jme.font.util.StringContainer;
 import com.atr.jme.font.util.StringContainer.Align;
 import com.atr.jme.font.util.StringContainer.VAlign;
 import com.atr.jme.font.util.StringContainer.WrapMode;
+import com.atr.jme.font.util.Style;
 import com.jme3.font.Rectangle;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -21,11 +22,14 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Spatial;
+import com.jme3.texture.Texture;
 import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialCreator;
 import enginetools.MaterialParamsProtocol;
 import enginetools.math.SpatialOperator;
 import etherealtempest.Globals;
+import etherealtempest.gui.broad.ExpIndicator;
+import etherealtempest.gui.broad.RadialProgressBar;
 import etherealtempest.gui.broad.ShapeIndicator;
 import etherealtempest.gui.specific.LevelUpPanel;
 import general.ui.GeometryPanel;
@@ -34,6 +38,7 @@ import general.ui.text.Text2D;
 import general.ui.text.TextProperties;
 import general.ui.text.quickparams.TextDisplacementParams;
 import general.ui.text.quickparams.UIFontParams;
+import maps.data.MapTextures;
 
 /**
  *
@@ -41,24 +46,21 @@ import general.ui.text.quickparams.UIFontParams;
  */
 public class GuiFactory {
     public static Text2D generateText(String text, ColorRGBA color, Rectangle rectangle, UIFontParams params, TextDisplacementParams displacementParams, AssetManager assetManager) {
-        TextProperties textParams = 
-            TextProperties.builder()
-                .horizontalAlignment(displacementParams.hAlign)
-                .verticalAlignment(displacementParams.vAlign)
-                .kerning(params.kerning)
-                .wrapMode(displacementParams.wrapMode)
-                .textBox(rectangle)
-                .build();
-        
-        return new Text2D(text, color, textParams, params.createFontProperties(FontProperties.KeyType.BMP), assetManager);
+        return new Text2D(
+            text, 
+            color, 
+            displacementParams.createTextProperties(params.kerning, rectangle), 
+            params.createFontProperties(FontProperties.KeyType.BMP), 
+            assetManager
+        );
     }
     
     //use for creating portrait and portraitFrame
-    public static GeometryPanel createPanel(float width, float height, AssetManager assetManager, String texturePath, ColorRGBA color, boolean mirror) {
+    public static GeometryPanel createPanel(float width, float height, AssetManager assetManager, Texture texture, ColorRGBA color, boolean mirror) {
         GeometryPanel panel = new GeometryPanel(width, height, RenderQueue.Bucket.Gui);
         
         Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
-        mat.setTexture("ColorMap", assetManager.loadTexture(texturePath));
+        mat.setTexture("ColorMap", texture);
         mat.setColor("Color", color);
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         mat.getAdditionalRenderState().setDepthWrite(false);
@@ -72,14 +74,14 @@ public class GuiFactory {
         return panel;
     }
     
-    public static GeometryPanel createPanelWithText(Text2D panelText, float widthScalar, float heightScalar, AssetManager assetManager, String texturePath, ColorRGBA color, boolean mirror) {
+    public static GeometryPanel createPanelWithText(Text2D panelText, float widthScalar, float heightScalar, AssetManager assetManager, Texture texture, ColorRGBA color, boolean mirror) {
         float width = widthScalar * panelText.getTextBoxWidth();
         float height = heightScalar * panelText.getTextBoxHeight();
         GeometryPanel battlePanel = createPanel(
             width,
             height,
             assetManager,
-            texturePath,
+            texture,
             color,
             mirror
         );
@@ -113,7 +115,7 @@ public class GuiFactory {
             width,
             height,
             assetManager,
-            "Interface/GUI/ui_boxes/emptyname.png", //texture path
+            MapTextures.GUI.Nametag,
             ColorRGBA.White,
             false //dont mirror texture
         );
@@ -136,7 +138,7 @@ public class GuiFactory {
             width,
             height,
             assetManager,
-            "Interface/GUI/ui_boxes/box5.png", //texture path
+            MapTextures.GUI.GlowBox1,
             color,
             false //dont mirror the texture
         );
@@ -146,10 +148,10 @@ public class GuiFactory {
         return battlePanel;
     }
     
-    public static GeometryPanel createEquippedIcon(String iconPath, Vector3f iconDimensions, Vector3f backgroundDimensions, AssetManager assetManager, boolean mirrorUI) {
+    public static GeometryPanel createEquippedIcon(Texture iconTex, Vector3f iconDimensions, Vector3f backgroundDimensions, AssetManager assetManager, boolean mirrorUI) {
         GeometryPanel equippedIcon = new GeometryPanel(iconDimensions.x, iconDimensions.y, RenderQueue.Bucket.Gui);
         Material iconMat = new Material(assetManager, "MatDefs/custom/Discard.j3md");
-        iconMat.setTexture("ColorMap", assetManager.loadTexture(iconPath));
+        iconMat.setTexture("ColorMap", iconTex);
         iconMat.setFloat("MaxAlphaDiscard", 0.1f);
         iconMat.getAdditionalRenderState().setDepthWrite(false);
         equippedIcon.setMaterial(iconMat);
@@ -187,6 +189,25 @@ public class GuiFactory {
         float currentPercent = ((float)current) / max;
         
         return new ShapeIndicator(statName, xyDimensions, matParams, assetManager, visibleText, currentPercent, max);
+    }
+    
+    public static ExpIndicator createExpBar(UIFontParams params, ColorRGBA color, float outerRadius, int currentEXP, int maxEXP, AssetManager assetManager) {
+        int specificity = 2;
+        float innerToOuterRadiusRatio = 52.5f / 70.75f;
+        
+        RadialProgressBar expCircle = new RadialProgressBar(innerToOuterRadiusRatio * outerRadius, outerRadius, color, specificity, assetManager);
+        
+        Rectangle rectangle = new Rectangle(0f, 0f, innerToOuterRadiusRatio * outerRadius * 2, innerToOuterRadiusRatio * outerRadius * 2); //x, y, width, height
+        TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.Word);
+        
+        Text2D.FormatParams textFormat = new Text2D.FormatParams(
+            color,
+            displacementParams.createTextProperties(params.kerning, rectangle),
+            params.createFontProperties(FontProperties.KeyType.BMP),
+            assetManager
+        );
+        
+        return new ExpIndicator(expCircle, textFormat, assetManager, currentEXP, maxEXP);
     }
     
     public static LevelUpPanel createLevelUpPanel(SingularForecast forecast, AssetManager assetManager) {

@@ -9,6 +9,7 @@ import com.jme3.asset.AssetManager;
 import etherealtempest.fsm.MasterFsmState;
 import java.util.ArrayList;
 import java.util.List;
+import maps.data.MapTextures;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
@@ -38,7 +39,7 @@ public class RangeDisplay {
             if (shouldDisplayTile(tu.getPos(), possible, tu.getMOBILITY(), map)) {
                 //reveal at specified opacity in blue tile if unit can move to it
                 MoveSquare movSquare = map.getMovSquareAt(possible);
-                movSquare.setTexture(assetManager.loadTexture(MoveSquare.MOVE_SQUARE_TEX_PATH));
+                movSquare.setTexture(MapTextures.Tiles.Blue_Move);
                 movSquare.setOpacity(tileOpacity);
                 displayedMovSquares.add(movSquare);
             }
@@ -47,7 +48,7 @@ public class RangeDisplay {
         List<MapCoords> attackTilePositions = calculateAttackTilePositions(tu);
         attackTilePositions.forEach((coordinates) -> {
             MoveSquare tile = map.getMovSquareAt(coordinates);
-            tile.setTexture(assetManager.loadTexture(MoveSquare.ATTACK_SQUARE_TEX_PATH));
+            tile.setTexture(MapTextures.Tiles.Red_Attack);
             tile.setOpacity(tileOpacity);
             displayedAtkSquares.add(tile);
         });
@@ -90,7 +91,7 @@ public class RangeDisplay {
         displayedMovSquares.clear();
         
         displayedAtkSquares.forEach((square) -> {
-            square.setTexture(assetManager.loadTexture(MoveSquare.MOVE_SQUARE_TEX_PATH));
+            square.setTexture(MapTextures.Tiles.Blue_Move);
             square.setOpacity(0);
         });
             
