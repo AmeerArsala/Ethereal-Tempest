@@ -70,6 +70,7 @@ public class JobClass extends Entity {
         Resolve = calculateResolve();
     }
     
+    //copies fields
     public JobClass(String name, String desc, int tier, List<MobilityType> mobilityTypes, List<WeaponType> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, HashMap<WeaponType, ActionDecider> battleAnimationConfigurations) {
         super(name);
         this.desc = desc;

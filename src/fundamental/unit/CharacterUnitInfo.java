@@ -10,28 +10,41 @@ package fundamental.unit;
  * @author night
  */
 public class CharacterUnitInfo {
-    private String portraitTextureName;     // example: "Morva.png"
+    private String portraitTexturePath;     // example: "Textures/portraits/Morva.png"
     private String battleOverlayConfigName; // example: "morva.json"
 
     private int wins = 0, losses = 0, fights = 0;
     private int totalDamageDone = 0, totalDamageTaken = 0, totalTPlost = 0, totalExpGained = 0, totalHitsDodged = 0, totalCriticals = 0;
     private float totalDurabilityUsed = 0f;
     
-    public CharacterUnitInfo(String portraitTextureName, String battleOverlayConfigName) {
-        this.portraitTextureName = portraitTextureName;
+    public CharacterUnitInfo(String portraitTexturePath, String battleOverlayConfigName) {
+        this.portraitTexturePath = portraitTexturePath;
         this.battleOverlayConfigName = battleOverlayConfigName;
     }
     
-    public CharacterUnitInfo(String portraitTextureName) {
-        this.portraitTextureName = portraitTextureName;
+    public CharacterUnitInfo(String portraitTexturePath) {
+        this.portraitTexturePath = portraitTexturePath;
     }
     
     public CharacterUnitInfo() {}
     
-    public String getPortraitTextureName() { return portraitTextureName != null ? portraitTextureName : "anonymous.png"; }
+    public void reset() {
+        wins = 0;
+        losses = 0;
+        fights = 0;
+        totalDamageDone = 0;
+        totalDamageTaken = 0;
+        totalTPlost = 0;
+        totalExpGained = 0;
+        totalHitsDodged = 0;
+        totalCriticals = 0;
+        totalDurabilityUsed = 0f;
+    }
+    
+    public String getPortraitTexturePath() { return portraitTexturePath != null ? portraitTexturePath : "Textures/portraits/anonymous.png"; }
     public String getBattleOverlayConfigName() { return battleOverlayConfigName != null ? battleOverlayConfigName : "no_overlay.json"; } //overlay texture name is the same across all classes
     
-    public boolean hasPortrait() { return portraitTextureName != null; }
+    public boolean hasPortrait() { return portraitTexturePath != null; }
     public boolean hasBattleOverlayConfig() { return battleOverlayConfigName != null; }
     
     public int getWins() { return wins; }
@@ -47,7 +60,7 @@ public class CharacterUnitInfo {
     public float getTotalDurabilityUsed() { return totalDurabilityUsed; }
     
     public void setPortraitTexturePath(String fileName) { // use to change portrait
-        portraitTextureName = fileName;
+        portraitTexturePath = fileName;
     }
     
     public void setBattleOverlayConfigName(String overlayName) { // use for like: Morva to Morvanael

@@ -203,7 +203,7 @@ public class LevelUpPanel {
         portrait = new GeometryPanel(portraitDims, portraitDims, RenderQueue.Bucket.Gui);
         Material portraitMat = new Material(assetManager, MaterialCreator.UNSHADED);
         portraitMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
-        portraitMat.setTexture("ColorMap", assetManager.loadTexture("Textures/portraits/" + character.getUnitInfo().getPortraitTextureName()));
+        portraitMat.setTexture("ColorMap", assetManager.loadTexture(character.getUnitInfo().getPortraitTexturePath()));
         portrait.setMaterial(portraitMat);
         
         portraitFrame = new GeometryPanel(1.15f * portraitDims, 1.15f * portraitDims, RenderQueue.Bucket.Gui);

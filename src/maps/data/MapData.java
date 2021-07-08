@@ -6,6 +6,7 @@
 package maps.data;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
 import com.jme3.texture.TextureArray;
@@ -18,32 +19,40 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.MapLevel;
+import maps.layout.occupant.character.TangibleUnit;
+import maps.layout.occupant.character.TangibleUnitDeserialization;
 import maps.layout.tile.TileData;
 
 /**
  *
  * @author night
+ * 
+ * use gson
  */
-public class MapData { // use gson
+public class MapData {
     //TODO: ADD WEATHER, LIGHTING, ETC.
     private String mapName;
     private int maxRows;
     private int maxColumns;
     private String objectiveName; //case sensitive
+    private String[] weatherAndEffects; //PATH TO JSONS
     private String[] tileTexturesUsed;
     private Translation[] translations;
     private MapLayerData[] layers;
-    private String[] weatherAndEffects; //PATH TO JSONS
+    private TangibleUnitDeserialization[] units;
     
-    public MapData(String mapName, int maxRows, int maxColumns, String objectiveName, String[] tileTexturesUsed, Translation[] translations, MapLayerData[] layers, String[] weatherAndEffects) {
+    @Expose(deserialize = false) private List<TangibleUnit> startingUnits;
+    
+    public MapData(String mapName, int maxRows, int maxColumns, String objectiveName, String[] weatherAndEffects, String[] tileTexturesUsed, Translation[] translations, MapLayerData[] layers, TangibleUnitDeserialization[] units) {
         this.mapName = mapName;
         this.maxRows = maxRows;
         this.maxColumns = maxColumns;
         this.objectiveName = objectiveName;
+        this.weatherAndEffects = weatherAndEffects;
         this.tileTexturesUsed = tileTexturesUsed;
         this.translations = translations;
         this.layers = layers;
-        this.weatherAndEffects = weatherAndEffects;
+        this.units = units;
     }
     
     public String getMapName() { return mapName; }
@@ -57,8 +66,9 @@ public class MapData { // use gson
     
     public int getMaxRows() { return maxRows; }
     public int getMaxColumns() { return maxColumns; }
+    public List<TangibleUnit> getStartingUnits() { return startingUnits; }
     
-    private MapData initialize() {
+    private MapData initialize(AssetManager assetManager) {
         //add empty space to tiles that aren't defined
         for (MapLayerData layer : layers) {
             if (layer.columnCount < maxColumns) {
@@ -67,6 +77,12 @@ public class MapData { // use gson
                     layer.layer[i] += "nothing*" + diff;
                 }
             }
+        }
+        
+        //initialize startingUnits
+        startingUnits = new ArrayList<>();
+        for (TangibleUnitDeserialization unit : units) {
+            startingUnits.add(unit.constructPositionedTangibleUnit(assetManager));
         }
         
         return this;
@@ -152,12 +168,12 @@ public class MapData { // use gson
         return new MapLevel(mapName, maxColumns, maxRows, layers.length, this, assetManager);
     }
     
-    public static MapData deserialize(String presetName) {
+    public static MapData deserialize(String presetName, AssetManager assetManager) {
         try {
             Gson gson = new Gson();
             Reader reader = Files.newBufferedReader(Paths.get("assets\\GameInfo\\MapPresets\\Maps\\" + presetName + ".json"));
             
-            return gson.fromJson(reader, MapData.class).initialize();
+            return gson.fromJson(reader, MapData.class).initialize(assetManager);
         }
         catch (IOException ex) {
             ex.printStackTrace();

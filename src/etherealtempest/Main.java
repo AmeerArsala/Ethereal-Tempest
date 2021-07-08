@@ -1,5 +1,6 @@
 package etherealtempest;
 
+import com.atr.jme.font.asset.TrueTypeLoader;
 import maps.data.MapLevelLoader;
 import etherealtempest.fsm.FSM;
 import etherealtempest.fsm.FsmState;
@@ -12,6 +13,8 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
 import com.jme3.texture.Image;
 import com.jme3.texture.TextureArray;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.style.BaseStyles;
 import edited.FlyCamera;
 import edited.state.FlyCamTrueAppState;
 import etherealtempest.fsm.FSM.GameState;
@@ -67,8 +70,19 @@ public class Main extends SimpleApplication {
        debugFlyCam();
        flyCam.setMoveSpeed(350);
        
+       //initialize gui
+       GuiGlobals.initialize(this);
+        
+       //load glass style
+       BaseStyles.loadGlassStyle();
+        
+       //default style is glass for now
+       GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
+        
+       assetManager.registerLoader(TrueTypeLoader.class, "ttf");
+       
        String map = "TestMap";
-       MapData mapData = MapData.deserialize(map);
+       MapData mapData = MapData.deserialize(map, assetManager);
        
        MapLevelLoader.loadTileTextures(assetManager, mapData);
        MapLevelLoader.loadMoveArrowTextures(assetManager);

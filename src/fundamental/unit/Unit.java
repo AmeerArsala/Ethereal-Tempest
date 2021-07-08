@@ -79,6 +79,22 @@ public class Unit extends Entity {
         finishInitialization();
     }
     
+    public Unit(String name, JobClass jobclass, HashMap<BaseStat, Integer> stats, HashMap<BaseStat, Integer> personalGrowthRates, List<Item> items, List<Formula> formulas, List<Talent> talents, List<Skill> skills, List<Ability> abilities, List<Formation> formations) {
+        super(name);
+        this.jobclass = jobclass;
+        this.stats = stats;
+        this.personalGrowthRates = personalGrowthRates;
+        
+        inventory = new Inventory(items); // 10 items max in inventory
+        formulaManager = new FormulaManager(formulas, 15); // 15 formulas max
+        talentManager = new TalentManager(talents); // 6 max
+        skillManager = new SkillManager(skills, 5); // 5 max
+        abilityManager = new AbilityManager(abilities, 7); // 7 max
+        formationManager = new FormationManager(formations);
+        
+        finishInitialization();
+    }
+    
     //copies fields
     public Unit(String name, JobClass jobclass, HashMap<BaseStat, Integer> stats, HashMap<BaseStat, Integer> personalGrowthRates, Inventory inventory, FormulaManager formulaManager, TalentManager talentManager, SkillManager skillManager, AbilityManager abilityManager, FormationManager formationManager) {
         super(name);

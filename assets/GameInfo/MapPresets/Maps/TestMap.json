@@ -57,6 +57,141 @@
         "p*8 g*3 d*5" // 0
       ]
     }
+  ],
+  "units": [
+    {
+      "allegiance": "Player",
+      "unit": {
+        "name": "Morva",
+        "jobClass": "Freeblade",
+        "baseStats": {
+          "Level": 1,
+          "MaxHP": 28,
+          "MaxTP": 0,
+          "Strength": 8,
+          "Ether": 5,
+          "Agility": 16,
+          "Dexterity": 5,
+          "Comprehension": 6,
+          "Defense": 5,
+          "Resilience": 2,
+          "Mobility": 4,
+          "Physique": 9,
+          "BaseAdrenaline": 10
+        },
+        "growthRates": {
+          "Level": 100,
+          "MaxHP": 60,
+          "MaxTP": 10,
+          "Strength": 55,
+          "Ether": 45,
+          "Agility": 45,
+          "Dexterity": 55,
+          "Comprehension": 45,
+          "Defense": 40,
+          "Resilience": 30,
+          "Mobility": 5,
+          "Physique": 15,
+          "BaseAdrenaline": 50
+        },
+        "inventory": [
+          "Weapon.Firangi",
+          "ConsumableItem.Apple"
+        ],
+        "formulas": [
+          "Anemo_Schism"
+        ],
+        "talents": [
+          "EyeOfTheStorm",
+          "Opportunist",
+          "Optimism"
+        ],
+        "skills": [
+          "Heavy_Swing"
+        ],
+        "abilities": [],
+        "formations": [
+          "Trigonal_Planar"
+        ]
+      },
+      "unitCharacterInfo": {
+        "portraitTexturePath": "Textures/portraits/Morva.png"
+      },
+      "params": {
+        "hasStashAccess": true,
+        "isLeader": true,
+        "isBoss": false
+      },
+      "position": {
+        "coords": {
+          "x": 0,
+          "y": 0
+        },
+        "layer": 0
+      }
+    },
+    {
+      "allegiance": "Enemy",
+      "unit": {
+        "name": "Morva",
+        "jobClass": "Freeblade",
+        "baseStats": {
+          "Level": 1,
+          "MaxHP": 19,
+          "MaxTP": 0,
+          "Strength": 9,
+          "Ether": 2,
+          "Agility": 8,
+          "Dexterity": 5,
+          "Comprehension": 3,
+          "Defense": 5,
+          "Resilience": 2,
+          "Mobility": 4,
+          "Physique": 7,
+          "BaseAdrenaline": 15
+        },
+        "growthRates": {
+          "Level": 100,
+          "MaxHP": 60,
+          "MaxTP": 10,
+          "Strength": 55,
+          "Ether": 45,
+          "Agility": 45,
+          "Dexterity": 55,
+          "Comprehension": 45,
+          "Defense": 40,
+          "Resilience": 30,
+          "Mobility": 5,
+          "Physique": 15,
+          "BaseAdrenaline": 50
+        },
+        "inventory": [
+          "Weapon.Cutlass"
+        ],
+        "formulas": [],
+        "talents": [
+          "Optimism"
+        ],
+        "skills": [],
+        "abilities": [],
+        "formations": []
+      },
+      "unitCharacterInfo": {
+        "portraitTexturePath": "Textures/portraits/RedTintedMorva.png"
+      },
+      "params": {
+        "hasStashAccess": false,
+        "isLeader": false,
+        "isBoss": false
+      },
+      "position": {
+        "coords": {
+          "x": 1,
+          "y": 1
+        },
+        "layer": 0
+      }
+    }
   ]
   /*    the sequence below represents the one above
     ^

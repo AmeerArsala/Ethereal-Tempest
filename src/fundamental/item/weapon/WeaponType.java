@@ -7,6 +7,7 @@ package fundamental.item.weapon;
 
 import com.google.gson.annotations.SerializedName;
 import com.jme3.texture.Texture;
+import java.util.function.Supplier;
 import maps.data.MapTextures.GUI.ItemAndFormula;
 
 /**
@@ -14,26 +15,26 @@ import maps.data.MapTextures.GUI.ItemAndFormula;
  * @author night
  */
 public enum WeaponType {
-    @SerializedName("Sword") Sword(false, ItemAndFormula.Sword),
-    @SerializedName("Axe") Axe(false, ItemAndFormula.Axe),
-    @SerializedName("Polearm") Polearm(false, ItemAndFormula.Polearm),
-    @SerializedName("Bow") Bow(false, ItemAndFormula.Bow),
-    @SerializedName("Crossbow") Crossbow(false, ItemAndFormula.Crossbow),
-    @SerializedName("Whip") Whip(false, ItemAndFormula.Whip),
-    @SerializedName("Club") Club(false, ItemAndFormula.Club),
-    @SerializedName("Knife") Knife(false, ItemAndFormula.Knife),
-    @SerializedName("Hammer") Hammer(false, ItemAndFormula.Hammer),
-    @SerializedName("Martial Arts") MartialArts(false, ItemAndFormula.MartialArts),
-    @SerializedName("Monster Weapon") MonsterWeapon(false, ItemAndFormula.MonsterWeapon),
-    @SerializedName("Delta Ether") DeltaEther(true, ItemAndFormula.DeltaEther),
-    @SerializedName("Gamma Ether") GammaEther(true, ItemAndFormula.GammaEther),
-    @SerializedName("Omega Ether") OmegaEther(true, ItemAndFormula.OmegaEther),
-    @SerializedName("Pi Ether") PiEther(true, ItemAndFormula.PiEther),
-    @SerializedName("Alpha Ether") AlphaEther(true, ItemAndFormula.AlphaEther);
+    @SerializedName("Sword") Sword(false, () -> { return ItemAndFormula.Sword; }),
+    @SerializedName("Axe") Axe(false, () -> { return ItemAndFormula.Axe; }),
+    @SerializedName("Polearm") Polearm(false, () -> { return ItemAndFormula.Polearm; }),
+    @SerializedName("Bow") Bow(false, () -> { return ItemAndFormula.Bow; }),
+    @SerializedName("Crossbow") Crossbow(false, () -> { return ItemAndFormula.Crossbow; }),
+    @SerializedName("Whip") Whip(false, () -> { return ItemAndFormula.Whip; }),
+    @SerializedName("Club") Club(false, () -> { return ItemAndFormula.Club; }),
+    @SerializedName("Knife") Knife(false, () -> { return ItemAndFormula.Knife; }),
+    @SerializedName("Hammer") Hammer(false, () -> { return ItemAndFormula.Hammer; }),
+    @SerializedName("Martial Arts") MartialArts(false, () -> { return ItemAndFormula.MartialArts; }),
+    @SerializedName("Monster Weapon") MonsterWeapon(false, () -> { return ItemAndFormula.MonsterWeapon; }),
+    @SerializedName("Delta Ether") DeltaEther(true, () -> { return ItemAndFormula.DeltaEther; }),
+    @SerializedName("Gamma Ether") GammaEther(true, () -> { return ItemAndFormula.GammaEther; }),
+    @SerializedName("Omega Ether") OmegaEther(true, () -> { return ItemAndFormula.OmegaEther; }),
+    @SerializedName("Pi Ether") PiEther(true, () -> { return ItemAndFormula.PiEther; }),
+    @SerializedName("Alpha Ether") AlphaEther(true, () -> { return ItemAndFormula.AlphaEther; });
     
     private final boolean isFormula;
-    private final Texture iconTexture;
-    private WeaponType(boolean isFormula, Texture iconTexture) {
+    private final Supplier<Texture> iconTexture;
+    private WeaponType(boolean isFormula, Supplier<Texture> iconTexture) {
         this.isFormula = isFormula;
         this.iconTexture = iconTexture;
     }
@@ -43,6 +44,6 @@ public enum WeaponType {
     }
     
     public Texture getIconTexture() {
-        return iconTexture;
+        return iconTexture.get();
     }
 }

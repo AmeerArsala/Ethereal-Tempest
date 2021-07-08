@@ -109,7 +109,7 @@ public class CombatantUI {
         portrait = GuiFactory.createPanel(
             portraitDims, portraitDims, 
             assetManager, 
-            assetManager.loadTexture("Textures/portraits/" + forecast.getCombatant().getUnit().getUnitInfo().getPortraitTextureName()), //TODO: change later
+            assetManager.loadTexture(forecast.getCombatant().getUnit().getUnitInfo().getPortraitTexturePath()), //TODO: change later
             ColorRGBA.White, 
             false //don't mirror portrait texture
         );

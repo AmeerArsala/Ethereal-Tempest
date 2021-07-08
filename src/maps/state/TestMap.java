@@ -155,18 +155,6 @@ public class TestMap extends AbstractAppState {
 
         //audioRenderer = app.getAudioRenderer();
         
-        //initialize gui
-        GuiGlobals.initialize(app);
-        
-        //load glass style
-        BaseStyles.loadGlassStyle();
-        
-        //default style is glass for now
-        GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
-        //GuiGlobals.getInstance().setCursorEventsEnabled(false);
-        
-        assetManager.registerLoader(TrueTypeLoader.class, "ttf");
-        
         stats = new StatScreen(assetManager);
         postAction = new ActionMenu(assetManager);
         
@@ -294,7 +282,9 @@ public class TestMap extends AbstractAppState {
         
         //initialize what's going on in the map
         mapFlow.initialize((ArrayList<TangibleUnit> units, List<MapEntity> mapEntities) -> {
+            units.addAll(mapLevel.getMapData().getStartingUnits());
             
+            /*
             units.add(
                 new TangibleUnit(
                     Catalog.UNIT_Morva(),
@@ -304,6 +294,7 @@ public class TestMap extends AbstractAppState {
                     assetManager
                 )
             );
+            */
             
             //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Player, assetManager));
             
@@ -313,7 +304,7 @@ public class TestMap extends AbstractAppState {
             
             //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
             
-            units.add(new TangibleUnit(Catalog.UNIT_EvilMorva(), new CharacterUnitInfo("RedTintedMorva.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
+            //units.add(new TangibleUnit(Catalog.UNIT_EvilMorva(), new CharacterUnitInfo("RedTintedMorva.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
             
             int layer = 0;
             for (int k = 0; k < units.size(); k++) {

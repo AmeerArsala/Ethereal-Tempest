@@ -2,132 +2,44 @@
   "name": "Marauder",
   "desc": "A peasant who has turned to the ways of violence due to their less fortunate status.",
   "tier": 0,
-  "bonusBaseStats": [
-    {
-      "baseStatName": "Max HP",
-      "val": 0
-    },
-    {
-      "baseStatName": "Max TP",
-      "val": 0
-    },
-    {
-      "baseStatName": "Strength",
-      "val": 0
-    },
-    {
-      "baseStatName": "Ether",
-      "val": 0
-    },
-    {
-      "baseStatName": "Agility",
-      "val": 0
-    },
-    {
-      "baseStatName": "Dexterity",
-      "val": 0
-    },
-    {
-      "baseStatName": "Comprehension",
-      "val": 0
-    },
-    {
-      "baseStatName": "Defense",
-      "val": 0
-    },
-    {
-      "baseStatName": "Resilience",
-      "val": 0
-    },
-    {
-      "baseStatName": "Mobility",
-      "val": 0
-    },
-    {
-      "baseStatName": "Physique",
-      "val": 0
-    },
-    {
-      "baseStatName": "Base Adrenaline",
-      "val": 0
-    }
-  ],
-  "bonusBattleStats": [
-    {
-      "battleStatName": "Accuracy",
-      "val": 0
-    },
-    {
-      "battleStatName": "AttackPower",
-      "val": 0
-    },
-    {
-      "battleStatName": "AttackSpeed",
-      "val": 0
-    },
-    {
-      "battleStatName": "Crit",
-      "val": 0
-    },
-    {
-      "battleStatName": "CritEvasion",
-      "val": 0
-    },
-    {
-      "battleStatName": "Evasion",
-      "val": 0
-    }
-  ],
-  "maxStats": [
-    {
-      "baseStatName": "Max HP",
-      "val": 35
-    },
-    {
-      "baseStatName": "Max TP",
-      "val": 30
-    },
-    {
-      "baseStatName": "Strength",
-      "val": 28
-    },
-    {
-      "baseStatName": "Ether",
-      "val": 10
-    },
-    {
-      "baseStatName": "Agility",
-      "val": 13
-    },
-    {
-      "baseStatName": "Dexterity",
-      "val": 11
-    },
-    {
-      "baseStatName": "Comprehension",
-      "val": 9
-    },
-    {
-      "baseStatName": "Defense",
-      "val": 13
-    },
-    {
-      "baseStatName": "Resilience",
-      "val": 7
-    },
-    {
-      "baseStatName": "Mobility",
-      "val": 10
-    },
-    {
-      "baseStatName": "Physique",
-      "val": 15
-    },
-    {
-      "baseStatName": "Base Adrenaline",
-      "val": 20
-    }
-  ],
+  "bonusBaseStats": {
+    "Level": 0,
+    "MaxHP": 0,
+    "MaxTP": 0,
+    "Strength": 0,
+    "Ether": 0,
+    "Agility": 0,
+    "Dexterity": 0,
+    "Comprehension": 0,
+    "Defense": 0,
+    "Resilience": 0,
+    "Mobility": 0,
+    "Physique": 0,
+    "BaseAdrenaline": 0
+  },
+  "bonusBattleStats": {
+    "Accuracy": 0,
+    "AttackPower": 0,
+    "AttackSpeed": 0,
+    "Crit": 0,
+    "CritEvasion": 0,
+    "Evasion": 0
+  },
+  "maxStats": {
+    "Level": 50,
+    "MaxHP": 35,
+    "MaxTP": 30,
+    "Strength": 28,
+    "Ether": 10,
+    "Agility": 13,
+    "Dexterity": 11,
+    "Comprehension": 9,
+    "Defense": 13,
+    "Resilience": 7,
+    "Mobility": 10,
+    "Physique": 15,
+    "BaseAdrenaline": 20
+  },
   "wieldableWeaponTypes": [ "Axe" ],
   "mobilityTypes": [ "Infantry" ],
   "battleAnimationConfigurations": [

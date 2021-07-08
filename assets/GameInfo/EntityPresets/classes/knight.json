@@ -2,132 +2,44 @@
   "name": "Knight",
   "desc": "One who has underwent military training to get this far.",
   "tier": 1,
-  "bonusBaseStats": [
-    {
-      "baseStatName": "Max HP",
-      "val": 0
-    },
-    {
-      "baseStatName": "Max TP",
-      "val": 0
-    },
-    {
-      "baseStatName": "Strength",
-      "val": 1
-    },
-    {
-      "baseStatName": "Ether",
-      "val": 0
-    },
-    {
-      "baseStatName": "Agility",
-      "val": 1
-    },
-    {
-      "baseStatName": "Dexterity",
-      "val": 1
-    },
-    {
-      "baseStatName": "Comprehension",
-      "val": 0
-    },
-    {
-      "baseStatName": "Defense",
-      "val": 3
-    },
-    {
-      "baseStatName": "Resilience",
-      "val": 0
-    },
-    {
-      "baseStatName": "Mobility",
-      "val": 3
-    },
-    {
-      "baseStatName": "Physique",
-      "val": 10
-    },
-    {
-      "baseStatName": "Base Adrenaline",
-      "val": 0
-    }
-  ],
-  "bonusBattleStats": [
-    {
-      "battleStatName": "Accuracy",
-      "val": 0
-    },
-    {
-      "battleStatName": "AttackPower",
-      "val": 0
-    },
-    {
-      "battleStatName": "AttackSpeed",
-      "val": 0
-    },
-    {
-      "battleStatName": "Crit",
-      "val": 0
-    },
-    {
-      "battleStatName": "CritEvasion",
-      "val": 0
-    },
-    {
-      "battleStatName": "Evasion",
-      "val": 0
-    }
-  ],
-  "maxStats": [
-    {
-      "baseStatName": "Max HP",
-      "val": 33
-    },
-    {
-      "baseStatName": "Max TP",
-      "val": 60
-    },
-    {
-      "baseStatName": "Strength",
-      "val": 22
-    },
-    {
-      "baseStatName": "Ether",
-      "val": 15
-    },
-    {
-      "baseStatName": "Agility",
-      "val": 14
-    },
-    {
-      "baseStatName": "Dexterity",
-      "val": 13
-    },
-    {
-      "baseStatName": "Comprehension",
-      "val": 11
-    },
-    {
-      "baseStatName": "Defense",
-      "val": 18
-    },
-    {
-      "baseStatName": "Resilience",
-      "val": 12
-    },
-    {
-      "baseStatName": "Mobility",
-      "val": 10
-    },
-    {
-      "baseStatName": "Physique",
-      "val": 20
-    },
-    {
-      "baseStatName": "Base Adrenaline",
-      "val": 30
-    }
-  ],
+  "bonusBaseStats": {
+    "Level": 0,
+    "MaxHP": 0,
+    "MaxTP": 0,
+    "Strength": 1,
+    "Ether": 0,
+    "Agility": 1,
+    "Dexterity": 1,
+    "Comprehension": 0,
+    "Defense": 3,
+    "Resilience": 0,
+    "Mobility": 3,
+    "Physique": 10,
+    "BaseAdrenaline": 0
+  },
+  "bonusBattleStats": {
+    "Accuracy": 0,
+    "AttackPower": 0,
+    "AttackSpeed": 0,
+    "Crit": 0,
+    "CritEvasion": 0,
+    "Evasion": 0
+  },
+  "maxStats": {
+    "Level": 50,
+    "MaxHP": 33,
+    "MaxTP": 60,
+    "Strength": 22,
+    "Ether": 15,
+    "Agility": 14,
+    "Dexterity": 13,
+    "Comprehension": 18,
+    "Defense": 18,
+    "Resilience": 12,
+    "Mobility": 10,
+    "Physique": 20,
+    "BaseAdrenaline": 30
+  },
   "wieldableWeaponTypes": [ "Sword", "Polearm" ],
   "mobilityTypes": [ "Cavalry" ],
   "battleAnimationConfigurations": [

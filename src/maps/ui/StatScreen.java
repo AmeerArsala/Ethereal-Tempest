@@ -588,7 +588,7 @@ public class StatScreen extends Node {
         //START PORTRAIT
         Panel portrait = new Panel(240f, 240f);
         portrait.setBorder(new QuadBackgroundComponent(MapTextures.GUI.StatMenu.PortraitBackdrop));
-        portrait.setBackground(new QuadBackgroundComponent(assetManager.loadTexture("Textures/portraits/" + tu.getUnitInfo().getPortraitTextureName())));
+        portrait.setBackground(new QuadBackgroundComponent(assetManager.loadTexture(tu.getUnitInfo().getPortraitTexturePath())));
         portrait.setInsets(new Insets3f(0.1f, 0.1f, 0.1f, 0.1f));
         portrait.attachChild(portraitFrame);
         dontstretchportrait.addChild(portrait);

@@ -2,132 +2,44 @@
   "name": "Freeblade",
   "desc": "A youth who is unconventionally skilled with a blade not bound by a contract.",
   "tier": 0,
-  "bonusBaseStats": [
-    {
-      "baseStatName": "Max HP",
-      "val": 0
-    },
-    {
-      "baseStatName": "Max TP",
-      "val": 0
-    },
-    {
-      "baseStatName": "Strength",
-      "val": 0
-    },
-    {
-      "baseStatName": "Ether",
-      "val": 0
-    },
-    {
-      "baseStatName": "Agility",
-      "val": 0
-    },
-    {
-      "baseStatName": "Dexterity",
-      "val": 0
-    },
-    {
-      "baseStatName": "Comprehension",
-      "val": 0
-    },
-    {
-      "baseStatName": "Defense",
-      "val": 0
-    },
-    {
-      "baseStatName": "Resilience",
-      "val": 0
-    },
-    {
-      "baseStatName": "Mobility",
-      "val": 0
-    },
-    {
-      "baseStatName": "Physique",
-      "val": 0
-    },
-    {
-      "baseStatName": "Base Adrenaline",
-      "val": 0
-    }
-  ],
-  "bonusBattleStats": [
-    {
-      "battleStatName": "Accuracy",
-      "val": 0
-    },
-    {
-      "battleStatName": "AttackPower",
-      "val": 0
-    },
-    {
-      "battleStatName": "AttackSpeed",
-      "val": 0
-    },
-    {
-      "battleStatName": "Crit",
-      "val": 0
-    },
-    {
-      "battleStatName": "CritEvasion",
-      "val": 0
-    },
-    {
-      "battleStatName": "Evasion",
-      "val": 0
-    }
-  ],
-  "maxStats": [
-    {
-      "baseStatName": "Max HP",
-      "val": 31
-    },
-    {
-      "baseStatName": "Max TP",
-      "val": 50
-    },
-    {
-      "baseStatName": "Strength",
-      "val": 20
-    },
-    {
-      "baseStatName": "Ether",
-      "val": 17
-    },
-    {
-      "baseStatName": "Agility",
-      "val": 17
-    },
-    {
-      "baseStatName": "Dexterity",
-      "val": 17
-    },
-    {
-      "baseStatName": "Comprehension",
-      "val": 19
-    },
-    {
-      "baseStatName": "Defense",
-      "val": 17
-    },
-    {
-      "baseStatName": "Resilience",
-      "val": 15
-    },
-    {
-      "baseStatName": "Mobility",
-      "val": 10
-    },
-    {
-      "baseStatName": "Physique",
-      "val": 15
-    },
-    {
-      "baseStatName": "Base Adrenaline",
-      "val": 40
-    }
-  ],
+  "bonusBaseStats": {
+    "Level": 0,
+    "MaxHP": 0,
+    "MaxTP": 0,
+    "Strength": 0,
+    "Ether": 0,
+    "Agility": 0,
+    "Dexterity": 0,
+    "Comprehension": 0,
+    "Defense": 0,
+    "Resilience": 0,
+    "Mobility": 0,
+    "Physique": 0,
+    "BaseAdrenaline": 0
+  },
+  "bonusBattleStats": {
+    "Accuracy": 0,
+    "AttackPower": 0,
+    "AttackSpeed": 0,
+    "Crit": 0,
+    "CritEvasion": 0,
+    "Evasion": 0
+  },
+  "maxStats": {
+    "Level": 50,
+    "MaxHP": 31,
+    "MaxTP": 50,
+    "Strength": 20,
+    "Ether": 17,
+    "Agility": 17,
+    "Dexterity": 17,
+    "Comprehension": 19,
+    "Defense": 17,
+    "Resilience": 15,
+    "Mobility": 10,
+    "Physique": 15,
+    "BaseAdrenaline": 40
+  },
   "wieldableWeaponTypes": [ "Sword", "Delta Ether" ],
   "mobilityTypes": [ "Infantry" ],
   "battleAnimationConfigurations": [

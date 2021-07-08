@@ -108,6 +108,11 @@ public class TangibleUnit extends PositionedUnit {
         visuals.updateSprite();
     }
     
+    public TangibleUnit(Unit X, CharacterUnitInfo info, PositionedUnitParams startingParams, UnitAllegiance startingAllegiance, MapCoords startingPos, AssetManager assetManager) {
+        this(X, info, startingParams, startingAllegiance, assetManager);
+        pos.set(startingPos);
+    }
+    
     public FSM<UnitState> getFSM() { 
         return fsm; 
     }

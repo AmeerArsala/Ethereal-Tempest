@@ -111,7 +111,7 @@ public abstract class TalentEffect { //NOTE: ON ALL CONVEYOR, UNIT MUST BE SET T
     /**
      * AOE D over N spaces on H units = X% of user's Y stat
      * @param percent float with a domain of [-1, 1]. It represents X in the equation above
-     * @param stat =BaseStat. It represents Y in the equaiton above
+     * @param stat BaseStat. It represents Y in the equaiton above
      * @param lossType Exchange. It represents the D in the equation above (damage type)
      * @param range int > 0. It represents the N in the equation above
      * @param applyTo AgainstUnits. It represents the H in the equation above 
