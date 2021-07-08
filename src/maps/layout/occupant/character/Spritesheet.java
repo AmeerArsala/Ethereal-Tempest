@@ -52,6 +52,7 @@ public class Spritesheet { //this is specifically for TangibleUnit sprites (on m
     private String outlineSheet;
     
     @Expose(deserialize = false) private String folderName;
+    @Expose(deserialize = false) private HashMap<AnimationState, Integer> startingPositions; //the actual positions in terms of material.setFloat("Position", ...);
     
     public Spritesheet(SheetRow[] rows, int maxColumns, String fileName, String outlineSheet) {
         this.rows = rows;
@@ -119,7 +120,6 @@ public class Spritesheet { //this is specifically for TangibleUnit sprites (on m
         return sum;
     }
     
-    public HashMap<AnimationState, Integer> startingPositions; //the actual positions in terms of material.setFloat("Position", ...);
     public Spritesheet setAnimations() {
         startingPositions = new HashMap<>();
         startingPositions.put(rows[0].animation, 0);
@@ -133,5 +133,9 @@ public class Spritesheet { //this is specifically for TangibleUnit sprites (on m
     public Spritesheet setFolderName(String name) {
         folderName = name;
         return this;
+    }
+    
+    public int getStartingPosition(AnimationState anim) {
+        return startingPositions.get(anim);
     }
 }

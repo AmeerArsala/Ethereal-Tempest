@@ -7,6 +7,7 @@ package general.tools.input;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import general.utils.Duo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +49,14 @@ public abstract class ComplexInputReader<E extends Enum> {
     
     public ComplexInputReader link(E pointer, String actual) {
         mapping.put(pointer, actual);
+        return this;
+    }
+    
+    public ComplexInputReader link(Duo<E, String>... mappings) {
+        for (Duo<E, String> map : mappings) {
+            mapping.put(map.first, map.second);
+        }
+        
         return this;
     }
     

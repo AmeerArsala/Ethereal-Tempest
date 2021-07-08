@@ -6,7 +6,7 @@
 package etherealtempest.fsm;
 
 import com.jme3.math.ColorRGBA;
-import maps.layout.occupant.Cursor;
+import maps.layout.occupant.control.CursorFSM;
 
 /**
  *
@@ -127,13 +127,13 @@ public abstract class FSM<T extends Enum> {
     
     public enum CursorState {
         //Cursor states
-        CursorDefault(Cursor.DEFAULT_COLOR),
-        AnyoneHovered(Cursor.DEFAULT_COLOR, 0.5f),
-        AnyoneSelected(Cursor.SELECTING_MOVE_SQUARE, 0.85f),
-        AnyoneMoving(Cursor.DEFAULT_COLOR),
-        AnyoneSelectingTarget(Cursor.SELECTING_ATTACK_TARGET),
-        AnyoneTargeted(Cursor.DEFAULT_COLOR),
-        Idle(Cursor.MISC_COLOR);
+        CursorDefault(CursorFSM.DEFAULT_COLOR),
+        AnyoneHovered(CursorFSM.DEFAULT_COLOR, 0.5f),
+        AnyoneSelected(CursorFSM.SELECTING_MOVE_SQUARE, 0.85f),
+        AnyoneMoving(CursorFSM.DEFAULT_COLOR),
+        AnyoneSelectingTarget(CursorFSM.SELECTING_ATTACK_TARGET),
+        AnyoneTargeted(CursorFSM.DEFAULT_COLOR),
+        Idle(CursorFSM.MISC_COLOR);
         
         private final ColorRGBA correspondingColor;
         private final float tileOpacity;

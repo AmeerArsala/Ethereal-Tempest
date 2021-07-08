@@ -178,9 +178,9 @@ public class Tile extends TileFoundation {
                     textureCoords.add(texCoords.get(randomIndex));
                     texCoords.remove(randomIndex);
                 }
-            } else if (info != null && info.getVisuals().getIsWangTexture()) {
+            } else if (info != null && info.getVisuals().getIsWangTexture()) { //rearranges the texCoords randomly
                 int revolutions = (int)(4 * Math.random()) + 1; //counter clockwise 90 degree revolutions
-                int revIndex = 4 - revolutions;
+                int revIndex = 4 - revolutions; // [0, 3]
                 for (int c = 0; c < revolutions; c++) {
                     textureCoords.add(texCoords.get(revIndex));
                     texCoords.remove(revIndex);

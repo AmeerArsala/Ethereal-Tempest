@@ -228,8 +228,8 @@ public class TangibleUnit extends PositionedUnit {
         fsm.setNewStateIfAllowed(UnitState.Idle);
     }
     
-    public void moveWith(TileFoundation[] tilePath) {
-        moveWith(visuals.birthMovement(tilePath));
+    public void moveWith(MapCoords[] tilePath) {
+        moveWith(visuals.birthMovement(tilePath, pos.deepDuplicate()));
     }
     
     public void moveTo(MapCoords destination) {

@@ -20,11 +20,11 @@ public class MathUtils {
     }
     
     public static float hypotenuse(Vector2f mona) {
-        return FastMath.sqrt(FastMath.pow(mona.x, 2) + FastMath.pow(mona.y, 2));
+        return FastMath.sqrt((mona.x*mona.x) + (mona.y*mona.y));
     }
     
     public static float hypotenuse(float x, float y) {
-        return FastMath.sqrt(FastMath.pow(x, 2) + FastMath.pow(y, 2));
+        return FastMath.sqrt((x*x) + (y*y));
     }
     
     /**

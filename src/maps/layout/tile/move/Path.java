@@ -5,18 +5,17 @@
  */
 package maps.layout.tile.move;
 
+import etherealtempest.Main;
 import etherealtempest.fsm.MasterFsmState;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Random;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapBounds;
 import maps.layout.MapCoords;
 import maps.layout.tile.Tile;
-import maps.layout.tile.TileFoundation;
 
 /**
  *
@@ -70,7 +69,7 @@ public class Path {
         } else if (start.getX() == end.getX()) {
             return false;
         } else {
-            return new Random(System.currentTimeMillis()).nextBoolean();
+            return Main.RNG.nextBoolean();
         }
     }
     
@@ -87,10 +86,10 @@ public class Path {
     public MapCoords getFinalPos() { return end; }
     public int getMoveCapacity() { return moveCapacity; }
     
-    public TileFoundation[] TilePath() {
-        TileFoundation[] tilePath = new TileFoundation[path.size()];
+    public MapCoords[] asArray() {
+        MapCoords[] tilePath = new MapCoords[path.size()];
         for (int i = 0; i < tilePath.length; i++) {
-            tilePath[i] = path.get(i);
+            tilePath[i] = pathSequence.get(i);
         }
         
         return tilePath;

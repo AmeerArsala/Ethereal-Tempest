@@ -217,7 +217,7 @@ public class UnitVisuals {
     }
     
     private int calculateSpritesheetPosition() { //value is row
-        return (spritesheetInfo.startingPositions.get(animState) + (((int)(Main.GameFlow.getFrame() * 0.1)) % spritesheetInfo.getColumnCount(animState)));
+        return (spritesheetInfo.getStartingPosition(animState) + (((int)(Main.GameFlow.getFrame() * 0.1)) % spritesheetInfo.getColumnCount(animState)));
     }
     
     private void updateOutline() { //pass in allegiance.getAssociatedColor()
@@ -273,7 +273,7 @@ public class UnitVisuals {
     
     public Movement createMovement(MapCoords start, MapCoords end, int moveCapacity) {
         return new Movement(
-            new Path(start, end, moveCapacity).TilePath(),
+            new Path(start, end, moveCapacity),
             (deltaXY, deltaPosition) -> {
                 animState = AnimationState.directionalValueOf(deltaXY);
                 node.move(deltaPosition);
@@ -281,8 +281,9 @@ public class UnitVisuals {
         );
     }
     
-    public Movement birthMovement(TileFoundation[] tilePath) {
+    public Movement birthMovement(MapCoords[] tilePath, MapCoords startPos) {
         return new Movement(
+            startPos,
             tilePath, 
             (deltaXY, deltaPosition) -> {
                 animState = AnimationState.directionalValueOf(deltaXY);

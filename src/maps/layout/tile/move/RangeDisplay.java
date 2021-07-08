@@ -102,6 +102,14 @@ public class RangeDisplay {
         return displayedMovSquares.stream().anyMatch((square) -> (square.getPos().getCoords().nonDiagonalDistanceFrom(coords.getCoords()) == X));
     }
     
+    public boolean isDisplayedMoveSquare(MapCoords coords) {
+        return displayedMovSquares.stream().anyMatch((square) -> (coords.equals(square.getPos())));
+    }
+    
+    public boolean isDisplayedAttackSquare(MapCoords coords) {
+        return displayedAtkSquares.stream().anyMatch((square) -> (coords.equals(square.getPos())));
+    }
+    
     public static boolean shouldDisplayTile(Coords start, Coords dest, int layer, int moveCapacity) {
         return shouldDisplayTile(start, dest, layer, moveCapacity, MasterFsmState.getCurrentMap());
     }

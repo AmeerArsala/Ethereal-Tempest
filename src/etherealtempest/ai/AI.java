@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import maps.data.ObjectiveData;
-import maps.layout.occupant.Cursor.Purpose;
+import maps.layout.occupant.control.CursorFSM.Purpose;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
 import maps.layout.occupant.character.TangibleUnit;

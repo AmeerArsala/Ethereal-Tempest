@@ -51,7 +51,7 @@ import com.jme3.texture.Image;
 import com.jme3.texture.TextureArray;
 import com.jme3.util.SkyFactory;
 import com.jme3.util.SkyFactory.EnvMapType;
-import maps.layout.occupant.Cursor;
+import maps.layout.occupant.control.Cursor;
 import maps.layout.MapLevel;
 import maps.ui.StatScreen;
 import maps.layout.occupant.character.TangibleUnit;

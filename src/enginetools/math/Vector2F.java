@@ -110,13 +110,13 @@ public class Vector2F implements Serializable {
     
     public static Vector2f toPolar(Vector2f xy) {
         float r = MathUtils.hypotenuse(xy);
-        float theta = FastMath.atan(xy.y / xy.x);
+        float theta = FastMath.atan2(xy.y, xy.x);
         return new Vector2f(r, theta);
     }
     
     public static Vector2f toPolarLocal(Vector2f xy) {
         float r = MathUtils.hypotenuse(xy);
-        float theta = FastMath.atan(xy.y / xy.x);
+        float theta = FastMath.atan2(xy.y, xy.x);
         
         xy.x = r;
         xy.y = theta;

@@ -202,7 +202,7 @@ public class Coords {
     
     public Vector2f toPolar() {
         float r = MathUtils.hypotenuse(x, y);
-        float theta = FastMath.atan(((float)y) / x);
+        float theta = FastMath.atan2((float)y, (float)x);
         return new Vector2f(r, theta);
     }
     

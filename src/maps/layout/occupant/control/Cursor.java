@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package maps.layout.occupant;
+package maps.layout.occupant.control;
 
 import maps.layout.occupant.character.TangibleUnit;
 import maps.layout.tile.move.RangeDisplay;
@@ -14,7 +14,6 @@ import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
@@ -34,6 +33,7 @@ import general.tools.input.ComplexInputReader;
 import general.tools.GameTimer;
 import general.procedure.SimpleOrdinalQueue;
 import general.procedure.functional.SimpleProcedure;
+import general.utils.Duo;
 import maps.data.MapTextures;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
 import maps.layout.Coords;
@@ -41,6 +41,7 @@ import maps.layout.MapLevel;
 import maps.layout.MapCoords;
 import maps.layout.OnTile;
 import maps.layout.occupant.character.Movement;
+import maps.layout.occupant.control.CursorFSM.Purpose;
 import maps.layout.tile.Tile;
 import maps.layout.tile.move.MoveArrowTrain;
 
@@ -49,74 +50,10 @@ import maps.layout.tile.move.MoveArrowTrain;
  * @author night
  */
 public class Cursor extends Node implements OnTile {
-    public enum Purpose {
-        WeaponAttack,
-        SkillAttack,
-        EtherAttack,
-        EtherSupport,
-        Trade,
-        None
-    }
-    
-    public enum Direction {
-        Up("move up"),
-        Down("move down"),
-        Left("move left"),
-        Right("move right");
-        
-        private Direction conflicter;
-        private final String correspondingInput;
-        
-        private Direction(String input) {
-            correspondingInput = input;
-        }
-        
-        private void setConflicter(Direction conflict) {
-            conflicter = conflict;
-        }
-        
-        static {
-            Up.setConflicter(Down);
-            Down.setConflicter(Up);
-            
-            Left.setConflicter(Right);
-            Right.setConflicter(Left);
-        }
-        
-        public Direction getConflicter() {
-            return conflicter;
-        }
-        
-        public String getCorrespondingInput() {
-            return correspondingInput;
-        }
-        
-        public static Direction getDirection(String input) {
-            Direction[] vals = Direction.values();
-            for (Direction dir : vals) {
-                if (dir.getCorrespondingInput().equals(input)) {
-                    return dir;
-                }
-            }
-            
-            return null;
-        }
-        
-        public static String getConflicter(String input) {
-            return getDirection(input).getConflicter().getCorrespondingInput();
-        }
-    }
-    
-    public static final ColorRGBA DEFAULT_COLOR = new ColorRGBA(0.9176f, 0.8509f, 0, 1f);
-    public static final ColorRGBA SELECTING_MOVE_SQUARE = new ColorRGBA(1f, 0.6784f, 0.1176f, 1f);
-    public static final ColorRGBA SELECTING_ATTACK_TARGET = new ColorRGBA(1f, 0f, 0.549f, 1f);
-    public static final ColorRGBA SELECTING_SUPPORT_TARGET = new ColorRGBA(0, 1, 0, 1);
-    public static final ColorRGBA MISC_COLOR = new ColorRGBA(1, 1, 1, 1);
-    
     private static final float BUTTON_HOLD_TIME = 0.25f;
     private static final float DEFAULT_CURSOR_SPEED = 1.5f, HELD_CURSOR_SPEED = 1.25f;
     
-    private final GameTimer globals = new GameTimer();
+    private final GameTimer timer = new GameTimer();
     private final SimpleOrdinalQueue queue = new SimpleOrdinalQueue();
     
     private final CursorPointer pointer;
@@ -125,18 +62,13 @@ public class Cursor extends Node implements OnTile {
     private final MoveArrowTrain arrowTrain;
     
     private final MapCoords pos = new MapCoords();
-    private final Coords selectionDifferenceXY = new Coords(0, 0);
-    private final Coords toTraverseXY = new Coords(0, 0);
-    private final Vector2f accumulatedCursorDistanceXY = new Vector2f(0, 0);
-    private final Vector3f preferredLocation = new Vector3f(0, 0, 0);
+    private final Vector3f preferredLocation = new Vector3f(0, 0.01f, 0);
     
-    private float cursorSpeed = 1.5f;
-    private boolean translatingX = false, translatingY = false, isBacking = false, isCorrected = true;
-    private Purpose purpose = Purpose.None;
+    private float cursorSpeed = DEFAULT_CURSOR_SPEED;
     
     public TangibleUnit receivingEnd, selectedUnit;
     
-    private ComplexInputReader<Direction> interpreter = 
+    private final ComplexInputReader<Direction> interpreter = 
         new ComplexInputReader<Direction>(true, BUTTON_HOLD_TIME) {
             @Override
             public void protocolProcedure(Direction inputHeld) {
@@ -144,14 +76,14 @@ public class Cursor extends Node implements OnTile {
                     tryTranslate(inputHeld, 1, amountOfKeysPressed() == 1 || !keyIsHeld(inputHeld.getConflicter()));
                 }
             }
-        }
-        .link(Direction.Up, "move up")
-        .link(Direction.Down, "move down")
-        .link(Direction.Left, "move left")
-        .link(Direction.Right, "move right");
+        }.link(
+            new Duo<>(Direction.Up, "move up"),
+            new Duo<>(Direction.Down, "move down"),
+            new Duo<>(Direction.Left, "move left"),
+            new Duo<>(Direction.Right, "move right")
+        );
     
-    
-    private FSM<CursorState> fsm = new FSM<CursorState>() {
+    private CursorFSM fsm = new CursorFSM() {
         @Override
         protected void onAttemptStateSet(FsmState<CursorState> st) {
             if (st.getEnum() == CursorState.Idle) {
@@ -171,12 +103,11 @@ public class Cursor extends Node implements OnTile {
             pointer.getMaterial().setColor("Color", currentState.getEnum().getCorrespondingColor());
             
             if (currentState.getEnum() == CursorState.AnyoneSelected) {
-                arrowTrain.setVisibility(true);
-                arrowTrain.setCapacity(selectedUnit.getMOBILITY());
-                
                 if (previousState.getEnum() == CursorState.AnyoneHovered) {
                     arrowTrain.clear();
                 }
+                
+                arrowTrain.setVisibility(true);
             } else {
                 arrowTrain.setVisibility(false);
             }
@@ -199,7 +130,6 @@ public class Cursor extends Node implements OnTile {
             square.getMaterial().setColor("Color", st.getEnum().getCorrespondingColor());
             if (st.getEnum() == CursorState.AnyoneSelected) {
                 arrowTrain.setVisibility(true);
-                arrowTrain.setCapacity(selectedUnit.getMOBILITY());
             } else {
                 arrowTrain.setVisibility(false);
             }
@@ -213,30 +143,29 @@ public class Cursor extends Node implements OnTile {
         Geometry geometry = new Geometry("cursor square", quad);
         arrowTrain = new MoveArrowTrain(assetManager);
         rangeDisplay = new RangeDisplay(MasterFsmState.getCurrentMap(), assetManager);
-        pointer = 
-            new CursorPointer(
-                assetManager, 
-                new MaterialCreator(
-                    MaterialCreator.UNSHADED, 
-                    (pointerMat) -> {
-                        pointerMat.setColor("Color", DEFAULT_COLOR);
-                        pointerMat.getAdditionalRenderState().setWireframe(true);
-                    }
-                ), 
-                true
-            );
+        pointer = new CursorPointer(
+            assetManager, 
+            new MaterialCreator(
+                MaterialCreator.UNSHADED,
+                (pointerMat) -> {
+                    pointerMat.setColor("Color", CursorFSM.DEFAULT_COLOR);
+                    pointerMat.getAdditionalRenderState().setWireframe(true);
+                }
+            ), 
+            true
+        );
         
         Quaternion rotation = new Quaternion();
         rotation.fromAngles((FastMath.PI / -2f), (FastMath.PI / -2f), 0);
         geometry.setLocalRotation(rotation);
         geometry.setQueueBucket(Bucket.Transparent);
         
-        Material pcs = new Material(assetManager, MaterialCreator.UNSHADED);
-        pcs.setTexture("ColorMap", MapTextures.Tiles.Cursor);
-        pcs.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
-        pcs.getAdditionalRenderState().setDepthWrite(false);
+        Material mat = new Material(assetManager, MaterialCreator.UNSHADED);
+        mat.setTexture("ColorMap", MapTextures.Tiles.Cursor);
+        mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
+        mat.getAdditionalRenderState().setDepthWrite(false);
         
-        square = new GeometricBody<>(geometry, quad, pcs);
+        square = new GeometricBody<>(geometry, quad, mat);
         
         LayerComparator.setLayer(square.getGeometry(), 3);
         
@@ -247,7 +176,6 @@ public class Cursor extends Node implements OnTile {
     }
     
     public FSM<CursorState> getFSM() { return fsm; }
-    
     public MapCoords getPos() { return pos; }
     
     public CursorPointer getPointer() { return pointer; }
@@ -255,14 +183,14 @@ public class Cursor extends Node implements OnTile {
     public MoveArrowTrain getMoveArrowTrain() { return arrowTrain; }
     
     public float getSpeed() { return cursorSpeed; }
-    public Purpose getPurpose() { return purpose; }
+    public Purpose getPurpose() { return fsm.getPurpose(); }
     
     public void setSpeed(float speed) { //default is 1
         cursorSpeed = speed;
     }
     
     public void setPurpose(Purpose P) {
-        purpose = P;
+        fsm.setPurpose(P);
     }
     
     public void addToQueue(SimpleProcedure procedure) {
@@ -317,25 +245,25 @@ public class Cursor extends Node implements OnTile {
     public void tryTranslate(Direction dir, int spaces, boolean overrideCondition) {
         switch (dir) {
             case Up:
-                if (!translatingY || overrideCondition) {
+                if (!fsm.translatingY || overrideCondition) {
                     cursorSpeed = HELD_CURSOR_SPEED;
                     translateY(spaces); 
                 }
                 break;
             case Down:
-                if (!translatingY || overrideCondition) {
+                if (!fsm.translatingY || overrideCondition) {
                     cursorSpeed = HELD_CURSOR_SPEED;
                     translateY(spaces * -1);
                 }
                 break;
             case Left:
-                if (!translatingX || overrideCondition) {
+                if (!fsm.translatingX || overrideCondition) {
                     cursorSpeed = HELD_CURSOR_SPEED;
                     translateX(spaces * -1);
                 }
                 break;
             case Right:
-                if (!translatingX || overrideCondition) {
+                if (!fsm.translatingX || overrideCondition) {
                     cursorSpeed = HELD_CURSOR_SPEED;
                     translateX(spaces);
                 }
@@ -346,26 +274,18 @@ public class Cursor extends Node implements OnTile {
     public void translateX(int spaces) { //negative spaces for left, positive spaces for right
         Coords delta = new Coords(spaces, 0);
         if (MasterFsmState.getCurrentMap().isWithinBounds(pos.add(delta)) && traversingAllowed()) {
-            setLocalTranslation(getLocalTranslation().x, 1.5f, getLocalTranslation().z);
-            translatingX = true;
-            toTraverseXY.addLocal(delta);
-            
-            if (fsm.getEnumState() == CursorState.AnyoneSelectingTarget) { 
-                selectionDifferenceXY.addLocal(delta);
-            }
+            setLocalTranslation(getLocalTranslation().x, 0.01f, getLocalTranslation().z);
+            fsm.translatingX = true;
+            fsm.translate(delta);
         }
     }
     
     public void translateY(int spaces) { //negative spaces for down, positive spaces for up
         Coords delta = new Coords(0, spaces);
         if (MasterFsmState.getCurrentMap().isWithinBounds(pos.add(delta)) && traversingAllowed()) {
-            setLocalTranslation(getLocalTranslation().x, 1.5f, getLocalTranslation().z);
-            translatingY = true;
-            toTraverseXY.addLocal(delta);
-            
-            if (fsm.getEnumState() == CursorState.AnyoneSelectingTarget) { 
-                selectionDifferenceXY.addLocal(delta); 
-            }
+            setLocalTranslation(getLocalTranslation().x, 0.01f, getLocalTranslation().z);
+            fsm.translatingY = true;
+            fsm.translate(delta);
         }
     }
     
@@ -374,57 +294,52 @@ public class Cursor extends Node implements OnTile {
         updateTraversals(tpf);
         updateForInteraction(tpf);
         
-        if (!isBacking || isCorrected) {
+        if (fsm.canTakeInput()) {
             interpreter.update(tpf);
         }
         
         updatePointerAndLighting(tpf);
         
-        globals.update(tpf);
+        timer.update(tpf);
     }
     
     private void updateCorrection(float tpf) {
-        preferredLocation.set(getCurrentTile().getWorldTranslation().x, 0.01f, getCurrentTile().getWorldTranslation().z);
+        Vector3f tileTranslation = getCurrentTile().getWorldTranslation();
+        preferredLocation.set(tileTranslation.x, 0.01f, tileTranslation.z);
         
         setLocalTranslation(getLocalTranslation().x, preferredLocation.y, getLocalTranslation().z);
-        if ((getLocalTranslation().x != preferredLocation.x || getLocalTranslation().z != preferredLocation.z)) {
-            move(((preferredLocation.x - getLocalTranslation().x) / 10f), 0, ((preferredLocation.z - getLocalTranslation().z) / 10f));
+        Vector3f localTranslation = getLocalTranslation();
+        if ((localTranslation.x != preferredLocation.x || localTranslation.z != preferredLocation.z)) {
+            move(((preferredLocation.x - localTranslation.x) / 10f), 0, ((preferredLocation.z - localTranslation.z) / 10f));
             
-            isCorrected = ((Math.abs(preferredLocation.x - getLocalTranslation().x) < 2f) && Math.abs(preferredLocation.z - getLocalTranslation().z) < 2f);
-            if (isCorrected) { 
-                isBacking = false; 
-            }
+            float diffX = Math.abs(preferredLocation.x - getLocalTranslation().x);
+            float diffZ = Math.abs(preferredLocation.z - getLocalTranslation().z);
+            fsm.updateIsCorrected(diffX < 2f && diffZ < 2f);
         }
     }
     
-    private void changePos(int deltaX, int deltaY) {
-        pos.addLocal(deltaX, deltaY);
-        if (fsm.getEnumState() == CursorState.AnyoneSelected) {
+    private void changePos(Coords delta) {
+        pos.addLocal(delta);
+        if (fsm.getEnumState() == CursorState.AnyoneSelected && rangeDisplay.isDisplayedMoveSquare(pos)) {
             arrowTrain.append(pos);
         }
     }
     
     private void updateTraversals(float tpf) {
         //cursor moving in the X direction
-        if (accumulatedCursorDistanceXY.x >= Tile.LENGTH) {
-            translatingX = false;
-            changePos(Integer.signum(toTraverseXY.x), 0);
-            accumulatedCursorDistanceXY.x = 0;
-            toTraverseXY.x = 0;
-        } else if (translatingX) {
-            move(0, 0, cursorSpeed * 2 * Math.signum(toTraverseXY.x));
-            accumulatedCursorDistanceXY.x += cursorSpeed * 2;
+        if (fsm.accumulatedCursorDistanceXY.x >= Tile.LENGTH) {
+            changePos(fsm.finishTranslatingX());
+        } else if (fsm.translatingX) {
+            move(0, 0, cursorSpeed * 2 * Math.signum(fsm.toTraverseXY.x));
+            fsm.accumulatedCursorDistanceXY.x += cursorSpeed * 2;
         }
         
         //cursor moving in the Y direction
-        if (accumulatedCursorDistanceXY.y >= Tile.LENGTH) {
-            translatingY = false;
-            changePos(0, Integer.signum(toTraverseXY.y));
-            accumulatedCursorDistanceXY.y = 0;
-            toTraverseXY.y = 0;
-        } else if (translatingY) {
-            move(cursorSpeed * 2 * Math.signum(toTraverseXY.y), 0, 0);
-            accumulatedCursorDistanceXY.y += cursorSpeed * 2;
+        if (fsm.accumulatedCursorDistanceXY.y >= Tile.LENGTH) {
+            changePos(fsm.finishTranslatingY());
+        } else if (fsm.translatingY) {
+            move(cursorSpeed * 2 * Math.signum(fsm.toTraverseXY.y), 0, 0);
+            fsm.accumulatedCursorDistanceXY.y += cursorSpeed * 2;
         }
         
         arrowTrain.tick();
@@ -449,10 +364,10 @@ public class Cursor extends Node implements OnTile {
     }
     
     private void updatePointerAndLighting(float tpf) {
-        pointer.rotateIf(selectedUnit != null, 0.035f * globals.getFrame());
+        pointer.rotateIf(selectedUnit != null, 0.035f * timer.getFrame());
         
         float omega = 0.0375f;
-        ColorRGBA color = fsm.getEnumState().getCorrespondingColor().mult(0.075f * FastMath.cos(omega * globals.getFrame()) + 0.925f);
+        ColorRGBA color = fsm.getEnumState().getCorrespondingColor().mult(0.075f * FastMath.cos(omega * timer.getFrame()) + 0.925f);
         
         square.getMaterial().setColor("Color", color);
     }
@@ -464,7 +379,7 @@ public class Cursor extends Node implements OnTile {
         
         interpreter.obtainInput(name, tpf, keyPressed);
         
-        if (fsm.getEnumState() != CursorState.Idle && (!isBacking || isCorrected)) {
+        if (fsm.canTakeInput()) {
             if (name.equals("move up") && keyPressed) {
                 translateY(1);
             } 
@@ -483,14 +398,15 @@ public class Cursor extends Node implements OnTile {
                     Movement.keyToIncreaseSpeedPressed = keyPressed;
                 }
                 
-                if (keyPressed && !translatingX && !translatingY) {
-                    TangibleUnit tu = MasterFsmState.getCurrentMap().getTileAt(pos).getOccupier();
+                if (keyPressed && !fsm.translatingX && !fsm.translatingY) {
+                    TangibleUnit tu = getCurrentTile().getOccupier();
                     
                     //for moving
                     if (fsm.getEnumState() == CursorState.AnyoneSelected) {
                         if (selectedUnit.getPos().getLayer() == pos.getLayer() && pos.getCoords().nonDiagonalDistanceFrom(selectedUnit.getPos().getCoords()) <= selectedUnit.getMOBILITY()) {
                             fsm.setNewStateIfAllowed(CursorState.AnyoneMoving);
-                            selectedUnit.moveTo(pos);
+                            //selectedUnit.moveTo(pos);
+                            selectedUnit.moveWith(arrowTrain.asArrayWithoutRoot());
                             
                             if (tu != null) {
                                 rangeDisplay.cancelRange();
@@ -506,11 +422,13 @@ public class Cursor extends Node implements OnTile {
                                 fsm.setNewStateIfAllowed(CursorState.AnyoneTargeted);
                                 //start a fight
                                 interpreter.clear();
-                                selectedUnit.remapPosition(pos.subtract(selectionDifferenceXY));
+                                selectedUnit.remapPosition(pos.subtract(fsm.selectionDifferenceXY));
                                 return new MasterFsmState(MapFlowState.PreBattle).setConveyor(new Conveyor(selectedUnit).setEnemyUnit(receivingEnd).createCombatants());
                             } else { //selection
                                 tu.select();
                                 selectedUnit = tu;
+                                arrowTrain.setCapacity(selectedUnit.getMOBILITY());
+                                arrowTrain.setRoot(pos);
                                 fsm.setNewStateIfAllowed(CursorState.AnyoneSelected);
                             }
                         }
@@ -526,14 +444,14 @@ public class Cursor extends Node implements OnTile {
                         pos.set(selectedUnit.getPos());
                         selectedUnit.deselect();
                         selectedUnit = null;
-                        isBacking = true;
+                        fsm.isBacking = true;
                     } else if (fsm.getEnumState() == CursorState.AnyoneSelectingTarget) {
-                        purpose = Purpose.None;
+                        fsm.setPurpose(Purpose.None);
                         selectedUnit.getFSM().setNewStateIfAllowed(UnitState.Active);
                         
                         fsm.forceState(CursorState.Idle);
-                        square.getMaterial().setColor("Color", DEFAULT_COLOR);
-                        pointer.getMaterial().setColor("Color", DEFAULT_COLOR);
+                        square.getMaterial().setColor("Color", CursorFSM.DEFAULT_COLOR);
+                        pointer.getMaterial().setColor("Color", CursorFSM.DEFAULT_COLOR);
                         
                         setPosition(selectedUnit.getPos());
                         GameProtocols.OpenPostActionMenu();
@@ -546,9 +464,9 @@ public class Cursor extends Node implements OnTile {
     }
     
     public void resetCursorPositionFromSelection() {
-        pos.subtractLocal(selectionDifferenceXY);
-        move(selectionDifferenceXY.toVector3fZX().mult(-Tile.LENGTH));
-        selectionDifferenceXY.setCoords(0, 0);
+        pos.subtractLocal(fsm.selectionDifferenceXY);
+        move(fsm.selectionDifferenceXY.toVector3fZX().mult(-Tile.LENGTH));
+        fsm.selectionDifferenceXY.setCoords(0, 0);
     }
     
     public void resetState() { //Happens after a battle, when a unit goes into standby, etc.

@@ -19,6 +19,7 @@ import etherealtempest.fsm.MasterFsmState;
 import general.tools.GameTimer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import maps.data.MapData;
 import maps.layout.MapLevel;
 import maps.state.TestMap;
@@ -29,6 +30,7 @@ import maps.state.TestMap;
  * @author normenhansen
  */
 public class Main extends SimpleApplication {
+    public static final Random RNG = new Random(System.currentTimeMillis());
     
     public static final FSM<GameState> GameFSM = new FSM<GameState>() {
         @Override

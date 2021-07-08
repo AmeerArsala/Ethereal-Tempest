@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import maps.data.Objective;
 import maps.layout.Coords;
-import maps.layout.occupant.Cursor;
+import maps.layout.occupant.control.Cursor;
 import maps.layout.occupant.MapEntity;
 import maps.layout.occupant.character.TangibleUnit;
 

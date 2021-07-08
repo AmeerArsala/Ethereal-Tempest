@@ -42,7 +42,7 @@ import general.utils.helpers.GeneralUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import maps.layout.occupant.Cursor;
+import maps.layout.occupant.control.Cursor;
 import maps.layout.occupant.MapEntity;
 import maps.layout.occupant.character.TangibleUnit;
 

@@ -19,6 +19,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.shader.VarType;
 import com.simsilica.lemur.LayerComparator;
+import enginetools.math.SpatialOperator;
 import etherealtempest.fsm.MasterFsmState;
 import maps.data.MapTextures;
 import maps.layout.Coords;
@@ -38,8 +39,6 @@ public class MoveArrowTile extends TileFoundation {
     private final Material mat;
     private int index;
     
-    private boolean xMirrored = false, yMirrored = false;
-    
     public MoveArrowTile(MapCoords mapCoords, AssetManager assetManager) {
         this(mapCoords.getX(), mapCoords.getY(), mapCoords.getLayer(), assetManager);
     }
@@ -49,6 +48,7 @@ public class MoveArrowTile extends TileFoundation {
         patchMesh = createMesh();
         tgeometry = new Geometry("movement arrow: " + coords.toString(), patchMesh);
         node = new Node("movement arrow node: " + coords.toString());
+        //anchor = new SpatialOperator(tgeometry, new Vector3f(Tile.LENGTH, 0, Tile.LENGTH), new Vector3f(0.5f, 0, 0.5f), SpatialOperator.ORIGIN_TOP_LEFT);
         index = STEM; //most will be stems so the index starts at STEM as a micro-optimization 
         
         mat = new Material(assetManager, "MatDefs/custom/ArrayTexture.j3md");
@@ -89,37 +89,40 @@ public class MoveArrowTile extends TileFoundation {
         }
     }
     
-    public void adjust(ColorRGBA visibleColor, MoveArrowTile previous, MoveArrowTile next) {
-        setColor(visibleColor);
-        adjust(previous.coords.getCoords(), next.coords.getCoords());
+    public void adjust(MoveArrowTile previous, MoveArrowTile next) {
+        Coords prev, nex;
+        if (previous == null) {
+            prev = null;
+        } else {
+            prev = previous.coords.getCoords();
+        }
+        
+        if (next == null) {
+            nex = null;
+        } else {
+            nex = next.coords.getCoords();
+        }
+        
+        adjust(prev, nex);
     }
     
     private void adjust(Coords previous, Coords next) {
-        if (previous == null) {
-            setColor(ColorRGBA.BlackNoAlpha);
-            return;
-        }
-        
         Coords me = coords.getCoords();
         Coords deltaPrev = me.subtract(previous);
-        float theta;
+        int theta;
         if (next == null) {
+            theta = (int)(FastMath.RAD_TO_DEG * deltaPrev.toPolar().y) + 360;
             setIndex(HEAD);
-            setMirrored(false, false);
-            
-            theta = deltaPrev.toPolar().y;
-            setLocalRotation(0, theta, 0);
+            changeTexCoords(false, false, theta);
         } else {
             Coords deltaSecant = next.subtract(previous);
-            theta = deltaSecant.toPolar().y;
-            if (previous.x == next.x) {    
+            theta = (int)(FastMath.RAD_TO_DEG * deltaSecant.toPolar().y) + 360;
+            if (previous.x == next.x) {
                 setIndex(STEM);
-                setMirrored(false, false);
-                setLocalRotation(0, theta, 0);
+                changeTexCoords(false, false, theta);
             } else if (previous.y == next.y) {
                 setIndex(STEM);
-                setMirrored(false, false);
-                setLocalRotation(0, theta, 0);
+                changeTexCoords(false, false, theta);
             } else {
                 setIndex(TURN);
                 
@@ -132,24 +135,20 @@ public class MoveArrowTile extends TileFoundation {
                     
                     switch (id) {
                         case UP_LEFT:
-                            setLocalRotation(0, 0, 0);
-                            setMirrored(true, false); //put emphasis on this statement, so make it second
+                            changeTexCoords(false, true, 0);
                             break;
                         case UP_RIGHT:
-                            setMirrored(false, false);
-                            setLocalRotation(0, 0, 0);
+                            //default
+                            changeTexCoords(false, false, 0);
                             break;
                         case DOWN_LEFT:
-                            setMirrored(false, false);
-                            setLocalRotation(0, FastMath.PI, 0); //put emphasis on this statement, so make it second
+                            changeTexCoords(true, true, 0);
                             break;
                         case DOWN_RIGHT:
-                            setLocalRotation(0, 0, 0);
-                            setMirrored(false, true); //put emphasis on this statement, so make it second
+                            changeTexCoords(true, false, 0);
                             break;
                     }
-                } else {
-                    //deltaPrev.y == 0, so deltaPrev.x != 0 is true because these coords are one space away from 'me'
+                } else { //deltaPrev.y == 0, so deltaPrev.x != 0 is true because these coords are one space away from 'me'
                     final int LEFT_UP = -1;
                     final int RIGHT_UP = 3;
                     final int LEFT_DOWN = -3;
@@ -157,22 +156,16 @@ public class MoveArrowTile extends TileFoundation {
                     
                     switch (id) {
                         case LEFT_UP:
-                            setMirrored(false, false);
-                            setLocalRotation(0, FastMath.HALF_PI, 0); //put emphasis on this statement, so make it second
+                            changeTexCoords(true, true, 270);
                             break;
                         case RIGHT_UP:
-                            //both statements have emphasis
-                            setLocalRotation(0, FastMath.HALF_PI, 0);
-                            setMirrored(true, false);
+                            changeTexCoords(true, false, 90);
                             break;
                         case LEFT_DOWN:
-                            //both statements have emphasis
-                            setLocalRotation(0, FastMath.HALF_PI, 0);
-                            setMirrored(false, true);
+                            changeTexCoords(false, true, 90);
                             break;
                         case RIGHT_DOWN:
-                            setMirrored(false, false);
-                            setLocalRotation(0, -FastMath.HALF_PI, 0); //put emphasis on this statement, so make it second
+                            changeTexCoords(false, false, 270);
                             break;
                     }
                 }
@@ -182,25 +175,28 @@ public class MoveArrowTile extends TileFoundation {
     
     @Override
     public void setLocalTranslation(Vector3f translation) {
-        node.setLocalTranslation(translation); 
+        node.setLocalTranslation(translation);
     }
     
     @Override
     public void setLocalTranslation(float x, float y, float z) {
         node.setLocalTranslation(x, y, z);
     }
-
-    private void setLocalRotation(float x, float y, float z) {
-        Quaternion rot = new Quaternion();
-        rot.fromAngles(x, y, z);
-        node.setLocalRotation(rot);
+    
+    public void changeTexCoords(boolean mirrorX, boolean mirrorY, int rotationInDegrees) {
+        Vector2f[] texCoords = texCoordsFor(mirrorX, mirrorY, rotationInDegrees);
+        patchMesh.setBuffer(VertexBuffer.Type.TexCoord, 2, new float[]
+        {
+            texCoords[0].x, texCoords[0].y,
+            texCoords[1].x, texCoords[1].y,
+            texCoords[2].x, texCoords[2].y,
+            texCoords[3].x, texCoords[3].y
+        });
     }
     
-    public void setMirrored(boolean mirrorX, boolean mirrorY) {
-        if (mirrorX == xMirrored && mirrorY == yMirrored) return;
-        
-        xMirrored = mirrorX;
-        yMirrored = mirrorY;
+    private Vector2f[] texCoordsFor(boolean mirrorX, boolean mirrorY, int degreesRotated) {
+        Vector2f[] texCoords = new Vector2f[4];
+        int startIndex = (degreesRotated / 90) % texCoords.length;
         
         float[] x;
         float[] y;
@@ -217,12 +213,15 @@ public class MoveArrowTile extends TileFoundation {
             y = new float[]{ 0, 0, 1, 1 }; //not mirrored; counter clockwise / y values not inverted
         }
         
-        patchMesh.setBuffer(VertexBuffer.Type.TexCoord, 2, new float[]
-        {
-            x[0], y[0],
-            x[1], y[1],
-            x[2], y[2],
-            x[3], y[3]
-        });
+        for (int i = startIndex; i < texCoords.length; i++) { // i: [startIndex, texCoords.length)
+            texCoords[i - startIndex] = new Vector2f(x[i], y[i]); //sets: [0, texCoords.length - startIndex)
+        }
+        
+        for (int i = texCoords.length - startIndex; i < texCoords.length; i++) { // i: [0, startIndex)
+            int c = i - (texCoords.length - startIndex);
+            texCoords[i] = new Vector2f(x[c], y[c]); //sets: [0, startIndex)
+        }
+        
+        return texCoords;
     }
 }

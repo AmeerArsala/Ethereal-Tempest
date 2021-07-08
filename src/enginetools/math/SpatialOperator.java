@@ -6,6 +6,7 @@
 package enginetools.math;
 
 import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 
@@ -137,7 +138,7 @@ public class SpatialOperator {
     }
     
     /**
-     * Rotates the spatial AROUND the point
+     * Rotates the Spatial AROUND the point
      * 
      * @param xAngle
      * @param yAngle
@@ -149,5 +150,43 @@ public class SpatialOperator {
             .move(calculateLocalDeltaThetas(Plane.ZY, xAngle))
             .move(calculateLocalDeltaThetas(Plane.XZ, yAngle))
             .move(calculateLocalDeltaThetas(Plane.XY, zAngle));
+    }
+    
+    /**
+     * Gets the local angle of the Spatial in Tait-Bryan/Euler angles
+     * @return ^^^
+     */
+    public Vector3f getLocalAngle() {
+        Quaternion rot = spatial.getLocalRotation();
+        float[] angles = rot.toAngles(null);
+        
+        return new Vector3f(angles[0], angles[1], angles[2]);
+    }
+    
+    /**
+     * Rotates the Spatial AROUND the point to the targetAngle
+     * @param targetAngle
+     * @return the new angle of the Spatial
+     */
+    public Vector3f rotateSpatialTo(Vector3f targetAngle) {
+        Vector3f dthetas = targetAngle.subtract(getLocalAngle());
+        rotateSpatial(dthetas.x, dthetas.y, dthetas.z);
+        
+        return targetAngle;
+    }
+    
+    /**
+     * Rotates the Spatial AROUND the point to the targetAngle
+     * @param targetX
+     * @param targetY
+     * @param targetZ
+     * @return the new angle of the Spatial
+     */
+    public Vector3f rotateSpatialTo(float targetX, float targetY, float targetZ) {
+        Vector3f targetAngle = new Vector3f(targetX, targetY, targetZ);
+        Vector3f dthetas = targetAngle.subtract(getLocalAngle());
+        rotateSpatial(dthetas.x, dthetas.y, dthetas.z);
+        
+        return targetAngle;
     }
 }
