@@ -8,7 +8,10 @@ package fundamental.jobclass.animation;
 import battle.data.DecisionParams;
 import battle.data.StrikeTheater;
 import battle.data.StrikeTheater.Participant;
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.jme3.asset.AssetManager;
+import com.jme3.texture.Texture;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +30,8 @@ public class ActionDecider {
     private AttributeAnimationMap skillAnimations;
     private AttributeAnimationMap battleTalentAnimations;
     
+    @Expose(deserialize = false) Texture spritesheet;
+    
     public ActionDecider(String folderRoot, Procedure onIdleCalled, Procedure onDashCalled, Procedure onAttackCalled, Procedure onDodgeCalled, Procedure onGotHitCalled, AttributeAnimationMap skillAnimations, AttributeAnimationMap battleTalentAnimations) {
         this.folderRoot = folderRoot;
         this.onIdleCalled = onIdleCalled;
@@ -39,6 +44,7 @@ public class ActionDecider {
     }
     
     public String getFolderRoot() { return folderRoot; }
+    public Texture getSpritesheetTexture() { return spritesheet; }
     
     public Procedure getOnIdleCalled() { return onIdleCalled; }
     public Procedure getOnAttackCalled() { return onAttackCalled; }
@@ -74,6 +80,10 @@ public class ActionDecider {
         
         skillAnimations.deserializeAllAvailable(folderRoot);
         battleTalentAnimations.deserializeAllAvailable(folderRoot);
+    }
+    
+    public void loadSpritesheet(AssetManager assetManager) {
+        assetManager.loadTexture("Sprites/" + (folderRoot + "spritesheet.png").replaceAll("\\\\", "/"));
     }
     
     public static class Procedure {

@@ -87,7 +87,7 @@ public class Main extends SimpleApplication {
        MapLevelLoader.loadTileTextures(assetManager, mapData);
        MapLevelLoader.loadMoveArrowTextures(assetManager);
        MapLevelLoader.loadMapGuiTextures(assetManager);
-       MapLevelLoader.loadUnitTextures(assetManager);
+       MapLevelLoader.loadUnitTextures(assetManager, mapData.getStartingUnits());
        
        MapLevel mapLevel = mapData.createMap(assetManager);
        MasterFsmState.setCurrentDefaultMap(mapLevel);

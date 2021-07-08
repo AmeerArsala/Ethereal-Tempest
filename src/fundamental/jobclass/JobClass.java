@@ -6,7 +6,10 @@
 package fundamental.jobclass;
 
 import com.google.gson.Gson;
+import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
+import com.jme3.asset.AssetManager;
+import com.jme3.texture.Texture;
 import fundamental.Entity;
 import fundamental.item.weapon.WeaponType;
 import fundamental.jobclass.animation.ActionDecider;
@@ -19,6 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -112,8 +117,17 @@ public class JobClass extends Entity {
         return Resolve;
     }
     
+    public void loadAssets(AssetManager assetManager) {
+        Set<WeaponType> keys = battleAnimationConfigurations.keySet();
+        for (WeaponType key : keys) {
+            battleAnimationConfigurations.get(key).loadSpritesheet(assetManager);
+        }
+    }
+    
     @Override
-    public String toString() { return name; }
+    public String toString() { 
+        return name; 
+    }
     
     static JobClassDeserialization deserialize(String jsonName) {
         try {

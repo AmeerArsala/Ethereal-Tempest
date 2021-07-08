@@ -5,11 +5,15 @@
  */
 package fundamental.unit;
 
+import com.google.gson.annotations.Expose;
+import com.jme3.texture.Texture;
+
 /**
  *
  * @author night
  */
 public class CharacterUnitInfo {
+    @Expose(deserialize = false) private Texture portraitTexture;
     private String portraitTexturePath;     // example: "Textures/portraits/Morva.png"
     private String battleOverlayConfigName; // example: "morva.json"
 
@@ -43,6 +47,9 @@ public class CharacterUnitInfo {
     
     public String getPortraitTexturePath() { return portraitTexturePath != null ? portraitTexturePath : "Textures/portraits/anonymous.png"; }
     public String getBattleOverlayConfigName() { return battleOverlayConfigName != null ? battleOverlayConfigName : "no_overlay.json"; } //overlay texture name is the same across all classes
+    
+    public Texture getPortraitTexture() { return portraitTexture; }
+    public void setPortraitTexture(Texture tex) { portraitTexture = tex; }
     
     public boolean hasPortrait() { return portraitTexturePath != null; }
     public boolean hasBattleOverlayConfig() { return battleOverlayConfigName != null; }

@@ -42,6 +42,7 @@
   },
   "wieldableWeaponTypes": [ "Sword", "Delta Ether" ],
   "mobilityTypes": [ "Infantry" ],
+  "battleSpritesheetPaths": ["Sprites/Battle/Freeblade/offense/sword/spritesheet.png", "Sprites/Battle/Freeblade/offense/delta ether/spritesheet.png"],
   "battleAnimationConfigurations": [
     {
       "weaponType": "Sword",

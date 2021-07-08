@@ -26,6 +26,7 @@ import com.jme3.math.Vector4f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial.CullHint;
+import com.jme3.texture.Texture;
 import enginetools.math.Vector3F;
 import etherealtempest.fsm.FSM.FighterState;
 import fundamental.unit.CharacterUnitInfo;
@@ -246,13 +247,14 @@ public class Fighter {
         public BattleSprite createBattleSprite(IndividualForecast forecast, boolean mirrored) {
             return createBattleSprite(
                 forecast.getActionDecider().getFolderRoot(),
+                forecast.getActionDecider().getSpritesheetTexture(),
                 forecast.getCombatant().getUnit().getUnitInfo(), 
                 !forecast.getEquippedTool().getType().isFormula(), //only use hitPoint if it isn't a formula
                 mirrored
             );
         }
         
-        public BattleSprite createBattleSprite(String folderRoot, CharacterUnitInfo unitInfo, boolean usesHitPoint, boolean mirrored) {
+        public BattleSprite createBattleSprite(String folderRoot, Texture spritesheetTexture, CharacterUnitInfo unitInfo, boolean usesHitPoint, boolean mirrored) {
             String configJsonPath = "Sprites\\" + folderRoot + "config.json";
             AttackSheetConfig sheetConfig = PossibleConfig.deserialize(configJsonPath).getPossibleSpritesheet().setFileRoot("Sprites\\" + folderRoot);
             OverlaySheetConfig overlayConfig = OverlaySheetConfig.deserialize(folderRoot + "character_overlay\\" + unitInfo.getBattleOverlayConfigName());
@@ -271,12 +273,11 @@ public class Fighter {
             
             //create sprite and overlay
             BattleSprite sprite = new BattleSprite(spriteDimensions, assetManager, battleBoxInfo, usesHitPoint);
-            
             sprite.setSpritesheetTexture(sheetConfig.getSpritesheetImagePath(), assetManager);
         
             if (hasOverlay) {
                 sprite.setOverlay(new Sprite(spriteDimensions, assetManager));
-                sprite.getOverlay().setSpritesheetTexture(sheetConfig.getOverlayConfigPath(overlayConfig.getOverlaySpritesheetFileName()), assetManager);
+                sprite.getOverlay().setSpritesheetTexture(sheetConfig.getOverlayConfigPath(overlayConfig.getOverlaySpritesheetFileName()), assetManager); //TODO: change this later
                 sprite.attachOverlay();
             }
             

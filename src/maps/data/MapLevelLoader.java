@@ -8,11 +8,16 @@ package maps.data;
 import maps.data.MapTextures;
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Image;
+import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
+import fundamental.jobclass.JobClass;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import maps.data.MapData;
 import maps.layout.MapLevel;
+import maps.layout.occupant.character.TangibleUnit;
 
 /**
  *
@@ -108,8 +113,29 @@ public class MapLevelLoader {
         MapTextures.GUI.StatMenu.SideTab = assetManager.loadTexture("Interface/GUI/ui_boxes/tab.png");
     }
     
-    public static void loadUnitTextures(AssetManager assetManager) {
+    public static void loadUnitTextures(AssetManager assetManager, List<TangibleUnit> allUnits) { //unit specific things
         //TODO: load this stuff
+        
+        List<String> loadedJobClassNames = new ArrayList<>(); //JobClasses are references to a shared instance
+        Map<String, Texture> loadedPortraitTextures = new HashMap<>();
+        for (TangibleUnit unit : allUnits) {
+            JobClass jobClass = unit.getJobClass();
+            if (!loadedJobClassNames.contains(jobClass.getName())) {
+                jobClass.loadAssets(assetManager);
+                loadedJobClassNames.add(jobClass.getName());
+            }
+            
+            String portraitTexturePath = unit.getUnitInfo().getPortraitTexturePath();
+            if (!loadedPortraitTextures.containsKey(portraitTexturePath)) {
+                Texture tex = assetManager.loadTexture(portraitTexturePath);
+                unit.getUnitInfo().setPortraitTexture(tex);
+                loadedPortraitTextures.put(portraitTexturePath, tex);
+            } else {
+                unit.getUnitInfo().setPortraitTexture(loadedPortraitTextures.get(portraitTexturePath));
+            }
+            
+            //TODO: load skill and talent textures
+        }
     }
     
     public static TextureArray loadTextures(String prefix, String[] names, AssetManager assetManager) {
