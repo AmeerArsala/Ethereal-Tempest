@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import maps.data.MapModels.BattleTerrain;
 
 /**
  *
@@ -20,7 +21,7 @@ import java.nio.file.Paths;
  * use gson on this
  */
 public class BattleViewInfo {
-    private String modelPath;
+    private BattleTerrain battleTerrain;
     
     /**
      * Used for calculating starting positions
@@ -43,8 +44,8 @@ public class BattleViewInfo {
     
     private float envCamPosZ;
     
-    public BattleViewInfo(String modelPath, float rightEdgePositionPercent, float leftEdgePositionPercent, float topEdgePositionPercent, float bottomEdgePositionPercent, float zLocation, float cameraX, float cameraY, float cameraZ, float envCamPosZ) {
-        this.modelPath = modelPath;
+    public BattleViewInfo(BattleTerrain battleTerrain, float rightEdgePositionPercent, float leftEdgePositionPercent, float topEdgePositionPercent, float bottomEdgePositionPercent, float zLocation, float cameraX, float cameraY, float cameraZ, float envCamPosZ) {
+        this.battleTerrain = battleTerrain;
         this.rightEdgePositionPercent = rightEdgePositionPercent;
         this.leftEdgePositionPercent = leftEdgePositionPercent;
         this.topEdgePositionPercent = topEdgePositionPercent;
@@ -55,8 +56,10 @@ public class BattleViewInfo {
         this.cameraZ = cameraZ;
         this.envCamPosZ = envCamPosZ;
     }
-    
-    public String getModelPath() { return modelPath; }
+
+    public BattleTerrain getBattleTerrain() {
+        return battleTerrain;
+    }
     
     public float getRightEdgePositionPercent() { return rightEdgePositionPercent; }
     public float getLeftEdgePositionPercent() { return leftEdgePositionPercent; }

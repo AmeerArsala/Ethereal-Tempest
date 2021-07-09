@@ -4,7 +4,8 @@
   "maxColumns": 16,
   "objectiveName": "Battle of Annihilation",
   "weatherAndEffects": [ "MapWeather\\FlameSparkField.json" ],
-  "tileTexturesUsed": [ "grass.jpg", "dirt.jpg", "rock.jpg", "plains.jpg", "sand.jpg", "mossystone.jpg", "nothing.jpg" ], //ALWAYS put nothing.png in here
+  "tileTexturesUsed": [ "grass.jpg", "dirt.jpg", "rock.jpg", "plains.jpg", "sand.jpg", "mossystone.jpg", "nothing.jpg" ], //ALWAYS put nothing.jpg in here
+  "battleTerrainsUsed": [ "ForgottenPillar" ],
   "translations": [
     {
       "shorthand": "g",
@@ -38,7 +39,7 @@
   "layers": [
     {
       "columnCount": 16,
-      "layer": [ // the columns must add to 16
+      "layer": [ // the columns must add to maxColumns (16)
         "s*5 f*2 r m*3 d*5", // 15
         "s*4 g*3 r m*3 d*5", // 14
         "s*3 g*5 m*3 d*5", // 13

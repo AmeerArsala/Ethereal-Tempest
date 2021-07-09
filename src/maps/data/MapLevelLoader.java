@@ -7,6 +7,7 @@ package maps.data;
 
 import maps.data.MapTextures;
 import com.jme3.asset.AssetManager;
+import com.jme3.scene.Node;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
@@ -16,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import maps.data.MapData;
+import maps.data.MapModels.BattleTerrain;
 import maps.layout.MapLevel;
 import maps.layout.occupant.character.TangibleUnit;
 
@@ -135,6 +137,13 @@ public class MapLevelLoader {
             }
             
             //TODO: load skill and talent textures
+        }
+    }
+    
+    public static void loadMapModels(AssetManager assetManager, MapData mapData) {
+        BattleTerrain[] terrainsUsed = mapData.getBattleTerrainsUsed();
+        for (BattleTerrain terrain : terrainsUsed) {
+            terrain.loadTerrainModel(assetManager);
         }
     }
     

@@ -72,18 +72,19 @@ public class Main extends SimpleApplication {
        
        //initialize gui
        GuiGlobals.initialize(this);
-        
+       
        //load glass style
        BaseStyles.loadGlassStyle();
-        
+       
        //default style is glass for now
        GuiGlobals.getInstance().getStyles().setDefaultStyle("glass");
-        
+       
        assetManager.registerLoader(TrueTypeLoader.class, "ttf");
        
        String map = "TestMap";
        MapData mapData = MapData.deserialize(map, assetManager);
        
+       MapLevelLoader.loadMapModels(assetManager, mapData);
        MapLevelLoader.loadTileTextures(assetManager, mapData);
        MapLevelLoader.loadMoveArrowTextures(assetManager);
        MapLevelLoader.loadMapGuiTextures(assetManager);

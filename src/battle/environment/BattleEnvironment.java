@@ -25,6 +25,7 @@ import com.jme3.texture.Texture;
 import com.jme3.util.SkyFactory;
 import com.jme3.util.TangentBinormalGenerator;
 import etherealtempest.Globals;
+import maps.data.MapModels.BattleTerrain;
 
 /**
  *
@@ -38,10 +39,10 @@ public class BattleEnvironment {
     private boolean probeFinished = false;
     
     
-    public BattleEnvironment(AssetManager assetManager, String modelPath, Vector3f envCamPos) {
+    public BattleEnvironment(AssetManager assetManager, BattleTerrain battleTerrain, Vector3f envCamPos) {
         this.assetManager = assetManager;
         
-        terrainModel = (Node)assetManager.loadModel(modelPath);
+        terrainModel = battleTerrain.getTerrainModel();
         //terrainModel.setMaterial(new Material(assetManager, "Common/MatDefs/Light/PBRLighting.j3md"));
         terrainModel.setCullHint(CullHint.Never);
         
@@ -51,11 +52,14 @@ public class BattleEnvironment {
         
         EnvironmentCamera envCam = Globals.getStateManager().getState(EnvironmentCamera.class);
         envCam.setPosition(envCamPos);
+        
+        final long startTime = System.currentTimeMillis();
         lightProbe = LightProbeFactory.makeProbe(envCam, scene, EnvMapUtils.GenerationType.Fast, 
             new JobProgressAdapter<LightProbe>() {
                 @Override
                 public void done(LightProbe t) {
                     probeFinished = true;
+                    System.err.println("LightProbe finished loading in " + (System.currentTimeMillis() - startTime) + "  ms");
                 }
             }
         );

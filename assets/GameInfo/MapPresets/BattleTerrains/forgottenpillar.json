@@ -1,5 +1,5 @@
 { //for BattleViewInfo class
-  "modelPath": "Models/BattleTerrains/battletest5.gltf", //Scenes/Battle/battletest5.j3o
+  "battleTerrain": "ForgottenPillar",
   "rightEdgePositionPercent": 0.025,
   "leftEdgePositionPercent": -0.8125,
   "topEdgePositionPercent": 1.0,

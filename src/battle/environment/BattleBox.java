@@ -9,7 +9,6 @@ import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.math.Vector4f;
 import com.jme3.scene.Node;
 import java.util.HashMap;
 
@@ -49,7 +48,7 @@ public class BattleBox {
     public BattleEnvironment generateBattleEnvironment(AssetManager assetManager) {
         Vector3f envCamPos = new Vector3f(
             (viewInfo.getRightEdgePositionPercent() + viewInfo.getLeftEdgePositionPercent()) / 2f, 
-            dimensions.y / 2f, 
+            (viewInfo.getTopEdgePositionPercent() + viewInfo.getBottomEdgePositionPercent()) / 2f, 
             viewInfo.getEnvCamPosZ()
         );
         
@@ -60,7 +59,7 @@ public class BattleBox {
             params.setTextures(model, assetManager);
         */
         
-        return new BattleEnvironment(assetManager, viewInfo.getModelPath(), envCamPos);
+        return new BattleEnvironment(assetManager, viewInfo.getBattleTerrain(), envCamPos);
     }
     
     public static class TextureSettings {

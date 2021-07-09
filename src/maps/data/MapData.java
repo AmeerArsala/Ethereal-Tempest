@@ -8,9 +8,6 @@ package maps.data;
 import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.jme3.asset.AssetManager;
-import com.jme3.texture.Image;
-import com.jme3.texture.TextureArray;
-import general.utils.helpers.GeneralUtils;
 import general.visual.DeserializedParticleEffect;
 import java.io.IOException;
 import java.io.Reader;
@@ -18,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import maps.data.MapModels.BattleTerrain;
 import maps.layout.MapLevel;
 import maps.layout.occupant.character.TangibleUnit;
 import maps.layout.occupant.character.TangibleUnitDeserialization;
@@ -37,19 +35,21 @@ public class MapData {
     private String objectiveName; //case sensitive
     private String[] weatherAndEffects; //PATH TO JSONS
     private String[] tileTexturesUsed;
+    private BattleTerrain[] battleTerrainsUsed;
     private Translation[] translations;
     private MapLayerData[] layers;
     private TangibleUnitDeserialization[] units;
     
     @Expose(deserialize = false) private List<TangibleUnit> startingUnits;
     
-    public MapData(String mapName, int maxRows, int maxColumns, String objectiveName, String[] weatherAndEffects, String[] tileTexturesUsed, Translation[] translations, MapLayerData[] layers, TangibleUnitDeserialization[] units) {
+    public MapData(String mapName, int maxRows, int maxColumns, String objectiveName, String[] weatherAndEffects, String[] tileTexturesUsed, BattleTerrain[] battleTerrainsUsed, Translation[] translations, MapLayerData[] layers, TangibleUnitDeserialization[] units) {
         this.mapName = mapName;
         this.maxRows = maxRows;
         this.maxColumns = maxColumns;
         this.objectiveName = objectiveName;
         this.weatherAndEffects = weatherAndEffects;
         this.tileTexturesUsed = tileTexturesUsed;
+        this.battleTerrainsUsed = battleTerrainsUsed;
         this.translations = translations;
         this.layers = layers;
         this.units = units;
@@ -63,6 +63,7 @@ public class MapData {
     }
     
     public String[] getTileTextureNamesUsed() { return tileTexturesUsed; }
+    public BattleTerrain[] getBattleTerrainsUsed() { return battleTerrainsUsed; }
     
     public int getMaxRows() { return maxRows; }
     public int getMaxColumns() { return maxColumns; }
