@@ -36,8 +36,6 @@ public class BattleEnvironment {
     private final Node scene = new Node("fight scene node"), terrainModel;
     private final LightProbe lightProbe;
     
-    private boolean probeFinished = false;
-    
     
     public BattleEnvironment(AssetManager assetManager, BattleTerrain battleTerrain, Vector3f envCamPos) {
         this.assetManager = assetManager;
@@ -52,20 +50,9 @@ public class BattleEnvironment {
         
         EnvironmentCamera envCam = Globals.getStateManager().getState(EnvironmentCamera.class);
         envCam.setPosition(envCamPos);
-        
-        final long startTime = System.currentTimeMillis();
-        lightProbe = LightProbeFactory.makeProbe(envCam, scene, EnvMapUtils.GenerationType.Fast, 
-            new JobProgressAdapter<LightProbe>() {
-                @Override
-                public void done(LightProbe t) {
-                    probeFinished = true;
-                    System.err.println("LightProbe finished loading in " + (System.currentTimeMillis() - startTime) + "  ms");
-                }
-            }
-        );
-        
+        lightProbe = battleTerrain.getLightProbe();
         lightProbe.getArea().setRadius(100);
-        scene.addLight(lightProbe);
+        terrainModel.addLight(lightProbe);
         
         /*
         Spatial skybox = SkyFactory.createSky(assetManager, "Textures/skybox/skybox.png", SkyFactory.EnvMapType.CubeMap);
@@ -101,9 +88,5 @@ public class BattleEnvironment {
     
     public LightProbe getLightProbe() {
         return lightProbe;
-    }
-    
-    public boolean probeFinishedLoading() {
-        return probeFinished;
     }
 }

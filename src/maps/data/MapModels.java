@@ -5,7 +5,13 @@
  */
 package maps.data;
 import com.jme3.asset.AssetManager;
+import com.jme3.environment.EnvironmentCamera;
+import com.jme3.environment.LightProbeFactory;
+import com.jme3.environment.generation.JobProgressAdapter;
+import com.jme3.environment.util.EnvMapUtils;
+import com.jme3.light.LightProbe;
 import com.jme3.scene.Node;
+import etherealtempest.Globals;
 
 /**
  *
@@ -17,6 +23,7 @@ public class MapModels {
         ; 
         
         private Node terrainModel = null;
+        private LightProbe lightProbe;
         private final String modelPath;
         
         private BattleTerrain(String modelPath) {
@@ -31,8 +38,28 @@ public class MapModels {
             return modelPath;
         }
         
+        public LightProbe getLightProbe() {
+            return lightProbe;
+        }
+        
         public void loadTerrainModel(AssetManager assetManager) {
             terrainModel = (Node)assetManager.loadModel(modelPath);
+            
+            Globals.enqueue(() -> {
+                EnvironmentCamera envCam = Globals.getStateManager().getState(EnvironmentCamera.class);
+            
+                final long startTime = System.currentTimeMillis();
+                lightProbe = LightProbeFactory.makeProbe(envCam, terrainModel, EnvMapUtils.GenerationType.Fast, 
+                    new JobProgressAdapter<LightProbe>() {
+                        @Override
+                        public void done(LightProbe t) {
+                            System.err.println(toString() + ": LightProbe finished loading in " + (System.currentTimeMillis() - startTime) + "ms");
+                        }
+                    }
+                );
+                
+                terrainModel.updateGeometricState();
+            });
         }
     }
     
