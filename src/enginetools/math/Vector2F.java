@@ -138,6 +138,18 @@ public class Vector2F implements Serializable {
         return rtheta;
     }
     
+    public static Vector2f invert(Vector2f xy) {
+        return new Vector2f(xy.y, xy.x);
+    }
+    
+    public static Vector2f invertLocal(Vector2f xy) {
+        float y = xy.x;
+        xy.x = xy.y;
+        xy.y = y;
+        
+        return xy;
+    }
+    
     public static Vector2f operate(Vector2f vec, FloatOperation operation) {
         return new Vector2f(operation.calculate(vec.x), operation.calculate(vec.y));
     }

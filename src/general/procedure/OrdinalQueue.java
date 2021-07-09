@@ -55,8 +55,9 @@ public class OrdinalQueue<T> {
             if (!lock.attemptUnlock(focus)) {
                 return false;
             }
-            
+
             update.execute(focus, tpf);
+            onUpdate.update(tpf);
             
             if (taskFinished.test(focus)) {
                 onFinish.run();

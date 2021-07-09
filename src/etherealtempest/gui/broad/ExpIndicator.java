@@ -9,7 +9,11 @@ import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.renderer.queue.RenderQueue;
+import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialCreator;
+import enginetools.math.SpatialOperator;
+import enginetools.math.Vector2F;
+import enginetools.math.Vector3F;
 import general.ui.GeometryPanel;
 import general.ui.text.Text2D;
 import general.visual.animation.Animation;
@@ -20,7 +24,7 @@ import maps.data.MapTextures;
  *
  * @author night
  */
-public class ExpIndicator extends ValueIndicator {
+public class ExpIndicator extends AnchoredIndicator {
     private final RadialProgressBar expbar;
     private final GeometryPanel levelUpTextPanel;
     
@@ -42,6 +46,10 @@ public class ExpIndicator extends ValueIndicator {
         levelUpTextMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         
         levelUpTextPanel.setMaterial(levelUpTextMat);
+        
+        LayerComparator.setLayer(text, 5);
+        textAnchor.getOriginPointInPercents().set(SpatialOperator.ORIGIN_TOP_LEFT);
+        equilibrium.set(0, 0);
     }
     
     public RadialProgressBar getExpCircle() {
@@ -58,12 +66,12 @@ public class ExpIndicator extends ValueIndicator {
         //TODO: play a sound
     }
     
-    /*
     @Override
-    public void updateText() {
-        text.setText("  EXP\n " + getCurrentNumber() + "/" + maxNumber);
+    protected void updateText() {
+        text.setText("   EXP\n" + getCurrentNumber() + "/" + maxNumber);
+        text.fitInTextBox(1f);
+        alignTextToEquilibrium();
     }
-    */
     
     public void levelUp(float seconds, Runnable onFinish) { //seconds is typically 0.1f
         node.detachChild(text); //detach the "EXP: 75/100" text
@@ -77,5 +85,16 @@ public class ExpIndicator extends ValueIndicator {
     
     public void levelUp(float seconds) {
         levelUp(seconds, () -> {});
+    }
+
+    @Override
+    public SpatialOperator getAnchor() {
+        return new SpatialOperator(expbar, Vector3F.fit(Vector2F.fill(expbar.getOuterRadius() * 2)), Vector3F.fit(equilibrium));
+    }
+
+    @Override
+    public void alignTextToEquilibrium() {
+        textAnchor.getDimensions().set(text.getTextBounds());
+        textAnchor.alignToLocally(Vector3F.fit(equilibrium));
     }
 }

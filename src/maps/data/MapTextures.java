@@ -29,6 +29,9 @@ public class MapTextures {
         public static Texture RoundedBlackBox; //with white outline
         public static Texture Nametag; //the red one
         public static Texture GlowBox1;
+        public static Texture ProgressBar;
+        public static Texture VerticalProgressBar;
+        public static Texture HealthBar;
         
         public static final class ActionMenu {
             public static Texture HoveredBG, NotHoveredBG;

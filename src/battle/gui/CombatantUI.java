@@ -98,8 +98,9 @@ public class CombatantUI {
         );
         
         expbar = GuiFactory.createExpBar(
-            new UIFontParams("Interface/Fonts/Neuton-Regular.ttf", 28, Style.Plain, 3), 
-            ColorRGBA.White, 
+            new UIFontParams("Interface/Fonts/Neuton-Regular.ttf", 45f, Style.Plain, 3), 
+            new ColorRGBA(0.012f, 0.58f, 0.988f, 1f), //bar color = blue
+            ColorRGBA.White, //textColor = white
             outerRadius,
             forecast.getCombatant().getUnit().currentEXP,
             100, //max exp
@@ -240,7 +241,7 @@ public class CombatantUI {
         }
         
         int nextExpValue = forecast.getCombatant().addExpGained(); //add exp gained
-        expbar.proceedToValue(nextExpValue, nextExpValue / Combatant.MAX_EXP_VALUE);
+        expbar.proceedToValue(nextExpValue, 3f * nextExpValue / Combatant.MAX_EXP_VALUE);
     }
     
     public void levelUp() {
@@ -379,6 +380,7 @@ public class CombatantUI {
             mat.setFloat("PercentStart", hpHeartYStart);
             mat.setFloat("PercentEnd", hpHeartYEnd);
             mat.setFloat("PercentFilled", forecast.getCombatant().getCurrentToMaxHPRatio());
+            mat.setBoolean("UsesYAxis", true);
         };
     }
     
@@ -398,6 +400,7 @@ public class CombatantUI {
             mat.setFloat("PercentEnd", tpBallYEnd);
             mat.setFloat("PercentFilled", forecast.getCombatant().getCurrentToMaxTPRatio());
             mat.setBoolean("UsesGradient", false);
+            mat.setBoolean("UsesYAxis", true);
         };
     }
 }

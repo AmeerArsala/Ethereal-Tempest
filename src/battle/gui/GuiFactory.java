@@ -191,7 +191,7 @@ public class GuiFactory {
         return new ShapeIndicator(statName, xyDimensions, matParams, assetManager, visibleText, currentPercent, max);
     }
     
-    public static ExpIndicator createExpBar(UIFontParams params, ColorRGBA color, float outerRadius, int currentEXP, int maxEXP, AssetManager assetManager) {
+    public static ExpIndicator createExpBar(UIFontParams params, ColorRGBA color, ColorRGBA textColor, float outerRadius, int currentEXP, int maxEXP, AssetManager assetManager) {
         int specificity = 2;
         float innerToOuterRadiusRatio = 52.5f / 70.75f;
         
@@ -201,7 +201,7 @@ public class GuiFactory {
         TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.Word);
         
         Text2D.FormatParams textFormat = new Text2D.FormatParams(
-            color,
+            textColor,
             displacementParams.createTextProperties(params.kerning, rectangle),
             params.createFontProperties(FontProperties.KeyType.BMP),
             assetManager

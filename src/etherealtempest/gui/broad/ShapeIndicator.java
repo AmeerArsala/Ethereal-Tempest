@@ -19,21 +19,20 @@ import general.ui.text.Text2D;
  *
  * @author night
  */
-public class ShapeIndicator extends ValueIndicator {
+public class ShapeIndicator extends AnchoredIndicator {
     private final GeometryPanel shape; //it's rectangular, but the shape is on the texture
     private final Material mat;
-    private final Vector2f equilibrium = new Vector2f(0, 0);
     
     public ShapeIndicator(String name, Vector2f xyDimensions, MaterialParamsProtocol params, AssetManager assetManager, Text2D text2D, float basePercent, int max) {
         super(name, text2D, basePercent, max);
         shape = new GeometryPanel(xyDimensions.x, xyDimensions.y, RenderQueue.Bucket.Gui);
         
-        mat = new Material(assetManager, "MatDefs/custom/YFill.j3md");
+        mat = new Material(assetManager, "MatDefs/custom/ProgressFill.j3md");
         mat.getAdditionalRenderState().setDepthWrite(false);
         params.execute(mat);
         
         shape.setMaterial(mat);
-
+        
         //LayerComparator.setLayer(shape, 0);
         //LayerComparator.setLayer(text, 1);
         
@@ -47,12 +46,6 @@ public class ShapeIndicator extends ValueIndicator {
         super.update(tpf);
     }
     */
-    
-    @Override
-    protected void updateText() {
-        super.updateText();
-        alignTextTo(equilibrium.x, equilibrium.y);
-    }
 
     @Override
     protected void updatePercentVisually() {
@@ -67,14 +60,14 @@ public class ShapeIndicator extends ValueIndicator {
         return shape;
     }
     
-    public SpatialOperator getShapeAnchor() {
+    @Override
+    public SpatialOperator getAnchor() {
         return shape.getOperator();
     }
-    
-    public void alignTextTo(float percentX, float percentY) {
-        equilibrium.set(percentX, percentY);
-        
-        SpatialOperator shapeAnchor = shape.getOperator(percentX, percentY);
+
+    @Override
+    public void alignTextToEquilibrium() {
+        SpatialOperator shapeAnchor = shape.getOperator(equilibrium.x, equilibrium.y);
         textAnchor.getDimensions().set(text.getTextBounds());
         textAnchor.alignToLocally(shapeAnchor);
     }

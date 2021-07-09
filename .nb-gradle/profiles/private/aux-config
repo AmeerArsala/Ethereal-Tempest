@@ -5,14 +5,6 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
       <group>
-        <file>file:/C:/Users/night/Desktop/portfolio/nonmobile/Ethereal-Tempest/src/battle/animation/config/action/Changes.java</file>
-        <file>file:/C:/Users/night/Desktop/portfolio/nonmobile/Ethereal-Tempest/src/etherealtempest/Main.java</file>
-        <file>file:/C:/Users/night/Desktop/portfolio/nonmobile/Ethereal-Tempest/src/maps/state/TestMap.java</file>
-      </group>
-    </open-files>
-    <editor-bookmarks lastBookmarkId="0" xmlns="http://www.netbeans.org/ns/editor-bookmarks/2"/>
-    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-      <group>
         <file>file:/C:/Users/night/Desktop/portfolio/nonmobile/Ethereal-Tempest/assets/Shaders/Discard.frag</file>
         <file>file:/C:/Users/night/Desktop/portfolio/nonmobile/Ethereal-Tempest/src/enginetools/TexturedMaterialCreator.java</file>
         <file>file:/C:/Users/night/Desktop/portfolio/nonmobile/Ethereal-Tempest/src/general/utils/helpers/MathUtils.java</file>
@@ -84,5 +76,6 @@
         <file>file:/C:/Users/night/Desktop/portfolio/nonmobile/Ethereal-Tempest/src/general/procedure/Request.java</file>
       </group>
     </open-files>
+    <editor-bookmarks lastBookmarkId="0" xmlns="http://www.netbeans.org/ns/editor-bookmarks/2"/>
   </auxiliary>
 </gradle-project-properties>

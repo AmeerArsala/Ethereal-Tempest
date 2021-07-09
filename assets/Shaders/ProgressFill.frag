@@ -4,14 +4,16 @@ precision mediump float;
 
 uniform sampler2D m_ColorMap;
 uniform vec4 m_OnlyChangeColor; // example: if this is white, then it will only change the white pixels in the ColorMap
-
 uniform vec4 m_Color;
+uniform vec4 m_BaseColor;
 uniform vec4 m_BackgroundColor;
 //uniform vec4 m_OutlineColor;
 //uniform float m_OutlineThickness; //in percent, from 0.0 to 1.0
 uniform bool m_UsesGradient;
 uniform float m_GradientCoefficient;
 uniform float m_GradientStart;
+
+uniform bool m_UsesYAxis;
 uniform float m_PercentFilled; //from 0.0 to 1.0
 uniform float m_PercentStart;  //from 0.0 to 1.0
 uniform float m_PercentEnd;    //from 0.0 to 1.0
@@ -21,8 +23,12 @@ varying vec2 texCoord;
 vec4 obtainColor(vec4 color) {
     #ifdef HAS_PERCENT_FILLED
         float percentAreaLength = m_PercentEnd - m_PercentStart;
-        
-        if (texCoord.y <= m_PercentStart + (m_PercentFilled * percentAreaLength)) {
+        float coord = m_UsesYAxis ? texCoord.y : texCoord.x;
+        if (coord <= m_PercentStart + (m_PercentFilled * percentAreaLength)) {
+            #ifdef HAS_BASECOLOR
+                color = m_BaseColor;
+            #endif
+            
             #ifdef HAS_COLOR
                 color *= m_Color;
                 

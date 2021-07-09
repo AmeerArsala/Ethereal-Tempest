@@ -46,6 +46,9 @@ public class MapLevelLoader {
         MapTextures.GUI.GlowBox1 = assetManager.loadTexture("Interface/GUI/ui_boxes/box5.png");
         MapTextures.GUI.Nametag = assetManager.loadTexture("Interface/GUI/ui_boxes/emptyname.png");
         MapTextures.GUI.RoundedBlackBox = assetManager.loadTexture("Interface/GUI/ui_boxes/default.png");
+        MapTextures.GUI.ProgressBar = assetManager.loadTexture("Interface/GUI/common/bar.png");
+        MapTextures.GUI.VerticalProgressBar = assetManager.loadTexture("Interface/GUI/common/verticalBar.png");
+        MapTextures.GUI.HealthBar = assetManager.loadTexture("Interface/GUI/common/healthbar.png");
         
         MapTextures.GUI.ActionMenu.ABILITY = assetManager.loadTexture("Interface/GUI/action_menu/option_icons/Ability.png");
         MapTextures.GUI.ActionMenu.ATTACK = assetManager.loadTexture("Interface/GUI/action_menu/option_icons/Attack.png");

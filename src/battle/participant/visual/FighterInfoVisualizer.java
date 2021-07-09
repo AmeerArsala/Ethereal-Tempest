@@ -171,6 +171,7 @@ public class FighterInfoVisualizer {
         
         return new FighterAnimationController.AnimationParams(
             (tpf) -> {
+                System.out.println("onStartPossibleModification update");
                 for (VisualTransition animation : animations) {
                     animation.update(tpf);
                 }

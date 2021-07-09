@@ -74,6 +74,7 @@ import maps.layout.occupant.MapEntity;
 import fundamental.unit.PositionedUnitParams;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
+import fundamental.stats.BaseStat;
 import maps.data.MapLevelLoader;
 import maps.layout.tile.Tile;
 
@@ -283,6 +284,7 @@ public class TestMap extends AbstractAppState {
         //initialize what's going on in the map
         mapFlow.initialize((ArrayList<TangibleUnit> units, List<MapEntity> mapEntities) -> {
             units.addAll(mapLevel.getMapData().getStartingUnits());
+            //units.get(1).setRawStat(BaseStat.CurrentHP, 10);
             
             /*
             units.add(
@@ -313,7 +315,7 @@ public class TestMap extends AbstractAppState {
                 MapCoords coords = new MapCoords(layer);
                 
                 do {
-                    coords.setCoords((int)(Tile.LENGTH * Math.random()), (int)(Tile.LENGTH * Math.random()));
+                    coords.setCoords((int)(mapLevel.getTilesX() * Math.random()), (int)(mapLevel.getTilesY() * Math.random()));
                 } while (mapLevel.getTileAt(coords).isOccupied); //no spawning in the same tile
                 
                 units.get(k).remapPosition(coords, mapLevel);

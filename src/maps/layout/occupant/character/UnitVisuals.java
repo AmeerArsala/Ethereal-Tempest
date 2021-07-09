@@ -12,6 +12,7 @@ import com.jme3.material.RenderState.BlendMode;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector2f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
@@ -24,8 +25,10 @@ import com.simsilica.lemur.LayerComparator;
 import com.simsilica.lemur.ProgressBar;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
+import enginetools.math.Vector2F;
 import etherealtempest.Main;
 import etherealtempest.geometry.GeometricBody;
+import etherealtempest.gui.broad.BasicProgressBar;
 import general.procedure.functional.SimpleProcedure;
 import general.procedure.ProcedureGroup;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
@@ -36,6 +39,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.LinkedList;
+import maps.data.MapTextures;
 import maps.layout.MapCoords;
 import maps.layout.tile.Tile;
 import maps.layout.tile.TileFoundation;
@@ -54,7 +58,7 @@ public class UnitVisuals {
     private ColorRGBA baseOutlineColor;
     
     private final Node hpNode, tpNode;
-    private final ProgressBar hpBar, tpBar;
+    private final BasicProgressBar hpBar, tpBar;
     
     private final LinkedList<DeserializedParticleEffect> effectQueue = new LinkedList<>();
     private final ProcedureGroup queue = new ProcedureGroup();
@@ -80,8 +84,10 @@ public class UnitVisuals {
         Quaternion rotation = new Quaternion();
         rotation.fromAngles((FastMath.PI / -3f), (FastMath.PI / -2f), 0);
         
+        float size = (25f / 16f) * Tile.LENGTH;
+        
         //initialize sprite
-        Quad spriteQuad = new Quad(25f, 25f);
+        Quad spriteQuad = new Quad(size, size);
         Geometry sprite = new Geometry(name + " map sprite Geometry", spriteQuad);
         Material spriteMat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
         Texture tex = assetManager.loadTexture(folderPath + spritesheetInfo.getSheet());
@@ -90,55 +96,37 @@ public class UnitVisuals {
         spriteBody = new GeometricBody<>(sprite, spriteQuad, spriteMat);
         
         //initialize outline
-        Quad outlineQuad = new Quad(25f, 25f);
+        Quad outlineQuad = new Quad(size, size);
         Geometry outline = new Geometry("outline", outlineQuad);
         Material outlineMat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
         Texture outlineTexture = assetManager.loadTexture(folderPath + spritesheetInfo.getOutlineSheet());
         
         initializeSprite(outline, outlineMat, outlineTexture, rotation);
         outlineBody = new GeometricBody<>(outline, outlineQuad, outlineMat);
-        outlineBody.getGeometry().move(0, -0.1f, 0);
         
         //create bars
-        hpBar = new ProgressBar();
-        tpBar = new ProgressBar();
+        float width = Tile.LENGTH / 1.675f;
+        Vector2f barDims = new Vector2f(width, width * (217f / 1045f));
+        hpBar = new BasicProgressBar(barDims, MapTextures.GUI.HealthBar, false, GameUtils.HP_COLOR_GREEN, assetManager);
+        tpBar = new BasicProgressBar(Vector2F.invert(barDims).multLocal(new Vector2f(1, 0.75f)), MapTextures.GUI.VerticalProgressBar, true, GameUtils.TP_COLOR_PINK, assetManager);
         
-        ((QuadBackgroundComponent)hpBar.getValueIndicator().getBackground()).setColor(GameUtils.HP_COLOR_GREEN);
-        ((QuadBackgroundComponent)tpBar.getValueIndicator().getBackground()).setColor(GameUtils.TP_COLOR_PINK);
-        hpBar.getValueIndicator().setAlpha(1f);
-        tpBar.getValueIndicator().setAlpha(1f);
+        //hpBar.setTextureRange(0.1617f, 0.977f);
+        //tpBar.setTextureRange(0.0f, 1.0f);
         
-        ((TbtQuadBackgroundComponent)hpBar.getBackground()).setColor(ColorRGBA.Black);
-        ((TbtQuadBackgroundComponent)tpBar.getBackground()).setColor(ColorRGBA.Black);
-        
-        hpBar.setInsets(new Insets3f(0.5f, 0.5f, 0.5f, 0.5f));
-        tpBar.setInsets(new Insets3f(0.5f, 0.5f, 0.5f, 0.5f));
-        
-        //using these to initialize and manipulate positions of the bars
-        Node hpMidNode = new Node(), tpMidNode = new Node();
-        
-        hpMidNode.attachChild(hpBar);
-        tpMidNode.attachChild(tpBar);
-        
-        hpMidNode.scale(0.3f);
-        tpMidNode.scale(0.3f);
-        
+        //initialize and manipulate positions of the bars
         float halfTile = Tile.LENGTH / 2f;
         float tpDeltaXY = Tile.LENGTH * (5f / 8f);
-        hpMidNode.move(0, halfTile, halfTile);
-        tpMidNode.move(tpDeltaXY, tpDeltaXY, tpDeltaXY * 2);
+        hpBar.getBarNode().move(Tile.LENGTH / -9f, halfTile, halfTile);
+        tpBar.getBarNode().move(tpDeltaXY / 2f, 0, tpDeltaXY * 2);
         
-        tpMidNode.setLocalRotation(rotation);
+        hpBar.getBarNode().setLocalRotation(rotation);
+        tpBar.getBarNode().setLocalRotation(rotation);
         
-        Quaternion hpRotation = new Quaternion();
-        hpRotation.fromAngles((FastMath.PI / -2f), 0, FastMath.PI / 4f);
-        hpMidNode.setLocalRotation(hpRotation);
-        
-        hpNode.attachChild(hpMidNode);
-        tpNode.attachChild(tpMidNode);
+        hpNode.attachChild(hpBar.getBarNode());
+        tpNode.attachChild(tpBar.getBarNode());
         
         //set layers
-        LayerComparator.setLayer(spriteBody.getGeometry(), 6); //middle 
+        LayerComparator.setLayer(spriteBody.getGeometry(), 6);  //middle 
         LayerComparator.setLayer(outlineBody.getGeometry(), 5); //bottom
         LayerComparator.setLayer(hpNode, 7); //top
         LayerComparator.setLayer(tpNode, 7); //top
@@ -196,8 +184,8 @@ public class UnitVisuals {
     }
     
     public void detachBars() {
-        hpBar.removeFromParent();
-        tpBar.removeFromParent();
+        hpBar.getBarNode().removeFromParent();
+        tpBar.getBarNode().removeFromParent();
     }
     
     public void setBaseOutlineColor(ColorRGBA base) {
@@ -227,11 +215,11 @@ public class UnitVisuals {
     }
     
     protected void updateHP(float currrentToMaxHPratio) {
-        hpBar.setProgressPercent(currrentToMaxHPratio);
+        hpBar.setPercent(currrentToMaxHPratio);
     }
     
     protected void updateTP(float currentToMaxTPratio) {
-        tpBar.setProgressPercent(currentToMaxTPratio);
+        tpBar.setPercent(currentToMaxTPratio);
     }
     
     protected void updateSprite() {

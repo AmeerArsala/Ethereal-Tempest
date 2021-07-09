@@ -12,7 +12,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
 import enginetools.MaterialCreator;
 
 /**
@@ -84,7 +83,7 @@ public class RadialProgressBar extends Node {
         
         rotate(0, 0, FastMath.PI / 2); //z pos correction for UI
         childrenNode.rotate(0, 0, FastMath.PI / -2f); //children node counteract this
-        childrenNode.move(0, 0, 3); 
+        childrenNode.move(0, 0, 3);
     }
     
     private void updatePercentage() {
