@@ -81,6 +81,10 @@ public class Main extends SimpleApplication {
        
        assetManager.registerLoader(TrueTypeLoader.class, "ttf");
        
+       EnvironmentCamera envCam = new EnvironmentCamera();
+       stateManager.attach(envCam);
+       envCam.initialize(stateManager, this); //Manually initialize so we can add a probe before the next update happens
+       
        String map = "TestMap";
        MapData mapData = MapData.deserialize(map, assetManager);
        
@@ -94,10 +98,6 @@ public class Main extends SimpleApplication {
        MasterFsmState.setCurrentDefaultMap(mapLevel);
        
        stateManager.attach(new TestMap(this, mapLevel, getCamera(), flyCam, settings));
-       
-       EnvironmentCamera envCam = new EnvironmentCamera();
-       stateManager.attach(envCam);
-       envCam.initialize(stateManager, this); //Manually initialize so we can add a probe before the next update happens
     }
 
     @Override

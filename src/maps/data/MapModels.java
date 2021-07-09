@@ -45,21 +45,19 @@ public class MapModels {
         public void loadTerrainModel(AssetManager assetManager) {
             terrainModel = (Node)assetManager.loadModel(modelPath);
             
-            Globals.enqueue(() -> {
-                EnvironmentCamera envCam = Globals.getStateManager().getState(EnvironmentCamera.class);
+            EnvironmentCamera envCam = Globals.getStateManager().getState(EnvironmentCamera.class);
             
-                final long startTime = System.currentTimeMillis();
-                lightProbe = LightProbeFactory.makeProbe(envCam, terrainModel, EnvMapUtils.GenerationType.Fast, 
-                    new JobProgressAdapter<LightProbe>() {
-                        @Override
-                        public void done(LightProbe t) {
-                            System.err.println(toString() + ": LightProbe finished loading in " + (System.currentTimeMillis() - startTime) + "ms");
-                        }
+            final long startTime = System.currentTimeMillis();
+            lightProbe = LightProbeFactory.makeProbe(envCam, terrainModel, EnvMapUtils.GenerationType.Fast, 
+                new JobProgressAdapter<LightProbe>() {
+                    @Override
+                    public void done(LightProbe t) {
+                        System.err.println(toString() + ": LightProbe finished loading in " + (System.currentTimeMillis() - startTime) + "ms");
                     }
-                );
-                
-                terrainModel.updateGeometricState();
-            });
+                }
+            );
+            
+            terrainModel.updateGeometricState();
         }
     }
     
