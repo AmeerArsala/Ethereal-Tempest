@@ -78,7 +78,7 @@ public class ExpIndicator extends AnchoredIndicator {
         node.attachChild(levelUpTextPanel); //attach the "LEVEL UP!" text, which is an image
         
         VisualTransition VT = new VisualTransition(levelUpTextPanel, Animation.ZoomIn().setLength(seconds));
-        VT.setResetProtocol(onFinish);
+        VT.onFinishTransitions(onFinish);
         
         addTransitionToGroup(VT);
     }

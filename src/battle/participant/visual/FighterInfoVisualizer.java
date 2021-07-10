@@ -275,7 +275,7 @@ public class FighterInfoVisualizer {
             Animation.MoveDirection2D(FastMath.HALF_PI, 0.175f * battleBoxInfo.horizontalLength()).setLength(seconds)
         );
         
-        animation.setResetProtocol(() -> { sprite.getParent().detachChild(text); });
+        animation.onFinishTransitions(() -> { sprite.getParent().detachChild(text); });
         
         sprite.attachChild(text);
         

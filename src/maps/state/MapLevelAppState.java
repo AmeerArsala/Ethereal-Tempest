@@ -11,7 +11,6 @@ import battle.data.forecast.PrebattleForecast;
 import battle.environment.BattleViewInfo;
 import etherealtempest.info.Catalog;
 import etherealtempest.info.Conveyor;
-import com.atr.jme.font.asset.TrueTypeLoader;
 import com.jme.effekseer.EffekseerRenderer;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
@@ -32,8 +31,6 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
-import com.simsilica.lemur.GuiGlobals;
-import com.simsilica.lemur.style.BaseStyles;
 import etherealtempest.gui.specific.ActionMenu;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,13 +42,6 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector2f;
-import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Spatial;
-import com.jme3.texture.Image;
-import com.jme3.texture.TextureArray;
-import com.jme3.util.SkyFactory;
-import com.jme3.util.SkyFactory.EnvMapType;
-import maps.layout.occupant.control.Cursor;
 import maps.layout.MapLevel;
 import maps.ui.StatScreen;
 import maps.layout.occupant.character.TangibleUnit;
@@ -74,15 +64,13 @@ import maps.layout.occupant.MapEntity;
 import fundamental.unit.PositionedUnitParams;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
-import fundamental.stats.BaseStat;
 import maps.data.MapLevelLoader;
-import maps.layout.tile.Tile;
 
 /**
  *
  * @author night
  */
-public class TestMap extends AbstractAppState {
+public class MapLevelAppState extends AbstractAppState {
     private final SimpleApplication app;
     private final Node rootNode, guiNode;
     private final Node localRootNode = new Node("Default 01"), localGuiNode = new Node("Map GUI");
@@ -96,12 +84,11 @@ public class TestMap extends AbstractAppState {
     private AppStateManager stManager;
     private RenderManager renderManager;
     private ViewPort screenView;
-     
+    
     private EffekseerRenderer effekseerRenderer;
     private FlyByCamera flyCam;
     //private Savable savestate;
     
-    //private Node battleScene;
     protected MapLevel mapLevel;
     protected MapFlow mapFlow;
     
@@ -134,7 +121,11 @@ public class TestMap extends AbstractAppState {
         
     };
     
-    public TestMap(SimpleApplication application, MapLevel currentMapLevel, Camera cm, FlyByCamera fyCam, AppSettings appSettings) {
+    public MapLevelAppState(SimpleApplication application, Camera cam, FlyByCamera flyCam, AppSettings appSettings) {
+        this(application, MasterFsmState.getCurrentMap(), cam, flyCam, appSettings);
+    }
+    
+    public MapLevelAppState(SimpleApplication application, MapLevel currentMapLevel, Camera cm, FlyByCamera fyCam, AppSettings appSettings) {
         app = application;
         mapLevel = currentMapLevel;
         
@@ -162,15 +153,23 @@ public class TestMap extends AbstractAppState {
         analogListener = new AnalogListener() {
             @Override
             public void onAnalog(String name, float value, float tpf) {
-                int fps = (int)(1 / tpf);
-                Vector2f click2D = inputManager.getCursorPosition();
+                if (!MapLevelLoader.isCurrentMapLevelDoneLoading()) {
+                    return;
+                } 
+                
+                //int fps = (int)(1 / tpf);
+                //Vector2f click2D = inputManager.getCursorPosition();
             }
         };
         
         actionListener = new ActionListener() {
             @Override
             public void onAction(String name, boolean keyPressed, float tpf) {
-                int fps = (int)(1 / tpf);
+                if (!MapLevelLoader.isCurrentMapLevelDoneLoading()) {
+                    return;
+                }
+                
+                //int fps = (int)(1 / tpf);
                 
                 //stat screen action
                 if (stats.getState().getEnum() != MapFlowState.GuiClosed && keyPressed) {
@@ -229,6 +228,10 @@ public class TestMap extends AbstractAppState {
     
     public Node getLocalGuiNode() { 
         return localGuiNode; 
+    }
+    
+    public MapFlow getMapFlow() {
+        return mapFlow;
     }
     
     @Override
@@ -331,7 +334,6 @@ public class TestMap extends AbstractAppState {
         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault));
         
         mapFlow.getCursor().setPosition(mapFlow.getUnits().get(0).getPos()); //change position later
-        mapFlow.goToNextPhase();
     }
     
     public void initializeControlMappings() {

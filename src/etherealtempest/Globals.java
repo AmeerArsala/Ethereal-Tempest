@@ -6,6 +6,8 @@
 package etherealtempest;
 
 import com.jme3.app.state.AppStateManager;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import general.tools.GameTimer;
 import general.procedure.ProcedureGroup;
@@ -63,5 +65,44 @@ public class Globals {
     
     public static AppStateManager getStateManager() {
         return app.getStateManager();
+    }
+    
+    public static float superRandomFloat() {
+        int genMethod = (int)(4 * Math.random());
+        
+        final int JAVA_RANDOM = 0;
+        final int GAME_RANDOM = 1;
+        final int JME_RANDOM = 2;
+        //COLOR_RANDOM = 3
+        
+        switch (genMethod) {
+            case JAVA_RANDOM:
+                return (float)Math.random();
+            case GAME_RANDOM:
+                return Main.RNG.nextFloat();
+            case JME_RANDOM:
+                return FastMath.nextRandomFloat();
+        }
+        
+        return ColorRGBA.randomColor().getColorArray()[genMethod]; //COLOR_RANDOM
+    }
+    
+    public static ColorRGBA superRandomColor() {
+        ColorRGBA rgba = new ColorRGBA();
+        
+        rgba.r = superRandomFloat();
+        rgba.g = superRandomFloat();
+        rgba.b = superRandomFloat();
+        rgba.a = superRandomFloat();
+        
+        return rgba;
+    }
+    
+    public static ColorRGBA superRandomColor2() {
+        if (Main.RNG.nextBoolean()) {
+            return ColorRGBA.randomColor();
+        } else {
+            return superRandomColor();
+        }
     }
 }

@@ -268,7 +268,7 @@ public class CombatantUI {
                     }.setInitialAndEndVals(initialX, translation)
                 );
                 
-                transition.setResetProtocol(() -> { //onFinish
+                transition.onFinishTransitions(() -> { //onFinish
                     levelUpPanel.levelUp();
                 });
                 

@@ -12,6 +12,7 @@ import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
 import fundamental.jobclass.JobClass;
+import general.procedure.functional.NamedExecution;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +27,16 @@ import maps.layout.occupant.character.TangibleUnit;
  * @author night
  */
 public class MapLevelLoader {
+    private static boolean currentMapLevelDoneLoading = false;
+    
+    public static boolean isCurrentMapLevelDoneLoading() {
+        return currentMapLevelDoneLoading;
+    }
+    
+    public static void setCurrentMapLevelDoneLoading(boolean done) {
+        currentMapLevelDoneLoading = done;
+    }
+    
     public static void loadTileTextures(AssetManager assetManager, MapData mapData) {
         String prefix = "Textures/tiles/";
         
@@ -157,5 +168,27 @@ public class MapLevelLoader {
         }
         
         return new TextureArray(textures);
+    }
+    
+    public static NamedExecution[] loadingTasksForMapLevel(AssetManager assetManager, MapData mapData, int extraLength) {
+        NamedExecution[] baseTasks = {
+            NamedExecution.fromRunnable("Loading Models...", () -> { loadMapModels(assetManager, mapData); }),
+            NamedExecution.fromRunnable("Loading Tile Textures...", () -> { loadTileTextures(assetManager, mapData); }),
+            NamedExecution.fromRunnable("Loading Movement Arrow Textures...", () -> { loadMoveArrowTextures(assetManager); }),
+            NamedExecution.fromRunnable("Loading GUI Textures...", () -> { loadMapGuiTextures(assetManager); }),
+            NamedExecution.fromRunnable("Loading Unit-related Textures...", () -> { loadUnitTextures(assetManager, mapData.getStartingUnits()); })
+        };
+        
+        NamedExecution[] tasks = new NamedExecution[baseTasks.length + extraLength];
+    
+        for (int i = 0; i < baseTasks.length; i++) {
+            tasks[i] = baseTasks[i];
+        }
+        
+        return tasks;
+    }
+    
+    public static NamedExecution[] loadingTasksForMapLevel(AssetManager assetManager, MapData mapData) {
+        return loadingTasksForMapLevel(assetManager, mapData, 0);
     }
 }

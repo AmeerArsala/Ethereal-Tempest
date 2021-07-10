@@ -95,7 +95,7 @@ public class VisualTransition {
         appliedTransitions = ts;
     }
     
-    public void setResetProtocol(Runnable RP) { //on finish transitions
+    public void onFinishTransitions(Runnable RP) { //on finish transitions
         resetSequence = RP;
     }
     

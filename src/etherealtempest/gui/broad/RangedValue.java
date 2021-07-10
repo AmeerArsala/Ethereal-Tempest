@@ -109,6 +109,10 @@ public abstract class RangedValue {
         });
     }
     
+    public void removeAllProceduresFromGroup() {
+        procedures.clear();
+    }
+    
     protected abstract void updateVisuals();
     
     public final void updateState() {

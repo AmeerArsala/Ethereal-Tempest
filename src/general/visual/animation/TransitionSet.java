@@ -99,7 +99,7 @@ public class TransitionSet {
     }
     
     public void onFinish(TransitionState state, Runnable onFinish) {
-        transitionEventMap.get(state).setResetProtocol(() -> {
+        transitionEventMap.get(state).onFinishTransitions(() -> {
                 onFinish.run();
                 key.state = TransitionState.Standby;
                 key.type = TransitionType.None;

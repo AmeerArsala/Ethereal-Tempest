@@ -263,14 +263,14 @@ public class MapFlow { //eventually make this the map controller
         Vector3f center = new Vector3f(0.5f, 0.5f, 0);
         SpatialOperator anchor = phaseText.createSpatialOperator(center.x, center.y);
         anchor.alignTo(Globals.getScreenDimensions().multLocal(center));
-        //phaseText.setLocalTranslation(EngineUtils.centerEntity(phaseText.getTextBounds(), Globals.getScreenDimensions(), Arrays.asList(CenterAxis.X, CenterAxis.Y)));
         //phaseText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
         
         localGuiNode.attachChild(phaseText);
-
+        
+        final float seconds = 2;
         final GameTimer timer = new GameTimer();
         queue.add((tpf) -> {
-            float alpha = 1.5f * FastMath.sin((FastMath.PI / 4f) * timer.getTime());
+            float alpha = 1.5f * FastMath.sin((FastMath.PI / seconds) * timer.getTime());
             phaseText.setTextAlpha(alpha);
             //phaseText.setTextColor(new ColorRGBA(1, 1, 1, alpha));
             

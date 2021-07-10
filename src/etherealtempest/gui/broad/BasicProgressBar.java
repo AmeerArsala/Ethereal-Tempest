@@ -17,6 +17,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Quad;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.Axis;
+import enginetools.math.SpatialOperator;
 import general.ui.GeometryPanel;
 import maps.data.MapTextures;
 
@@ -76,6 +77,14 @@ public class BasicProgressBar extends RangedValue {
         return bar;
     }
     
+    public SpatialOperator getAnchor() {
+        return bar.getOperator();
+    }
+    
+    public SpatialOperator getAnchor(float percentX, float percentY) {
+        return bar.getOperator(percentX, percentY);
+    }
+    
     public Quad getQuad() {
         return bar.getQuad();
     }
@@ -123,5 +132,9 @@ public class BasicProgressBar extends RangedValue {
     
     public void setColor(ColorRGBA color) {
         mat.setColor("Color", color);
+    }
+    
+    public void setQueueBucket(Bucket queueBucket) {
+        bar.getGeometry().setQueueBucket(queueBucket);
     }
 }
