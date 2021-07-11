@@ -84,7 +84,15 @@ public class ParametricFunction { //ParametricFunction2f
     
     
     public static MathFunction[] splice(ParametricFunction toSplice) {
-        return new MathFunction[] { toSplice.x, toSplice.y };
+        if (toSplice instanceof ParametricFunction3f) {
+            ParametricFunction3f toSplice3f = (ParametricFunction3f)toSplice;
+            return new MathFunction[] { toSplice3f.getRFunc(), toSplice3f.getGFunc(), toSplice3f.getBFunc() };
+        } else if (toSplice instanceof ParametricFunction4f) {
+            ParametricFunction4f toSplice4f = (ParametricFunction4f)toSplice;
+            return new MathFunction[] { toSplice4f.getRFunc(), toSplice4f.getGFunc(), toSplice4f.getBFunc(), toSplice4f.getAFunc() };
+        } else {
+            return new MathFunction[] { toSplice.x, toSplice.y };
+        }
     }
     
     public static MathFunction[] adjoin(MathFunction a, MathFunction[] b) {

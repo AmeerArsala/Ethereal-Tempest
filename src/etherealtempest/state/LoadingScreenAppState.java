@@ -33,6 +33,12 @@ import enginetools.math.SpatialOperator;
 import etherealtempest.Globals;
 import etherealtempest.geometry.GeometricBody;
 import etherealtempest.gui.broad.BasicProgressBar;
+import general.math.FloatPair;
+import general.math.function.MathFunction;
+import general.math.function.ParametricFunction;
+import general.math.function.ParametricFunction3f;
+import general.math.function.RGBAFunction;
+import general.math.function.RandomizedPiecewiseFunction;
 import general.procedure.functional.NamedExecution;
 import general.procedure.functional.NamedProcess;
 import general.ui.text.FontProperties;
@@ -51,15 +57,38 @@ public abstract class LoadingScreenAppState extends BaseAppState {
     public static final String BAR_TEXTURE_PATH = "Interface/GUI/common/smoothBar.png";
     public static final int BAR_TEXTURE_WIDTH_PX = 1045, BAR_TEXTURE_HEIGHT_PX = 217;
     
+    private static final FloatPair RGB_DOMAIN = new FloatPair(0f, Float.POSITIVE_INFINITY); // Domain: [0f, infinity)
+    private static final FloatPair RGB_RANGE = new FloatPair(0f, 1f);                       // Range: [0f, 1f] 
+    public static final RandomizedPiecewiseFunction RANDOM_R = new RandomizedPiecewiseFunction(RGB_DOMAIN, RGB_RANGE, MathFunction.CONSTANT(1f), false); //1-second partitions
+    public static final RandomizedPiecewiseFunction RANDOM_G = new RandomizedPiecewiseFunction(RGB_DOMAIN, RGB_RANGE, MathFunction.CONSTANT(1f), false); //1-second partitions
+    public static final RandomizedPiecewiseFunction RANDOM_B = new RandomizedPiecewiseFunction(RGB_DOMAIN, RGB_RANGE, MathFunction.CONSTANT(1f), false); //1-second partitions
+    public static final ParametricFunction3f RANDOM_RGB = new ParametricFunction3f(RANDOM_R, RANDOM_G, RANDOM_B);
+    
+    static {
+        RANDOM_RGB.setInstanceGenType(ParametricFunction.FRESH);
+    }
+    
+    public static final RGBAFunction RANDOM_RGBA = new RGBAFunction(RANDOM_RGB, MathFunction.CONSTANT(1f));
+    
+    static {
+        RANDOM_RGBA.setInstanceGenType(ParametricFunction.FRESH);
+    }
+    
     public static final class VisualParams {
         private final Material background;
         private final ColorRGBA barColor;
         private final float barWidthPercent;
+        private final boolean useRandomColor;
         
-        public VisualParams(Material background, ColorRGBA barColor, float barWidthPercent) {
+        public VisualParams(Material background, ColorRGBA barColor, float barWidthPercent, boolean useRandomColor) {
             this.background = background;
             this.barColor = barColor;
             this.barWidthPercent = barWidthPercent;
+            this.useRandomColor = useRandomColor;
+        }
+        
+        public boolean useRandomColor() {
+            return useRandomColor;
         }
         
         public GeometricBody<Quad> makeScreenBackground() {
@@ -118,6 +147,7 @@ public abstract class LoadingScreenAppState extends BaseAppState {
     private final GeometricBody<Quad> screenBackground;
     private final BasicProgressBar loadingBar;
     private final Text2D text;
+    private final boolean useRandomColor;
     
     public LoadingScreenAppState(AssetManager assetManager, NamedExecution[] processes, VisualParams visualParams) {
         this.assetManager = assetManager;
@@ -126,18 +156,19 @@ public abstract class LoadingScreenAppState extends BaseAppState {
         screenBackground = visualParams.makeScreenBackground();
         loadingBar = visualParams.makeLoadingBar(assetManager, processes.length);
         text = visualParams.makeText(assetManager);
+        useRandomColor = visualParams.useRandomColor();
     }
     
-    public LoadingScreenAppState(AssetManager assetManager, NamedExecution[] processes, float barWidthPercent, ColorRGBA barColor, ColorRGBA backgroundColor) {
-        this(assetManager, processes, new VisualParams(flatColor(assetManager, backgroundColor), barColor, barWidthPercent));
+    public LoadingScreenAppState(AssetManager assetManager, NamedExecution[] processes, float barWidthPercent, ColorRGBA barColor, ColorRGBA backgroundColor, boolean useRandomColor) {
+        this(assetManager, processes, new VisualParams(flatColor(assetManager, backgroundColor), barColor, barWidthPercent, useRandomColor));
     }
     
-    public LoadingScreenAppState(AssetManager assetManager, NamedExecution[] processes, float barWidthPercent, ColorRGBA barColor) {
-        this(assetManager, processes, new VisualParams(julieMaterial(assetManager, null), barColor, barWidthPercent));
+    public LoadingScreenAppState(AssetManager assetManager, NamedExecution[] processes, float barWidthPercent, ColorRGBA barColor, boolean useRandomBGColorSeed) {
+        this(assetManager, processes, new VisualParams(julieMaterial(assetManager, null), barColor, barWidthPercent, useRandomBGColorSeed));
     }
     
-    public LoadingScreenAppState(AssetManager assetManager, NamedExecution[] processes, Texture screenTexture, float barWidthPercent, ColorRGBA barColor) {
-        this(assetManager, processes, new VisualParams(julieMaterial(assetManager, screenTexture), barColor, barWidthPercent));
+    public LoadingScreenAppState(AssetManager assetManager, NamedExecution[] processes, Texture screenTexture, float barWidthPercent, ColorRGBA barColor, boolean useRandomBGColorSeed) {
+        this(assetManager, processes, new VisualParams(julieMaterial(assetManager, screenTexture), barColor, barWidthPercent, useRandomBGColorSeed));
     }
     
     private static Material flatColor(AssetManager assetManager, ColorRGBA color) {
@@ -235,6 +266,14 @@ public abstract class LoadingScreenAppState extends BaseAppState {
     public void update(float tpf) {
         super.update(tpf);
         
+        if (useRandomColor) {
+            screenBackground.getMaterial().setColor("Color", RANDOM_RGBA.rgba(Globals.time()));
+        }
+        
+        tick(tpf);
+    }
+    
+    private void tick(float tpf) {
         if (index >= processes.length) {
             transitionOut.update(tpf);
             

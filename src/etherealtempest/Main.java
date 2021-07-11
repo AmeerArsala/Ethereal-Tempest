@@ -118,8 +118,9 @@ public class Main extends SimpleApplication {
         
         float barWidthPercent = 0.6f;
         ColorRGBA barColor = ColorRGBA.White;
+        boolean useRandomBGColorSeed = true;
         
-        LoadingScreenAppState loadingMapScreen = new LoadingScreenAppState(assetManager, allLoadingTasks, barWidthPercent, barColor) {
+        LoadingScreenAppState loadingMapScreen = new LoadingScreenAppState(assetManager, allLoadingTasks, barWidthPercent, barColor, useRandomBGColorSeed) {
             @Override
             protected void onFinish(AppStateManager stateManager) {
                 MapLevelLoader.setCurrentMapLevelDoneLoading(true);
