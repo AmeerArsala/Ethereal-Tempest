@@ -14,6 +14,7 @@ import com.jme3.environment.EnvironmentCamera;
 import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
+import com.jme3.texture.Texture;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.style.BaseStyles;
 import edited.FlyCamera;
@@ -116,11 +117,15 @@ public class Main extends SimpleApplication {
             allLoadingTasks[i + 1] = mapLevelLoadingTasks[i];
         }
         
+        Texture bgTexture;
+        //bgTexture = assetManager.loadTexture("Textures/draft/ojordan.png");
+        bgTexture = null;
+        
         float barWidthPercent = 0.6f;
         ColorRGBA barColor = ColorRGBA.White;
         boolean useRandomBGColorSeed = true;
         
-        LoadingScreenAppState loadingMapScreen = new LoadingScreenAppState(assetManager, allLoadingTasks, barWidthPercent, barColor, useRandomBGColorSeed) {
+        LoadingScreenAppState loadingMapScreen = new LoadingScreenAppState(assetManager, allLoadingTasks, bgTexture, barWidthPercent, barColor, useRandomBGColorSeed) {
             @Override
             protected void onFinish(AppStateManager stateManager) {
                 MapLevelLoader.setCurrentMapLevelDoneLoading(true);

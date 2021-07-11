@@ -40,7 +40,6 @@ import general.math.function.ParametricFunction3f;
 import general.math.function.RGBAFunction;
 import general.math.function.RandomizedPiecewiseFunction;
 import general.procedure.functional.NamedExecution;
-import general.procedure.functional.NamedProcess;
 import general.ui.text.FontProperties;
 import general.ui.text.FontProperties.KeyType;
 import general.ui.text.Text2D;
