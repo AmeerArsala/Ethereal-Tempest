@@ -134,7 +134,10 @@ public class CombatantUI {
         Vector3f toolTranslation = forecastInfoTranslation.mult(new Vector3f(1f, 10f, 1f));
         Vector3f hpHeartTranslation = new Vector3f(forecastInfoTranslation.x, SCREEN_HEIGHT - forecastInfoTranslation.y - hpHeartDims.y, 0).mult(new Vector3f(2f, 0.925f, 1f)).addLocal(forecastInfo.getWidth(), 0, 0);
         Vector3f tpBallTranslation = new Vector3f(hpHeartTranslation.x, SCREEN_HEIGHT - hpHeartTranslation.y, 0).multLocal(1.15f, 0.15f, 1f);
-        Vector3f expBarTranslation = nametagTranslation.add(0.05f * SCREEN_WIDTH, (-2 * outerRadius) - (0.25f * nametag.getHeight()), 0f);
+        Vector3f expBarTranslation = new Vector3f(nametagTranslation.x, nametagTranslation.y + ((-1 * outerRadius) - (0.25f * nametag.getHeight())), 2f);
+        if (!mirrorUI) {
+            expBarTranslation.addLocal(outerRadius, 0, 0);
+        }
         
         setLocalTranslationOf(portrait, portraitTranslation, portraitDims);
         setLocalTranslationOf(nametag, nametagTranslation, nametag.getWidth());
@@ -142,7 +145,7 @@ public class CombatantUI {
         setLocalTranslationOf(forecastInfo, forecastInfoTranslation, forecastInfo.getWidth());
         setLocalTranslationOf(hpHeart.getNode(), hpHeartTranslation, hpHeartDims.x);
         setLocalTranslationOf(tpBall.getNode(), tpBallTranslation, tpBallDims.x);
-        setLocalTranslationOf(expbar.getExpCircle(), expBarTranslation, outerRadius * 2);
+        setLocalTranslationOf(expbar.getExpCircle(), expBarTranslation, outerRadius);
         
         float frameWidth = portraitDims * 2.25f;
         float frameHeight = (460f / 965f) * frameWidth;

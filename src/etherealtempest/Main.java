@@ -30,6 +30,7 @@ import java.util.Random;
 import maps.data.MapData;
 import maps.layout.MapLevel;
 import maps.state.MapLevelAppState;
+import tests.TestStateLoader;
 
 /**
  * This is the Main Class of your Game. You should only do initialization here.
@@ -75,6 +76,7 @@ public class Main extends SimpleApplication {
         flyCam.setMoveSpeed(350);
         
         loadMapLevel("TestMap");
+        //stateManager.attach(TestStateLoader.loadGuiTest(assetManager, fetchDefaultTasksToLoad()));
     }
 
     @Override
@@ -108,14 +110,7 @@ public class Main extends SimpleApplication {
     void loadMapLevel(String map) {
         gameContext.setMapData(MapData.deserialize(map, assetManager));
         
-        NamedExecution baseLoadingTasks = fetchDefaultTasksToLoad();
-        NamedExecution[] mapLevelLoadingTasks = fetchMapLevelLoadingTasks();
-        
-        NamedExecution[] allLoadingTasks = new NamedExecution[mapLevelLoadingTasks.length + 1];
-        allLoadingTasks[0] = baseLoadingTasks;
-        for (int i = 0; i < mapLevelLoadingTasks.length; ++i) {
-            allLoadingTasks[i + 1] = mapLevelLoadingTasks[i];
-        }
+        NamedExecution[] allLoadingTasks = NamedExecution.addFirst(fetchDefaultTasksToLoad(), fetchMapLevelLoadingTasks());
         
         Texture bgTexture;
         //bgTexture = assetManager.loadTexture("Textures/draft/ojordan.png");
@@ -169,7 +164,7 @@ public class Main extends SimpleApplication {
         processes[processes.length - 1] = new NamedExecution("Rendering and Initializing Map...") {
             @Override
             public void execute() {
-                gameContext.setMapState(new MapLevelAppState(Main.this, cam, flyCam, settings));
+                gameContext.setMapState(new MapLevelAppState(settings));
                 stateManager.attach(gameContext.getMapState());
             }
         };

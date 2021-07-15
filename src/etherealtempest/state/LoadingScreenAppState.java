@@ -221,7 +221,6 @@ public abstract class LoadingScreenAppState extends BaseAppState {
         LayerComparator.setLayer(text, 2);
         
         //center the loadingBar in the middle of the screen
-        //loadingBar.getAnchor().getOriginPointInPercents().set(SpatialOperator.ORIGIN_TOP_LEFT);
         loadingBar.getAnchor().getPointInPercents().set(0.5f, 0.5f, 0);
         loadingBar.getAnchor().alignToLocally(Globals.getScreenDimensions().multLocal(0.5f));
         

@@ -23,7 +23,7 @@ import maps.layout.MapCoords;
  * @author night
  */
 public class TileFoundation {
-    public static final float RADIUS_FOR_SQUARE = 8f;
+    public static final float RADIUS_FOR_SQUARE = Tile.SIDE_LENGTH / 2f;
     
     protected final MapCoords coords = new MapCoords();
     protected Geometry tgeometry;

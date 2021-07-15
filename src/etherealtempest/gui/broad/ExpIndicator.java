@@ -68,7 +68,10 @@ public class ExpIndicator extends AnchoredIndicator {
     
     @Override
     protected void updateText() {
-        text.setText("   EXP\n" + getCurrentNumber() + "/" + maxNumber);
+        String ratio = getCurrentNumber() + "/" + maxNumber;
+        String expStr = ratio.length() > 5 ? "   EXP\n" : " EXP\n";
+        
+        text.setText(expStr + ratio);
         text.fitInTextBox(1f);
         alignTextToEquilibrium();
     }

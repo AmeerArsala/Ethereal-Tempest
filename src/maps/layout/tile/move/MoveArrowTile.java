@@ -48,7 +48,7 @@ public class MoveArrowTile extends TileFoundation {
         patchMesh = createMesh();
         tgeometry = new Geometry("movement arrow: " + coords.toString(), patchMesh);
         node = new Node("movement arrow node: " + coords.toString());
-        //anchor = new SpatialOperator(tgeometry, new Vector3f(Tile.LENGTH, 0, Tile.LENGTH), new Vector3f(0.5f, 0, 0.5f), SpatialOperator.ORIGIN_TOP_LEFT);
+        //anchor = new SpatialOperator(tgeometry, new Vector3f(Tile.SIDE_LENGTH, 0, Tile.SIDE_LENGTH), new Vector3f(0.5f, 0, 0.5f), SpatialOperator.ORIGIN_TOP_LEFT);
         index = STEM; //most will be stems so the index starts at STEM as a micro-optimization 
         
         mat = new Material(assetManager, "MatDefs/custom/ArrayTexture.j3md");
@@ -82,7 +82,7 @@ public class MoveArrowTile extends TileFoundation {
     }
     
     public void attachToCurrentMapIfNotAlready() {
-        node.setLocalTranslation(coords.getY() * Tile.LENGTH, coords.getLayer() * MapLevel.LAYER_Y_DEVIATION, coords.getX() * Tile.LENGTH);
+        node.setLocalTranslation(coords.getY() * Tile.SIDE_LENGTH, coords.getLayer() * MapLevel.LAYER_Y_DEVIATION, coords.getX() * Tile.SIDE_LENGTH);
         Node tileNode = MasterFsmState.getCurrentMap().getMiscNode();
         if (!tileNode.hasChild(node)) {
             tileNode.attachChild(node);

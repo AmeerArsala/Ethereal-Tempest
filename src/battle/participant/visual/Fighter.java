@@ -274,7 +274,7 @@ public class Fighter {
             //create sprite and overlay
             BattleSprite sprite = new BattleSprite(spriteDimensions, assetManager, battleBoxInfo, usesHitPoint);
             sprite.setSpritesheetTexture(sheetConfig.getSpritesheetImagePath(), assetManager);
-        
+            
             if (hasOverlay) {
                 sprite.setOverlay(new Sprite(spriteDimensions, assetManager));
                 sprite.getOverlay().setSpritesheetTexture(sheetConfig.getOverlayConfigPath(overlayConfig.getOverlaySpritesheetFileName()), assetManager); //TODO: change this later
@@ -307,24 +307,4 @@ public class Fighter {
             return sprite;
         }
     }
-    
-    /*
-    public static class Notifier {
-        private final BattleSprite sprite;
-        
-        private boolean realImpactOccurred = false;
-        private boolean strikeFinished = false;
-        private boolean fightFullyDone = false; //this is after all the exp and everything has been gained, so once both the user and enemy are done, it will transition out of the fight
-        
-        public Notifier(BattleSprite sprite) {
-            this.sprite = sprite;
-        }
-        
-        public BattleSprite getSprite() { return sprite; }
-        
-        public boolean realImpactOccurred() { return realImpactOccurred; }
-        public boolean strikeFinished() { return strikeFinished; }
-        public boolean fightFullyDone() { return fightFullyDone; }
-    }
-    */
 }

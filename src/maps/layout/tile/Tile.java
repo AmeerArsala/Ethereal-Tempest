@@ -29,7 +29,7 @@ import maps.layout.tile.TileVisualData.GroundType;
  * @author night
  */
 public class Tile extends TileFoundation {
-    public static final float LENGTH = RADIUS_FOR_SQUARE * 2f;
+    public static final float SIDE_LENGTH = 16f;
     
     private final Node node;
     
@@ -155,9 +155,9 @@ public class Tile extends TileFoundation {
     protected void generateTile(List<Vector3f> vertices, List<Vector2f> textureCoords, List<Integer> indices) {
         //frame the tile
         vertices.add(new Vector3f(0, 0, 0));           //bottom left (0)
-        vertices.add(new Vector3f(LENGTH, 0, 0));      //top left (1)
-        vertices.add(new Vector3f(LENGTH, 0, LENGTH)); //top right (2)
-        vertices.add(new Vector3f(0, 0, LENGTH));      //bottom right (3)
+        vertices.add(new Vector3f(SIDE_LENGTH, 0, 0));      //top left (1)
+        vertices.add(new Vector3f(SIDE_LENGTH, 0, SIDE_LENGTH)); //top right (2)
+        vertices.add(new Vector3f(0, 0, SIDE_LENGTH));      //bottom right (3)
         
         indices.addAll(Arrays.asList(1, 0, 3,  3, 2, 1));
         

@@ -8,6 +8,8 @@ package battle.participant.visual;
 import battle.data.Strike;
 import battle.environment.BoxMetadata;
 import battle.gui.CombatantUI;
+import battle.gui.GuiFactory;
+import com.simsilica.lemur.Label;
 import com.atr.jme.font.util.StringContainer;
 import com.atr.jme.font.util.Style;
 import com.jme3.asset.AssetManager;
@@ -15,6 +17,10 @@ import com.jme3.font.Rectangle;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
+import com.jme3.scene.shape.Box;
+import com.jme3.scene.Geometry;
+import com.jme3.material.Material;
+import enginetools.MaterialCreator;
 import etherealtempest.fsm.FSM;
 import etherealtempest.fsm.FSM.FighterState;
 import etherealtempest.fsm.FsmState;
@@ -25,6 +31,8 @@ import general.math.function.CartesianFunction;
 import general.ui.text.FontProperties;
 import general.ui.text.Text2D;
 import general.ui.text.TextProperties;
+import general.ui.text.quickparams.TextDisplacementParams;
+import general.ui.text.quickparams.UIFontParams;
 import general.visual.animation.Animation;
 import general.visual.animation.VisualTransition;
 import general.visual.animation.VisualTransition.Progress;
@@ -138,7 +146,6 @@ public class FighterInfoVisualizer {
         return new FighterAnimationController.AnimationParams(
             (tpf) -> {
                 //damage number rising
-                System.out.println("update damage number rising!");
                 animation.update(tpf);
             },
             (enemySprite) -> {
@@ -171,7 +178,6 @@ public class FighterInfoVisualizer {
         
         return new FighterAnimationController.AnimationParams(
             (tpf) -> {
-                System.out.println("onStartPossibleModification update");
                 for (VisualTransition animation : animations) {
                     animation.update(tpf);
                 }
@@ -263,24 +269,29 @@ public class FighterInfoVisualizer {
     
     private VisualTransition createRisingText(Text2D text, float seconds) {
         VisualTransition animation = new VisualTransition(text);
+        
         animation.beginTransitions(
             Animation.CleanOpacityShift((Text2D destination, ColorRGBA param) -> {
-                destination.setTextColor(param);
+                //System.err.println("Setting Text Color: " + param.toString());
+                destination.setTextAlpha(param.a);
             }).setFunction(new CartesianFunction() {
                 @Override
                 protected float f(float x) {
                     return -8f * FastMath.pow(x - 0.5f, 2f) + 2f; // -8(x - 0.5)^(2) + 2
                 }
-            }).setLength(seconds),
-            Animation.MoveDirection2D(FastMath.HALF_PI, 0.175f * battleBoxInfo.horizontalLength()).setLength(seconds)
+            }).setLength(seconds)
+            //,
+            //Animation.MoveDirection2D(FastMath.HALF_PI, 0.175f * battleBoxInfo.verticalLength()).setLength(seconds).setInitialAndEndVals(0f, 1f)
         );
         
-        animation.onFinishTransitions(() -> { sprite.getParent().detachChild(text); });
+        animation.onFinishTransitions(() -> {
+            sprite.detachChild(text);
+        });
         
         sprite.attachChild(text);
         
         Vector2f relativeTranslation = sprite.vectorInPositiveDirection(sprite.getDamageNumberLocation(), true);
-        text.setLocalTranslation(relativeTranslation.x, relativeTranslation.y, -1);
+        text.move(relativeTranslation.x, relativeTranslation.y, 0.01f);
         
         return animation;
     }
@@ -324,24 +335,43 @@ public class FighterInfoVisualizer {
             }
         }
         
+        /*
+        Text2D dmgText = GuiFactory.generateText(
+            text, 
+            textColor, 
+            new Rectangle(0f, 0f, 0.3f * battleBoxInfo.horizontalLength(), 0.12f * battleBoxInfo.verticalLength()), 
+            new UIFontParams("Interface/Fonts/superstar.ttf", 20f, Style.Plain, 3),
+            new TextDisplacementParams(StringContainer.Align.Left, StringContainer.VAlign.Top, StringContainer.WrapMode.CharClip), 
+            assetManager
+        );
+        */
+        
         TextProperties textParams = TextProperties.builder()
                 .horizontalAlignment(StringContainer.Align.Left)
                 .verticalAlignment(StringContainer.VAlign.Top)
                 .kerning(3)
-                .wrapMode(StringContainer.WrapMode.Clip)
-                .textBox(new Rectangle(0f, 0f, 0.3f * battleBoxInfo.horizontalLength(), 0.12f * battleBoxInfo.verticalLength()))
+                .wrapMode(StringContainer.WrapMode.CharClip)
+                //.textBox(new Rectangle(0f, 0f, 0.3f * battleBoxInfo.horizontalLength(), 0.12f * battleBoxInfo.verticalLength()))
                 .build();
         
-        float fontSize = 20;
+        float fontSize = 75f;
         
-        FontProperties fontParams = new FontProperties("Interface/Fonts/Montaga-Regular.ttf", FontProperties.KeyType.BMP, Style.Plain, fontSize);
+        FontProperties fontParams = new FontProperties(
+            "Interface/Fonts/superstar.ttf", 
+            FontProperties.KeyType.BMP,
+            Style.Plain, 
+            fontSize
+        );
         
         Text2D dmgText = new Text2D(text, textColor, textParams, fontParams, assetManager);
+        //dmgText.fitInTextBox(0f);
         //dmgText.setOutlineMaterial(textColor, ColorRGBA.Black);
+        
+        dmgText.scale(1 / fontSize);
         
         System.err.println("Text Dimensions: " + dmgText.getTextBounds());
         System.err.println("TextBox Dimensions: " + dmgText.getTextBoxBounds());
-        System.err.println("Text String: " + text);
+        System.err.println("Text String: " + dmgText.getText());
         
         return dmgText;
     }

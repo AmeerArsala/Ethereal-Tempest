@@ -52,6 +52,7 @@ public class Fight {
                 case Finished:
                     System.out.println("Fight finished");
                     onFinish.run();
+                    combat.end();
                     data.finish();
                     break;
                 default:
@@ -163,11 +164,10 @@ public class Fight {
         private final RenderManager renderManager;
         private ViewPort screenView;
         
-        public Params(AssetManager assetManager, Node localGuiNode, Camera mainCam, BattleBox battleBox, ViewPort screenView, RenderManager renderManager) {
+        public Params(AssetManager assetManager, Node localGuiNode, Camera mainCam, BattleBox battleBox, RenderManager renderManager) {
             this.assetManager = assetManager;
             this.localGuiNode = localGuiNode;
             this.battleBox = battleBox;
-            this.screenView = screenView;
             this.renderManager = renderManager;
             
             cam = mainCam.clone(); //clone main camera

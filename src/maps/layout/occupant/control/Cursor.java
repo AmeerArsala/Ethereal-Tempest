@@ -139,7 +139,7 @@ public class Cursor extends Node implements OnTile {
     public Cursor(AssetManager assetManager) {
         super("Map Cursor");
         
-        Quad quad = new Quad(Tile.LENGTH, Tile.LENGTH);
+        Quad quad = new Quad(Tile.SIDE_LENGTH, Tile.SIDE_LENGTH);
         Geometry geometry = new Geometry("cursor square", quad);
         arrowTrain = new MoveArrowTrain(assetManager);
         rangeDisplay = new RangeDisplay(MasterFsmState.getCurrentMap(), assetManager);
@@ -327,7 +327,7 @@ public class Cursor extends Node implements OnTile {
     
     private void updateTraversals(float tpf) {
         //cursor moving in the X direction
-        if (fsm.accumulatedCursorDistanceXY.x >= Tile.LENGTH) {
+        if (fsm.accumulatedCursorDistanceXY.x >= Tile.SIDE_LENGTH) {
             changePos(fsm.finishTranslatingX());
         } else if (fsm.translatingX) {
             move(0, 0, cursorSpeed * 2 * Math.signum(fsm.toTraverseXY.x));
@@ -335,7 +335,7 @@ public class Cursor extends Node implements OnTile {
         }
         
         //cursor moving in the Y direction
-        if (fsm.accumulatedCursorDistanceXY.y >= Tile.LENGTH) {
+        if (fsm.accumulatedCursorDistanceXY.y >= Tile.SIDE_LENGTH) {
             changePos(fsm.finishTranslatingY());
         } else if (fsm.translatingY) {
             move(cursorSpeed * 2 * Math.signum(fsm.toTraverseXY.y), 0, 0);
@@ -465,7 +465,7 @@ public class Cursor extends Node implements OnTile {
     
     public void resetCursorPositionFromSelection() {
         pos.subtractLocal(fsm.selectionDifferenceXY);
-        move(fsm.selectionDifferenceXY.toVector3fZX().mult(-Tile.LENGTH));
+        move(fsm.selectionDifferenceXY.toVector3fZX().mult(-Tile.SIDE_LENGTH));
         fsm.selectionDifferenceXY.setCoords(0, 0);
     }
     

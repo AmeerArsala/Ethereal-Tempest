@@ -23,6 +23,7 @@ public class TextProperties {
         private Align horizontalAlignment = Align.Left;
         private VAlign verticalAlignment = VAlign.Center;
         private Rectangle textBox = null;
+        private boolean usesTextBox = false;
         
         public Builder kerning(int kerning) {
             this.kerning = kerning;
@@ -46,11 +47,14 @@ public class TextProperties {
         
         public Builder textBox(Rectangle textBox) {
             this.textBox = textBox;
+            usesTextBox = true;
             return this;
         }
         
         public TextProperties build() {
-            return new TextProperties(textBox, kerning, wrapMode, horizontalAlignment, verticalAlignment);
+            TextProperties properties = new TextProperties(textBox, kerning, wrapMode, horizontalAlignment, verticalAlignment);
+            properties.usesTextBox = usesTextBox;
+            return properties;
         }
     }
     
@@ -60,6 +64,7 @@ public class TextProperties {
     private WrapMode wrapMode = WrapMode.Clip;
     private Align horizontalAlignment = Align.Left;
     private VAlign verticalAlignment = VAlign.Center;
+    private boolean usesTextBox = true;
     
     public TextProperties(Rectangle textBox) {
         this.textBox = textBox;
@@ -96,10 +101,18 @@ public class TextProperties {
     public WrapMode getWrapMode() { return wrapMode; }
     public Align getHorizontalAlignment() { return horizontalAlignment; }
     public VAlign getVerticalAlignment() { return verticalAlignment; }
+    public boolean usesTextBox() { return usesTextBox; }
     //public String getElipsis() { return elipsis; }
     //public int getOffset() { return offset; } 
     //public int getMaxLines() { return maxLines; }
+    //public String getText() { return text; }    //public String getElipsis() { return elipsis; }
+    //public int getOffset() { return offset; } 
+    //public int getMaxLines() { return maxLines; }
     //public String getText() { return text; }
+
+    void setUsesTextBox(boolean usesTextBox) {
+        this.usesTextBox = usesTextBox;
+    }
     
     public Command<StringContainer> createStyleCalls() {
         return (sc) -> {
@@ -108,6 +121,7 @@ public class TextProperties {
             sc.setWrapMode(wrapMode);
             sc.setAlignment(horizontalAlignment);
             sc.setVerticalAlignment(verticalAlignment);
+            sc.setUseTextBox(usesTextBox);
         };
     }
 }

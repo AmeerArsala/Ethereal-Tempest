@@ -53,6 +53,11 @@ public class Combat {
         receiver.detachGUI();
     }
     
+    public void end() {
+        detachGUI();
+        //TODO: add more here
+    }
+    
     public void update(float tpf) {
         if (!isFinished()) {
             //initiator.preUpdate();

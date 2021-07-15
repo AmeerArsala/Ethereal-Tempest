@@ -84,7 +84,7 @@ public class UnitVisuals {
         Quaternion rotation = new Quaternion();
         rotation.fromAngles((FastMath.PI / -3f), (FastMath.PI / -2f), 0);
         
-        float size = (25f / 16f) * Tile.LENGTH;
+        float size = (25f / 16f) * Tile.SIDE_LENGTH;
         
         //initialize sprite
         Quad spriteQuad = new Quad(size, size);
@@ -105,7 +105,7 @@ public class UnitVisuals {
         outlineBody = new GeometricBody<>(outline, outlineQuad, outlineMat);
         
         //create bars
-        float width = Tile.LENGTH / 1.675f;
+        float width = Tile.SIDE_LENGTH / 1.675f;
         Vector2f barDims = new Vector2f(width, width * (217f / 1045f));
         hpBar = new BasicProgressBar(barDims, MapTextures.GUI.HealthBar, false, GameUtils.HP_COLOR_GREEN, assetManager);
         tpBar = new BasicProgressBar(Vector2F.invert(barDims).multLocal(new Vector2f(1, 0.75f)), MapTextures.GUI.VerticalProgressBar, true, GameUtils.TP_COLOR_PINK, assetManager);
@@ -114,9 +114,9 @@ public class UnitVisuals {
         //tpBar.setTextureRange(0.0f, 1.0f);
         
         //initialize and manipulate positions of the bars
-        float halfTile = Tile.LENGTH / 2f;
-        float tpDeltaXY = Tile.LENGTH * (5f / 8f);
-        hpBar.getBarNode().move(Tile.LENGTH / -9f, halfTile, halfTile);
+        float halfTile = Tile.SIDE_LENGTH / 2f;
+        float tpDeltaXY = Tile.SIDE_LENGTH * (5f / 8f);
+        hpBar.getBarNode().move(Tile.SIDE_LENGTH / -9f, halfTile, halfTile);
         tpBar.getBarNode().move(tpDeltaXY / 2f, 0, tpDeltaXY * 2);
         
         hpBar.getBarNode().setLocalRotation(rotation);

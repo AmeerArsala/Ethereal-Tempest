@@ -113,7 +113,7 @@ public class ParsedMathFunction extends MathFunction {
         input.setArgumentValue(x);
         
         float result = (float)parsedFunction.calculate(input);
-        System.out.println("Expression: " + parsedFunction.getFunctionExpressionString() + " -> " + result);
+        //System.out.println("Expression: " + parsedFunction.getFunctionExpressionString() + " -> " + result);
         return result;
     }
     

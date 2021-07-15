@@ -36,4 +36,14 @@ public abstract class NamedExecution {
             }
         };
     }
+    
+    public static NamedExecution[] addFirst(NamedExecution first, NamedExecution[] arr) {
+        NamedExecution[] allExecutions = new NamedExecution[arr.length + 1];
+        allExecutions[0] = first;
+        for (int i = 0; i < arr.length; ++i) {
+            allExecutions[i + 1] = arr[i];
+        }
+        
+        return allExecutions;
+    }
 }

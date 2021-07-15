@@ -105,12 +105,12 @@ public class MapLevel {
                     
                     //for actual tiles
                     fullmap[l][x][y] = new Tile(x, y, l, tileInfo, bounds, assetManager);
-                    fullmap[l][x][y].setLocalTranslation(Tile.LENGTH * y, LAYER_Y_DEVIATION * l, Tile.LENGTH * x);
+                    fullmap[l][x][y].setLocalTranslation(Tile.SIDE_LENGTH * y, LAYER_Y_DEVIATION * l, Tile.SIDE_LENGTH * x);
                     tileNode.attachChild(fullmap[l][x][y].getNode());
                     
                     //for move squares
                     movSet[l][x][y] = new MoveSquare(x, y, l, assetManager);
-                    movSet[l][x][y].setLocalTranslation(Tile.LENGTH * y, LAYER_Y_DEVIATION * l, Tile.LENGTH * x);
+                    movSet[l][x][y].setLocalTranslation(Tile.SIDE_LENGTH * y, LAYER_Y_DEVIATION * l, Tile.SIDE_LENGTH * x);
                     extraMapStuff.attachChild(movSet[l][x][y].getGeometry());
                 }
             }

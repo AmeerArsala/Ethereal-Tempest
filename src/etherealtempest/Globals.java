@@ -9,6 +9,7 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.system.AppSettings;
 import general.tools.GameTimer;
 import general.procedure.ProcedureGroup;
 import general.procedure.functional.SimpleProcedure;

@@ -76,7 +76,7 @@ public abstract class FormationTechnique extends Attribute {
                 
                 Coords xyDirection = unit.getPos().getCoords().subtract(ally.getPos().getCoords()).signsOf();
                 int frames = 5;
-                float speed = Tile.LENGTH / frames;
+                float speed = Tile.SIDE_LENGTH / frames;
                 Vector2f deltaDistance = xyDirection.toVector2f().divideLocal(frames);
                 Vector3f deltaTranslation = xyDirection.toVector3fZX().multLocal(speed);
                 

@@ -71,6 +71,7 @@ public class Text2D extends Node {
             sc = new StringContainer(ttf, text, textParams.getKerning(), textParams.getTextBox());
         } else {
             sc = new StringContainer(ttf, text, textParams.getKerning());
+            sc.setUseTextBox(false);
         }
         
         textContainer = ttf.getFormattedText(sc, ColorRGBA.White);
@@ -87,20 +88,22 @@ public class Text2D extends Node {
     public ColorRGBA getTextColor() { return textColor; }
     
     public TextProperties salvageTextProperties() {
-        return new TextProperties(sc.getTextBox(), sc.getKerning(), sc.getWrapMode(), sc.getAlignment(), sc.getVerticalAlignment());
+        TextProperties properties = new TextProperties(sc.getTextBox(), sc.getKerning(), sc.getWrapMode(), sc.getAlignment(), sc.getVerticalAlignment());
+        properties.setUsesTextBox(sc.useTextBox());
+        return properties;
     }
     
     public String getText() { return sc.getText(); }
     public int getOffset() { return sc.getOffset(); }
     public int getLineCount() { return sc.getLineCount(); }
     public int getNumNonSpaceCharacters() { return sc.getNumNonSpaceCharacters(); }
-    public float getTextWidth() { return sc.getTextWidth(); } //width of the actual text in pixels (bounds) from the upper left corner at the origin to the lowest point of the lowest character on the last line
-    public float getTextHeight() { return sc.getTextHeight(); } //height of the actual text in pixels (bounds) from the upper left corner at the origin to the lowest point of the lowest character on the last line
+    public float getTextWidth() { return sc.getTextWidth(); }   // width of the actual text in pixels (bounds) from the upper left corner at the origin to the lowest point of the lowest character on the last line
+    public float getTextHeight() { return sc.getTextHeight(); } // height of the actual text in pixels (bounds) from the upper left corner at the origin to the lowest point of the lowest character on the last line
     public Vector3f getTextBounds() { return new Vector3f(sc.getTextWidth(), sc.getTextHeight(), 0f); }
     
-    public float getTextBoxWidth() { return textContainer.getWidth(); } //width of the textbox with all its padding and everything 
-    public float getTextBoxHeight() { return textContainer.getHeight(); } //height of the textbox with all its padding and everything
-    public Vector3f getTextBoxBounds() { return new Vector3f(textContainer.getWidth(), textContainer.getHeight(), 0.0001f); }
+    public float getTextBoxWidth() { return textContainer.getWidth(); }   // width of the textbox with all its padding and everything 
+    public float getTextBoxHeight() { return textContainer.getHeight(); } // height of the textbox with all its padding and everything
+    public Vector3f getTextBoxBounds() { return new Vector3f(textContainer.getWidth(), textContainer.getHeight(), 0f); }
     
     public Material getMaterial() { 
         return textContainer.getMaterial(); 
@@ -174,6 +177,11 @@ public class Text2D extends Node {
     
     public void setMaxLines(int max) {
         sc.setMaxLines(max);
+        textContainer.updateGeometry();
+    }
+    
+    public void setUsesTextBox(boolean usesTextBox) {
+        sc.setUseTextBox(usesTextBox);
         textContainer.updateGeometry();
     }
     

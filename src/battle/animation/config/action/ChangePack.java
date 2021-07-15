@@ -34,17 +34,17 @@ public class ChangePack {
     //I would just set currentColor but there is a warning that says "the assigned value is never used" and I don't want to mess with that
     public <S extends Spatial> boolean apply(S root, BoxMetadata battleBoxInfo, Vector3f positiveDirection, boolean fromSelf) {
         if (velocity == null && thetaVelocity == null && localScale == null && color == null /*&& colorMatParam == null*/) {
-            System.out.println("Attempting to apply ChangePack Changes...CHANGEPACK_END\n");
+            //System.out.println("Attempting to apply ChangePack Changes...CHANGEPACK_END\n");
             return true;
         }
         
-        System.out.println("Attempting to apply ChangePack Changes..."); //remove later
+        //System.out.println("Attempting to apply ChangePack Changes..."); //remove later
         
         if (fromSelf || (root instanceof BattleSprite && ((BattleSprite)root).allowDisplacementTransformationsFromOpponent())) {
             if (velocity != null) {
                 float boxWidth = battleBoxInfo.horizontalLength(); //the actual width of the box, not the one specified originally
                 root.move(velocity.multLocal(boxWidth).multLocal(positiveDirection)); //multiply by positiveDirection for mirroring
-                System.out.println("DeltaPos: " + velocity);
+                //System.out.println("DeltaPos: " + velocity);
             }
             
             if (thetaVelocity != null) {
@@ -60,7 +60,7 @@ public class ChangePack {
            ((BattleSprite)root).setColor(colorMatParam, color);
         }
         
-        System.out.println("CHANGEPACK_CONTINUE\n");
+        //System.out.println("CHANGEPACK_CONTINUE\n");
         return false;
     }
 }

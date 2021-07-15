@@ -64,7 +64,7 @@ public class Movement {
             float deltaPercentage = speed * tpf;
             tilesTraversed += deltaPercentage;
             
-            Vector3f deltaPosition = deltaXY.toVector3fZX().multLocal(deltaPercentage * Tile.LENGTH);
+            Vector3f deltaPosition = deltaXY.toVector3fZX().multLocal(deltaPercentage * Tile.SIDE_LENGTH);
             
             deltaReactor.accept(deltaXY, deltaPosition);
             

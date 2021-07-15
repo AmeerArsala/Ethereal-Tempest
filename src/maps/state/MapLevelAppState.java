@@ -20,6 +20,7 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.asset.AssetManager;
+import com.jme3.audio.AudioRenderer;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.InputManager;
 import com.jme3.input.KeyInput;
@@ -42,6 +43,12 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.math.Vector2f;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.Spatial.CullHint;
+import com.jme3.texture.Texture;
+import com.jme3.util.SkyFactory;
+import com.jme3.util.SkyFactory.EnvMapType;
 import maps.layout.MapLevel;
 import maps.ui.StatScreen;
 import maps.layout.occupant.character.TangibleUnit;
@@ -65,39 +72,42 @@ import fundamental.unit.PositionedUnitParams;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
 import maps.data.MapLevelLoader;
+import maps.layout.tile.Tile;
+import maps.layout.tile.TileFoundation;
 
 /**
  *
  * @author night
  */
 public class MapLevelAppState extends AbstractAppState {
-    private final SimpleApplication app;
-    private final Node rootNode, guiNode;
-    private final Node localRootNode = new Node("Default 01"), localGuiNode = new Node("Map GUI");
-    private final InputManager inputManager;
+    protected final AppSettings settings;
+    
+    protected AppStateManager stateManager;
+    protected AssetManager assetManager;
+    
+    protected InputManager inputManager;
     private final ActionListener actionListener;
     private final AnalogListener analogListener;
-    private final AppSettings settings;
     
-    private Camera cam;
-    private AssetManager assetManager;
-    private AppStateManager stManager;
-    private RenderManager renderManager;
-    private ViewPort screenView;
+    protected RenderManager renderManager;
+    protected AudioRenderer audioRenderer;
+    protected EffekseerRenderer effekseerRenderer;
     
-    private EffekseerRenderer effekseerRenderer;
-    private FlyByCamera flyCam;
-    //private Savable savestate;
+    protected Node rootNode, guiNode;
+    protected final Node localRootNode = new Node("Map localRootNode"), localGuiNode = new Node("Map localGuiNode");
+    protected final Vector3f worldUpVector = new Vector3f(0, 1, 0);
     
-    protected MapLevel mapLevel;
+    protected Camera cam;
+    protected FlyByCamera flyCam;
+    
+    protected final MapLevel mapLevel;
     protected MapFlow mapFlow;
     
     //GUI
-    protected ActionMenu postAction;
-    protected StatScreen stats;
+    private ActionMenu actionMenu; //post move menu
+    private StatScreen stats;
     
-    protected final Vector3f worldUpVector = new Vector3f(0, 1, 0);
-    protected final ProcedureGroup queue = new ProcedureGroup();
+    protected final ProcedureGroup procedures = new ProcedureGroup();
     protected final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
         @Override
         public boolean stateAllowed(FsmState<MapFlowState> st) {
@@ -118,37 +128,16 @@ public class MapLevelAppState extends AbstractAppState {
                 }
             }
         }
-        
     };
     
-    public MapLevelAppState(SimpleApplication application, Camera cam, FlyByCamera flyCam, AppSettings appSettings) {
-        this(application, MasterFsmState.getCurrentMap(), cam, flyCam, appSettings);
+    public MapLevelAppState(AppSettings settings) {
+        this(MasterFsmState.getCurrentMap(), settings);
     }
     
-    public MapLevelAppState(SimpleApplication application, MapLevel currentMapLevel, Camera cm, FlyByCamera fyCam, AppSettings appSettings) {
-        app = application;
-        mapLevel = currentMapLevel;
-        
-        rootNode = app.getRootNode();
-        guiNode = app.getGuiNode();
-        
-        assetManager = app.getAssetManager();
-        inputManager = app.getInputManager();
-        renderManager = app.getRenderManager();
-        
-        settings = appSettings;
-        
-        cam = cm;
-        cam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
-        
-        flyCam = fyCam;
-        
-        flyCam.setEnabled(false);
-
-        //audioRenderer = app.getAudioRenderer();
-        
-        stats = new StatScreen(assetManager);
-        postAction = new ActionMenu(assetManager);
+    @SuppressWarnings("Convert2Lambda")
+    public MapLevelAppState(MapLevel mapLevel, AppSettings settings) {
+        this.mapLevel = mapLevel;
+        this.settings = settings;
         
         analogListener = new AnalogListener() {
             @Override
@@ -191,19 +180,19 @@ public class MapLevelAppState extends AbstractAppState {
                     }
                 }
                 
-                if (mapFlow.getCursor().getFSM().getEnumState() != CursorState.Idle && stats.getState().getEnum() == MapFlowState.GuiClosed && !postAction.isOpen()) {
+                if (mapFlow.getCursor().getFSM().getEnumState() != CursorState.Idle && stats.getState().getEnum() == MapFlowState.GuiClosed && !actionMenu.isOpen()) {
                     //cursor action
                     MasterFsmState test = mapFlow.getCursor().resolveInput(name, tpf, keyPressed);
                     if (test != null) {
                         fsm.setNewStateIfAllowed(test.setAssetManager(assetManager));
                     }
-                } else if (postAction.isOpen() && keyPressed) {
+                } else if (actionMenu.isOpen() && keyPressed) {
                     //postActionMenu action
                     if (name.equals("select")) {
                         mapFlow.getCursor().getFSM().forceState(CursorState.Idle);
                     }
                     
-                    MasterFsmState change = postAction.resolveInput(name, keyPressed, tpf);
+                    MasterFsmState change = actionMenu.resolveInput(name, keyPressed, tpf);
                     if (change != null) {
                         fsm.setNewStateIfAllowed(change.setAssetManager(assetManager));
                     }
@@ -234,48 +223,53 @@ public class MapLevelAppState extends AbstractAppState {
         return mapFlow;
     }
     
+    public ActionMenu getActionMenu() {
+        return actionMenu;
+    }
+    
+    public StatScreen getStatScreen() {
+        return stats;
+    }
+    
     @Override
-    public void initialize(AppStateManager stateManager, Application app) {
-        super.initialize(stateManager, app);
-        stManager = stateManager;
+    public void initialize(AppStateManager appStateManager, Application app) {
+        super.initialize(appStateManager, app);
+        stateManager = appStateManager;
+        assetManager = app.getAssetManager();
+        inputManager = app.getInputManager();
+        renderManager = app.getRenderManager();
+        audioRenderer = app.getAudioRenderer();
+        rootNode = ((SimpleApplication)app).getRootNode();
+        guiNode = ((SimpleApplication)app).getGuiNode();
+        effekseerRenderer = EffekseerRenderer.addToViewPort(stateManager, app.getViewPort(), assetManager, settings.isGammaCorrection());
+        
+        cam = app.getCamera();
+        flyCam = ((SimpleApplication)app).getFlyByCamera();
+        
+        cam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
+        flyCam.setEnabled(false);
         
         rootNode.attachChild(localRootNode);
         guiNode.attachChild(localGuiNode);
         
-        /*
-        Texture up = assetManager.loadTexture("Textures/skybox/top.png");
-        Texture down = assetManager.loadTexture("Textures/skybox/bottom.png");
-        Texture north = assetManager.loadTexture("Textures/skybox/north.png");
-        Texture south = assetManager.loadTexture("Textures/skybox/south.png");
-        Texture east = assetManager.loadTexture("Textures/skybox/east.png");
-        Texture west = assetManager.loadTexture("Textures/skybox/west.png");
-        rootNode.attachChild(SkyFactory.createSky(assetManager, west, east, north, south, up, down));
-        */
-        
-        /*Texture skyboxTex = assetManager.loadTexture("Textures/skybox/skybox2.png");
-        
-        Spatial skybox = SkyFactory.createSky(assetManager, skyboxTex, EnvMapType.CubeMap);
-        skybox.setQueueBucket(RenderQueue.Bucket.Sky);
-        skybox.setCullHint(CullHint.Never);
-        rootNode.attachChild(skybox);*/
+        stats = new StatScreen(assetManager);
+        actionMenu = new ActionMenu(assetManager);
 
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
-        postAction.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, (7 / 17f) * Globals.getScreenHeight(), postAction.getNode().getLocalTranslation().z);
-        
-        effekseerRenderer = EffekseerRenderer.addToViewPort(stManager, app.getViewPort(), assetManager, settings.isGammaCorrection());
+        actionMenu.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, (7 / 17f) * Globals.getScreenHeight(), actionMenu.getNode().getLocalTranslation().z);
         
         GameProtocols.setOpenPostActionMenu(() -> {
-            localGuiNode.attachChild(postAction.getNode());
-            postAction.setOpen(true);
-            postAction.initialize(mapFlow.constructConveyor().setUnit(mapFlow.getCursor().selectedUnit));
+            localGuiNode.attachChild(actionMenu.getNode());
+            actionMenu.setOpen(true);
+            actionMenu.initialize(mapFlow.constructConveyor().setUnit(mapFlow.getCursor().selectedUnit));
         });
         
         initializeControlMappings();
-        initializeMap();
+        initializeMapLevel();
     }
     
-    public void initializeMap() {
+    public void initializeMapLevel() {
         localRootNode.attachChild(mapLevel.getMiscNode());
         localRootNode.attachChild(mapLevel.getTileNode());
         
@@ -289,23 +283,7 @@ public class MapLevelAppState extends AbstractAppState {
             units.addAll(mapLevel.getMapData().getStartingUnits());
             //units.get(1).setRawStat(BaseStat.CurrentHP, 10);
             
-            /*
-            units.add(
-                new TangibleUnit(
-                    Catalog.UNIT_Morva(),
-                    new CharacterUnitInfo("Morva.png"),
-                    new PositionedUnitParams().hasStashAccess(true).isLeader(true),
-                    UnitAllegiance.Player,
-                    assetManager
-                )
-            );
-            */
-            
             //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Player, assetManager));
-            
-            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
-            
-            //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
             
             //units.add(new TangibleUnit(Catalog.UNIT_Pillager(), new CharacterUnitInfo("Pillager.png"), new PositionedUnitParams(), UnitAllegiance.Enemy, assetManager));
             
@@ -325,15 +303,32 @@ public class MapLevelAppState extends AbstractAppState {
             }
         });
         
-        cam.setLocation(new Vector3f(mapFlow.getCursor().getWorldTranslation().x - 20f, mapFlow.getCursor().getWorldTranslation().y + 160f, mapFlow.getCursor().getWorldTranslation().z + 8f));
+        cam.setLocation(mapFlow.getCursor().getWorldTranslation().add(-1 * ((20f / 16f) * Tile.SIDE_LENGTH), Tile.SIDE_LENGTH * 10f, TileFoundation.RADIUS_FOR_SQUARE));
         cam.lookAt(mapFlow.getCursor().getWorldTranslation(), worldUpVector);
-        Quaternion cameraRotation = new Quaternion();
-        cameraRotation.fromAngles(FastMath.PI / 3, FastMath.PI / 2, 0);
+        Quaternion cameraRotation = new Quaternion().fromAngles(FastMath.PI / 3, FastMath.PI / 2, 0);
         cam.setRotation(cameraRotation);
         
-        fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault));
-        
         mapFlow.getCursor().setPosition(mapFlow.getUnits().get(0).getPos()); //change position later
+        
+        fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault));
+    }
+    
+    public void attachSkybox() {
+        /*
+        Texture up = assetManager.loadTexture("Textures/skybox/top.png");
+        Texture down = assetManager.loadTexture("Textures/skybox/bottom.png");
+        Texture north = assetManager.loadTexture("Textures/skybox/north.png");
+        Texture south = assetManager.loadTexture("Textures/skybox/south.png");
+        Texture east = assetManager.loadTexture("Textures/skybox/east.png");
+        Texture west = assetManager.loadTexture("Textures/skybox/west.png");
+        rootNode.attachChild(SkyFactory.createSky(assetManager, west, east, north, south, up, down));
+        */
+        
+        Texture skyboxTex = assetManager.loadTexture("Textures/skybox/skybox2.png");
+        Spatial skybox = SkyFactory.createSky(assetManager, skyboxTex, EnvMapType.CubeMap);
+        skybox.setQueueBucket(RenderQueue.Bucket.Sky);
+        skybox.setCullHint(CullHint.Never);
+        rootNode.attachChild(skybox);
     }
     
     public void initializeControlMappings() {
@@ -364,12 +359,12 @@ public class MapLevelAppState extends AbstractAppState {
         inputManager.addMapping("mouse move right", new MouseAxisTrigger(MouseInput.AXIS_X, true));
         inputManager.addMapping("mouse move up", new MouseAxisTrigger(MouseInput.AXIS_Y, true));
         inputManager.addMapping("mouse move down", new MouseAxisTrigger(MouseInput.AXIS_Y, false));
-            
+        
         inputManager.addListener(actionListener, "move up");
         inputManager.addListener(actionListener, "move down");
         inputManager.addListener(actionListener, "move left");
         inputManager.addListener(actionListener, "move right");
-            
+        
         inputManager.addListener(actionListener, "W");
         inputManager.addListener(actionListener, "A");
         inputManager.addListener(actionListener, "S");
@@ -378,7 +373,7 @@ public class MapLevelAppState extends AbstractAppState {
         inputManager.addListener(actionListener, "lshift");
         inputManager.addListener(actionListener, "F");
         inputManager.addListener(actionListener, "enter");
-            
+        
         inputManager.addListener(actionListener, "select");
         inputManager.addListener(actionListener, "deselect");
         inputManager.addListener(actionListener, "C");
@@ -386,16 +381,16 @@ public class MapLevelAppState extends AbstractAppState {
         inputManager.addListener(actionListener, "L");
         inputManager.addListener(actionListener, "bump left");  // LB
         inputManager.addListener(actionListener, "bump right"); // RB
-            
+        
         inputManager.addListener(actionListener, "left click");
         inputManager.addListener(analogListener, "left click");
-            
+        
         inputManager.addListener(actionListener, "right click");
         inputManager.addListener(analogListener, "right click");
-            
+        
         inputManager.addListener(analogListener, "scroll up");
         inputManager.addListener(analogListener, "scroll down");
-            
+        
         inputManager.addListener(analogListener, "mouse move left");
         inputManager.addListener(analogListener, "mouse move right");
         inputManager.addListener(analogListener, "mouse move up");
@@ -412,17 +407,17 @@ public class MapLevelAppState extends AbstractAppState {
     
     @Override
     public void update(float tpf) {
-        int fps = (int)(1 / tpf);
+        //int fps = (int)(1 / tpf);
         
-        postAction.update(tpf);
+        actionMenu.update(tpf);
         mapFlow.update(tpf);
-        queue.update(tpf);
+        procedures.update(tpf);
         
         if (accumulatedTPF >= (1f / Globals.STANDARD_FPS)) {
             syncUpdate(accumulatedTPF);
             accumulatedTPF = 0;
         }
-        
+
         accumulatedTPF += tpf;
     }
     
@@ -436,6 +431,7 @@ public class MapLevelAppState extends AbstractAppState {
         Conveyor battleContext = ((MasterFsmState)fsm.getState()).getConveyor();
         PrebattleForecast battleForecast = new PrebattleForecast(battleContext);
         
+        //TODO: remove this stuff later
         HashMap<String, String> childToTextureMap = new HashMap<>();
         childToTextureMap.put("treeStump", "Textures/battle/test/stump.png");
         childToTextureMap.put("treeTrunk", "Textures/battle/test/trunk.png");
@@ -461,7 +457,6 @@ public class MapLevelAppState extends AbstractAppState {
                 localGuiNode,
                 cam,
                 battleBox,
-                screenView,
                 renderManager
             )
         );
@@ -470,7 +465,7 @@ public class MapLevelAppState extends AbstractAppState {
             rootNode.attachChild(localRootNode);
             mapFlow.setLastStrikes(fight.getStrikeTheater().getActualStrikes());
             
-            queue.add((tpf) -> {
+            procedures.add((tpf) -> {
                 //check if deaths are being applied
                 //TODO: also check if any other effects are being applied
                 for (TangibleUnit unit : mapFlow.getUnits()) {
@@ -489,7 +484,7 @@ public class MapLevelAppState extends AbstractAppState {
         mapFlow.setCurrentFight(fight);
         
         rootNode.detachChild(localRootNode);
-        //flCam.setEnabled(true);
+        //flyCam.setEnabled(true);
         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.DuringBattle).setAssetManager(assetManager));
     }
     
