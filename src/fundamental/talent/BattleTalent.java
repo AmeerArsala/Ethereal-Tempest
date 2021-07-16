@@ -5,8 +5,8 @@
  */
 package fundamental.talent;
 
-import battle.data.Strike;
-import battle.participant.Combatant;
+import battle.data.event.Strike;
+import battle.data.participant.Combatant;
 import etherealtempest.info.Conveyor;
 import fundamental.tool.Tool.ToolType;
 import java.util.ArrayList;

@@ -5,9 +5,10 @@
  */
 package fundamental.jobclass.animation;
 
+import battle.data.CombatFlowData;
 import battle.data.DecisionParams;
-import battle.data.StrikeTheater;
-import battle.data.StrikeTheater.Participant;
+import battle.data.event.StrikeTheater;
+import battle.data.event.StrikeTheater.Participant;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
@@ -15,6 +16,7 @@ import com.jme3.texture.Texture;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  *
@@ -127,51 +129,57 @@ public class ActionDecider {
             }
         }
         
-        private List<NextAction> execute(DecisionParams params) {
+        private List<NextAction> execute(CombatFlowData.Representative data) {
             List<NextAction> nextActions = new ArrayList<>();
             
             if (actions != null) {
                 nextActions.addAll(Arrays.asList(actions));
             }
             
-            if (IF != null && IF.evaluate(params)) {
-                nextActions.addAll(THEN.execute(params));
+            if (IF != null && IF.evaluate(data)) {
+                nextActions.addAll(THEN.execute(data));
             } else if (ELSE != null) {
-                nextActions.addAll(ELSE.execute(params));
+                nextActions.addAll(ELSE.execute(data));
             }
             
             if (ALSO != null) {
-                nextActions.addAll(ALSO.execute(params));
+                nextActions.addAll(ALSO.execute(data));
             }
             
             return nextActions;
         }
         
-        public NextActionSequence run(DecisionParams params) {
-            return new NextActionSequence(execute(params));
+        public NextActionSequence run(CombatFlowData.Representative data) {
+            return new NextActionSequence(execute(data));
         }
     }
     
     public static class Condition {
         private ActionCondition[] conditions; // array works as an AND
-        private Condition AND; // evaluates AND over OR (higher priority)
-        private Condition OR;
+        private Condition AND;        // && (AND); evaluates AND over OR (higher priority)
+        private Condition OR;         // || (OR)
+        private Condition XOR;        // ^ (Exclusive OR aka XOR)
+        private Condition BINARY_AND; // & (Binary AND)
+        private Condition BINARY_OR;  // | (Binary OR)
         private boolean is; // is true or is false
         
-        public Condition(ActionCondition[] conditions, Condition AND, Condition OR, boolean is) {
+        public Condition(ActionCondition[] conditions, Condition AND, Condition OR, Condition XOR, Condition BINARY_AND, Condition BINARY_OR, boolean is) {
             this.conditions = conditions;
             this.AND = AND;
             this.OR = OR;
+            this.XOR = XOR;
+            this.BINARY_AND = BINARY_AND;
+            this.BINARY_OR = BINARY_OR;
             this.is = is;
         }
         
-        private boolean evaluateBaseConditions(DecisionParams params) {
+        private boolean evaluateBaseConditions(CombatFlowData.Representative data) {
             if (conditions == null) {
                 return false;
             }
             
             for (ActionCondition condition : conditions) {
-                if (condition.test(params) != is) {
+                if (condition.test(data) != is) {
                     return false;
                 } 
             }
@@ -179,15 +187,27 @@ public class ActionDecider {
             return true;
         }
         
-        public boolean evaluate(DecisionParams params) {
-            boolean baseConditions = evaluateBaseConditions(params);
+        public boolean evaluate(CombatFlowData.Representative data) {
+            boolean baseConditions = evaluateBaseConditions(data);
             
             if (AND != null) {
-                baseConditions = baseConditions && AND.evaluate(params);
+                baseConditions = baseConditions && AND.evaluate(data);
             }
             
             if (OR != null) {
-                baseConditions = baseConditions || OR.evaluate(params);
+                baseConditions = baseConditions || OR.evaluate(data);
+            }
+            
+            if (XOR != null) {
+                baseConditions ^= XOR.evaluate(data);
+            }
+            
+            if (BINARY_AND != null) {
+                baseConditions &= BINARY_AND.evaluate(data);
+            }
+            
+            if (BINARY_OR != null) {
+                baseConditions |= BINARY_OR.evaluate(data);
             }
             
             return baseConditions;
@@ -251,96 +271,5 @@ public class ActionDecider {
         public String getName() { return name; }
         public Procedure getOnCall() { return onCall; }
         public boolean usesDash() { return usesDash; }
-    }
-    
-    public enum ActionCondition {
-        @SerializedName("User is Striker") UserIsStriker((params) -> {
-            return params.getUserRoleForStrike(params.getStrikeIndex()) == StrikeTheater.Participant.Striker;
-        }),
-        
-        @SerializedName("Strike is Crit") StrikeIsCrit((params) -> {
-            return params.getCurrentStrike().isCrit();
-        }),
-        
-        @SerializedName("Strike is Followup") StrikeIsFollowup((params) -> {
-            int last = params.getStrikeIndex();
-            for (int i = params.getStrikeIndex(); i > 0; --i) {
-                StrikeTheater.Participant role = params.getUserRoleForStrike(i);
-                boolean lastStrikeWasSpecial = params.strikeGroup.getActualStrike(i).isCrit() || params.strikeGroup.getActualStrike(i).getStriker().triggeredBattleTalent();
-                if (role != Participant.Striker || (role == Participant.Striker && lastStrikeWasSpecial)) {
-                    break;
-                }
-                
-                last = i;
-            }
-            
-            
-            return (params.getStrikeIndex() - last) % 2 == 1;
-        }),
-        
-        @SerializedName("Last Strike was User") LastStrikeWasUser((params) -> {
-            if (params.getStrikeIndex() == 0) {
-                return false;
-            }
-            
-            Participant previousRole = params.getUserRoleForStrike(params.getStrikeIndex() - 1);
-            
-            return previousRole == Participant.Striker;
-        }),
-        
-        @SerializedName("Last Strike did Crit") LastStrikeDidCrit((params) -> {
-            if (params.getStrikeIndex() + 1 >= params.strikeGroup.getActualStrikes().size()) {
-                return false;
-            }
-            
-            return params.strikeGroup.getActualStrike(params.getStrikeIndex() + 1).isCrit();
-        }),
-        
-        @SerializedName("Next Strike is User") NextStrikeIsUser((params) -> {
-            if (params.getStrikeIndex() + 1 >= params.strikeGroup.getActualStrikes().size()) {
-                return false;
-            }
-            
-            Participant nextRole = params.getUserRoleForStrike(params.getStrikeIndex() + 1);
-            
-            return nextRole == Participant.Striker;
-        }),
-        
-        @SerializedName("Next Strike Will Hit") NextStrikeWillHit((params) -> {
-            if (params.getStrikeIndex() + 1 >= params.strikeGroup.getActualStrikes().size()) {
-                return false;
-            }
-            
-            return params.strikeGroup.getActualStrike(params.getStrikeIndex() + 1).isCrit();
-        }),
-        
-        @SerializedName("Next Strike Will Crit") NextStrikeWillCrit((params) -> {
-            if (params.getStrikeIndex() + 1 >= params.strikeGroup.getActualStrikes().size()) {
-                return false;
-            }
-            
-            return params.strikeGroup.getActualStrike(params.getStrikeIndex() + 1).isCrit();
-        }),
-        
-        @SerializedName("Opponent Will Die") OpponentWillDie((params) -> {
-            return params.strikeGroup.getParticipantHP(params.getOpponentRoleForStrike(params.getStrikeIndex()), params.getStrikeIndex()) != 0;
-        }),
-        
-        @SerializedName("User is >= 25% away from the horizontal edges of the fight box") UserIs25PercentAwayFromEdgesOfBox((params) -> {
-            return Math.abs(0.5f - params.userPos.x) <= 0.25f;
-        }),
-        
-        @SerializedName("Opponent is >= 25% away from the horizontal edges of the fight box") OpponentIs25PercentAwayFromEdgesOfBox((params) -> {
-            return Math.abs(0.5f - params.opponentPos.x) <= 0.25f;
-        });
-        
-        private final ConditionDecision algorithm;
-        private ActionCondition(ConditionDecision algorithm) {
-            this.algorithm = algorithm;
-        }
-        
-        public boolean test(DecisionParams params) {
-            return algorithm.test(params);
-        }
     }
 }

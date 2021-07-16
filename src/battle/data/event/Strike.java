@@ -3,16 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.data;
+package battle.data.event;
 
-import battle.participant.Combatant;
+import battle.data.participant.Combatant;
 import etherealtempest.info.Conveyor;
 import fundamental.skill.Skill;
 import fundamental.stats.BaseStat;
 import fundamental.stats.BattleStat;
-import fundamental.stats.Toll;
-import fundamental.stats.Toll.Exchange;
-import fundamental.unit.CharacterUnitInfo;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,14 +76,14 @@ public class Strike {
         striker.applyLosses();
         
         Combatant cStriker = striker.combatant, cVictim = victim.combatant;
-        cStriker.damageDone += damage;
+        cStriker.getStatistics().damageDone += damage;
         
         if (didCrit) {
-            ++cStriker.numOfCrits;
+            ++cStriker.getStatistics().numOfCrits;
         }
         
         if (!didHit) {
-            ++cVictim.hitsDodged;
+            ++cVictim.getStatistics().hitsDodged;
         }
     }
     
@@ -149,36 +147,46 @@ public class Strike {
         //TODO: do more here
     }
     
+    public String log() {
+        StringBuilder log = new StringBuilder("");
+        log.append(striker.combatant.getUnit().getName()).append(" attacks!\n")
+           .append(striker.combatant.getUnit().getName());
+        
+        if (didHit) {
+            log.append(" hits!\n");
+            
+            if (didCrit) {
+                log.append(striker.combatant.getUnit().getName()).append(" crits!\n");
+            } else {
+                log.append(striker.combatant.getUnit().getName()).append(" doesn't crit\n");
+            }
+            
+            log.append(striker.combatant.getUnit().getName()).append(" does ").append(damage).append(" damage!\n");
+        } else {
+            log.append(" misses!\n");
+        }
+        
+        log.append(victim.combatant.getUnit().getName())
+           .append(" has ").append(victim.combatant.getUnit().getBaseStat(BaseStat.CurrentHP)).append(" HP remaining!");
+        
+        return log.toString();
+    }
+    
+    public String log(PrintStream printStream) {
+        String log = log();
+        printStream.println(log);
+        
+        return log;
+    }
+    
+    @Override
+    public String toString() {
+        return super.toString() + "\nlog: " + log();
+    }
+    
     
     //does not take into account skills and talents
     public static Strike SimpleStrike(Combatant striker, Combatant victim, boolean isSkill) {
         return new Strike(striker, victim, isSkill);
     }
-    
-    public static void strikelog(Strike strike) {
-        String info = "";
-        
-        info += strike.getStriker().combatant.getUnit().getName() + " attacks!\n" + strike.getStriker().combatant.getUnit().getName();
-        
-        if (strike.didHit()) {
-            info += " hits!\n";
-            
-            if (strike.isCrit()) {
-                info += strike.getStriker().combatant.getUnit().getName() + " crits!\n";
-            } else {
-                info += strike.getStriker().combatant.getUnit().getName() + " doesn't crit\n";
-            }
-            
-            strike.getVictim().combatant.getUnit().addToll(new Toll(Exchange.HP, -strike.getDamage()));
-            
-            info += strike.getStriker().combatant.getUnit().getName() + " does " + strike.getDamage() + " damage!\n";
-        } else {
-            info += " misses!\n";
-        }
-        
-        info += strike.getVictim().combatant.getUnit().getName() + " has " + strike.getVictim().combatant.getUnit().getBaseStat(BaseStat.CurrentHP) + " HP remaining!\n";
-        
-        System.out.println(info);
-    }
-    
 }

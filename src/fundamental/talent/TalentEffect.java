@@ -7,9 +7,9 @@ package fundamental.talent;
 
 import battle.data.forecast.IndividualForecast;
 import battle.data.forecast.SingularForecast;
-import battle.participant.Combatant;
+import battle.data.participant.Combatant;
 import fundamental.stats.BaseStat;
-import battle.participant.BattleRole;
+import battle.data.participant.BattleRole;
 import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.info.Conveyor;
 import fundamental.stats.Bonus;

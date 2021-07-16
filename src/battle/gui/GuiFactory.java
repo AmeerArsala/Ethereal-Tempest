@@ -7,8 +7,8 @@ package battle.gui;
 
 import battle.data.forecast.SingularForecast;
 import com.jme3.asset.AssetManager;
-import battle.participant.Combatant;
-import battle.participant.Combatant.AttackType;
+import battle.data.participant.Combatant;
+import battle.data.participant.Combatant.AttackType;
 import com.atr.jme.font.util.StringContainer;
 import com.atr.jme.font.util.StringContainer.Align;
 import com.atr.jme.font.util.StringContainer.VAlign;

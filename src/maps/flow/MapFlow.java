@@ -7,7 +7,7 @@ package maps.flow;
 
 import maps.data.Objective;
 import battle.Fight;
-import battle.data.Strike;
+import battle.data.event.Strike;
 import com.atr.jme.font.util.StringContainer.Align;
 import com.atr.jme.font.util.StringContainer.VAlign;
 import com.atr.jme.font.util.StringContainer.WrapMode;

@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.data;
+package battle.data.event;
 
-import battle.data.Strike;
+import battle.data.event.Strike;
 import battle.data.forecast.SingularForecast;
-import battle.participant.Combatant;
+import battle.data.participant.Combatant;
 import etherealtempest.info.Conveyor;
 import fundamental.stats.BaseStat;
 import java.util.ArrayList;
@@ -86,7 +86,7 @@ public class StrikeTheater {
         
         for (int i = 0; i < strikes.size(); ++i) {
             actualStrikes.add(strikes.get(i));
-            if (getParticipantHP(Participant.Victim, i) == 0) { //if someone died, stop the loop
+            if (getParticipantHPAfter(Participant.Victim, i) == 0) { //if someone died, stop the loop
                 break;
             }
         }
@@ -139,7 +139,7 @@ public class StrikeTheater {
     
     public List<Strike> getActualStrikesFrom(int strikeIndex) {
         List<Strike> actual = new ArrayList<>();
-        int HP = getParticipantHP(Participant.Victim, strikeIndex);
+        int HP = getParticipantHPBefore(Participant.Victim, strikeIndex);
         
         if (HP == 0) {
             return actual;
@@ -158,20 +158,55 @@ public class StrikeTheater {
         return actual;
     }
     
-    public final int getParticipantHP(Participant participant, int strikeIndex) {
+    public final int getParticipantHPBefore(Participant participant, int strikeIndex) {
         if (A_Roles.get(strikeIndex) == participant) {
-            return calculateHPOf(A_Roles, strikeIndex);
+            return calculateHPOfBefore(A_Roles, strikeIndex);
         }
         
         if (B_Roles.get(strikeIndex) == participant) {
-            return calculateHPOf(B_Roles, strikeIndex);
+            return calculateHPOfBefore(B_Roles, strikeIndex);
         }
         
         return -1;
     }
+    
+    public final int getParticipantHPAfter(Participant participant, int strikeIndex) {
+        if (A_Roles.get(strikeIndex) == participant) {
+            return calculateHPOfAfter(A_Roles, strikeIndex);
+        }
+        
+        if (B_Roles.get(strikeIndex) == participant) {
+            return calculateHPOfAfter(B_Roles, strikeIndex);
+        }
+        
+        return -1;
+    }
+    
+    public final int getParticipantHPBefore(Combatant participant, int strikeIndex) {
+        return getParticipantHPBefore(getParticipantRole(participant, strikeIndex), strikeIndex);
+    }
+    
+    public final int getParticipantHPAfter(Combatant participant, int strikeIndex) {
+        return getParticipantHPAfter(getParticipantRole(participant, strikeIndex), strikeIndex);
+    }
      
-    private int calculateHPOf(List<Participant> roles, int strikeIndex) {
-        int HP = getParticipant(roles.get(0), 0).getBaseStat(BaseStat.CurrentHP);
+    //calculates HP AFTER the strikeIndex (after it happens)
+    private int calculateHPOfAfter(List<Participant> roles, int strikeIndex) {
+        int startingStrikeIndex = 0;
+        int HP = getParticipant(roles.get(startingStrikeIndex), startingStrikeIndex).getBaseStat(BaseStat.CurrentHP);
+        for (int i = 0; i <= strikeIndex; ++i) {
+            if (roles.get(i) == Participant.Victim) {
+                HP -= strikes.get(i).getDamage();
+            }
+        }
+        
+        return HP < 0 ? 0 : HP;
+    }
+    
+    //calculates HP at the Start of the strikeIndex (before it happens)
+    private int calculateHPOfBefore(List<Participant> roles, int strikeIndex) {
+        int startingStrikeIndex = 0;
+        int HP = getParticipant(roles.get(startingStrikeIndex), startingStrikeIndex).getBaseStat(BaseStat.CurrentHP);
         for (int i = 0; i <= strikeIndex; ++i) {
             if (roles.get(i) == Participant.Victim) {
                 HP -= strikes.get(i).getDamage();

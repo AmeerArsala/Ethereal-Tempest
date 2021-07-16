@@ -5,9 +5,9 @@
  */
 package fundamental.talent;
 
-import battle.participant.Combatant;
+import battle.data.participant.Combatant;
 import fundamental.stats.BaseStat;
-import battle.participant.BattleRole;
+import battle.data.participant.BattleRole;
 import etherealtempest.info.Conveyor;
 import fundamental.Attribute;
 import fundamental.skill.Skill;

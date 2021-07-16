@@ -463,7 +463,7 @@ public class MapLevelAppState extends AbstractAppState {
         
         fight.onFinish(() -> {
             rootNode.attachChild(localRootNode);
-            mapFlow.setLastStrikes(fight.getStrikeTheater().getActualStrikes());
+            mapFlow.setLastStrikes(fight.getCombat().getCombatFlowData().strikeReel.strikeTheater.getActualStrikes());
             
             procedures.add((tpf) -> {
                 //check if deaths are being applied

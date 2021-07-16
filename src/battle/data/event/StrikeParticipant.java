@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.data;
+package battle.data.event;
 
 import etherealtempest.info.Conveyor;
-import battle.participant.Combatant;
-import battle.participant.Combatant.AttackType;
+import battle.data.participant.Combatant;
+import battle.data.participant.Combatant.AttackType;
 import fundamental.skill.Skill;
 import fundamental.stats.BaseStat;
 import fundamental.stats.Toll;
@@ -56,12 +56,12 @@ public class StrikeParticipant {
         combatant.appendToBaseStat(BaseStat.CurrentHP, -hpLoss);
         combatant.appendToBaseStat(BaseStat.CurrentTP, -tpLoss);
         
-        combatant.damageTaken += hpLoss;
-        combatant.tpLost += tpLoss;
+        combatant.getStatistics().damageTaken += hpLoss;
+        combatant.getStatistics().tpLost += tpLoss;
         
         if (combatant.getAttackType() == AttackType.Weapon) {
             combatant.getUnit().getEquippedWPN().addCurrentDurability(durabilityChange);
-            combatant.durabilityUsed += Math.abs(durabilityChange);
+            combatant.getStatistics().durabilityUsed += Math.abs(durabilityChange);
         }
     }
     

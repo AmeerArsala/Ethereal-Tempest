@@ -5,9 +5,9 @@
  */
 package battle.data.forecast;
 
-import battle.data.StrikeTheater;
-import battle.participant.Combatant;
-import battle.participant.BattleRole;
+import battle.data.event.StrikeTheater;
+import battle.data.participant.Combatant;
+import battle.data.participant.BattleRole;
 import etherealtempest.info.Conveyor;
 
 /**

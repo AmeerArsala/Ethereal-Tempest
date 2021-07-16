@@ -5,9 +5,9 @@
  */
 package battle.data.forecast;
 
-import battle.data.Strike;
-import battle.participant.Combatant;
-import battle.participant.BattleRole;
+import battle.data.event.Strike;
+import battle.data.participant.Combatant;
+import battle.data.participant.BattleRole;
 import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.info.Conveyor;
 import fundamental.skill.Skill;

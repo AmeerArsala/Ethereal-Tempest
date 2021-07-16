@@ -5,7 +5,9 @@
  */
 package battle.data;
 
-import battle.participant.Combatant;
+import battle.data.event.StrikeTheater;
+import battle.data.event.Strike;
+import battle.data.participant.Combatant;
 import com.jme3.math.Vector2f;
 
 /**
@@ -50,7 +52,7 @@ public class DecisionParams {
     }
     
     public void incrementStrikeIndex() {
-        strikeGroupIndex++;
+        ++strikeGroupIndex;
     }
     
     public Strike getCurrentStrike() {

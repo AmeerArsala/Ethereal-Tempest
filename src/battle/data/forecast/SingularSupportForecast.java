@@ -5,7 +5,7 @@
  */
 package battle.data.forecast;
 
-import battle.participant.Combatant;
+import battle.data.participant.Combatant;
 import fundamental.stats.Bonus;
 import fundamental.stats.Toll;
 import java.util.ArrayList;

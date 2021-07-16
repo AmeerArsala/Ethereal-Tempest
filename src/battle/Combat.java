@@ -5,9 +5,16 @@
  */
 package battle;
 
+import battle.data.CombatFlowData;
+import battle.data.event.StrikeReel;
 import battle.data.forecast.PrebattleForecast;
-import battle.participant.visual.Fighter;
+import battle.data.forecast.SingularForecast;
+import battle.data.participant.Combatant;
+import battle.participant.Fighter;
+import battle.participant.Fighter.CommonParams;
+import com.jme3.math.Vector2f;
 import com.jme3.scene.Node;
+import general.utils.Duo;
 
 /**
  *
@@ -15,18 +22,31 @@ import com.jme3.scene.Node;
  */
 public class Combat {
     private final Node node = new Node("Fight Node");
-    private final Fighter.CommonParams common;
+    private final PrebattleForecast forecast;
+    private final CommonParams common;
+    private final CombatFlowData combatData;
     private final Fighter initiator, receiver;
     
     private float flowSpeed = 1;
     
-    public Combat(Fighter.CommonParams common, PrebattleForecast forecast) {
+    @SuppressWarnings("Convert2Diamond")
+    public Combat(PrebattleForecast forecast, Fighter.CommonParams common) {
+        this.forecast = forecast;
         this.common = common;
         
-        initiator = new Fighter(forecast.getInitiatorForecast(), common, false); // mirror == false
-        receiver = new Fighter(forecast.getReceiverForecast(), common, true);    // mirror == true
+        SingularForecast initiatorForecast = forecast.getInitiatorForecast(), receiverForecast = forecast.getReceiverForecast();
         
-        Fighter.match(initiator, receiver);
+        combatData = new CombatFlowData(
+            new StrikeReel(forecast.createStrikeEvents(), 0),
+            new Duo<Combatant, Vector2f>(initiatorForecast.getCombatant(), new Vector2f(0, 0)),
+            new Duo<Combatant, Vector2f>(receiverForecast.getCombatant(), new Vector2f(0, 0))
+        );
+        
+        initiator = new Fighter(initiatorForecast, combatData, common, false); // mirror == false
+        receiver = new Fighter(receiverForecast, combatData, common, true);    // mirror == true
+        
+        initiator.setOpponent(receiver);
+        receiver.setOpponent(initiator);
 
         initiator.attachGUI();
         receiver.attachGUI();
@@ -40,7 +60,9 @@ public class Combat {
     }
     
     public Node getNode() { return node; }
-    public Fighter.CommonParams getCommonParams() { return common; }
+    public PrebattleForecast getForecast() { return forecast; }
+    public CommonParams getCommonParams() { return common; }
+    public CombatFlowData getCombatFlowData() { return combatData; }
     public Fighter getInitiator() { return initiator; }
     public Fighter getReceiver() { return receiver; }
     
@@ -60,15 +82,11 @@ public class Combat {
     
     public void update(float tpf) {
         if (!isFinished()) {
-            //initiator.preUpdate();
-            //receiver.preUpdate();
-            
             initiator.update(tpf * flowSpeed);
             receiver.update(tpf * flowSpeed);
             
-            //post update because they can only happen after BOTH the initiator and receiver have updated
-            initiator.updatePosData();
-            receiver.updatePosData();
+            //update positions after BOTH the initiator and receiver have updated
+            combatData.updatePositions();
         }
     }
     

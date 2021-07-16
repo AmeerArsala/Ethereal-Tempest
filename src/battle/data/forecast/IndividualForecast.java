@@ -5,8 +5,8 @@
  */
 package battle.data.forecast;
 
-import battle.participant.BattleRole;
-import battle.participant.Combatant;
+import battle.data.participant.BattleRole;
+import battle.data.participant.Combatant;
 import fundamental.jobclass.animation.ActionDecider;
 import fundamental.tool.Tool;
 

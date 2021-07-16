@@ -3,21 +3,23 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.participant.visual;
+package battle.participant;
 
 import battle.animation.BattleAnimation;
 import battle.animation.config.AttackSheetConfig;
 import battle.animation.config.PossibleConfig;
 import battle.animation.config.action.ConstantsDealer;
+import battle.data.CombatFlowData;
 import battle.data.DecisionParams;
-import battle.data.Strike;
-import battle.data.StrikeTheater;
-import battle.data.StrikeTheater.Participant;
+import battle.data.event.Strike;
+import battle.data.event.StrikeTheater;
+import battle.data.event.StrikeTheater.Participant;
 import battle.data.forecast.IndividualForecast;
 import battle.data.forecast.SingularForecast;
 import battle.environment.BattleBox;
 import battle.environment.BoxMetadata;
-import battle.gui.CombatantUI;
+import battle.gui.FighterGUI;
+import battle.participant.visual.BattleSprite;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
@@ -45,8 +47,8 @@ import general.visual.Sprite;
  */
 public class Fighter {
     private final SingularForecast forecast;
+    private final CombatFlowData.Representative decisionData;
     private final CommonParams common;
-    private final DecisionParams decisionData;
     
     private final BattleSprite sprite;
     private final FighterAnimationController controller;
@@ -56,25 +58,24 @@ public class Fighter {
     
     private Participant currentRole;
     private BattleSprite opponentSprite;
-    private int minStrikeGroupIndexToReceiveImpact = 0;
+    //private int minStrikeGroupIndexToReceiveImpact = 0;
     
-    public Fighter(SingularForecast forecast, CommonParams common, boolean mirrored) {
-        this.forecast = forecast;
-        this.common = common;
-        
-        decisionData = new DecisionParams(
-            new Vector2f(0, 0), 
-            new Vector2f(0, 0), 
-            common.strikeTheater, 
-            0, //start index (strikes start at index 0)
-            forecast.getCombatant()
-        );
+    public Fighter(SingularForecast forecast, CombatFlowData combatFlowData, CommonParams common, boolean mirrored) {
+        this(forecast, combatFlowData.getRepresentative(forecast.getCombatant()), common, mirrored);
+    }
+    
+    public Fighter(SingularForecast fighterForecast, CombatFlowData.Representative repData, CommonParams commonParams, boolean mirrored) {
+        forecast = fighterForecast;
+        decisionData = repData;
+        common = commonParams;
         
         boolean mirrorUI = !mirrored; //Example: initiator sprite isn't mirrored, but its UI is because it starts on the right
         
         sprite = common.createBattleSprite(forecast, mirrored);
-        controller = new FighterAnimationController(sprite, forecast.getActionDecider(), common.assetManager, decisionData);
-        visualizer = new FighterInfoVisualizer(sprite, new CombatantUI(forecast, common.assetManager, common.cam, mirrorUI), common.battleBoxInfo);
+        decisionData.setPosGetter(() -> { return sprite.getPercentagePosition(); });
+        
+        controller = new FighterAnimationController(sprite, forecast.getActionDecider(), common.assetManager);
+        visualizer = new FighterInfoVisualizer(sprite, new FighterGUI(forecast, common.assetManager, common.cam, mirrorUI), common.battleBoxInfo);
         
         visualizer.getFSM().setNewStateIfAllowed(FighterState.Fighting);
         updateStrikeRole();
@@ -88,29 +89,29 @@ public class Fighter {
         };
         
         onStrikeEnd = () -> {
-            decisionData.incrementStrikeIndex();
-            
             boolean noAttackSegmentsRemaining = (controller.getCurrentAnimationQueue().isEmpty() || controller.getCurrentAnimation().getRemainingAttackBattleSegmentCount() <= 0); 
-            if (!decisionData.isFightOver() && noAttackSegmentsRemaining) {
+            if (!decisionData.getStrikeReel().isFinished() && noAttackSegmentsRemaining) { //decisionData.getStrikeReel().isFinished() is the same as the former isFightOver()
                 updateStrikeRole();
                 attemptStrike();
             }
         };
     }
     
-    public static void match(Fighter A, Fighter B) {
-        A.stickOpponent(B);
-        B.stickOpponent(A);
-    }
-    
-    private void stickOpponent(Fighter opponent) {
+    public void setOpponent(Fighter opponent) {
         opponentSprite = opponent.sprite;
-        controller.getCurrentAnimationQueue().onStrikeFinished(onStrikeEnd, opponent.onStrikeEnd);
+        controller.getCurrentAnimationQueue().onStrikeFinished(
+            () -> { 
+                decisionData.getStrikeReel().incrementIndex(); //only increment once and do it before anything else
+                onStrikeEnd.run();
+            }, 
+            opponent.onStrikeEnd
+        );
+        
         controller.getCurrentAnimationQueue().onRealImpactOccurred(onRealImpactOccurred, opponent.onRealImpactOccurred);
     }
     
     public SingularForecast getForecast() { return forecast; }
-    public DecisionParams getDecisionData() { return decisionData; }
+    public CombatFlowData.Representative getDecisionData() { return decisionData; }
     public Participant getCurrentRole() { return currentRole; }
     
     public BattleSprite getSprite() { return sprite; }
@@ -130,11 +131,11 @@ public class Fighter {
     }
     
     public final void updateStrikeRole() {
-        currentRole = decisionData.getUserRoleForStrike(decisionData.getStrikeIndex());
+        currentRole = decisionData.getRoleForCurrentStrike();
     }
     
     public void update(float tpf) {
-        if (decisionData.isFightOver()) {
+        if (decisionData.getStrikeReel().isFinished()) { //decisionData.getStrikeReel().isFinished() is the same as the former isFightOver()
             visualizer.onFightOver();
         } else {
             nextAnimation();
@@ -144,23 +145,17 @@ public class Fighter {
         visualizer.update(tpf);
     }
     
-    public void updatePosData() {
-        //update positions of user and opponent
-        decisionData.userPos.set(sprite.getPercentagePosition());
-        decisionData.opponentPos.set(opponentSprite.getPercentagePosition());
-    }
-    
     private void receiveImpact() {
-        if (decisionData.getStrikeIndex() < minStrikeGroupIndexToReceiveImpact) {
+        if (!decisionData.canReceiveImpact()) {
             return;
         }
         
-        Strike currentStrike = decisionData.getCurrentStrike();
+        Strike currentStrike = decisionData.getStrikeReel().getCurrentStrike();
         currentStrike.apply();
         
-        minStrikeGroupIndexToReceiveImpact = decisionData.getStrikeIndex() + 1;
+        decisionData.incrementMinStrikeIndexToReceiveImpact();
         
-        controller.nextReceiveImpactAnimation(visualizer.onReceiveImpact(currentStrike), opponentSprite);
+        controller.nextReceiveImpactAnimation(visualizer.onReceiveImpact(currentStrike), opponentSprite, decisionData);
     }
     
     public void attemptStrike() {
@@ -191,7 +186,7 @@ public class Fighter {
     //TODO: finish the onDashUpdate loops
     //assumes this unit is the striker for this strike
     public void nextAttackAnimation() {
-        Strike strike = decisionData.getCurrentStrike();
+        Strike strike = decisionData.getStrikeReel().getCurrentStrike();
         UpdateLoop onDashUpdate;
         FighterAnimationController.AnimationParams animParams = visualizer.onStartPossibleModification();
 
@@ -203,7 +198,7 @@ public class Fighter {
                 //onDashUpdate
             };
             
-            controller.nextSkillAttackAnimation(skillName, onDashUpdate, animParams, opponentSprite);
+            controller.nextSkillAttackAnimation(skillName, onDashUpdate, animParams, opponentSprite, decisionData);
         } else if (strike.getStriker().triggeredBattleTalent()) { //battle talent attack
             String triggeredTalentName = strike.getStriker().getTriggeredBattleTalent().getName();
             
@@ -211,14 +206,14 @@ public class Fighter {
                 //onDashUpdate
             };
             
-            controller.nextBattleTalentAttackAnimation(triggeredTalentName, onDashUpdate, animParams, opponentSprite);
+            controller.nextBattleTalentAttackAnimation(triggeredTalentName, onDashUpdate, animParams, opponentSprite, decisionData);
         } else { //regular attack
             
             onDashUpdate = (tpf) -> {
                 //onDashUpdate
             };
             
-            controller.nextAttackAnimation(onDashUpdate, animParams, opponentSprite);
+            controller.nextAttackAnimation(onDashUpdate, animParams, opponentSprite, decisionData);
         }
     }
     
@@ -227,17 +222,15 @@ public class Fighter {
         public final AssetManager assetManager;
         public final Camera cam;
         public final Node localGuiNode;
-        public final StrikeTheater strikeTheater;
         
         public final BoxMetadata battleBoxInfo;
         public final Vector3f camLocation;
         private final float zLocation; //startPosZ for BattleSprite/Fighter
         
-        public CommonParams(AssetManager assetManager, Camera cam, Node localGuiNode, StrikeTheater strikeTheater, BattleBox battleBox) {
+        public CommonParams(AssetManager assetManager, Camera cam, Node localGuiNode, BattleBox battleBox) {
             this.assetManager = assetManager;
             this.cam = cam;
             this.localGuiNode = localGuiNode;
-            this.strikeTheater = strikeTheater;
             
             zLocation = battleBox.getViewInfo().getZLocation();
             camLocation = battleBox.getViewInfo().getCameraLocation();

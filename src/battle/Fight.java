@@ -7,9 +7,9 @@ package battle;
 
 import battle.environment.BattleBox;
 import battle.data.forecast.PrebattleForecast;
-import battle.data.StrikeTheater;
+import battle.data.event.StrikeTheater;
 import battle.environment.BattleEnvironment;
-import battle.participant.visual.Fighter;
+import battle.participant.Fighter;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -64,17 +64,13 @@ public class Fight {
     private final Params data;
     private final BattleEnvironment environment;
     private final Combat combat;
-    private final PrebattleForecast forecast;
-    private final StrikeTheater strikes;
     
     private Runnable onFinish = () -> {};
     
     public Fight(PrebattleForecast battleForecast, Params params) {
         data = params;
-        forecast = battleForecast;
-        strikes = forecast.createStrikeEvents();
         
-        combat = new Combat(params.toCommonParams(strikes), forecast);
+        combat = new Combat(battleForecast, params.toCommonParams());
         
         environment = params.createEnvironment();
         environment.getScene().attachChild(combat.getNode());
@@ -111,14 +107,6 @@ public class Fight {
     
     public Combat getCombat() {
         return combat;
-    }
-    
-    public PrebattleForecast getForecast() {
-        return forecast;
-    }
-    
-    public StrikeTheater getStrikeTheater() {
-        return strikes;
     }
     
     public void onFinish(Runnable finishProtocol) {
@@ -173,8 +161,8 @@ public class Fight {
             cam = mainCam.clone(); //clone main camera
         }
         
-        public Fighter.CommonParams toCommonParams(StrikeTheater strikeTheater) {
-            return new Fighter.CommonParams(assetManager, cam, localGuiNode, strikeTheater, battleBox);
+        public Fighter.CommonParams toCommonParams() {
+            return new Fighter.CommonParams(assetManager, cam, localGuiNode, battleBox);
         }
         
         public BattleEnvironment createEnvironment() {

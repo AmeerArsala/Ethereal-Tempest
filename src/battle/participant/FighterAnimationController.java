@@ -3,11 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.participant.visual;
+package battle.participant;
 
 import battle.animation.BattleAnimation;
 import battle.animation.SpriteAnimationParams;
+import battle.data.CombatFlowData;
 import battle.data.DecisionParams;
+import battle.participant.visual.BattleSprite;
 import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;
 import fundamental.jobclass.animation.ActionDecider;
@@ -21,19 +23,15 @@ import java.util.function.Predicate;
  */
 public class FighterAnimationController {
     private final AssetManager assetManager;
-    private final DecisionParams decisionData;
     
     private final BattleSprite sprite;
     private final ActionDecider animationDecider;
-    private final BattleAnimation.Queue currentAnimationQueue;
+    private final BattleAnimation.Queue currentAnimationQueue = new BattleAnimation.Queue();
     
-    public FighterAnimationController(BattleSprite sprite, ActionDecider animationDecider, AssetManager assetManager, DecisionParams decisionData) {
+    public FighterAnimationController(BattleSprite sprite, ActionDecider animationDecider, AssetManager assetManager) {
         this.sprite = sprite;
         this.animationDecider = animationDecider;
         this.assetManager = assetManager;
-        this.decisionData = decisionData;
-        
-        currentAnimationQueue = new BattleAnimation.Queue();
     }
     
     public BattleSprite getSprite() { return sprite; }
@@ -48,7 +46,7 @@ public class FighterAnimationController {
         currentAnimationQueue.resetCurrentAnimation();
     }
     
-    private void callAnimation(ActionDecider.Procedure next, AnimationParams animParams, BattleSprite opponent) {
+    private void callAnimation(ActionDecider.Procedure next, AnimationParams animParams, BattleSprite opponent, CombatFlowData.Representative decisionData) {
         SpriteAnimationParams params = new SpriteAnimationParams(sprite, opponent, assetManager, animParams.secondEndCondition);
         Node animationRoot = sprite.getParent();
         NextActionSequence nextSequence = next.run(decisionData);
@@ -65,31 +63,31 @@ public class FighterAnimationController {
         );
     }
     
-    private void callAttributeAnimation(ActionDecider.AttributeAnimation next, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent) {
+    private void callAttributeAnimation(ActionDecider.AttributeAnimation next, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent, CombatFlowData.Representative decisionData) {
         if (next.usesDash()) { //uses default dash
-            nextDashAnimation(onDashUpdate, opponent);
+            nextDashAnimation(onDashUpdate, opponent, decisionData);
         }
         
-        callAnimation(next.getOnCall(), animParams, opponent); //specify movement in the json file
+        callAnimation(next.getOnCall(), animParams, opponent, decisionData); //specify movement in the json file
     }
     
-    public void nextSkillAttackAnimation(String name, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent) {
-        callAttributeAnimation(animationDecider.getOnSkillAttackCalled(name), onDashUpdate, animParams, opponent);
+    public void nextSkillAttackAnimation(String name, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent, CombatFlowData.Representative decisionData) {
+        callAttributeAnimation(animationDecider.getOnSkillAttackCalled(name), onDashUpdate, animParams, opponent, decisionData);
     }
     
-    public void nextBattleTalentAttackAnimation(String name, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent) {
-        callAttributeAnimation(animationDecider.getOnBattleTalentAttackCalled(name), onDashUpdate, animParams, opponent);
+    public void nextBattleTalentAttackAnimation(String name, UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent, CombatFlowData.Representative decisionData) {
+        callAttributeAnimation(animationDecider.getOnBattleTalentAttackCalled(name), onDashUpdate, animParams, opponent, decisionData);
     }
     
-    public void nextAttackAnimation(UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent) {
+    public void nextAttackAnimation(UpdateLoop onDashUpdate, AnimationParams animParams, BattleSprite opponent, CombatFlowData.Representative decisionData) {
         if (sprite.usesHitPoint()) { //uses dash in that case
-            nextDashAnimation(onDashUpdate, opponent);
+            nextDashAnimation(onDashUpdate, opponent, decisionData);
         }
         
-        callAnimation(animationDecider.getOnAttackCalled(), animParams, opponent);
+        callAnimation(animationDecider.getOnAttackCalled(), animParams, opponent, decisionData);
     }
     
-    public void nextDashAnimation(UpdateLoop onUpdate, BattleSprite opponent) {
+    public void nextDashAnimation(UpdateLoop onUpdate, BattleSprite opponent, CombatFlowData.Representative decisionData) {
         //System.out.println("collision so dash isnt needed? " + sprite.collidesWith(fromOpponent.getSprite()));
         if (animationDecider.getOnDashCalled() != null && !sprite.collidesWith(opponent)) {
             callAnimation(
@@ -100,21 +98,22 @@ public class FighterAnimationController {
                         return sprite.collidesWith(enemySprite);
                     }
                 ),
-                opponent
+                opponent,
+                decisionData
             );
         }
     }
     
-    public void nextReceiveImpactAnimation(AnimationParams animParams, BattleSprite opponent) { 
-        if (decisionData.getCurrentStrike().didHit()) { //assumes this unit is the victim for this strike
-            callAnimation(animationDecider.getOnGotHitCalled(), animParams, opponent);
+    public void nextReceiveImpactAnimation(AnimationParams animParams, BattleSprite opponent, CombatFlowData.Representative decisionData) { 
+        if (decisionData.getStrikeReel().getCurrentStrike().didHit()) { //assumes this unit is the victim for this strike
+            callAnimation(animationDecider.getOnGotHitCalled(), animParams, opponent, decisionData);
         } else {
-            callAnimation(animationDecider.getOnDodgeCalled(), animParams, opponent);
+            callAnimation(animationDecider.getOnDodgeCalled(), animParams, opponent, decisionData);
         }
     }
     
-    public void nextIdleAnimation(AnimationParams animParams, BattleSprite opponent) {
-        callAnimation(animationDecider.getOnIdleCalled(), animParams, opponent);
+    public void nextIdleAnimation(AnimationParams animParams, BattleSprite opponent, CombatFlowData.Representative decisionData) {
+        callAnimation(animationDecider.getOnIdleCalled(), animParams, opponent, decisionData);
     }
     
     public void update(float tpf) {

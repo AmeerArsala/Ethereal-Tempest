@@ -6,9 +6,9 @@
 package etherealtempest.info;
 
 import general.procedure.RequestDealer;
-import battle.data.StrikeParticipant;
-import battle.participant.Combatant;
-import battle.participant.BattleRole;
+import battle.data.event.StrikeParticipant;
+import battle.data.participant.Combatant;
+import battle.data.participant.BattleRole;
 import com.jme3.asset.AssetManager;
 import java.util.ArrayList;
 import java.util.List;

@@ -5,8 +5,8 @@
  */
 package battle.data.forecast;
 
-import battle.participant.BattleRole;
-import battle.participant.Combatant;
+import battle.data.participant.BattleRole;
+import battle.data.participant.Combatant;
 import etherealtempest.info.Conveyor;
 import fundamental.stats.BaseStat;
 import fundamental.stats.BattleStat;

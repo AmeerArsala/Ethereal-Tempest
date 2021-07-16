@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.participant;
+package battle.data.participant;
 
 import com.jme3.math.FastMath;
 import etherealtempest.info.Conveyor;
@@ -13,6 +13,7 @@ import fundamental.stats.BattleStat;
 import fundamental.stats.Toll.Exchange;
 import general.math.FloatPair;
 import java.util.HashMap;
+import java.util.Objects;
 import maps.layout.occupant.character.TangibleUnit;
 
 /**
@@ -20,6 +21,11 @@ import maps.layout.occupant.character.TangibleUnit;
  * @author night
  */
 public class Combatant {
+    public enum AttackType {
+        Weapon,
+        Formula
+    }
+    
     public static final int MAX_EXP_VALUE = 100;
     
     public BattleRole battle_role;
@@ -28,18 +34,10 @@ public class Combatant {
     private final AttackType attackType;
     private final HashMap<BaseStat, Integer> combatBaseStats = new HashMap<>(); //raw base stats
     private final HashMap<BattleStat, Integer> combatBattleStats = new HashMap<>();
+    private final CombatantStatistics statistics = new CombatantStatistics();
     
     private boolean isUsingSkill;
     private int defaultDamage;
-    
-    public int expGained = 0;
-    public int damageDone = 0, damageTaken = 0, tpLost = 0, hitsDodged = 0, numOfCrits = 0;
-    public float durabilityUsed = 0.0f;
-    
-    public enum AttackType {
-        Weapon,
-        Formula
-    }
     
     public Combatant(Conveyor info, BattleRole role) {
         battle_role = role;
@@ -126,9 +124,14 @@ public class Combatant {
     }
     
     public TangibleUnit getUnit() { return tu; }
-    
+    public CombatantStatistics getStatistics() { return statistics; }
     public AttackType getAttackType() { return attackType; } 
     public boolean isUsingSkill() { return isUsingSkill; }
+    public int getDefaultDamage() { return defaultDamage; } //full damage on hit including extra damage
+    
+    public void setDefaultDamage(int dmg) { 
+        defaultDamage = dmg; 
+    }
 
     public int getBaseStat(BaseStat stat) {
         return combatBaseStats.get(stat);
@@ -145,8 +148,6 @@ public class Combatant {
     public float getCurrentToMaxTPRatio() {
         return ((float)combatBaseStats.get(BaseStat.CurrentTP)) / combatBaseStats.get(BaseStat.MaxTP);
     }
-    
-    public int getDefaultDamage() { return defaultDamage; } //full damage on hit including extra damage
     
     public void appendToBaseStat(BaseStat stat, int value) {
         int nextVal = combatBaseStats.get(stat) + value;
@@ -178,23 +179,13 @@ public class Combatant {
         combatBattleStats.replace(stat, nextVal);
     }
     
-    public void setDefaultDamage(int dmg) { 
-        defaultDamage = dmg; 
-    }
-    
     public void applyAllStatsToUnit() {
         tu.setRawStat(BaseStat.Level, combatBaseStats.get(BaseStat.Level));
         
         tu.setRawStat(BaseStat.CurrentHP, combatBaseStats.get(BaseStat.CurrentHP));
         tu.setRawStat(BaseStat.CurrentTP, combatBaseStats.get(BaseStat.CurrentTP));
         
-        //tu.getUnitInfo().addTotalExpGained(expGained); <-- this was already added on addExpGained()
-        tu.getUnitInfo().addTotalDamageDone(damageDone);
-        tu.getUnitInfo().addTotalDamageTaken(damageTaken);
-        tu.getUnitInfo().addTotalDurabilityUsed(durabilityUsed);
-        tu.getUnitInfo().addTotalTPlost(tpLost);
-        tu.getUnitInfo().addTotalHitsDodged(hitsDodged);
-        tu.getUnitInfo().addTotalCriticals(numOfCrits);
+        statistics.apply(tu.getUnitInfo());
     }
     
     public float secondsToDrain(BaseStat statToDrain, BaseStat defensiveStat, int dmg, boolean isCrit) {
@@ -234,9 +225,9 @@ public class Combatant {
                 underdogKillCoefficient = overlevelPreventionCoefficient;
             }
             
-            expGained = (int)expDomain.bound(baseKillValue * bountyCoefficient * underdogKillCoefficient);
+            statistics.expGained = (int)expDomain.bound(baseKillValue * bountyCoefficient * underdogKillCoefficient);
         } else {
-            expGained = (int)expDomain.bound((damageDone > 0 ? baseDamageValue : 1) * bountyCoefficient * overlevelPreventionCoefficient);
+            statistics.expGained = (int)expDomain.bound((statistics.damageDone > 0 ? baseDamageValue : 1) * bountyCoefficient * overlevelPreventionCoefficient);
         }
     }
     
@@ -245,7 +236,7 @@ public class Combatant {
      * @return the new current exp value
      */
     public int addExpGained() {
-        tu.currentEXP += expGained;
+        tu.currentEXP += statistics.expGained;
         return tu.currentEXP;
     }
     
@@ -254,11 +245,11 @@ public class Combatant {
      * @return whether the unit is eligible to level up or not
      */
     public boolean subtractEXPifLevelUp() {
-        if (tu.currentEXP < 100) {
+        if (tu.currentEXP < CombatantStatistics.MAX_EXP_VALUE) {
             return false;
         }
         
-        tu.currentEXP -= 100;
+        tu.currentEXP -= CombatantStatistics.MAX_EXP_VALUE;
         return true;
     }
     
@@ -287,4 +278,36 @@ public class Combatant {
                 + "CRIT EVA: " + combatBattleStats.get(BattleStat.CritEvasion) + "\n"
                 + "AS: " + combatBattleStats.get(BattleStat.AttackSpeed) + "\n";
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        
+        if (obj == null) {
+            return false;
+        }
+        
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        
+        return super.equals(obj);
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 37 * hash + Objects.hashCode(this.battle_role);
+        hash = 37 * hash + Objects.hashCode(this.tu);
+        hash = 37 * hash + Objects.hashCode(this.attackType);
+        hash = 37 * hash + Objects.hashCode(this.combatBaseStats);
+        hash = 37 * hash + Objects.hashCode(this.combatBattleStats);
+        hash = 37 * hash + Objects.hashCode(this.statistics);
+        hash = 37 * hash + (this.isUsingSkill ? 1 : 0);
+        hash = 37 * hash + this.defaultDamage;
+        return hash;
+    }
+    
 }

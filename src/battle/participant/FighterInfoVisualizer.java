@@ -3,12 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package battle.participant.visual;
+package battle.participant;
 
-import battle.data.Strike;
+import battle.data.event.Strike;
 import battle.environment.BoxMetadata;
-import battle.gui.CombatantUI;
+import battle.gui.FighterGUI;
 import battle.gui.GuiFactory;
+import battle.participant.visual.BattleSprite;
 import com.simsilica.lemur.Label;
 import com.atr.jme.font.util.StringContainer;
 import com.atr.jme.font.util.Style;
@@ -76,17 +77,17 @@ public class FighterInfoVisualizer {
     };
     
     private final BattleSprite sprite;
-    private final CombatantUI gui;
+    private final FighterGUI gui;
     private final BoxMetadata battleBoxInfo;
     
-    public FighterInfoVisualizer(BattleSprite sprite, CombatantUI gui, BoxMetadata battleBoxInfo) {
+    public FighterInfoVisualizer(BattleSprite sprite, FighterGUI gui, BoxMetadata battleBoxInfo) {
         this.sprite = sprite;
         this.gui = gui;
         this.battleBoxInfo = battleBoxInfo;
     }
     
     public FSM getFSM() { return fsm; }
-    public CombatantUI getGUI() { return gui; }
+    public FighterGUI getGUI() { return gui; }
     public BoxMetadata getBattleBoxInfo() { return battleBoxInfo; }
     
     public boolean fightIsFullyDone() {
@@ -357,9 +358,9 @@ public class FighterInfoVisualizer {
         float fontSize = 75f;
         
         FontProperties fontParams = new FontProperties(
-            "Interface/Fonts/superstar.ttf", 
+            "Interface/Fonts/superstar.ttf",
             FontProperties.KeyType.BMP,
-            Style.Plain, 
+            Style.Plain,
             fontSize
         );
         

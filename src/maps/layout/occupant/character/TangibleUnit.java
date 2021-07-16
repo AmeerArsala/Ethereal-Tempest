@@ -5,7 +5,7 @@
  */
 package maps.layout.occupant.character;
 
-import battle.participant.BattleRole;
+import battle.data.participant.BattleRole;
 import battle.participant.visual.BattleSprite;
 import fundamental.stats.BaseStat;
 import fundamental.stats.BattleStat;

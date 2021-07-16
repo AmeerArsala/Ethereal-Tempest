@@ -9,8 +9,8 @@ import etherealtempest.gui.specific.LevelUpPanel;
 import etherealtempest.gui.broad.ShapeIndicator;
 import etherealtempest.gui.broad.ExpIndicator;
 import battle.data.forecast.SingularForecast;
-import battle.participant.Combatant;
-import battle.participant.Combatant.AttackType;
+import battle.data.participant.Combatant;
+import battle.data.participant.Combatant.AttackType;
 import com.atr.jme.font.util.StringContainer.Align;
 import com.atr.jme.font.util.StringContainer.VAlign;
 import com.atr.jme.font.util.StringContainer.WrapMode;
@@ -45,7 +45,7 @@ import maps.data.MapTextures;
  * @author night
  * 
  */
-public class CombatantUI {
+public class FighterGUI {
     private final Node uiNode = new Node();
     private final boolean mirrorUI;
     
@@ -61,7 +61,7 @@ public class CombatantUI {
     
     private LevelUpPanel levelUpPanel;
     
-    public CombatantUI(SingularForecast forecast, AssetManager assetManager, Camera cam, boolean mirrorUI) {
+    public FighterGUI(SingularForecast forecast, AssetManager assetManager, Camera cam, boolean mirrorUI) {
         this.forecast = forecast;
         this.cam = cam;
         this.assetManager = assetManager;
