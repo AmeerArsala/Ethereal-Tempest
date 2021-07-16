@@ -232,4 +232,9 @@ public class Tile extends TileFoundation {
         structure = null;
         isOccupied = false;
     }
+    
+    //TODO: update this later
+    public boolean isTraversable() {
+        return isOccupied == false;
+    }
 }

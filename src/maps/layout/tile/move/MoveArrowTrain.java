@@ -7,9 +7,11 @@ package maps.layout.tile.move;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
+import etherealtempest.fsm.MasterFsmState;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import maps.layout.Coords;
 import maps.layout.MapCoords;
 import maps.layout.tile.TileFoundation;
 
@@ -59,15 +61,28 @@ public class MoveArrowTrain { //head must move with the Cursor
         return train.stream().anyMatch((tile) -> (tile.getPos().equals(coords)));
     }
     
+    public boolean connectsToLast(MapCoords coords) {
+        MapCoords last = train.getLast().getPos();
+        
+        if (last.getLayer() != coords.getLayer()) {
+            return false;
+        }
+        
+        Coords difference = last.getCoords().subtract(coords.getCoords());
+        int digitSum = difference.sum();
+        
+        return Math.abs(digitSum) == 1;
+    }
+    
     public void append(MapCoords coords) {
         addRootIfAbsent();
         
         int secondToLast = train.size() - 2;
         if (secondToLast >= 0 && coords.equals(train.get(secondToLast).getPos())) {
             train.removeLast().getNode().removeFromParent();
-        } else if (train.size() + 1 > capacity + 1 || hasTile(coords)) {
+        } else if (train.size() + 1 > capacity + 1 || hasTile(coords) || !connectsToLast(coords)) {
             pathTo(coords);
-        } else {
+        } else if (MasterFsmState.getCurrentMap().getTileAt(coords).isTraversable()) {
             push(coords);
         }
     }

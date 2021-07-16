@@ -10,7 +10,7 @@ import java.util.List;
 /**
  *
  * @author night
- * @param <InfoCarrier> this is a carrier of info (e.g. Conveyer)
+ * @param <InfoCarrier> this is a carrier of info (e.g. Conveyor)
  * @param <ValueCarrier> this is a carrier of units (e.g. Bonus carries stats)
  */
 public interface Calculation<InfoCarrier, ValueCarrier> {

@@ -8,7 +8,6 @@ import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.app.state.AppStateManager;
-import com.jme3.asset.AssetManager;
 import com.jme3.audio.AudioListenerState;
 import com.jme3.environment.EnvironmentCamera;
 import com.jme3.math.ColorRGBA;
@@ -24,8 +23,6 @@ import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.state.LoadingScreenAppState;
 import general.procedure.functional.NamedExecution;
 import general.tools.GameTimer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 import maps.data.MapData;
 import maps.layout.MapLevel;
@@ -35,7 +32,7 @@ import tests.TestStateLoader;
 /**
  * This is the Main Class of your Game. You should only do initialization here.
  * Move your Logic into AppStates or Controls
- * @author normenhansen
+ * @author night
  */
 public class Main extends SimpleApplication {
     public static final Random RNG = new Random(System.currentTimeMillis());
