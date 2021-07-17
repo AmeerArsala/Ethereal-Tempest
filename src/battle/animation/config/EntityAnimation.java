@@ -254,6 +254,10 @@ public class EntityAnimation {
         return actions;
     }
     
+    public void reset() {
+        minLocalFrameForRegisteringImpact = 0;
+    }
+    
     public static EntityAnimation deserializeForSpritesheet(String jsonPath) { //example would be: "Battle\\Freeblade\\offense\\sword\\phase_animations\\attack.json"
         try {
             String spritePath = "Sprites\\" + jsonPath;

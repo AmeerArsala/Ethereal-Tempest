@@ -134,7 +134,7 @@ public class FighterGUI {
         Vector3f portraitTranslation = new Vector3f(0, SCREEN_HEIGHT - portraitDims, 1f);
         Vector3f nametagTranslation = new Vector3f((portrait.getWidth() - nametag.getWidth()) / 2f, portraitTranslation.y - (nametag.getHeight() / 2f), 1.5f);
         Vector3f forecastInfoTranslation = new Vector3f(0.0125f * SCREEN_WIDTH, 0.0125f * SCREEN_HEIGHT, 0f);
-        Vector3f toolTranslation = forecastInfoTranslation.mult(new Vector3f(1f, 10f, 1f));
+        Vector3f toolTranslation = forecastInfoTranslation.mult(new Vector3f(1f, (10f / 1080) * SCREEN_HEIGHT, 1f));
         Vector3f hpHeartTranslation = new Vector3f(forecastInfoTranslation.x, SCREEN_HEIGHT - forecastInfoTranslation.y - hpHeartDims.y, 0).mult(new Vector3f(2f, 0.925f, 1f)).addLocal((MIN_BATTLE_PANEL_WIDTH / 1920) * SCREEN_WIDTH, 0, 0);
         Vector3f tpBallTranslation = new Vector3f(hpHeartTranslation.x, SCREEN_HEIGHT - hpHeartTranslation.y, 0).multLocal(1.15f, 0.15f, 1f);
         Vector3f expBarTranslation = new Vector3f(nametagTranslation.x, nametagTranslation.y + ((-1 * outerRadius) - (0.25f * nametag.getHeight())), 2f);

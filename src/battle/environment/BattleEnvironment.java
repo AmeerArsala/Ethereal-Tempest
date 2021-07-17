@@ -7,8 +7,6 @@ package battle.environment;
 
 import com.jme3.asset.AssetManager;
 import com.jme3.environment.EnvironmentCamera;
-import com.jme3.environment.LightProbeFactory;
-import com.jme3.environment.generation.JobProgressAdapter;
 import com.jme3.environment.util.EnvMapUtils;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.LightProbe;

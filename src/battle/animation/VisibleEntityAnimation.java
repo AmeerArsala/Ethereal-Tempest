@@ -104,6 +104,7 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
         allowVisualUpdate = true;
         elapsedTime = 0f;
         timeCounter.reset();
+        info.reset();
     }
     
     public void begin(Node animationRoot) {
