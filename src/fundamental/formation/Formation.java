@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import maps.layout.MapCoords;
-import general.utils.Duo;
+import general.utils.wrapper.Duo;
 
 /**
  *

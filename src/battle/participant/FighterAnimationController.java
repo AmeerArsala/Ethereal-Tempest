@@ -8,7 +8,6 @@ package battle.participant;
 import battle.animation.BattleAnimation;
 import battle.animation.SpriteAnimationParams;
 import battle.data.CombatFlowData;
-import battle.data.DecisionParams;
 import battle.participant.visual.BattleSprite;
 import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;

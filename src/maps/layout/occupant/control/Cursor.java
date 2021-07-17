@@ -33,7 +33,7 @@ import general.tools.input.ComplexInputReader;
 import general.tools.GameTimer;
 import general.procedure.SimpleOrdinalQueue;
 import general.procedure.functional.SimpleProcedure;
-import general.utils.Duo;
+import general.utils.wrapper.Duo;
 import maps.data.MapTextures;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
 import maps.layout.Coords;

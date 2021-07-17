@@ -19,9 +19,9 @@ import general.math.function.MathFunction;
 import general.math.function.ParametricFunction3f;
 import general.math.function.ParametricFunction4f;
 import general.ui.GeometryPanel;
-import general.utils.ParamSetter;
 import general.utils.helpers.EngineUtils;
 import general.visual.animation.VisualTransition.Progress;
+import java.util.function.BiConsumer;
 
 /**
  *
@@ -190,11 +190,11 @@ public abstract class Animation {
         return anim.newInstance().setInitialAndEndVals(anim.endingValue, anim.initialValue);
     }
     
-    public static <T extends Spatial> Animation CleanOpacityShift(ParamSetter<T, ColorRGBA> colorSetter) {
+    public static <T extends Spatial> Animation CleanOpacityShift(BiConsumer<T, ColorRGBA> colorSetter) {
         return new Animation() {
             @Override
             protected void update(float tpf, float Y, Spatial target, Animation anim) {
-                colorSetter.set((T)target, new ColorRGBA(1, 1, 1, Y));
+                colorSetter.accept((T)target, new ColorRGBA(1, 1, 1, Y));
             }  
         };
     }

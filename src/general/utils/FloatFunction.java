@@ -8,7 +8,8 @@ package general.utils;
 /**
  *
  * @author night
+ * @param <T> type to pass in as parameter
  */
-public interface ReturnBool {
-    public boolean run();
+public interface FloatFunction<T> {
+    public float apply(T t);
 }

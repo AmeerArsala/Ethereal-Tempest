@@ -6,8 +6,8 @@
 package battle.animation;
 
 import com.jme3.scene.Node;
-import com.simsilica.lemur.Command;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  *
@@ -73,13 +73,13 @@ public class BattleAnimationSegment {
         onRealImpactOccurred = prcdr;
     }
     
-    private void procedure(Command<VisibleEntityAnimation> command) {
+    private void procedure(Consumer<VisibleEntityAnimation> command) {
         if (concurrent) {
             for (VisibleEntityAnimation entityAnimation : entityAnimations) {
-                command.execute(entityAnimation);
+                command.accept(entityAnimation);
             }
         } else {
-            command.execute(entityAnimations.get(animationIndex));
+            command.accept(entityAnimations.get(animationIndex));
         }
     }
     
@@ -108,6 +108,7 @@ public class BattleAnimationSegment {
                 entityAnimation.update(tpf);
                 
                 if (realImpactOccurred()) {
+                    System.err.println("onRealImpactOccurred");
                     onRealImpactOccurred.run();
                 }
                 

@@ -10,7 +10,6 @@ import battle.animation.config.AttackSheetConfig;
 import battle.animation.config.PossibleConfig;
 import battle.animation.config.action.ConstantsDealer;
 import battle.data.CombatFlowData;
-import battle.data.DecisionParams;
 import battle.data.event.Strike;
 import battle.data.event.StrikeTheater;
 import battle.data.event.StrikeTheater.Participant;
@@ -42,8 +41,9 @@ import general.visual.Sprite;
  * @author night
  * 
  * How to use: 
- * Create 2 instances of Fighters to fight each other, and call giveNotifier() on each other (they are each other's parameters)
- * For updating, call preUpdate() on both Fighters and then update()
+ * Create 2 instances of Fighters to fight each other, and call setOpponent() on each other (they are each other's parameters)
+ * For updating, call update on both Fighters, then call combatFlowData.updatePositions()
+ * If using a constructor that passes in type CombatFlowData.Representative (repData), make sure both Fighters have their CombatFlowData.Representative from the same CombatFlowData object
  */
 public class Fighter {
     private final SingularForecast forecast;
@@ -58,10 +58,9 @@ public class Fighter {
     
     private Participant currentRole;
     private BattleSprite opponentSprite;
-    //private int minStrikeGroupIndexToReceiveImpact = 0;
     
-    public Fighter(SingularForecast forecast, CombatFlowData combatFlowData, CommonParams common, boolean mirrored) {
-        this(forecast, combatFlowData.getRepresentative(forecast.getCombatant()), common, mirrored);
+    public Fighter(SingularForecast fighterForecast, CombatFlowData combatFlowData, CommonParams commonParams, boolean mirrored) {
+        this(fighterForecast, combatFlowData.getRepresentative(fighterForecast.getCombatant()), commonParams, mirrored);
     }
     
     public Fighter(SingularForecast fighterForecast, CombatFlowData.Representative repData, CommonParams commonParams, boolean mirrored) {

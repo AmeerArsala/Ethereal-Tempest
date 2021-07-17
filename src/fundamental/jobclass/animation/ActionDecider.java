@@ -6,9 +6,6 @@
 package fundamental.jobclass.animation;
 
 import battle.data.CombatFlowData;
-import battle.data.DecisionParams;
-import battle.data.event.StrikeTheater;
-import battle.data.event.StrikeTheater.Participant;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
@@ -16,7 +13,6 @@ import com.jme3.texture.Texture;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 
 /**
  *

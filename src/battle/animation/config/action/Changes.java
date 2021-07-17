@@ -14,7 +14,7 @@ import com.jme3.math.Vector4f;
 import com.jme3.scene.Spatial;
 import general.math.ParametricFunctionStrings3f;
 import general.math.ParametricFunctionStrings4f;
-import general.utils.IdentifiedDuo;
+import general.utils.wrapper.IdentifiedDuo;
 
 /**
  *

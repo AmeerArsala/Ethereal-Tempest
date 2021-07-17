@@ -5,7 +5,6 @@
  */
 package general.tools.input;
 
-import general.utils.ReturnBool;
 import java.util.function.Predicate;
 
 /**

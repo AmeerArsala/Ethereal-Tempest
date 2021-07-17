@@ -3,23 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general.utils;
+package general.utils.wrapper;
 
 /**
  *
  * @author night
  * @param <ONE> type1
  * @param <TWO> type2
- * @param <THREE> type3
  */
-public class Trio<ONE, TWO, THREE> {
+public class Duo<ONE, TWO> {
     public final ONE first;
     public final TWO second;
-    public final THREE third;
     
-    public Trio(ONE first, TWO second, THREE third) {
+    public Duo(ONE first, TWO second) {
         this.first = first;
         this.second = second;
-        this.third = third;
     }
 }

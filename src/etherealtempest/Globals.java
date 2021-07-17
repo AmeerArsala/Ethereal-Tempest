@@ -8,6 +8,7 @@ package etherealtempest;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.system.AppSettings;
 import general.tools.GameTimer;
@@ -62,6 +63,10 @@ public class Globals {
     
     public static Vector3f getScreenDimensions() {
         return new Vector3f(app.accessSettings().getWidth(), app.accessSettings().getHeight(), 0);
+    }
+    
+    public static Vector2f getScreenDimensions2D() {
+        return new Vector2f(app.accessSettings().getWidth(), app.accessSettings().getHeight());
     }
     
     public static AppStateManager getStateManager() {

@@ -55,6 +55,16 @@ public class GuiFactory {
         );
     }
     
+    public static Text2D generateText(String text, ColorRGBA color, UIFontParams params, TextDisplacementParams displacementParams, AssetManager assetManager) {
+        return new Text2D(
+            text, 
+            color, 
+            displacementParams.createTextProperties(params.kerning), 
+            params.createFontProperties(FontProperties.KeyType.BMP), 
+            assetManager
+        );
+    }
+    
     //use for creating portrait and portraitFrame
     public static GeometryPanel createPanel(float width, float height, AssetManager assetManager, Texture texture, ColorRGBA color, boolean mirror) {
         GeometryPanel panel = new GeometryPanel(width, height, RenderQueue.Bucket.Gui);
@@ -92,16 +102,18 @@ public class GuiFactory {
     }
     
     public static GeometryPanel createNametag(String text, UIFontParams params, AssetManager assetManager) {
+        /*
         Rectangle rect = new Rectangle(
             0f,  // x
             0f,  // y
             3 * text.length() * (params.fontSize + params.kerning), // width
             3 * (params.fontSize + params.kerning)  // height
         );
+        */
         
         TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
         
-        Text2D nameText = generateText(text, ColorRGBA.White, rect, params, displacementParams, assetManager);
+        Text2D nameText = generateText(text, ColorRGBA.White, params, displacementParams, assetManager);
         //nameText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
         
         float width = (626f / 475f) * nameText.getTextWidth();
@@ -131,9 +143,10 @@ public class GuiFactory {
         return nametagPanel;
     }
     
-    public static GeometryPanel createBattlePanelFromText(Text2D panelText, float heightScalar, AssetManager assetManager, ColorRGBA color) {
-        float width = (591f / 559f) * panelText.getTextBoxWidth();
-        float height = (205f / 176f) * heightScalar * panelText.getTextBoxHeight();
+    public static GeometryPanel createBattlePanelFromText(Text2D panelText, Vector2f padding, AssetManager assetManager, ColorRGBA color) {
+        //padding is illusory and not the ACTUAL padding there would be, since it is multiplied by a ratio to have the image fit
+        float width =  (591f / 559f) * (panelText.getTextWidth()  + padding.x);
+        float height = (205f / 176f) * (panelText.getTextHeight() + padding.y);
         GeometryPanel battlePanel = createPanel(
             width,
             height,
@@ -173,16 +186,18 @@ public class GuiFactory {
     public static ShapeIndicator createIndicator(String statName, Vector2f xyDimensions, UIFontParams params, MaterialParamsProtocol matParams, AssetManager assetManager, int current, int max) {
         String text = statName + ": " + current + "/" + max;
         
+        /*
         Rectangle rect = new Rectangle(
             0f,  // x
             0f,  // y
             xyDimensions.x * 2, // width
             (4f / 5f) * xyDimensions.x  // height
         );
+        */
         
         TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
         
-        Text2D visibleText = generateText(text, ColorRGBA.White, rect, params, displacementParams, assetManager);
+        Text2D visibleText = generateText(text, ColorRGBA.White, params, displacementParams, assetManager);
         //visibleText.move(0, 0, 3);
         //visibleText.setOutlineMaterial(ColorRGBA.White, ColorRGBA.Black);
         
@@ -197,12 +212,12 @@ public class GuiFactory {
         
         RadialProgressBar expCircle = new RadialProgressBar(innerToOuterRadiusRatio * outerRadius, outerRadius, color, specificity, assetManager);
         
-        Rectangle rectangle = new Rectangle(0f, 0f, innerToOuterRadiusRatio * outerRadius * 2, innerToOuterRadiusRatio * outerRadius * 2); //x, y, width, height
+        //Rectangle rectangle = new Rectangle(0f, 0f, innerToOuterRadiusRatio * outerRadius * 2, innerToOuterRadiusRatio * outerRadius * 2); //x, y, width, height
         TextDisplacementParams displacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.Word);
         
         Text2D.FormatParams textFormat = new Text2D.FormatParams(
             textColor,
-            displacementParams.createTextProperties(params.kerning, rectangle),
+            displacementParams.createTextProperties(params.kerning),
             params.createFontProperties(FontProperties.KeyType.BMP),
             assetManager
         );

@@ -74,12 +74,16 @@ public class BattleAnimation {
     
     public void update(float tpf) {
         if (!paused) {
-            segments.get(index).update(tpf);
+            BattleAnimationSegment segment = segments.get(index);
+            segment.update(tpf);
             
-            //check if finished
-            //if the current segment is finished, index increments by 1, but before that, it checks if it was an attack. If so, the code below it executes
-            if (segments.get(index).isFinished() && segments.get(index++).isAttack()) {
-                onStrikeFinished.run();
+            //check if finished; if it was an attack, call onStrikeFinished
+            if (segment.isFinished()) {
+                ++index;
+                if (segment.isAttack()) {
+                    System.err.println("onStrikeFinished");
+                    onStrikeFinished.run();
+                }
             }
         }
     }

@@ -16,8 +16,8 @@ import com.atr.jme.font.util.StringContainer.VAlign;
 import com.atr.jme.font.util.StringContainer.WrapMode;
 import com.atr.jme.font.util.Style;
 import com.jme3.asset.AssetManager;
-import com.jme3.font.Rectangle;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
@@ -27,15 +27,17 @@ import com.jme3.texture.Texture;
 import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialParamsProtocol;
 import enginetools.math.SpatialOperator;
+import enginetools.math.Vector3F;
 import etherealtempest.Globals;
-import etherealtempest.gui.broad.RadialProgressBar;
 import fundamental.stats.BaseStat;
 import general.ui.GeometryPanel;
 import general.ui.text.Text2D;
 import general.ui.text.quickparams.TextDisplacementParams;
 import general.ui.text.quickparams.UIFontParams;
-import general.utils.Duo;
+import general.utils.FloatFunction;
+import general.utils.wrapper.Duo;
 import general.utils.helpers.GameUtils;
+import general.utils.helpers.MathUtils;
 import general.visual.animation.Animation;
 import general.visual.animation.VisualTransition;
 import maps.data.MapTextures;
@@ -46,6 +48,8 @@ import maps.data.MapTextures;
  * 
  */
 public class FighterGUI {
+    private static final float MIN_BATTLE_PANEL_WIDTH = (591f / 559f) * 322;
+    
     private final Node uiNode = new Node();
     private final boolean mirrorUI;
     
@@ -55,7 +59,6 @@ public class FighterGUI {
     
     private final GeometryPanel portrait, nametag, portraitFrame;
     private final GeometryPanel tool, forecastInfo;
-    //private final HeartIndicator hpHeart;
     private final ShapeIndicator hpHeart, tpBall;
     private final ExpIndicator expbar;
     
@@ -132,7 +135,7 @@ public class FighterGUI {
         Vector3f nametagTranslation = new Vector3f((portrait.getWidth() - nametag.getWidth()) / 2f, portraitTranslation.y - (nametag.getHeight() / 2f), 1.5f);
         Vector3f forecastInfoTranslation = new Vector3f(0.0125f * SCREEN_WIDTH, 0.0125f * SCREEN_HEIGHT, 0f);
         Vector3f toolTranslation = forecastInfoTranslation.mult(new Vector3f(1f, 10f, 1f));
-        Vector3f hpHeartTranslation = new Vector3f(forecastInfoTranslation.x, SCREEN_HEIGHT - forecastInfoTranslation.y - hpHeartDims.y, 0).mult(new Vector3f(2f, 0.925f, 1f)).addLocal(forecastInfo.getWidth(), 0, 0);
+        Vector3f hpHeartTranslation = new Vector3f(forecastInfoTranslation.x, SCREEN_HEIGHT - forecastInfoTranslation.y - hpHeartDims.y, 0).mult(new Vector3f(2f, 0.925f, 1f)).addLocal((MIN_BATTLE_PANEL_WIDTH / 1920) * SCREEN_WIDTH, 0, 0);
         Vector3f tpBallTranslation = new Vector3f(hpHeartTranslation.x, SCREEN_HEIGHT - hpHeartTranslation.y, 0).multLocal(1.15f, 0.15f, 1f);
         Vector3f expBarTranslation = new Vector3f(nametagTranslation.x, nametagTranslation.y + ((-1 * outerRadius) - (0.25f * nametag.getHeight())), 2f);
         if (!mirrorUI) {
@@ -281,87 +284,81 @@ public class FighterGUI {
     }
     
     private Duo<GeometryPanel, GeometryPanel> createEquippedToolAndForecastInfoPanels(UIFontParams equippedToolParams, UIFontParams forecastInfoParams) {
+        final float SCREEN_WIDTH = Globals.getScreenWidth();
+        final float SCREEN_HEIGHT = Globals.getScreenHeight();
+        final float SCREEN_HYPOTENUSE = MathUtils.hypotenuse(SCREEN_WIDTH, SCREEN_HEIGHT);
+        final float HYPOTENUSE_1920x1080 = 2202.90717f;
+        
         Combatant participant = forecast.getCombatant();
         
-        //START equippedTool initialization
-            String equippedName;
-            Texture iconTex;
-            if (participant.getAttackType() == AttackType.Weapon) {
-                equippedName = participant.getUnit().getEquippedWPN().getName();
-                iconTex = participant.getUnit().getEquippedWPN().getWeaponData().getType().getIconTexture();
-            } else { // participant.getAttackType() == AttackType.Formula
-                equippedName = participant.getUnit().getEquippedFormula().getName();
-                iconTex = participant.getUnit().getEquippedFormula().getActualFormulaData().getType().getIconTexture();
-            }
-        //END equippedTool initialization
+        String equippedName;
+        Texture iconTex;
+        if (participant.getAttackType() == AttackType.Weapon) {
+            equippedName = participant.getUnit().getEquippedWPN().getName();
+            iconTex = participant.getUnit().getEquippedWPN().getWeaponData().getType().getIconTexture();
+        } else { // participant.getAttackType() == AttackType.Formula
+            equippedName = participant.getUnit().getEquippedFormula().getName();
+            iconTex = participant.getUnit().getEquippedFormula().getActualFormulaData().getType().getIconTexture();
+        }
         
-        //START forecastInfo initialization
-            String[] lines = {
-                "DMG: " + forecast.getDisplayedDamage(),
-                "ACC: " + forecast.getDisplayedAccuracy() + "%",
-                "CRIT: " + forecast.getDisplayedCrit() + "%"
-            };
+        String forecastText = 
+            "DMG: " + forecast.getDisplayedDamage() + "\n" +
+            "ACC: " + forecast.getDisplayedAccuracy() + "%\n" +
+            "CRIT: " + forecast.getDisplayedCrit() + "%";
         
-            int longestLength = 0;
-            String forecastText = "";
-            for (String line : lines) {
-                int length = line.length();
-                if (length > longestLength) {
-                    longestLength = length;
-                }
+        TextDisplacementParams equippedToolDisplacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
+        Text2D equippedToolText2D = GuiFactory.generateText(equippedName, ColorRGBA.White, equippedToolParams, equippedToolDisplacementParams, assetManager);
+        
+        TextDisplacementParams forecastInfoDisplacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
+        Text2D forecastInfoText2D = GuiFactory.generateText(forecastText, ColorRGBA.White, forecastInfoParams, forecastInfoDisplacementParams, assetManager);
+        
+        Vector2f equippedTextDims = new Vector2f(equippedToolText2D.getTextWidth(), equippedToolText2D.getTextHeight());
+        Vector2f forecastTextDims = new Vector2f(forecastInfoText2D.getTextWidth(), forecastInfoText2D.getTextHeight());
+        
+        final float minWidth = (MIN_BATTLE_PANEL_WIDTH / 1920) * SCREEN_WIDTH;
+        
+        FloatFunction<Vector2f> paddingFunction = (dims) -> {
+            final float minPadding = ((2f / 3f) / 7.7f) * SCREEN_HEIGHT; //((2f / 3f) / 13.5f) * SCREEN_WIDTH;
+            final float maxPadding = SCREEN_WIDTH / 4f;
             
-                forecastText += line + "\n";
+            if (dims.x >= minWidth) {
+                return minPadding;
+            } else {
+                return ((minWidth - dims.x) > maxPadding ? maxPadding : (minWidth - dims.x));
             }
-        //END forecastInfo initialization
+        };
+
+        float equippedPanelPreferredWidth = equippedTextDims.x + paddingFunction.apply(equippedTextDims);
+        float forecastPanelPreferredWidth = forecastTextDims.x + paddingFunction.apply(forecastTextDims);
+        float panelWidth = Math.max(equippedPanelPreferredWidth, forecastPanelPreferredWidth);
         
-        //compare widths and use the greater one
-        float rectangleWidth = Math.max(equippedToolParams.fontSize * (equippedName.length() + 2.75f), forecastInfoParams.fontSize * (longestLength + 3));
+        Vector2f equippedPanelPadding = new Vector2f(Math.abs(panelWidth - equippedTextDims.x), (13.125f / 1080) * SCREEN_HEIGHT);
+        Vector2f forecastPanelPadding = new Vector2f(Math.abs(panelWidth - forecastTextDims.x), (20.25f / 1080) * SCREEN_HEIGHT);
+        
+        float forecastTextGlobalKerning = (forecastInfoParams.kerning / HYPOTENUSE_1920x1080) * SCREEN_HYPOTENUSE;
+        Vector2f forecastInfoTextInitialTranslation = new Vector2f(forecastTextGlobalKerning, ((81f / 1080) * SCREEN_HEIGHT) - forecastTextGlobalKerning);
         
         //START equippedTool GeometryPanel initialization
-            Rectangle equippedToolRectangle = new Rectangle(
-                0f, // x
-                0f, // y
-                rectangleWidth, // width
-                equippedToolParams.fontSize + equippedToolParams.kerning // height
-            );
+        GeometryPanel equippedToolPanel = GuiFactory.createBattlePanelFromText(equippedToolText2D, equippedPanelPadding, assetManager, forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());
+        SpatialOperator toolTextAnchor = equippedToolText2D.createSpatialOperator(0.5f, 0.5f);
+        toolTextAnchor.alignTo(equippedToolPanel.getOperator(0.5f, 0.5f));
             
-            TextDisplacementParams equippedToolDisplacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
-            Text2D equippedToolText2D = GuiFactory.generateText(equippedName, ColorRGBA.White, equippedToolRectangle, equippedToolParams, equippedToolDisplacementParams, assetManager);
-            GeometryPanel equippedToolPanel = GuiFactory.createBattlePanelFromText(equippedToolText2D, 1.625f, assetManager, forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());
-            
-            SpatialOperator toolTextAnchor = equippedToolText2D.createSpatialOperator(0.5f, 0.5f);
-            toolTextAnchor.alignTo(equippedToolPanel.getOperator(0.5f, 0.5f));
-            //equippedToolText2D.move(0, equippedToolText2D.getTextHeight(), 0);
-            
-            //START equippedTool icon initialization
-                Vector3f iconDimensions = new Vector3f(equippedToolRectangle.height, equippedToolRectangle.height, 0f); //width is same as height to make it a square
+        //START equippedTool icon initialization
+        float iconSideLength = (21f / 1080) * SCREEN_HEIGHT;
+        Vector3f iconDimensions = Vector3F.fitXY(iconSideLength); //width is same as height to make it a square
                 
-                GeometryPanel equippedIcon = GuiFactory.createEquippedIcon(iconTex, iconDimensions, equippedToolPanel.getScaledDimensions3D(), assetManager, mirrorUI);
-                equippedIcon.setMirrored(mirrorUI);
-                //equippedIcon.move(toolTranslation);
-                
-                equippedToolPanel.attachChild(equippedIcon);
-            //END equippedTool icon initialization
-            LayerComparator.setLayer(equippedToolPanel, 1);
-            LayerComparator.setLayer(equippedToolText2D, 2);
-            LayerComparator.setLayer(equippedIcon, 3);
-        //END equippedTool GeometryPanel initialization
+        GeometryPanel equippedIcon = GuiFactory.createEquippedIcon(iconTex, iconDimensions, equippedToolPanel.getScaledDimensions3D(), assetManager, mirrorUI);
+        equippedIcon.setMirrored(mirrorUI);        
+        equippedToolPanel.attachChild(equippedIcon);
+        //END equippedTool icon initialization
+        LayerComparator.setLayer(equippedToolPanel, 1);
+        LayerComparator.setLayer(equippedToolText2D, 2);
+        LayerComparator.setLayer(equippedIcon, 3);
+        //END equippedTool GeometryPanel initialization 
         
         //START forecastInfo GeometryPanel initialization
-            float forecastInfoRectangleHeight = (lines.length * (forecastInfoParams.fontSize + forecastInfoParams.kerning)) + forecastInfoParams.kerning;
-            
-            Rectangle forecastInfoRectangle = new Rectangle(
-                forecastInfoParams.kerning, // x
-                forecastInfoRectangleHeight - forecastInfoParams.kerning, // y
-                rectangleWidth, // width
-                forecastInfoRectangleHeight // height
-            );
-            
-            TextDisplacementParams forecastInfoDisplacementParams = new TextDisplacementParams(Align.Left, VAlign.Top, WrapMode.CharClip);
-            Text2D forecastInfoText2D = GuiFactory.generateText(forecastText, ColorRGBA.White, forecastInfoRectangle, forecastInfoParams, forecastInfoDisplacementParams, assetManager);
-            GeometryPanel forecastInfoPanel = GuiFactory.createBattlePanelFromText(forecastInfoText2D, 1.25f, assetManager, forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());
-            
-            forecastInfoText2D.move(0.1f * forecastInfoPanel.getWidth(), 0.15f * forecastInfoPanel.getHeight(), 0);
+        GeometryPanel forecastInfoPanel = GuiFactory.createBattlePanelFromText(forecastInfoText2D, forecastPanelPadding, assetManager, forecast.getCombatant().getUnit().getAllegiance().getAssociatedColor());        
+        forecastInfoText2D.move(Vector3F.fit(forecastInfoTextInitialTranslation.addLocal(0.1f * forecastInfoPanel.getWidth(), 0.15f * forecastInfoPanel.getHeight())));
         //END forecastInfo GeometryPanel initialization
         
         return new Duo<>(equippedToolPanel, forecastInfoPanel);

@@ -9,7 +9,7 @@ import battle.data.event.StrikeReel;
 import battle.data.event.StrikeTheater;
 import battle.data.participant.Combatant;
 import com.jme3.math.Vector2f;
-import general.utils.Duo;
+import general.utils.wrapper.Duo;
 import java.util.function.Supplier;
 
 /**

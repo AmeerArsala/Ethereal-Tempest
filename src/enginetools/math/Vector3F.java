@@ -65,6 +65,14 @@ public class Vector3F implements Serializable {
         return new Vector3f(vec.x, vec.y, z);
     }
     
+    public static Vector3f fitXY(float xy) {
+        return new Vector3f(xy, xy, 0f);
+    }
+    
+    public static Vector3f fitXY(float xy, float z) {
+        return new Vector3f(xy, xy, z);
+    }
+    
     public static Vector3f fill(float defaultValue) {
         return new Vector3f(defaultValue, defaultValue, defaultValue);
     }

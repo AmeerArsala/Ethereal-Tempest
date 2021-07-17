@@ -14,7 +14,7 @@ import battle.participant.Fighter;
 import battle.participant.Fighter.CommonParams;
 import com.jme3.math.Vector2f;
 import com.jme3.scene.Node;
-import general.utils.Duo;
+import general.utils.wrapper.Duo;
 
 /**
  *
@@ -27,7 +27,7 @@ public class Combat {
     private final CombatFlowData combatData;
     private final Fighter initiator, receiver;
     
-    private float flowSpeed = 1;
+    private float flowSpeed = 1f;
     
     @SuppressWarnings("Convert2Diamond")
     public Combat(PrebattleForecast forecast, Fighter.CommonParams common) {

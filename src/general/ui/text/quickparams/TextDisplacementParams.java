@@ -35,4 +35,14 @@ public class TextDisplacementParams {
                 .textBox(rectangle)
                 .build();
     }
+    
+    //does not use Rectangle
+    public TextProperties createTextProperties(int kerning) {
+        return TextProperties.builder()
+                .horizontalAlignment(hAlign)
+                .verticalAlignment(vAlign)
+                .kerning(kerning)
+                .wrapMode(wrapMode)
+                .build();
+    } 
 }

@@ -7,7 +7,7 @@ package general.tools.input;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import general.utils.Duo;
+import general.utils.wrapper.Duo;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

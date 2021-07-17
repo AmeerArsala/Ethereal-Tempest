@@ -36,8 +36,6 @@ import general.ui.text.FontProperties;
 import general.ui.text.FontProperties.KeyType;
 import general.ui.text.Text2D;
 import general.ui.text.TextProperties;
-import general.utils.helpers.EngineUtils;
-import general.utils.helpers.EngineUtils.CenterAxis;
 import general.utils.helpers.GeneralUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +76,7 @@ public class MapFlow { //eventually make this the map controller
     
     //Conveyor stuff
     private Fight currentFight = null;
-    private List<Strike> lastStrikes; //last strikes that happened; maybe remoce this later
+    private List<Strike> lastStrikes; //last strikes that happened; maybe remove this later
     private TangibleUnit initiator, receiver;
     private final ArrayList<TangibleUnit> units = new ArrayList<>(); //ALL UNITS
     private final List<MapEntity> mapEntities = new ArrayList<>();
@@ -296,10 +294,10 @@ public class MapFlow { //eventually make this the map controller
         TextProperties textParams = 
             TextProperties.builder()
                 .horizontalAlignment(Align.Left)
-                .verticalAlignment(VAlign.Center)
+                .verticalAlignment(VAlign.Top)
                 .kerning(kerning)
                 .wrapMode(WrapMode.Clip)
-                .textBox(new Rectangle(0f, 0f, 0.5f * Globals.getScreenWidth(), 0.1f * Globals.getScreenHeight()))
+                //.textBox(new Rectangle(0f, 0f, 0.5f * Globals.getScreenWidth(), 0.1f * Globals.getScreenHeight()))
                 .build();
         
         FontProperties fontParams = new FontProperties("Interface/Fonts/IMMORTAL.ttf", KeyType.BMP, Style.Plain, fontSize);

@@ -444,8 +444,8 @@ public class MapLevelAppState extends AbstractAppState {
             new Vector2f(15f, 6f), //battleBoxDimensions
             BattleViewInfo.deserialize("forgottenpillar.json"),
             new BattleBox.TextureSettings(
-                childToTextureMap, 
-                "LightMap", 
+                childToTextureMap,
+                "LightMap",
                 "Common/MatDefs/Misc/Unshaded.j3md"
             )
         );

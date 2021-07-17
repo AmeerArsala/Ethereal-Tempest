@@ -6,7 +6,6 @@
 package fundamental.jobclass.animation;
 
 import battle.data.CombatFlowData;
-import battle.data.DecisionParams;
 import battle.data.event.StrikeTheater;
 import battle.data.event.StrikeTheater.Participant;
 import com.google.gson.annotations.SerializedName;

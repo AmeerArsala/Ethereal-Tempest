@@ -7,7 +7,6 @@ package battle;
 
 import battle.environment.BattleBox;
 import battle.data.forecast.PrebattleForecast;
-import battle.data.event.StrikeTheater;
 import battle.environment.BattleEnvironment;
 import battle.participant.Fighter;
 import com.jme3.asset.AssetManager;
@@ -78,13 +77,17 @@ public class Fight {
         fsm.setNewStateIfAllowed(State.Initializing);
     }
     
+    public Fight(PrebattleForecast battleForecast, Params params, Runnable onFinish) {
+        this(battleForecast, params);
+        this.onFinish = onFinish;
+    } 
+    
     public void begin() {
         data.initializeArea();
         data.getScreenViewPort().attachScene(environment.getScene());
         
         //initialize camera position
         data.cam.setLocation(environment.getTerrainModel().getWorldTranslation().add(data.getRelativeCameraPos()));
-        //data.cam.setLocation(environment.getTerrainModel().getChild("FullPlane").getWorldTranslation().add(0, 2.5f, 13.25f));
         Quaternion cameraRotation = new Quaternion();
         cameraRotation.fromAngles(0, FastMath.PI, 0);
         data.cam.setRotation(cameraRotation);
@@ -181,10 +184,13 @@ public class Fight {
             cam.setViewPort(0.0f, 1.0f, 0.0f, 1.0f);
             screenView = renderManager.createMainView("Fight Sequence", cam);
             screenView.setClearFlags(true, true, true);
+            
         }
         
         public void finish() {
             cam.setViewPort(0.0f, 0.0f, 0.0f, 0.0f);
+            screenView.clearScenes();
+            renderManager.removeMainView(screenView);
         }
         
         public void resolveInput(String name, float tpf, boolean keyPressed) {
