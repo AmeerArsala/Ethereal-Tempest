@@ -230,6 +230,8 @@ public class TangibleUnit extends PositionedUnit {
             return false;
         });
         
+        visuals.node.detachChild(visuals.getHPNode());
+        visuals.node.detachChild(visuals.getTPNode());
         fsm.setNewStateIfAllowed(UnitState.Idle);
     }
     
