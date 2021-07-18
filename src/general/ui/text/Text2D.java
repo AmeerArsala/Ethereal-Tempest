@@ -138,6 +138,7 @@ public class Text2D extends Node {
     public void setText(String text) {
         sc.setText(text);
         textContainer.updateGeometry();
+        name = "Text2D: " + "\"" + text + "\"";
     }
     
     public void setTextBox(Rectangle textBox) {
@@ -252,5 +253,10 @@ public class Text2D extends Node {
     
     public void fitInTextBox(float extraPadding) {
         fitInTextBox(extraPadding, extraPadding);
+    }
+    
+    @Override
+    public String toString() {
+        return name + "; def: " + super.toString();
     }
 }

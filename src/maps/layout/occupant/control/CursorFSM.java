@@ -35,9 +35,9 @@ public abstract class CursorFSM extends FSM<CursorState> {
     private Purpose purpose = Purpose.None;
     
     public boolean translatingX = false, translatingY = false, isBacking = false, isCorrected = true;
-    public final Coords selectionDifferenceXY = new Coords(0, 0);
-    public final Coords toTraverseXY = new Coords(0, 0);
-    public final Vector2f accumulatedCursorDistanceXY = new Vector2f(0, 0);
+    public final Coords selectionDifferenceXY = new Coords(0, 0); //difference in distance (in terms of Tiles) from when the CursorState is CursorState.AnyoneSelectingTarget compared to before it was that
+    public final Coords toTraverseXY = new Coords(0, 0); //marks how far the cursor will be traversing in terms of Tiles
+    public final Vector2f accumulatedCursorDistanceXY = new Vector2f(0, 0); //accumulated cursor distance to track how far it is in 3D space to traverse a single Tile.SIDE_LENGTH
     
     public CursorFSM() {
         super();

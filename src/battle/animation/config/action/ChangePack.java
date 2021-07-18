@@ -44,11 +44,12 @@ public class ChangePack {
             if (velocity != null) {
                 float boxWidth = battleBoxInfo.horizontalLength(); //the actual width of the box, not the one specified originally
                 root.move(velocity.multLocal(boxWidth).multLocal(positiveDirection)); //multiply by positiveDirection for mirroring
-                //System.out.println("DeltaPos: " + velocity);
+                System.out.println("DeltaPos: " + velocity);
             }
             
             if (thetaVelocity != null) {
                 root.rotate(thetaVelocity.x, thetaVelocity.y, thetaVelocity.z);
+                System.out.println("DeltaThetas: " + thetaVelocity);
             }
             
             if (localScale != null) {

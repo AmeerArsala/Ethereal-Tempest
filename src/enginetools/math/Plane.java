@@ -16,17 +16,17 @@ import java.util.function.BiFunction;
  */
 public enum Plane {
     XY(Axis.Z, (vec, theta) -> { // x is the "x-axis" and y is the "y-axis"
-        float radius = FastMath.sqrt(FastMath.sqr(vec.x) + FastMath.sqr(vec.y));
+        float radius = FastMath.sqrt((vec.x*vec.x) + (vec.y*vec.y));
         
         return new Vector3f(FastMath.cos(theta), FastMath.sin(theta), 0).multLocal(radius);
     }),
     XZ(Axis.Y, (vec, theta) -> { // x is the "x-axis" and z is the "y-axis"
-        float radius = FastMath.sqrt(FastMath.sqr(vec.x) + FastMath.sqr(vec.z));
+        float radius = FastMath.sqrt((vec.x*vec.x) + (vec.z*vec.z));
         
         return new Vector3f(FastMath.cos(theta), 0, FastMath.sin(theta)).multLocal(radius);
     }),
     ZY(Axis.X, (vec, theta) -> { // z is the "x-axis" and y is the "y-axis"
-        float radius = FastMath.sqrt(FastMath.sqr(vec.y) + FastMath.sqr(vec.z));
+        float radius = FastMath.sqrt((vec.y*vec.y) + (vec.z*vec.z));
         
         return new Vector3f(0, FastMath.sin(theta), FastMath.cos(theta)).multLocal(radius);
     });

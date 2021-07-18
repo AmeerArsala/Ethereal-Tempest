@@ -159,12 +159,21 @@ public abstract class FSM<T extends Enum> {
     
     public enum UnitState {
         //TangibleUnit states
-        Idle,
-        Active,
-        Done,
-        Dying,
-        Dead,
-        SelectingTarget
+        Idle(false),
+        Active(true),
+        Done(true),
+        Dying(false),
+        Dead(false),
+        SelectingTarget(true); //TODO: maybe change this later
+        
+        private final boolean allowsOnOccasion;
+        private UnitState(boolean allowsOnOccasion) {
+            this.allowsOnOccasion = allowsOnOccasion;
+        }
+        
+        public boolean allowsOnOccasion() {
+            return allowsOnOccasion;
+        }
     }
     
     public enum FighterState {

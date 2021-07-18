@@ -6,16 +6,18 @@
 package etherealtempest.mesh;
 
 import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
+import java.util.List;
 
 /**
  *
  * @author night
  */
 public abstract class CustomMesh extends Mesh {
-    protected Vector2f[] vertices;
+    protected Vector3f[] vertices;
     protected Vector2f[] texCoord = new Vector2f[4];
     protected int[] indices;
     
@@ -30,7 +32,24 @@ public abstract class CustomMesh extends Mesh {
     
     protected abstract void generate();
     
-    public Vector2f[] getVertices() {
+    public Vector3f[] getVertices() {
         return vertices;
+    }
+    
+    protected void setVertices(List<Vector3f> vertexes) {
+        vertices = vertexes.toArray(new Vector3f[vertexes.size()]);
+    }
+    
+    protected void setIndices(List<Integer> indexes) {
+        indices = new int[indexes.size()];
+        for (int i = 0; i < indices.length; i++) {
+            indices[i] = indexes.get(i);
+        }
+    }
+    
+    protected void setTexcoords(List<Vector2f> texCoords) {
+        for (int i = 0; i < 4; i++) {
+            texCoord[i] = texCoords.get(i);
+        }
     }
 }

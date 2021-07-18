@@ -18,8 +18,8 @@ import general.math.function.CartesianFunction;
 import general.math.function.MathFunction;
 import general.math.function.ParametricFunction4f;
 import general.math.function.RGBAFunction;
-import general.visual.ModifiedSprite;
-import general.visual.Sprite;
+import general.visual.sprite.ModifiedSprite;
+import general.visual.sprite.Sprite;
 
 /**
  *

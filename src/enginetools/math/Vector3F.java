@@ -9,6 +9,7 @@ import java.io.Serializable;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
 import general.math.FloatOperation;
 //import general.math.function.ControlledMathFunction.Operation;
 
@@ -75,6 +76,10 @@ public class Vector3F implements Serializable {
     
     public static Vector3f fill(float defaultValue) {
         return new Vector3f(defaultValue, defaultValue, defaultValue);
+    }
+    
+    public static Vector3f salvage(Vector4f vec4f) {
+        return new Vector3f(vec4f.x, vec4f.y, vec4f.z);
     }
     
     public static Vector3f random() {

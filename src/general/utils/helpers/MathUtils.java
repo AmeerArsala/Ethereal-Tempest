@@ -39,4 +39,15 @@ public class MathUtils {
         float diffFromEdge = localTranslation - actualEdgePos;
         return (diffFromEdge / sideLength);
     }
+    
+    public static float max(float... nums) {
+        float max = nums[0];
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] > max) {
+                max = nums[i];
+            }
+        }
+        
+        return max;
+    }
 }

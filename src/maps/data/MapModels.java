@@ -61,6 +61,12 @@ public class MapModels {
         }
     }
     
+    /*
+    public static final class Common {
+        
+    }
+    */
+    
     /* these can be loaded independently, because they can be cloned; Maybe change this later
     public static final class TileStructures {
         public static Node Forest;

@@ -337,6 +337,10 @@ public class TangibleUnit extends PositionedUnit {
     }
     
     public void onOccasion(Conveyor conv, Occasion occasion) { //TODO: add more than just buff and debuff for effects
+        if (!fsm.getEnumState().allowsOnOccasion()) {
+            return;
+        }
+        
         AssetManager assetManager = conv.getAssetManager();
         
         BattleRole role = conv.battleRoleFor(this);

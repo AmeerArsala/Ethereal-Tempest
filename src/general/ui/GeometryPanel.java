@@ -15,6 +15,8 @@ import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.shape.Quad;
 import enginetools.math.SpatialOperator;
+import enginetools.math.Vector2F;
+import enginetools.math.Vector3F;
 
 /**
  *
@@ -42,55 +44,17 @@ public class GeometryPanel extends Node {
         
         attachChild(geometry);
         
-        anchor = new SpatialOperator(this, getScaledDimensions3D(), new Vector3f());
+        anchor = new SpatialOperator(this, getUnscaledDimensions3D(), new Vector3f());
     }
     
+    public Geometry getGeometry() { return geometry; }
+    public Quad getQuad() { return quad; }
+
     public float getWidth() { return width; }
     public float getHeight() { return height; }
     
-    public final Vector2f getUnscaledDimensions() {
-        return new Vector2f(width, height);
-    }
-    
-    public final Vector2f getScaledDimensions() { //scaled dimensions
-        Vector3f localScale = getLocalScale();
-        return new Vector2f(width * localScale.x, height * localScale.y);
-    }
-    
-    public final Vector3f getUnscaledDimensions3D() {
-        return new Vector3f(width, height, 0);
-    }
-    
-    public final Vector3f getScaledDimensions3D() {
-        return getLocalScale().mult(new Vector3f(width, height, 1));
-    }
-    
-    public Geometry getGeometry() { 
-        return geometry; 
-    }
-    
-    public Quad getQuad() { 
-        return quad; 
-    }
-    
-    public SpatialOperator getOperator() {
-        anchor.getDimensions().set(getScaledDimensions3D()); //update dimensions
-        return anchor;
-    }
-    
-    public SpatialOperator getOperator(float percentX, float percentY) {
-        anchor.getDimensions().set(getScaledDimensions3D()); //update dimensions
-        anchor.getPointInPercents().set(percentX, percentY, 0);
-        
-        return anchor;
-    }
-    
-    public boolean isMirrored() { 
-        return isMirrored; 
-    }
-    
-    public Material getMaterial() {
-        return geometry.getMaterial();
+    public Material getMaterial() { 
+        return geometry.getMaterial(); 
     }
     
     @Override
@@ -100,6 +64,46 @@ public class GeometryPanel extends Node {
     
     protected void setNodeMaterial(Material mat) {
         super.setMaterial(mat);
+    }
+    
+    public final Vector2f getUnscaledDimensions() {
+        Vector3f geometryLocalScale = geometry.getLocalScale();
+        return new Vector2f(width * geometryLocalScale.x, height * geometryLocalScale.y);
+    }
+    
+    public final Vector2f getScaledDimensions() { //scaled dimensions
+        return getUnscaledDimensions().multLocal(Vector2F.salvage(getLocalScale()));
+    }
+    
+    public final Vector3f getUnscaledDimensions3D() {
+        return Vector3F.fit(getUnscaledDimensions(), 1);
+    }
+    
+    public final Vector3f getScaledDimensions3D() {
+        return Vector3F.fit(getScaledDimensions(), 1);
+    }
+    
+    public final Vector3f getLocalAngle() {
+        Quaternion rot = getLocalRotation();
+        float[] angles = rot.toAngles(null);
+        
+        return new Vector3f(angles[0], angles[1], angles[2]);
+    }
+    
+    public SpatialOperator getOperator() {
+        anchor.getDimensions().set(getUnscaledDimensions3D()); //update dimensions
+        return anchor;
+    }
+    
+    public SpatialOperator getOperator(float percentX, float percentY) {
+        anchor.getDimensions().set(getUnscaledDimensions3D()); //update dimensions
+        anchor.getPointInPercents().set(percentX, percentY, 0);
+        
+        return anchor;
+    }
+    
+    public boolean isMirrored() { 
+        return isMirrored; 
     }
     
     public void setMirrored(boolean mirrored) {
@@ -140,13 +144,4 @@ public class GeometryPanel extends Node {
         Vector2f dims = scaleDimensions ? getScaledDimensions() : getUnscaledDimensions();
         return dims.multLocal(percentDimensions).multLocal(getPositiveDirection2DVector());
     }
-    
-    public Vector3f getLocalAngle() {
-        Quaternion rot = getLocalRotation();
-        float[] angles = rot.toAngles(null);
-        
-        return new Vector3f(angles[0], angles[1], angles[2]);
-    }
-    
-    
 }

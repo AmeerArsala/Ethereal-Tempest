@@ -9,70 +9,89 @@ import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import enginetools.MaterialCreator;
+import enginetools.math.SpatialOperator;
+import etherealtempest.mesh.TrapezoidalMesh;
+import maps.layout.tile.Tile;
 
 /**
  *
  * @author night
  */
 public class CursorPointer {
+    private static final float FACING_CAMERA = FastMath.PI / -3f;
+    
     private final Node pointerParent = new Node();
-    private final Node pointerParentParent = new Node();
-    private final Node pointer;
+    private final Geometry pointer;
     
     private Material pointerMat;
     
-    private final float desiredPointerPosY;
-    private final float desiredPointerRotY;
+    private final SpatialOperator pointerOperator;
     
-    public CursorPointer(AssetManager assetManager, MaterialCreator customMaterial, boolean defaultTransformation) {
-        pointer = (Node)assetManager.loadModel("Models/General/pointer.gltf");
+    public CursorPointer(AssetManager assetManager, MaterialCreator customMaterial) {
+        pointer = new Geometry(
+            "cursorPointerGeometry",
+            new TrapezoidalMesh(
+                1.0f,                                   //length
+                new Vector3f(2.5f/7f, 5f/7f, 0),        //right edge
+                new Vector3f(0f, 4f/7f, 4f/15f),        //focus front
+                new Vector3f(1.5f/7f, 3f/7f, 0)         //right extra edge point
+            )
+        );
+        
         pointerMat = customMaterial.createMaterial(assetManager);
         pointer.setMaterial(pointerMat);
         
-        if (defaultTransformation) {
-            pointer.move(0.5f * (1f / 0.85f), 0, -0.13f);
+        float scale = (9.0f / 16f) * Tile.SIDE_LENGTH;
+        pointer.setLocalScale(scale);
         
-            pointerParent.scale(2.75f);
-            pointerParent.move(5.2f, 0, 9.411f);
-            pointerParentParent.move(0, 45, 0);
-            pointerParentParent.scale(0.85f);
-            
-            Quaternion rot = new Quaternion();
-            rot.fromAngles(0, 0, FastMath.PI / -3f);
-            pointerParentParent.setLocalRotation(rot);
-        }
+        pointerOperator = new SpatialOperator(pointer, new Vector3f(0.5f, 0.5f, 0));
         
-        desiredPointerRotY = pointerParent.getLocalRotation().getY();
-        desiredPointerPosY = pointerParent.getLocalTranslation().y;
-        
-        pointerParentParent.attachChild(pointerParent);
+        pointerParent.setLocalRotation(new Quaternion().fromAngles(0, 0, FACING_CAMERA));
         pointerParent.attachChild(pointer);
+        
+        setAngle(0, -FastMath.HALF_PI, 0);
     }
     
     public Material getMaterial() { return pointerMat; }
     
-    public Node getMasterNode() { return pointerParentParent; }
-    public Node getPointerNode() { return pointer; }
-    public Node getPointerParentNode() { return pointerParent; }
+    public Node getNode() { return pointerParent; }
+    public Geometry getPointer() { return pointer; }
     
-    public float getDesiredPosY() { return desiredPointerPosY; }
-    public float getDesiredRotY() { return desiredPointerRotY; }
+    public SpatialOperator getOperator() {
+        return pointerOperator;
+    }
     
     public void setMaterial(Material mat) {
         pointerMat = mat;
     }
     
+    public final void setAngle(float xAngle, float yAngle, float zAngle) {
+        pointer.setLocalRotation(new Quaternion().fromAngles(0, 0, 0));
+        pointer.setLocalTranslation(0, 0, 0);
+        
+        float translationAngleZ = FastMath.HALF_PI + zAngle;
+        Vector3f deltaXYZ = new Vector3f(
+            FastMath.cos(translationAngleZ) * Tile.SIDE_LENGTH * 1.25f,
+            FastMath.sin(translationAngleZ) * Tile.SIDE_LENGTH * 1.25f,
+            Tile.RADIUS_FOR_SQUARE
+        );
+        
+        pointerOperator.rotateSpatialTo(xAngle, yAngle, zAngle);
+        pointer.move(deltaXYZ);
+    }
+    
     public void rotateIf(boolean condition, float factor) {
-        Quaternion pointerRotation = new Quaternion();
+        float theta = -FastMath.HALF_PI;
         if (condition) {
-            pointerRotation.fromAngles(0, factor, 0);
-        } else {
-            pointerRotation.fromAngles(0, desiredPointerRotY, 0);
+            theta += factor;
         }
         
-        pointerParent.setLocalRotation(pointerRotation);
-        pointerParent.setLocalTranslation(pointerParent.getLocalTranslation().x, desiredPointerPosY + (2 * FastMath.sin(factor)), pointerParent.getLocalTranslation().z);
+        setAngle(0, theta, 0);
+
+        pointerParent.setLocalTranslation(pointerParent.getLocalTranslation().x, (2 * FastMath.sin(factor)), pointerParent.getLocalTranslation().z);
     }
 }

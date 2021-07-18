@@ -3,13 +3,13 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package general.utils;
+package general.utils.functional;
 
 /**
  *
  * @author night
  * @param <T> type to pass in as parameter
  */
-public interface FloatFunction<T> {
+public interface ToFloatFunction<T> {
     public float apply(T t);
 }

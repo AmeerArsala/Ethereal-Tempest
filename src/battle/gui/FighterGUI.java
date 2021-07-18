@@ -34,13 +34,13 @@ import general.ui.GeometryPanel;
 import general.ui.text.Text2D;
 import general.ui.text.quickparams.TextDisplacementParams;
 import general.ui.text.quickparams.UIFontParams;
-import general.utils.FloatFunction;
 import general.utils.wrapper.Duo;
 import general.utils.helpers.GameUtils;
 import general.utils.helpers.MathUtils;
 import general.visual.animation.Animation;
 import general.visual.animation.VisualTransition;
 import maps.data.MapTextures;
+import general.utils.functional.ToFloatFunction;
 
 /**
  *
@@ -317,7 +317,7 @@ public class FighterGUI {
         
         final float minWidth = (MIN_BATTLE_PANEL_WIDTH / 1920) * SCREEN_WIDTH;
         
-        FloatFunction<Vector2f> paddingFunction = (dims) -> {
+        ToFloatFunction<Vector2f> paddingFunction = (dims) -> {
             final float minPadding = ((2f / 3f) / 7.7f) * SCREEN_HEIGHT; //((2f / 3f) / 13.5f) * SCREEN_WIDTH;
             final float maxPadding = SCREEN_WIDTH / 4f;
             

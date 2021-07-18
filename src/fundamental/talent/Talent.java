@@ -110,7 +110,13 @@ public class Talent extends Attribute {
                         protected boolean getCondition(Conveyor data) {
                             Combatant cbt = data.getCombatantByUnit(data.getUnit());
                             
-                            if (cbt == null) { return false; }
+                            if (cbt == null) { 
+                                return false; 
+                            }
+                            
+                            if (cbt.getCurrentToMaxHPRatio() > 0.5f) {
+                                return false;
+                            }
                             
                             Tool tool = data.getEnemyUnit().getEquippedTool();
                             int range = tool.getRange().get(tool.getRange().size() - 1);
@@ -145,10 +151,10 @@ public class Talent extends Attribute {
                 new TalentConcept(
                     TalentCondition.AlwaysTriggersOnOccasion(Occasion.AfterCombat),
                     TalentEffect.PercentageStatBasedAOE( //50% of ether stat as damage to enemies within 3 range
-                        0.5f, //%
-                        BaseStat.Ether, //stat
-                        Exchange.HP, //penalty type
-                        3, //range
+                        0.5f,           // %
+                        BaseStat.Ether, // stat
+                        Exchange.HP,    // penalty type
+                        3,              // range
                         AgainstUnits.Enemy
                     ) 
                 )

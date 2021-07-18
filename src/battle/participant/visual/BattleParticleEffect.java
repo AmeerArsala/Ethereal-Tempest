@@ -12,7 +12,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import general.visual.DeserializedParticleEffect;
-import general.visual.Sprite;
+import general.visual.sprite.Sprite;
 
 /**
  *

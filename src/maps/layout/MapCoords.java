@@ -5,14 +5,16 @@
  */
 package maps.layout;
 
+import etherealtempest.fsm.MasterFsmState;
 import java.util.List;
 import java.util.Objects;
+import maps.layout.tile.Tile;
 
 /**
  *
  * @author night
  */
-public class MapCoords {
+public class MapCoords implements OnTile {
     private final Coords coords;
     private int layer;
     
@@ -157,6 +159,16 @@ public class MapCoords {
     
     public <T> T getRowYColXfrom(T[][][] elementGrids) {
         return elementGrids[layer][coords.y][coords.x];
+    }
+    
+    @Override
+    public Tile getCurrentTile() {
+        return MasterFsmState.getCurrentMap().getTileAt(this);
+    }
+
+    @Override
+    public Tile getCurrentTile(MapLevel map) {
+        return map.getTileAt(this);
     }
     
     @Override

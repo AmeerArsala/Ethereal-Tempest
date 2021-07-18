@@ -14,4 +14,12 @@ import maps.layout.tile.Tile;
 public interface OnTile {
     public Tile getCurrentTile();
     public Tile getCurrentTile(MapLevel map);
+    
+    public default MapCoords getCurrentMapCoords() {
+        return getCurrentTile().getPos();
+    }
+    
+    public default MapCoords getCurrentMapCoords(MapLevel map) {
+        return getCurrentTile(map).getPos();
+    }
 }

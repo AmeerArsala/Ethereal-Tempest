@@ -8,6 +8,8 @@ package enginetools.math;
 import java.io.Serializable;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
 import general.math.FloatOperation;
 import general.utils.helpers.MathUtils;
 //import general.math.function.ControlledMathFunction.Operation;
@@ -54,6 +56,14 @@ public class Vector2F implements Serializable {
     
     public static Vector2f fill(float defaultValue) {
         return new Vector2f(defaultValue, defaultValue);
+    }
+    
+    public static Vector2f salvage(Vector3f vec3f) {
+        return new Vector2f(vec3f.x, vec3f.y);
+    }
+    
+    public static Vector2f salvage(Vector4f vec4f) {
+        return new Vector2f(vec4f.x, vec4f.y);
     }
     
     public static Vector2f random() {

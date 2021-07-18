@@ -369,7 +369,7 @@ public class ActionInfo {
 
             @Override
             public void onSelect() {
-                conv.getCursor().resetState();
+                conv.getCursor().onStandby();
                 closeEntireMenu();
             }
         };

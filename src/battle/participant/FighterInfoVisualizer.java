@@ -70,6 +70,7 @@ public class FighterInfoVisualizer {
                 case LevelUpDone:
                     break;
                 case Finished:
+                    //AYO THIS IS WHERE EVERYTHING IS APPLIED
                     gui.getForecast().finishFight(); //applies stats to unit and then updates unit data
                     break;
             }
@@ -369,10 +370,6 @@ public class FighterInfoVisualizer {
         //dmgText.setOutlineMaterial(textColor, ColorRGBA.Black);
         
         dmgText.scale(1 / fontSize);
-        
-        System.err.println("Text Dimensions: " + dmgText.getTextBounds());
-        System.err.println("TextBox Dimensions: " + dmgText.getTextBoxBounds());
-        System.err.println("Text String: " + dmgText.getText());
         
         return dmgText;
     }

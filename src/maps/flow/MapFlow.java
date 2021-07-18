@@ -235,7 +235,7 @@ public class MapFlow { //eventually make this the map controller
                     }
                 
                     fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault).setAssetManager(assetManager));
-                    cursor.resetState();
+                    cursor.onStandby();
                     break;
                 case DuringBattle:
                     currentFight.update(tpf);

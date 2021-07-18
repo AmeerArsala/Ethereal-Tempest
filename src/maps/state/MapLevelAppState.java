@@ -253,14 +253,15 @@ public class MapLevelAppState extends AbstractAppState {
         guiNode.attachChild(localGuiNode);
         
         stats = new StatScreen(assetManager);
-        actionMenu = new ActionMenu(assetManager);
-
+        actionMenu = new ActionMenu(assetManager, () -> { mapFlow.getCursor().setVisible(true); });
+        
         localGuiNode.attachChild(stats);
         stats.initializeRenders();
         actionMenu.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, (7 / 17f) * Globals.getScreenHeight(), actionMenu.getNode().getLocalTranslation().z);
         
         GameProtocols.setOpenPostActionMenu(() -> {
             localGuiNode.attachChild(actionMenu.getNode());
+            mapFlow.getCursor().setVisible(false);
             actionMenu.setOpen(true);
             actionMenu.initialize(mapFlow.constructConveyor().setUnit(mapFlow.getCursor().selectedUnit));
         });
@@ -475,6 +476,7 @@ public class MapLevelAppState extends AbstractAppState {
                 }
                 
                 //if no more deaths are being applied, go back to normal
+                mapFlow.getCursor().setVisible(true);
                 mapFlow.getCursor().getFSM().setNewStateIfAllowed(CursorState.CursorDefault);
                 fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.PostBattle).setAssetManager(assetManager));
                 return true;
@@ -482,7 +484,8 @@ public class MapLevelAppState extends AbstractAppState {
         });
         
         mapFlow.setCurrentFight(fight);
-        
+        mapFlow.getCursor().setVisible(false);
+        mapFlow.getCursor().resetCursorPositionFromSelection();
         rootNode.detachChild(localRootNode);
         //flyCam.setEnabled(true);
         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.DuringBattle).setAssetManager(assetManager));

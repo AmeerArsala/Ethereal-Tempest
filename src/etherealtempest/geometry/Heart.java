@@ -11,6 +11,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import enginetools.MaterialParamsProtocol;
@@ -62,7 +63,7 @@ public class Heart extends Node {
     private final float scalar;
     private final float tStep;
     
-    private final List<Vector2f> crackVertices = new ArrayList<>();
+    private final List<Vector3f> crackVertices = new ArrayList<>();
     private float crackWidth;
     
     private float percentFilled = 1f;
@@ -185,14 +186,14 @@ public class Heart extends Node {
         float baseCrackWidth = tStep * ((int)((maxCrackWidthT + (float)((minCrackWidthT - maxCrackWidthT) * Math.random())) / tStep));
         crackWidth = scalar * baseCrackWidth; //vertex
         
-        crackVertices.add(new Vector2f(0f, HEARTBREAK_START * scalar));
+        crackVertices.add(new Vector3f(0f, HEARTBREAK_START * scalar, 0f));
         
         for (int i = 0; i < cracks; ++i) {
             float a = (HEARTBREAK_START * scalar) + (i * crackLength);
             float b = a + crackLength;
             
-            crackVertices.add(new Vector2f(crackWidth, (a + b) / 2f)); //peak corner
-            crackVertices.add(new Vector2f(0f, b)); //base corner
+            crackVertices.add(new Vector3f(crackWidth, (a + b) / 2f, 0f)); //peak corner
+            crackVertices.add(new Vector3f(0f, b, 0f)); //base corner
         }
     }
     
@@ -222,7 +223,7 @@ public class Heart extends Node {
     private abstract class HeartPieceMesh extends CustomMesh {
         protected final FloatPair domain;
         protected final float tValForFurthestX; // x'(tValForFurthestX) = 0
-        protected final List<Vector2f> vertexes = new ArrayList<>();
+        protected final List<Vector3f> vertexes = new ArrayList<>();
         protected final List<Integer> indexes = new ArrayList<>();
     
         public HeartPieceMesh(FloatPair domain, float tValForFurthestX) {
@@ -240,7 +241,7 @@ public class Heart extends Node {
             setVertices();
             setIndices();
             
-            vertices = new Vector2f[vertexes.size()];
+            vertices = new Vector3f[vertexes.size()];
             for (int i = 0; i < vertices.length; ++i) {
                 vertices[i] = vertexes.get(i);
             }
@@ -253,7 +254,7 @@ public class Heart extends Node {
         
         private void setVertices() {
             for (float t = domain.a; t <= domain.b; t += tStep) {
-                vertexes.add(new Vector2f(HEART_FUNCTION.x(t), HEART_FUNCTION.y(t)).multLocal(scalar));
+                vertexes.add(new Vector3f(HEART_FUNCTION.x(t), HEART_FUNCTION.y(t), 0).multLocal(scalar));
             }
             
             setCracks();
@@ -301,7 +302,7 @@ public class Heart extends Node {
                     
                     float rgbaValue2 = MathUtils.pointSlopeForm(
                         hpPercent,   // x (input)
-                        0.5f, 0.25f,    // x1, x2
+                        0.5f, 0.25f, // x1, x2
                         221f, 0f     // y1, y2
                     );
                     
@@ -318,7 +319,7 @@ public class Heart extends Node {
                     float rgbaValue = MathUtils.pointSlopeForm(
                         hpPercent,   // x (input)
                         0.5f, 0.25f, // x1, x2
-                        255f, 0f   // y1, y2
+                        255f, 0f     // y1, y2
                     );
                     
                     return rgbaValue / 255f;

@@ -50,8 +50,9 @@ import maps.layout.tile.move.MoveArrowTrain;
  * @author night
  */
 public class Cursor extends Node implements OnTile {
-    private static final float BUTTON_HOLD_TIME = 0.25f;
-    private static final float DEFAULT_CURSOR_SPEED = 1.5f, HELD_CURSOR_SPEED = 1.25f;
+    public static final float BUTTON_HOLD_TIME = 0.2f;
+    public static final float DEFAULT_CURSOR_SPEED = 1.5f, HELD_CURSOR_SPEED = 1.25f;
+    public static final float Y_ELEVATION = 0.01f;
     
     private final GameTimer timer = new GameTimer();
     private final SimpleOrdinalQueue queue = new SimpleOrdinalQueue();
@@ -62,11 +63,12 @@ public class Cursor extends Node implements OnTile {
     private final MoveArrowTrain arrowTrain;
     
     private final MapCoords pos = new MapCoords();
-    private final Vector3f preferredLocation = new Vector3f(0, 0.01f, 0);
+    private final Vector3f preferredLocation = new Vector3f(0, Y_ELEVATION, 0);
     
     private float cursorSpeed = DEFAULT_CURSOR_SPEED;
+    private boolean visible = true;
     
-    public TangibleUnit receivingEnd, selectedUnit;
+    public TangibleUnit selectedUnit, receivingEnd;
     
     private final ComplexInputReader<Direction> interpreter = 
         new ComplexInputReader<Direction>(true, BUTTON_HOLD_TIME) {
@@ -99,8 +101,7 @@ public class Cursor extends Node implements OnTile {
 
         @Override
         public void onStateSet(FsmState<CursorState> currentState, FsmState<CursorState> previousState) {
-            square.getMaterial().setColor("Color", currentState.getEnum().getCorrespondingColor());
-            pointer.getMaterial().setColor("Color", currentState.getEnum().getCorrespondingColor());
+            setColor(currentState.getEnum().getCorrespondingColor());
             
             if (currentState.getEnum() == CursorState.AnyoneSelected) {
                 if (previousState.getEnum() == CursorState.AnyoneHovered) {
@@ -127,7 +128,8 @@ public class Cursor extends Node implements OnTile {
         @Override
         public void forceState(FsmState<CursorState> st) {
             super.forceState(st);
-            square.getMaterial().setColor("Color", st.getEnum().getCorrespondingColor());
+            setColor(st.getEnum().getCorrespondingColor());
+            
             if (st.getEnum() == CursorState.AnyoneSelected) {
                 arrowTrain.setVisibility(true);
             } else {
@@ -137,12 +139,16 @@ public class Cursor extends Node implements OnTile {
     };
     
     public Cursor(AssetManager assetManager) {
+        this(assetManager, MasterFsmState.getCurrentMap());
+    }
+    
+    public Cursor(AssetManager assetManager, MapLevel map) {
         super("Map Cursor");
         
         Quad quad = new Quad(Tile.SIDE_LENGTH, Tile.SIDE_LENGTH);
         Geometry geometry = new Geometry("cursor square", quad);
         arrowTrain = new MoveArrowTrain(assetManager);
-        rangeDisplay = new RangeDisplay(MasterFsmState.getCurrentMap(), assetManager);
+        rangeDisplay = new RangeDisplay(map, assetManager);
         pointer = new CursorPointer(
             assetManager, 
             new MaterialCreator(
@@ -150,13 +156,13 @@ public class Cursor extends Node implements OnTile {
                 (pointerMat) -> {
                     pointerMat.setColor("Color", CursorFSM.DEFAULT_COLOR);
                     pointerMat.getAdditionalRenderState().setWireframe(true);
+                    pointerMat.getAdditionalRenderState().setLineWidth(1.5f);
                 }
-            ), 
-            true
+            )
         );
         
         Quaternion rotation = new Quaternion();
-        rotation.fromAngles((FastMath.PI / -2f), (FastMath.PI / -2f), 0);
+        rotation.fromAngles(-FastMath.HALF_PI, -FastMath.HALF_PI, 0);
         geometry.setLocalRotation(rotation);
         geometry.setQueueBucket(Bucket.Transparent);
         
@@ -168,9 +174,10 @@ public class Cursor extends Node implements OnTile {
         square = new GeometricBody<>(geometry, quad, mat);
         
         LayerComparator.setLayer(square.getGeometry(), 3);
+        LayerComparator.setLayer(pointer.getNode(), 8);
         
         attachChild(square.getGeometry());
-        attachChild(pointer.getMasterNode());
+        attachChild(pointer.getNode());
         
         fsm.forceState(CursorState.CursorDefault);
     }
@@ -183,7 +190,12 @@ public class Cursor extends Node implements OnTile {
     public MoveArrowTrain getMoveArrowTrain() { return arrowTrain; }
     
     public float getSpeed() { return cursorSpeed; }
+    public boolean isVisible() { return visible; }
     public Purpose getPurpose() { return fsm.getPurpose(); }
+    
+    public void addToQueue(SimpleProcedure procedure) {
+        queue.addToQueue(procedure);
+    }
     
     public void setSpeed(float speed) { //default is 1
         cursorSpeed = speed;
@@ -193,8 +205,25 @@ public class Cursor extends Node implements OnTile {
         fsm.setPurpose(P);
     }
     
-    public void addToQueue(SimpleProcedure procedure) {
-        queue.addToQueue(procedure);
+    public void setVisible(boolean isVisible) {
+        visible = isVisible;
+        if (visible) {
+            if (!hasChild(square.getGeometry())) {
+                attachChild(square.getGeometry());
+            }
+            
+            if (!hasChild(pointer.getNode())) {
+                attachChild(pointer.getNode());
+            }
+        } else {
+            detachChild(square.getGeometry());
+            detachChild(pointer.getNode());
+        }
+    }
+    
+    public void setColor(ColorRGBA color) {
+        square.getMaterial().setColor("Color", color);
+        pointer.getMaterial().setColor("Color", color);
     }
     
     @Override
@@ -217,7 +246,7 @@ public class Cursor extends Node implements OnTile {
             pos.set(position);
             
             Tile tile = map.getTileAt(pos);
-            setLocalTranslation(tile.getWorldTranslation().x, 0.01f, tile.getWorldTranslation().z);
+            setLocalTranslation(tile.getWorldTranslation().x, Y_ELEVATION, tile.getWorldTranslation().z);
         }
     }
     
@@ -274,7 +303,7 @@ public class Cursor extends Node implements OnTile {
     public void translateX(int spaces) { //negative spaces for left, positive spaces for right
         Coords delta = new Coords(spaces, 0);
         if (MasterFsmState.getCurrentMap().isWithinBounds(pos.add(delta)) && traversingAllowed()) {
-            setLocalTranslation(getLocalTranslation().x, 0.01f, getLocalTranslation().z);
+            setLocalTranslation(getLocalTranslation().x, Y_ELEVATION, getLocalTranslation().z);
             fsm.translatingX = true;
             fsm.translate(delta);
         }
@@ -283,7 +312,7 @@ public class Cursor extends Node implements OnTile {
     public void translateY(int spaces) { //negative spaces for down, positive spaces for up
         Coords delta = new Coords(0, spaces);
         if (MasterFsmState.getCurrentMap().isWithinBounds(pos.add(delta)) && traversingAllowed()) {
-            setLocalTranslation(getLocalTranslation().x, 0.01f, getLocalTranslation().z);
+            setLocalTranslation(getLocalTranslation().x, Y_ELEVATION, getLocalTranslation().z);
             fsm.translatingY = true;
             fsm.translate(delta);
         }
@@ -305,7 +334,7 @@ public class Cursor extends Node implements OnTile {
     
     private void updateCorrection(float tpf) {
         Vector3f tileTranslation = getCurrentTile().getWorldTranslation();
-        preferredLocation.set(tileTranslation.x, 0.01f, tileTranslation.z);
+        preferredLocation.set(tileTranslation.x, Y_ELEVATION, tileTranslation.z);
         
         setLocalTranslation(getLocalTranslation().x, preferredLocation.y, getLocalTranslation().z);
         Vector3f localTranslation = getLocalTranslation();
@@ -369,7 +398,7 @@ public class Cursor extends Node implements OnTile {
         float omega = 0.0375f;
         ColorRGBA color = fsm.getEnumState().getCorrespondingColor().mult(0.075f * FastMath.cos(omega * timer.getFrame()) + 0.925f);
         
-        square.getMaterial().setColor("Color", color);
+        square.getMaterial().setColor("Color", color); //set it only for the square
     }
     
     public MasterFsmState resolveInput(String name, float tpf, boolean keyPressed) {
@@ -463,23 +492,24 @@ public class Cursor extends Node implements OnTile {
         return null;
     }
     
+    //instantly snaps it back to where it was
     public void resetCursorPositionFromSelection() {
         pos.subtractLocal(fsm.selectionDifferenceXY);
         move(fsm.selectionDifferenceXY.toVector3fZX().mult(-Tile.SIDE_LENGTH));
         fsm.selectionDifferenceXY.setCoords(0, 0);
     }
     
-    public void resetState() { //Happens after a battle, when a unit goes into standby, etc.
+    public void onStandby() {
         rangeDisplay.cancelRange();
-        resetCursorPositionFromSelection();
         selectedUnit.remapPosition(pos);
         selectedUnit.getVisuals().setAnimationState(AnimationState.Idle);
         selectedUnit.getFSM().setNewStateIfAllowed(UnitState.Done);
         selectedUnit.deselect();
         selectedUnit = null;
-        fsm.forceState(CursorState.CursorDefault);
+        fsm.setNewStateIfAllowed(CursorState.CursorDefault);
     }
     
+    //smooth transition back to where it was
     public void goBackFromMenu() {
         fsm.forceState(CursorState.AnyoneSelected);
         selectedUnit.remapPosition(selectedUnit.getPreviousPos());

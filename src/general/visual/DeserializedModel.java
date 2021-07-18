@@ -65,7 +65,7 @@ public class DeserializedModel {
     }
     
     protected void createModelRootNode(Node root) {
-        modelRoot = new Node("DeserializedModel class: modelRoot");
+        modelRoot = new Node("DeserializedModel: modelRoot");
     }
     
     public void attachChildToModelRootNode(Spatial child) {

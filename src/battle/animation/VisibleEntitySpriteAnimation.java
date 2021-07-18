@@ -10,7 +10,7 @@ import battle.animation.config.EntityAnimation;
 import battle.participant.visual.BattleSprite;
 import com.jme3.asset.AssetManager;
 import com.jme3.scene.Node;
-import general.visual.Sprite;
+import general.visual.sprite.Sprite;
 
 /**
  *

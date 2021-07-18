@@ -33,8 +33,8 @@ import etherealtempest.fsm.FSM.FighterState;
 import fundamental.unit.CharacterUnitInfo;
 import general.procedure.functional.UpdateLoop;
 import general.utils.helpers.MathUtils;
-import general.visual.OverlaySheetConfig;
-import general.visual.Sprite;
+import general.visual.sprite.OverlaySheetConfig;
+import general.visual.sprite.Sprite;
 
 /**
  *
