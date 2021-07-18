@@ -14,7 +14,6 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
-import enginetools.MaterialParamsProtocol;
 import etherealtempest.mesh.CustomMesh;
 import general.math.FloatPair;
 import general.math.function.MathFunction;
@@ -24,6 +23,7 @@ import general.math.function.RGBAFunction;
 import general.utils.helpers.MathUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  *
@@ -337,12 +337,12 @@ public class Heart extends Node {
             mesh = heartMesh;
         }
         
-        public void initialize(AssetManager assetManager, MaterialParamsProtocol params) {
+        public void initialize(AssetManager assetManager, Consumer<Material> params) {
             mesh.create();
             geometry = new Geometry("heart piece geometry", mesh);
             
             mat = new Material(assetManager, "MatDefs/custom/YFill.j3md");
-            params.execute(mat);
+            params.accept(mat);
             geometry.setMaterial(mat);
         }
         

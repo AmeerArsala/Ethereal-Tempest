@@ -25,7 +25,6 @@ import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.LayerComparator;
 import enginetools.MaterialCreator;
-import enginetools.MaterialParamsProtocol;
 import enginetools.math.SpatialOperator;
 import etherealtempest.Globals;
 import etherealtempest.gui.broad.ExpIndicator;
@@ -38,6 +37,7 @@ import general.ui.text.Text2D;
 import general.ui.text.TextProperties;
 import general.ui.text.quickparams.TextDisplacementParams;
 import general.ui.text.quickparams.UIFontParams;
+import java.util.function.Consumer;
 import maps.data.MapTextures;
 
 /**
@@ -183,7 +183,7 @@ public class GuiFactory {
         return equippedIcon;
     }
     
-    public static ShapeIndicator createIndicator(String statName, Vector2f xyDimensions, UIFontParams params, MaterialParamsProtocol matParams, AssetManager assetManager, int current, int max) {
+    public static ShapeIndicator createIndicator(String statName, Vector2f xyDimensions, UIFontParams params, Consumer<Material> matParams, AssetManager assetManager, int current, int max) {
         String text = statName + ": " + current + "/" + max;
         
         /*

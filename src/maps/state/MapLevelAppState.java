@@ -95,7 +95,6 @@ public class MapLevelAppState extends AbstractAppState {
     
     protected Node rootNode, guiNode;
     protected final Node localRootNode = new Node("Map localRootNode"), localGuiNode = new Node("Map localGuiNode");
-    protected final Vector3f worldUpVector = new Vector3f(0, 1, 0);
     
     protected Camera cam;
     protected FlyByCamera flyCam;
@@ -305,9 +304,8 @@ public class MapLevelAppState extends AbstractAppState {
         });
         
         cam.setLocation(mapFlow.getCursor().getWorldTranslation().add(-1 * ((20f / 16f) * Tile.SIDE_LENGTH), Tile.SIDE_LENGTH * 10f, TileFoundation.RADIUS_FOR_SQUARE));
-        cam.lookAt(mapFlow.getCursor().getWorldTranslation(), worldUpVector);
-        Quaternion cameraRotation = new Quaternion().fromAngles(FastMath.PI / 3, FastMath.PI / 2, 0);
-        cam.setRotation(cameraRotation);
+        cam.lookAt(mapFlow.getCursor().getWorldTranslation(), Globals.WORLD_UP_VECTOR);
+        cam.setRotation(new Quaternion().fromAngles(FastMath.PI / 3, FastMath.HALF_PI, 0));
         
         mapFlow.getCursor().setPosition(mapFlow.getUnits().get(0).getPos()); //change position later
         

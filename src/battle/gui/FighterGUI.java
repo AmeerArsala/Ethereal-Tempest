@@ -16,6 +16,7 @@ import com.atr.jme.font.util.StringContainer.VAlign;
 import com.atr.jme.font.util.StringContainer.WrapMode;
 import com.atr.jme.font.util.Style;
 import com.jme3.asset.AssetManager;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
@@ -25,11 +26,13 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.LayerComparator;
-import enginetools.MaterialParamsProtocol;
 import enginetools.math.SpatialOperator;
 import enginetools.math.Vector3F;
 import etherealtempest.Globals;
 import fundamental.stats.BaseStat;
+import general.math.function.MathFunction;
+import general.math.function.ParametricFunction4f;
+import general.math.function.RGBAFunction;
 import general.ui.GeometryPanel;
 import general.ui.text.Text2D;
 import general.ui.text.quickparams.TextDisplacementParams;
@@ -41,6 +44,7 @@ import general.visual.animation.Animation;
 import general.visual.animation.VisualTransition;
 import maps.data.MapTextures;
 import general.utils.functional.ToFloatFunction;
+import java.util.function.Consumer;
 
 /**
  *
@@ -49,6 +53,68 @@ import general.utils.functional.ToFloatFunction;
  */
 public class FighterGUI {
     private static final float MIN_BATTLE_PANEL_WIDTH = (591f / 559f) * 322;
+    public static final RGBAFunction HEART_COLOR_FUNCTION = new RGBAFunction(new ParametricFunction4f(
+        new MathFunction() { // R
+            @Override
+            protected float f(float hpPercent) {
+                if (hpPercent > 0.5f) {
+                    return 1f;
+                }
+                    
+                float rgbaValue = MathUtils.pointSlopeForm(
+                    hpPercent,   // x (input)
+                    0.5f, 0.25f, // x1, x2
+                    255f, 128f   // y1, y2
+                );
+                
+                return rgbaValue / 255f;
+            }
+        },
+        new MathFunction() { // G
+            @Override
+            protected float f(float hpPercent) {
+                float rgbaValue = MathUtils.pointSlopeForm(
+                    hpPercent,   // x (input)
+                    1f, 0.5f,    // x1, x2
+                    0f, 221f     // y1, y2
+                );
+                
+                if (hpPercent > 0.5f) {
+                    return rgbaValue / 255f;
+                }
+                
+                float rgbaValue2 = MathUtils.pointSlopeForm(
+                    hpPercent,   // x (input)
+                    0.5f, 0.25f, // x1, x2
+                    221f, 0f     // y1, y2
+                );
+                
+                return rgbaValue2 / 255f;
+            }
+        },
+        new MathFunction() { // B
+            @Override
+            protected float f(float hpPercent) {
+                if (hpPercent > 0.5f) {
+                    return 0f;
+                }
+                
+                float rgbaValue = MathUtils.pointSlopeForm(
+                    hpPercent,   // x (input)
+                    0.5f, 0.25f, // x1, x2
+                    255f, 0f     // y1, y2
+                );
+                
+                return rgbaValue / 255f;
+            }
+        },
+        new MathFunction() { // A
+            @Override
+            protected float f(float hpPercent) {
+                return 1f;
+            }
+        }
+    ));
     
     private final Node uiNode = new Node();
     private final boolean mirrorUI;
@@ -89,6 +155,9 @@ public class FighterGUI {
         );
         
         hpHeart.alignTextTo(0.5f, 0.6f);
+        hpHeart.onPercentUpdate((mat) -> {
+            mat.setColor("Color", HEART_COLOR_FUNCTION.rgba(forecast.getCombatant().getCurrentToMaxHPRatio()));
+        });
         
         tpBall = GuiFactory.createIndicator(
             "TP",
@@ -364,27 +433,28 @@ public class FighterGUI {
         return new Duo<>(equippedToolPanel, forecastInfoPanel);
     }
     
-    private MaterialParamsProtocol heartMatParams() {
+    private Consumer<Material> heartMatParams() {
         return (mat) -> {
             float $75 = 75f / 255f;
             
             //rounded to 5 decimal places
             float hpHeartYStart = 0.03952f;
             float hpHeartYEnd = 0.97251f;
+            float percentFull = forecast.getCombatant().getCurrentToMaxHPRatio();
             
             mat.setTexture("ColorMap", MapTextures.GUI.Fighter.HP_Heart);
-            mat.setColor("Color", ColorRGBA.Red);
+            mat.setColor("Color", HEART_COLOR_FUNCTION.rgba(percentFull));
             mat.setColor("OnlyChangeColor", ColorRGBA.White);
             mat.setColor("BackgroundColor", new ColorRGBA($75, $75, $75, 1f)); //gray
             mat.setFloat("GradientCoefficient", 1f);
             mat.setFloat("PercentStart", hpHeartYStart);
             mat.setFloat("PercentEnd", hpHeartYEnd);
-            mat.setFloat("PercentFilled", forecast.getCombatant().getCurrentToMaxHPRatio());
+            mat.setFloat("PercentFilled", percentFull);
             mat.setBoolean("UsesYAxis", true);
         };
     }
     
-    private MaterialParamsProtocol tpBallMatParams() {
+    private Consumer<Material> tpBallMatParams() {
         return (mat) -> {
             float $75 = 75f / 255f;
             

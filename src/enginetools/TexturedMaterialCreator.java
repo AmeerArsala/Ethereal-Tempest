@@ -8,6 +8,7 @@ package enginetools;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.texture.Texture;
+import java.util.function.Consumer;
 
 /**
  *
@@ -22,13 +23,13 @@ public class TexturedMaterialCreator extends MaterialCreator {
         this.texture = texture;
     }
     
-    public TexturedMaterialCreator(String textureParam, Texture texture, MaterialParamsProtocol paramsProtocol) {
+    public TexturedMaterialCreator(String textureParam, Texture texture, Consumer<Material> paramsProtocol) {
         super(MaterialCreator.UNSHADED, paramsProtocol);
         this.textureParam = textureParam;
         this.texture = texture;
     }
     
-    public TexturedMaterialCreator(String materialPath, String textureParam, Texture texture, MaterialParamsProtocol paramsProtocol) {
+    public TexturedMaterialCreator(String materialPath, String textureParam, Texture texture, Consumer<Material> paramsProtocol) {
         super(materialPath, paramsProtocol);
         this.textureParam = textureParam;
         this.texture = texture;

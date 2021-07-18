@@ -10,6 +10,7 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.Texture;
 import com.simsilica.lemur.core.GuiMaterial;
+import java.util.function.Consumer;
 
 /**
  *
@@ -19,7 +20,7 @@ public class MaterialCreator {
     public static final String UNSHADED = "Common/MatDefs/Misc/Unshaded.j3md";
     
     private String materialPath = "Common/MatDefs/Misc/Unshaded.j3md";
-    private MaterialParamsProtocol paramsProtocol = (mat) -> {};
+    private Consumer<Material> paramsProtocol = (mat) -> {};
     
     public MaterialCreator() {}
     
@@ -27,7 +28,7 @@ public class MaterialCreator {
         this.materialPath = materialPath;
     }
     
-    public MaterialCreator(String materialPath, MaterialParamsProtocol paramsProtocol) {
+    public MaterialCreator(String materialPath, Consumer<Material> paramsProtocol) {
         this.materialPath = materialPath;
         this.paramsProtocol = paramsProtocol;
     }
@@ -39,7 +40,7 @@ public class MaterialCreator {
         
         initialization(assetManager, mat);
         
-        paramsProtocol.execute(mat);
+        paramsProtocol.accept(mat);
         
         return mat;
     }

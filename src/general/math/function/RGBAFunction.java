@@ -13,8 +13,6 @@ import java.awt.Color;
  * @author night
  */
 public class RGBAFunction extends ParametricFunction4f {
-    //private ParametricFunction4f rgbaFunction;
-    
     public RGBAFunction(MathFunction r, MathFunction g, MathFunction b, MathFunction a) {
         super(r, g, b, a);
     }
@@ -51,12 +49,12 @@ public class RGBAFunction extends ParametricFunction4f {
         super(ParametricFunction4f.CONSTANT(color.r, color.g, color.b, color.a));
     }
     
-    public ColorRGBA rgba(float time) {
-        return new ColorRGBA(r(time), g(time), b(time), a(time));
+    public ColorRGBA rgba(float t) {
+        return new ColorRGBA(r(t), g(t), b(t), a(t));
     }
     
-    public ColorRGBA rgba(float time, float alphaMultiplier) {
-        return new ColorRGBA(r(time), g(time), b(time), a(time) * alphaMultiplier);
+    public ColorRGBA rgba(float t, float alphaMultiplier) {
+        return new ColorRGBA(r(t), g(t), b(t), a(t) * alphaMultiplier);
     }
     
     public Color outputRGB(float input) {

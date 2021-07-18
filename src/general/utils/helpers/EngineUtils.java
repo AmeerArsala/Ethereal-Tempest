@@ -19,6 +19,7 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  *
@@ -105,6 +106,16 @@ public class EngineUtils {
         catch (IOException ex) {
             ex.printStackTrace();
             return null;
+        }
+    }
+    
+    public static <T> T deserialize(String jsonPath, Class<T> classOfT, Supplier<T> onException) {
+        try {
+            Reader reader = Files.newBufferedReader(Paths.get(jsonPath));
+            return new Gson().fromJson(reader, classOfT);
+        }
+        catch (IOException ex) {
+            return onException.get();
         }
     }
     

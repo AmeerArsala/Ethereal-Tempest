@@ -13,6 +13,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Geometry;
@@ -26,6 +27,8 @@ import com.simsilica.lemur.ProgressBar;
 import com.simsilica.lemur.component.QuadBackgroundComponent;
 import com.simsilica.lemur.component.TbtQuadBackgroundComponent;
 import enginetools.math.Vector2F;
+import enginetools.math.Vector3F;
+import etherealtempest.Globals;
 import etherealtempest.Main;
 import etherealtempest.geometry.GeometricBody;
 import etherealtempest.gui.broad.BasicProgressBar;
@@ -110,9 +113,9 @@ public class UnitVisuals {
         hpBar = new BasicProgressBar(barDims, MapTextures.GUI.HealthBar, false, GameUtils.HP_COLOR_GREEN, assetManager);
         tpBar = new BasicProgressBar(Vector2F.invert(barDims).multLocal(new Vector2f(1, 0.75f)), MapTextures.GUI.VerticalProgressBar, true, GameUtils.TP_COLOR_PINK, assetManager);
         
-        //hpBar.setTextureRange(0.1617f, 0.977f);
-        //tpBar.setTextureRange(0.0f, 1.0f);
-        
+        hpBar.setTextureRange(0.1617f, 0.977f);
+        tpBar.setTextureRange(0.0f, 1.0f);
+
         //initialize and manipulate positions of the bars
         float halfTile = Tile.SIDE_LENGTH / 2f;
         float tpDeltaXY = Tile.SIDE_LENGTH * (5f / 8f);
@@ -236,6 +239,9 @@ public class UnitVisuals {
         queue.update(tpf);
         
         //update hp and tp bar positions
+        //TODO: fix this
+        //hpNode.lookAt(cam.getLocation(), Globals.WORLD_UP_VECTOR);
+        //tpNode.lookAt(cam.getLocation(), Globals.WORLD_UP_VECTOR);
         rotateNodeWithCamera(hpNode, cam);
         rotateNodeWithCamera(tpNode, cam);
     }
@@ -245,7 +251,7 @@ public class UnitVisuals {
         
         Quaternion rot = new Quaternion();
         float A = point.getWorldTranslation().x - cam.getLocation().x;
-        float B = point.getWorldTranslation().z - cam.getLocation().z + 15;
+        float B = point.getWorldTranslation().z - cam.getLocation().z + ((15f / 16f) * Tile.SIDE_LENGTH);
         float deltaTheta = FastMath.atan(B / A) / -2.5f;
         
         if (deltaTheta < 0) { constant = 0.05f; }

@@ -23,6 +23,7 @@ import java.util.concurrent.Future;
  */
 public class Globals {
     public static final int STANDARD_FPS = 60;
+    public static final Vector3f WORLD_UP_VECTOR = new Vector3f(0, 1, 0); //do not fuck with this unless you set it back to normal after
     
     static final GameTimer timer = new GameTimer();
     static final ProcedureGroup tasks = new ProcedureGroup();
