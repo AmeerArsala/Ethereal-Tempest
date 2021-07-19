@@ -43,7 +43,6 @@ import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
 import fundamental.unit.PositionedUnitParams;
 import maps.layout.occupant.VenturePeek;
-import maps.layout.tile.TileFoundation;
 
 /**
  *

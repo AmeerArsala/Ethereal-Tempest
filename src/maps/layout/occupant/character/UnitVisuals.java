@@ -45,7 +45,6 @@ import java.util.LinkedList;
 import maps.data.MapTextures;
 import maps.layout.MapCoords;
 import maps.layout.tile.Tile;
-import maps.layout.tile.TileFoundation;
 import maps.layout.tile.move.Path;
 
 /**
@@ -109,12 +108,15 @@ public class UnitVisuals {
         
         //create bars
         float width = Tile.SIDE_LENGTH / 1.675f;
-        Vector2f barDims = new Vector2f(width, width * (217f / 1045f));
+        Vector2f barDims = new Vector2f(width, width * (217f / 1045f)/** 0.5f*/);
         hpBar = new BasicProgressBar(barDims, MapTextures.GUI.HealthBar, false, GameUtils.HP_COLOR_GREEN, assetManager);
         tpBar = new BasicProgressBar(Vector2F.invert(barDims).multLocal(new Vector2f(1, 0.75f)), MapTextures.GUI.VerticalProgressBar, true, GameUtils.TP_COLOR_PINK, assetManager);
         
         hpBar.setTextureRange(0.1617f, 0.977f);
         tpBar.setTextureRange(0.0f, 1.0f);
+        
+        hpBar.setQueueBucket(Bucket.Transparent);
+        tpBar.setQueueBucket(Bucket.Transparent);
 
         //initialize and manipulate positions of the bars
         float halfTile = Tile.SIDE_LENGTH / 2f;

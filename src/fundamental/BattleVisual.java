@@ -5,8 +5,6 @@
  */
 package fundamental;
 
-import battle.animation.SpriteAnimationParams;
-import battle.animation.VisibleEntityAnimation;
 import battle.animation.config.EntityAnimation;
 import battle.animation.config.EntityAnimation.AnimationSource;
 import com.google.gson.annotations.Expose;
