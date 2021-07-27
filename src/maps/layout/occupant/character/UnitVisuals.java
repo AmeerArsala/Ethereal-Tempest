@@ -59,7 +59,6 @@ public class UnitVisuals {
     
     private ColorRGBA baseOutlineColor;
     
-    private final Node hpNode, tpNode;
     private final BasicProgressBar hpBar, tpBar;
     
     private final LinkedList<DeserializedParticleEffect> effectQueue = new LinkedList<>();
@@ -74,9 +73,6 @@ public class UnitVisuals {
         this.assetManager = assetManager;
         
         node = new Node(name + ": visual node");
-        
-        hpNode = new Node(name + ": HP Bar");
-        tpNode = new Node(name + ": TP Bar");
         
         //deserialize spritesheets
         spritesheetInfo = deserializeSpritesheet(name, jobClassName);
@@ -121,20 +117,17 @@ public class UnitVisuals {
         //initialize and manipulate positions of the bars
         float halfTile = Tile.SIDE_LENGTH / 2f;
         float tpDeltaXY = Tile.SIDE_LENGTH * (5f / 8f);
-        hpBar.getBarNode().move(Tile.SIDE_LENGTH / -9f, halfTile, halfTile);
-        tpBar.getBarNode().move(tpDeltaXY / 2f, 0, tpDeltaXY * 2);
+        hpBar.getGeometryPanel().move(Tile.SIDE_LENGTH / -9f, halfTile, halfTile);
+        tpBar.getGeometryPanel().move(tpDeltaXY / 2f, 0, tpDeltaXY * 2);
         
-        hpBar.getBarNode().setLocalRotation(rotation);
-        tpBar.getBarNode().setLocalRotation(rotation);
-        
-        hpNode.attachChild(hpBar.getBarNode());
-        tpNode.attachChild(tpBar.getBarNode());
+        hpBar.getGeometryPanel().setLocalRotation(rotation);
+        tpBar.getGeometryPanel().setLocalRotation(rotation);
         
         //set layers
         LayerComparator.setLayer(spriteBody.getGeometry(), 6);  //middle 
         LayerComparator.setLayer(outlineBody.getGeometry(), 5); //bottom
-        LayerComparator.setLayer(hpNode, 7); //top
-        LayerComparator.setLayer(tpNode, 7); //top
+        LayerComparator.setLayer(hpBar.getGeometryPanel(), 7); //top
+        LayerComparator.setLayer(tpBar.getGeometryPanel(), 7); //top
         
         //attach to node
         node.attachChild(spriteBody.getGeometry());
@@ -159,8 +152,8 @@ public class UnitVisuals {
     public GeometricBody<Quad> getSpriteBody() { return spriteBody; }
     public GeometricBody<Quad> getOutlineBody() { return outlineBody; }
     
-    public Node getHPNode() { return hpNode; }
-    public Node getTPNode() { return tpNode; }
+    public Node getHPNode() { return hpBar.getGeometryPanel(); }
+    public Node getTPNode() { return tpBar.getGeometryPanel(); }
     
     public Spritesheet getSpritesheetInfo() { return spritesheetInfo; }
     public AnimationState getAnimationState() { return animState; }
@@ -189,8 +182,8 @@ public class UnitVisuals {
     }
     
     public void detachBars() {
-        hpBar.getBarNode().removeFromParent();
-        tpBar.getBarNode().removeFromParent();
+        hpBar.getGeometryPanel().removeFromParent();
+        tpBar.getGeometryPanel().removeFromParent();
     }
     
     public void setBaseOutlineColor(ColorRGBA base) {
@@ -242,10 +235,10 @@ public class UnitVisuals {
         
         //update hp and tp bar positions
         //TODO: fix this
-        //hpNode.lookAt(cam.getLocation(), Globals.WORLD_UP_VECTOR);
-        //tpNode.lookAt(cam.getLocation(), Globals.WORLD_UP_VECTOR);
-        rotateNodeWithCamera(hpNode, cam);
-        rotateNodeWithCamera(tpNode, cam);
+        hpBar.getGeometryPanel().getGeometry().lookAt(cam.getLocation(), Globals.WORLD_UP_VECTOR);
+        tpBar.getGeometryPanel().getGeometry().lookAt(cam.getLocation(), Globals.WORLD_UP_VECTOR);
+        //rotateNodeWithCamera(hpNode, cam);
+        //rotateNodeWithCamera(tpNode, cam);
     }
     
     private void rotateNodeWithCamera(Node point, Camera cam) { //rotates health bars

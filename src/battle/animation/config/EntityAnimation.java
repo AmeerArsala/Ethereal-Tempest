@@ -206,7 +206,7 @@ public class EntityAnimation {
     }
     
     public boolean impactOccursAt(int localFrame) {
-        //System.out.println(jsonPath + " -> " + "localFrame: " + localFrame + ", localFrameConversion.size(): " + localFrameConversion.size());
+        System.out.println(jsonPath + " -> " + "localFrame: " + localFrame + ", localFrameConversion.size(): " + localFrameConversion.size());
         if (impact == null || localFrame >= localFrameConversion.size() || localFrame < minLocalFrameForRegisteringImpact) {
             return false;
         }

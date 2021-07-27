@@ -30,6 +30,14 @@ public class GeometryPanel extends Node {
     
     private boolean isMirrored = false;
     
+    public GeometryPanel(Vector2f dimensions) {
+        this(dimensions.x, dimensions.y);
+    }
+    
+    public GeometryPanel(Vector2f dimensions, Bucket queueBucket) {
+        this(dimensions.x, dimensions.y, queueBucket);
+    }
+    
     public GeometryPanel(float width, float height) {
         this(width, height, Bucket.Transparent);
     }

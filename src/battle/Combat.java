@@ -47,7 +47,7 @@ public class Combat {
         
         initiator.setOpponent(receiver);
         receiver.setOpponent(initiator);
-
+        
         initiator.attachGUI();
         receiver.attachGUI();
         

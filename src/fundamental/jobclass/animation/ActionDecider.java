@@ -46,7 +46,7 @@ public class ActionDecider {
     
     public Procedure getOnIdleCalled() { return onIdleCalled; }
     public Procedure getOnAttackCalled() { return onAttackCalled; }
-    public Procedure getOnDashCalled() { return onDashCalled; } //can be null
+    public Procedure getOnDashCalled() { return onDashCalled; } //can be null (e.g. formula casting)
     
     //returns idle on these 2 if they are null
     public Procedure getOnDodgeCalled() { return onDodgeCalled != null ? onDodgeCalled : onIdleCalled; }

@@ -369,16 +369,22 @@ public class Unit extends Entity {
         HashMap<BaseStat, Integer> roll = StatBundle.BaseStatCanvas(0); //create an empty one filled with 0's
         
         for (BaseStat based : BaseStat.values()) {
-            int growth = personalGrowthRates.get(based) / 100;
-            int remainderGrowth = personalGrowthRates.get(based) - (growth * 100);
+            int rate = personalGrowthRates.get(based);
+            int growth = rate / 100;
+            int remainderGrowth = rate - (growth * 100);
             if ((int)(100 * Math.random()) <= remainderGrowth) {
-                growth++;
+                growth += 1;
             }
             
             roll.replace(based, roll.get(based) + growth);
         }
         
         roll.replace(BaseStat.MaxTP, roll.get(BaseStat.MaxTP) + simulateTP(roll.get(BaseStat.MaxHP), roll.get(BaseStat.Ether), roll.get(BaseStat.Resilience)));
+        
+        //can't level up in these stats, and can't go past 1 level in a level up
+        roll.replace(BaseStat.CurrentHP, 0);
+        roll.replace(BaseStat.CurrentTP, 0);
+        roll.replace(BaseStat.Level, 1);
         
         return roll;
     }

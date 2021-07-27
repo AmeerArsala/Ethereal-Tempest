@@ -5,7 +5,6 @@
  */
 package etherealtempest.state;
 
-import com.atr.jme.font.util.StringContainer;
 import com.atr.jme.font.util.StringContainer.Align;
 import com.atr.jme.font.util.StringContainer.VAlign;
 import com.atr.jme.font.util.StringContainer.WrapMode;
@@ -33,6 +32,7 @@ import enginetools.math.SpatialOperator;
 import etherealtempest.Globals;
 import etherealtempest.geometry.GeometricBody;
 import etherealtempest.gui.broad.BasicProgressBar;
+import etherealtempest.gui.broad.BasicProgressBar2D;
 import general.math.FloatPair;
 import general.math.function.MathFunction;
 import general.math.function.ParametricFunction;
@@ -54,7 +54,7 @@ import general.visual.animation.VisualTransition.Progress;
  */
 public abstract class LoadingScreenAppState extends BaseAppState {
     public static final String BAR_TEXTURE_PATH = "Interface/GUI/common/smoothBar.png";
-    public static final int BAR_TEXTURE_WIDTH_PX = 1045, BAR_TEXTURE_HEIGHT_PX = 217;
+    public static final int BAR_TEXTURE_WIDTH_PX = 1044, BAR_TEXTURE_HEIGHT_PX = 217;
     
     private static final FloatPair RGB_DOMAIN = new FloatPair(0f, Float.POSITIVE_INFINITY); // Domain: [0f, infinity)
     private static final FloatPair RGB_RANGE = new FloatPair(0f, 1f);                       // Range: [0f, 1f] 
@@ -97,16 +97,17 @@ public abstract class LoadingScreenAppState extends BaseAppState {
             return new GeometricBody<>(geom, quad, background);
         }
         
-        public BasicProgressBar makeLoadingBar(AssetManager assetManager, int processCount) {
+        public BasicProgressBar2D makeLoadingBar(AssetManager assetManager, int processCount) {
             float barWidth = barWidthPercent * Globals.getScreenWidth();
             float barHeight = (((float)BAR_TEXTURE_HEIGHT_PX) / BAR_TEXTURE_WIDTH_PX) * barWidth;
             
             Texture barTexture = assetManager.loadTexture(BAR_TEXTURE_PATH);
-            BasicProgressBar loadingProgressBar = new BasicProgressBar(new Vector2f(barWidth, barHeight), barTexture, barColor, 0.0f, processCount, assetManager);
+            BasicProgressBar2D loadingProgressBar = new BasicProgressBar2D(new Vector2f(barWidth, barHeight), barTexture, barColor, 0.0f, processCount, assetManager);
             loadingProgressBar.setQueueBucket(RenderQueue.Bucket.Gui);
             loadingProgressBar.setBackgroundColor(ColorRGBA.BlackNoAlpha); //bg is transparent
             loadingProgressBar.setOnlyChangeColor(ColorRGBA.White);
             loadingProgressBar.setColor(barColor);
+            loadingProgressBar.setTextureRange(new Vector2f(27f / BAR_TEXTURE_WIDTH_PX, 28f / BAR_TEXTURE_HEIGHT_PX), new Vector2f(1015f / BAR_TEXTURE_WIDTH_PX, 192f / BAR_TEXTURE_HEIGHT_PX));
             //loadingProgressBar.setTextureRange((27f / BAR_TEXTURE_WIDTH_PX), (1015f / BAR_TEXTURE_WIDTH_PX));
             
             return loadingProgressBar;
@@ -144,7 +145,7 @@ public abstract class LoadingScreenAppState extends BaseAppState {
     private final NamedExecution[] processes;
     
     private final GeometricBody<Quad> screenBackground;
-    private final BasicProgressBar loadingBar;
+    private final BasicProgressBar2D loadingBar;
     private final Text2D text;
     private final boolean useRandomColor;
     
@@ -197,7 +198,7 @@ public abstract class LoadingScreenAppState extends BaseAppState {
         return screenBackground;
     }
 
-    public BasicProgressBar getLoadingBar() {
+    public BasicProgressBar2D getLoadingBar() {
         return loadingBar;
     }
     
@@ -213,11 +214,11 @@ public abstract class LoadingScreenAppState extends BaseAppState {
         guiNode = ((SimpleApplication)aplctn).getGuiNode();
         
         guiNode.attachChild(screenBackground.getGeometry());
-        guiNode.attachChild(loadingBar.getBarNode());
+        guiNode.attachChild(loadingBar.getGeometryPanel());
         guiNode.attachChild(text);
         
         LayerComparator.setLayer(screenBackground.getGeometry(), 0);
-        LayerComparator.setLayer(loadingBar.getBarNode(), 1);
+        LayerComparator.setLayer(loadingBar.getGeometryPanel(), 1);
         LayerComparator.setLayer(text, 2);
         
         //center the loadingBar in the middle of the screen
@@ -225,7 +226,7 @@ public abstract class LoadingScreenAppState extends BaseAppState {
         loadingBar.getAnchor().alignToLocally(Globals.getScreenDimensions().multLocal(0.5f));
         
         SpatialOperator textAnchor = text.createSpatialOperator(0, 1.5f);
-        textAnchor.alignToLocally(loadingBar.getBarNode().getLocalTranslation());
+        textAnchor.alignToLocally(loadingBar.getGeometryPanel().getLocalTranslation());
         
         //create outward transition
         transitionOut = new VisualTransition(screenBackground.getGeometry(),
@@ -238,7 +239,7 @@ public abstract class LoadingScreenAppState extends BaseAppState {
         
         transitionOut.onFinishTransitions(() -> {
             guiNode.detachChild(text);
-            guiNode.detachChild(loadingBar.getBarNode());
+            guiNode.detachChild(loadingBar.getGeometryPanel());
             guiNode.detachChild(screenBackground.getGeometry());
         });
         

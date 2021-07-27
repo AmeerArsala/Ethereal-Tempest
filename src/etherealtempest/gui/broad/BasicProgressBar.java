@@ -25,7 +25,7 @@ import maps.data.MapTextures;
  *
  * @author night
  */
-public class BasicProgressBar extends RangedValue {
+public class BasicProgressBar extends ProgressIndicator {
     private final GeometryPanel bar;
     private final Material mat;
     
@@ -73,7 +73,7 @@ public class BasicProgressBar extends RangedValue {
         bar.setMaterial(mat);
     }
     
-    public Node getBarNode() {
+    public GeometryPanel getGeometryPanel() {
         return bar;
     }
     
@@ -89,10 +89,12 @@ public class BasicProgressBar extends RangedValue {
         return bar.getQuad();
     }
     
+    @Override
     public Material getMaterial() {
         return mat;
     }
     
+    @Override
     public void setTexture(Texture tex) {
         mat.setTexture("ColorMap", tex);
     }
@@ -114,22 +116,27 @@ public class BasicProgressBar extends RangedValue {
         }
     }
     
+    @Override
     public void setUsesAutoGradient(boolean uses) {
         mat.setBoolean("UsesGradient", uses);
     }
     
+    @Override
     public void setOnlyChangeColor(ColorRGBA color) {
         mat.setColor("OnlyChangeColor", color);
     }
     
+    @Override
     public void setBackgroundColor(ColorRGBA color) {
         mat.setColor("BackgroundColor", color);
     }
     
+    @Override
     public void setBaseColor(ColorRGBA color) {
         mat.setColor("BaseColor", color);
     }
     
+    @Override
     public void setColor(ColorRGBA color) {
         mat.setColor("Color", color);
     }

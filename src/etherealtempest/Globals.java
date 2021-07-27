@@ -80,7 +80,7 @@ public class Globals {
         final int JAVA_RANDOM = 0;
         final int GAME_RANDOM = 1;
         final int JME_RANDOM = 2;
-        //COLOR_RANDOM = 3
+        //        COLOR_RANDOM = 3
         
         switch (genMethod) {
             case JAVA_RANDOM:
@@ -95,14 +95,12 @@ public class Globals {
     }
     
     public static ColorRGBA superRandomColor() {
-        ColorRGBA rgba = new ColorRGBA();
-        
-        rgba.r = superRandomFloat();
-        rgba.g = superRandomFloat();
-        rgba.b = superRandomFloat();
-        rgba.a = superRandomFloat();
-        
-        return rgba;
+        return new ColorRGBA(
+            superRandomFloat(),  // R
+            superRandomFloat(),  // G
+            superRandomFloat(),  // B
+            superRandomFloat()   // A
+        );
     }
     
     public static ColorRGBA superRandomColor2() {
