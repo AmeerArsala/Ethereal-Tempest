@@ -5,6 +5,7 @@
  */
 package fundamental.unit;
 
+import battle.data.participant.CombatantStatistics;
 import fundamental.unit.aspect.UnitAllegiance;
 import fundamental.unit.aspect.UnitStatus;
 import fundamental.jobclass.JobClass;
@@ -30,6 +31,7 @@ import fundamental.tool.DamageTool;
 import fundamental.stats.StatBundle;
 import fundamental.talent.TalentManager;
 import fundamental.tool.Tool;
+import fundamental.unit.aspect.GrowthRates;
 import java.util.HashMap;
 import java.util.List;
 
@@ -50,7 +52,8 @@ public class Unit extends Entity {
     public int currentEXP = 0;
     protected int currentHP, currentTP;
     
-    private final HashMap<BaseStat, Integer> stats, personalGrowthRates;
+    private final HashMap<BaseStat, Integer> stats;
+    protected final GrowthRates growthRates;
     
     protected final Inventory inventory; 
     protected final FormulaManager formulaManager;
@@ -69,7 +72,8 @@ public class Unit extends Entity {
         super(name);
         this.jobclass = jobclass;
         this.stats = stats;
-        this.personalGrowthRates = personalGrowthRates;
+        
+        growthRates = new GrowthRates(personalGrowthRates, jobclass.getGrowthRateBonuses());
         
         inventory = new Inventory(items);                  // 10 items max in inventory
         formulaManager = new FormulaManager(formulas, 15); // 15 formulas max
@@ -82,11 +86,11 @@ public class Unit extends Entity {
     }
     
     //copies fields
-    public Unit(String name, JobClass jobclass, HashMap<BaseStat, Integer> stats, HashMap<BaseStat, Integer> personalGrowthRates, Inventory inventory, FormulaManager formulaManager, TalentManager talentManager, SkillManager skillManager, AbilityManager abilityManager, FormationManager formationManager) {
+    public Unit(String name, JobClass jobclass, HashMap<BaseStat, Integer> stats, GrowthRates growthRates, Inventory inventory, FormulaManager formulaManager, TalentManager talentManager, SkillManager skillManager, AbilityManager abilityManager, FormationManager formationManager) {
         super(name);
         this.jobclass = jobclass;
         this.stats = stats;
-        this.personalGrowthRates = personalGrowthRates;
+        this.growthRates = growthRates;
         this.inventory = inventory;
         this.formulaManager = formulaManager;
         this.talentManager = talentManager;
@@ -104,7 +108,7 @@ public class Unit extends Entity {
     
     //copy constructor
     public Unit(Unit copy) {
-        this(copy.name, copy.jobclass, copy.stats, copy.personalGrowthRates, copy.inventory, copy.formulaManager, copy.talentManager, copy.skillManager, copy.abilityManager, copy.formationManager);
+        this(copy.name, copy.jobclass, copy.stats, copy.growthRates, copy.inventory, copy.formulaManager, copy.talentManager, copy.skillManager, copy.abilityManager, copy.formationManager);
     }
     
     private void finishInitialization() {
@@ -210,13 +214,9 @@ public class Unit extends Entity {
         }
     }
     
-    public HashMap<BaseStat, Integer> getRawStats() { return stats; }
-    public HashMap<BaseStat, Integer> getGrowthRates() { return personalGrowthRates; }
+    public HashMap<BaseStat, Integer> getRawBaseStats() { return stats; }
+    public GrowthRates getGrowthRates() { return growthRates; }
     public BonusHolder getTempBonuses() { return tempBonuses; }
-    
-    public void setGrowthRate(BaseStat stat, int growth) {
-        personalGrowthRates.replace(stat, growth);
-    }
     
     public void setRawBaseStat(BaseStat stat, int amount) {
         switch (stat) {
@@ -373,7 +373,7 @@ public class Unit extends Entity {
         HashMap<BaseStat, Integer> roll = BaseStat.canvas(0); //create an empty one filled with 0's
         
         for (BaseStat based : BaseStat.values()) {
-            int rate = personalGrowthRates.get(based);
+            int rate = growthRates.getGrowthRate(based);
             int growth = rate / 100;
             int remainderGrowth = rate - (growth * 100);
             if ((int)(100 * Math.random()) <= remainderGrowth) {
@@ -397,13 +397,23 @@ public class Unit extends Entity {
     public void levelUp() {
         HashMap<BaseStat, Integer> levelRoll = rollLevelUp();
         for (BaseStat based : BaseStat.values()) {
-            stats.replace(based, stats.get(based) + levelRoll.get(based));
+            int growth = levelRoll.get(based);
+            stats.replace(based, stats.get(based) + growth);
+            
+            if (growth > 0) {
+                growthRates.flushPityDeltaGrowthRate(based);
+            }
         }
     }
     
     public void levelUp(HashMap<BaseStat, Integer> additions) { //manual level up
         for (BaseStat based : BaseStat.values()) {
-            stats.replace(based, stats.get(based) + additions.get(based));
+            int growth = additions.get(based);
+            stats.replace(based, stats.get(based) + growth);
+            
+            if (growth > 0) {
+                growthRates.flushPityDeltaGrowthRate(based);
+            }
         }
     }
     
@@ -412,12 +422,12 @@ public class Unit extends Entity {
      * @return whether it leveled up or not
      */
     public boolean attemptLevelUp() {
-        if (currentEXP < 100) {
+        if (currentEXP < CombatantStatistics.MAX_EXP_VALUE) {
             return false;
         }
         
         levelUp();
-        currentEXP -= 100;
+        currentEXP -= CombatantStatistics.MAX_EXP_VALUE;
         return true;
     }
     
@@ -427,12 +437,12 @@ public class Unit extends Entity {
      * @return whether it leveled up
      */
     public boolean attemptLevelUp(HashMap<BaseStat, Integer> additions) { //manual level up
-        if (currentEXP < 100) {
+        if (currentEXP < CombatantStatistics.MAX_EXP_VALUE) {
             return false;
         }
         
         levelUp(additions);
-        currentEXP -= 100;
+        currentEXP -= CombatantStatistics.MAX_EXP_VALUE;
         return true;
     }
     

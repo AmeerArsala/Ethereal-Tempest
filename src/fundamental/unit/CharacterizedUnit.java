@@ -7,6 +7,8 @@ package fundamental.unit;
 
 import com.google.gson.annotations.Expose;
 import com.jme3.texture.Texture;
+import fundamental.stats.BaseStat;
+import java.util.Arrays;
 
 /**
  *
@@ -17,7 +19,7 @@ public class CharacterizedUnit extends Unit {
     
     //copies fields
     public CharacterizedUnit(Unit X, Info info) {
-        super(X.getName(), X.getJobClass(), X.getRawStats(), X.getGrowthRates(), X.getInventory(), X.getFormulaManager(), X.getTalentManager(), X.getSkillManager(), X.getAbilityManager(), X.getFormationManager());
+        super(X.getName(), X.getJobClass(), X.getRawBaseStats(), X.getGrowthRates(), X.getInventory(), X.getFormulaManager(), X.getTalentManager(), X.getSkillManager(), X.getAbilityManager(), X.getFormationManager());
         this.info = info;
     }
     
@@ -25,7 +27,7 @@ public class CharacterizedUnit extends Unit {
         return info;
     }
     
-    public static class Info {
+    public class Info {
         @Expose(deserialize = false) private Texture portraitTexture;
         private String portraitTexturePath;     // example: "Textures/portraits/Morva.png"
         private String battleOverlayConfigName; // example: "morva.json"
@@ -93,10 +95,12 @@ public class CharacterizedUnit extends Unit {
         
         public void incrementLosses() {
             ++losses;
+            growthRates.addToAllPityGrowthRates(4, Arrays.asList(BaseStat.Level, BaseStat.CurrentHP, BaseStat.CurrentTP, BaseStat.Adrenaline));
         }
         
         public void incrementFights() {
             ++fights;
+            growthRates.addToAllPityGrowthRates(1, Arrays.asList(BaseStat.Level, BaseStat.CurrentHP, BaseStat.CurrentTP, BaseStat.Adrenaline));
         }
         
         public void addTotalDamageDone(int dmg) {
@@ -117,14 +121,17 @@ public class CharacterizedUnit extends Unit {
         
         public void addTotalHitsDodged(int dodges) {
             totalHitsDodged += dodges;
+            growthRates.addToPityGrowthRate(BaseStat.Agility, dodges * 5);
         }
         
         public void addTotalCriticals(int crits) {
             totalCriticals += crits;
+            growthRates.addToPityGrowthRate(BaseStat.Dexterity, crits * 10);
         }
         
         public void addTotalDurabilityUsed(float used) {
             totalDurabilityUsed += used;
+            growthRates.addToPityGrowthRate(BaseStat.MaxTP, (int)used);
         }
     }
 }
