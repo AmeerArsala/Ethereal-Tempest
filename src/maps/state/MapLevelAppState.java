@@ -9,7 +9,6 @@ import battle.environment.BattleBox;
 import battle.Fight;
 import battle.data.forecast.PrebattleForecast;
 import battle.environment.BattleViewInfo;
-import etherealtempest.info.Catalog;
 import etherealtempest.info.Conveyor;
 import com.jme.effekseer.EffekseerRenderer;
 import com.jme3.app.Application;
@@ -60,17 +59,15 @@ import etherealtempest.fsm.FsmState;
 import etherealtempest.Globals;
 import etherealtempest.Main;
 import etherealtempest.fsm.MasterFsmState;
-import fundamental.unit.UnitAllegiance;
-import fundamental.unit.CharacterUnitInfo;
 import general.procedure.ProcedureGroup;
 import java.util.HashMap;
 import maps.flow.MapFlow;
 import maps.flow.MapFlow.Turn;
 import maps.data.MapData;
 import maps.layout.occupant.MapEntity;
-import fundamental.unit.PositionedUnitParams;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
+import etherealtempest.fsm.FSM.StatScreenState;
 import maps.data.MapLevelLoader;
 import maps.layout.tile.Tile;
 import maps.layout.tile.TileFoundation;
@@ -104,7 +101,7 @@ public class MapLevelAppState extends AbstractAppState {
     
     //GUI
     private ActionMenu actionMenu; //post move menu
-    private StatScreen stats;
+    private StatScreen statsMenu;
     
     protected final ProcedureGroup procedures = new ProcedureGroup();
     protected final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
@@ -115,16 +112,14 @@ public class MapLevelAppState extends AbstractAppState {
 
         @Override
         public void onStateSet(FsmState<MapFlowState> currentState, FsmState<MapFlowState> previousState) {
-            if (currentState.getEnum() != MapFlowState.GuiClosed) {
-                mapFlow.getFSM().setNewStateIfAllowed(currentState);
-                
-                switch (currentState.getEnum()) {
-                    case PreBattle:
-                        initializeBattle();
-                        break;
-                    default:
-                        break;
-                }
+            mapFlow.getFSM().setNewStateIfAllowed(currentState);
+            
+            switch (currentState.getEnum()) {
+                case PreBattle:
+                    initializeBattle();
+                    break;
+                default:
+                    break;
             }
         }
     };
@@ -141,7 +136,7 @@ public class MapLevelAppState extends AbstractAppState {
         analogListener = new AnalogListener() {
             @Override
             public void onAnalog(String name, float value, float tpf) {
-                if (!MapLevelLoader.isCurrentMapLevelDoneLoading()) {
+                if (!MapLevelLoader.isCurrentMapLevelDoneLoading() || !mapFlow.allowInput()) {
                     return;
                 } 
                 
@@ -153,16 +148,16 @@ public class MapLevelAppState extends AbstractAppState {
         actionListener = new ActionListener() {
             @Override
             public void onAction(String name, boolean keyPressed, float tpf) {
-                if (!MapLevelLoader.isCurrentMapLevelDoneLoading()) {
+                if (!MapLevelLoader.isCurrentMapLevelDoneLoading() || !mapFlow.allowInput()) {
                     return;
                 }
                 
                 //int fps = (int)(1 / tpf);
                 
                 //stat screen action
-                if (stats.getState().getEnum() != MapFlowState.GuiClosed && keyPressed) {
-                    stats.resolveInput(name, tpf);
-                    if (stats.getState().getEnum() == MapFlowState.GuiClosed) { 
+                if (statsMenu.getFSM().getEnumState() != StatScreenState.Closed && keyPressed) {
+                    statsMenu.resolveInput(name, tpf);
+                    if (statsMenu.getFSM().getEnumState() == StatScreenState.Closed) {
                         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault).setAssetManager(assetManager));
                         mapFlow.getCursor().getFSM().setNewStateIfAllowed(CursorState.CursorDefault);
                     }
@@ -170,16 +165,16 @@ public class MapLevelAppState extends AbstractAppState {
                 
                 //opening stat screen
                 if (name.equals("C") && keyPressed) {
-                    if (stats.getState().getEnum() != MapFlowState.StatScreenOpened && stats.getState().getEnum() != MapFlowState.StatScreenSelecting && mapFlow.getCursor().getCurrentTile(mapLevel).getOccupier() != null) {
+                    if (statsMenu.getFSM().getEnumState() != StatScreenState.Opened && statsMenu.getFSM().getEnumState() != StatScreenState.Selecting && mapFlow.getCursor().getCurrentTile(mapLevel).getOccupier() != null) {
                         fsm.setNewStateIfAllowed(new MasterFsmState(MapFlowState.MapDefault).setAssetManager(assetManager));
-                        stats.forceState(MapFlowState.StatScreenOpened);
-                        stats.startUnitViewGUI(mapFlow.getCursor().getCurrentTile(mapLevel).getOccupier(), mapFlow.constructConveyor());
+                        statsMenu.getFSM().setNewStateIfAllowed(StatScreenState.Opened);
+                        statsMenu.startUnitViewGUI(mapFlow.getCursor().getCurrentTile(mapLevel).getOccupier(), mapFlow.constructConveyor());
                         mapFlow.getCursor().getFSM().forceState(CursorState.Idle);
                         return;
                     }
                 }
                 
-                if (mapFlow.getCursor().getFSM().getEnumState() != CursorState.Idle && stats.getState().getEnum() == MapFlowState.GuiClosed && !actionMenu.isOpen()) {
+                if (mapFlow.getCursor().getFSM().getEnumState() != CursorState.Idle && statsMenu.getFSM().getEnumState() == StatScreenState.Closed && !actionMenu.isOpen()) {
                     //cursor action
                     MasterFsmState test = mapFlow.getCursor().resolveInput(name, tpf, keyPressed);
                     if (test != null) {
@@ -227,7 +222,7 @@ public class MapLevelAppState extends AbstractAppState {
     }
     
     public StatScreen getStatScreen() {
-        return stats;
+        return statsMenu;
     }
     
     @Override
@@ -251,11 +246,11 @@ public class MapLevelAppState extends AbstractAppState {
         rootNode.attachChild(localRootNode);
         guiNode.attachChild(localGuiNode);
         
-        stats = new StatScreen(assetManager);
+        statsMenu = new StatScreen(assetManager);
         actionMenu = new ActionMenu(assetManager, () -> { mapFlow.getCursor().setVisible(true); });
         
-        localGuiNode.attachChild(stats);
-        stats.initializeRenders();
+        localGuiNode.attachChild(statsMenu);
+        statsMenu.initializeRenders();
         actionMenu.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, (7 / 17f) * Globals.getScreenHeight(), actionMenu.getNode().getLocalTranslation().z);
         
         GameProtocols.setOpenPostActionMenu(() -> {
@@ -421,7 +416,7 @@ public class MapLevelAppState extends AbstractAppState {
     }
     
     private void syncUpdate(float tpf) {
-        stats.update(tpf); //stat screen
+        statsMenu.update(tpf); //stat screen
         
         Main.GameFlow.update(tpf);
     }

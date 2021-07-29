@@ -6,9 +6,9 @@
 package fundamental.skill;
 
 import com.google.gson.Gson;
-import fundamental.stats.Toll;
+import fundamental.stats.alteration.Toll;
 import etherealtempest.fsm.MasterFsmState;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import fundamental.Attribute;
 import fundamental.tool.Tool;
 import fundamental.tool.Tool.ToolType;

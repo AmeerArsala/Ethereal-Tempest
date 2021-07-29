@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package fundamental.unit;
+package fundamental.unit.aspect;
 
+import fundamental.unit.Unit;
 import java.util.function.BiPredicate;
 
 /**

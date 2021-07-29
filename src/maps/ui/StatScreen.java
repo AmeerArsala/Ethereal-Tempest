@@ -42,15 +42,16 @@ import edited.EditedTextField;
 import java.util.ArrayList;
 import java.util.List;
 import etherealtempest.fsm.FSM;
-import etherealtempest.fsm.FSM.MapFlowState;
+import etherealtempest.fsm.FSM.StatScreenState;
 import etherealtempest.fsm.FsmState;
 import etherealtempest.Globals;
+import etherealtempest.fsm.FSM.StatScreenState;
 import etherealtempest.info.Conveyor;
 import fundamental.formation.Formation;
 import fundamental.formation.FormationTechnique;
 import fundamental.stats.StatBundle;
 import etherealtempest.gui.broad.RadialProgressBar;
-import fundamental.stats.Bonus.BonusType;
+import fundamental.stats.alteration.Bonus.BonusType;
 import general.utils.helpers.EngineUtils;
 import general.utils.helpers.EngineUtils.CenterAxis;
 import java.util.Arrays;
@@ -94,14 +95,14 @@ public class StatScreen extends Node {
     private boolean tabsSwitched = false;
     private TabbedPanel itemsOrSkills, formulasOrAbilities;
     
-    private final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
+    private final FSM<StatScreenState> fsm = new FSM<StatScreenState>() {
         @Override
-        public boolean stateAllowed(FsmState<MapFlowState> st) {
+        public boolean stateAllowed(FsmState<StatScreenState> st) {
             return true; //maybe change this
         }
 
         @Override
-        public void onStateSet(FsmState<MapFlowState> currentState, FsmState<MapFlowState> previousState) {
+        public void onStateSet(FsmState<StatScreenState> currentState, FsmState<StatScreenState> previousState) {
             //maybe add something here
         }
     
@@ -119,26 +120,18 @@ public class StatScreen extends Node {
     
     public StatScreen(AssetManager AM) {
         assetManager = AM;
-        fsm.setNewStateIfAllowed(new FsmState(MapFlowState.GuiClosed));
+        fsm.setNewStateIfAllowed(StatScreenState.Closed);
         //0.125f * Globals.getScreenWidth(), -0.065f * Globals.getScreenHeight()
         setLocalTranslation(0.125f * Globals.getScreenWidth(), 0.935f * Globals.getScreenHeight(), 1);
     }
     
-    public FsmState getState() {
-        return fsm.getState();
-    }
-    
-    public void setStateIfAllowed(MapFlowState newState) {
-        fsm.setNewStateIfAllowed(newState);
-    }
-    
-    public void forceState(MapFlowState newState) {
-        fsm.forceState(newState);
+    public FSM<StatScreenState> getFSM() {
+        return fsm;
     }
     
     public void resolveInput(String name, float tpf) {
         if (name.equals("deselect")) {
-            if (fsm.getState().getEnum() == MapFlowState.StatScreenOpened) {
+            if (fsm.getState().getEnum() == StatScreenState.Opened) {
                 expbar.getChildrenNode().detachAllChildren();
                 expbar.removeFromParent();
                 
@@ -149,8 +142,8 @@ public class StatScreen extends Node {
                 }
                 
                 detachChild(menu);
-                fsm.setNewStateIfAllowed(new FsmState(MapFlowState.GuiClosed));
-            } else if (fsm.getState().getEnum() == MapFlowState.StatScreenSelecting) {
+                fsm.setNewStateIfAllowed(StatScreenState.Closed);
+            } else if (fsm.getState().getEnum() == StatScreenState.Selecting) {
                 //do the closing animation of side tab (reverse of open)
                 currentTransitionState = TransitionState.TransitionBack;
                 
@@ -161,16 +154,16 @@ public class StatScreen extends Node {
             }
         } 
         if (name.equals("C")) {
-            if (fsm.getState().getEnum() != MapFlowState.StatScreenOpened && fsm.getState().getEnum() != MapFlowState.StatScreenSelecting) {
-                fsm.setNewStateIfAllowed(new FsmState(MapFlowState.StatScreenOpened));
+            if (fsm.getState().getEnum() != StatScreenState.Opened && fsm.getState().getEnum() != StatScreenState.Selecting) {
+                fsm.setNewStateIfAllowed(StatScreenState.Opened);
             }
         }
-        if (name.equals("select") && fsm.getState().getEnum() != MapFlowState.StatScreenSelecting) {
+        if (name.equals("select") && fsm.getState().getEnum() != StatScreenState.Selecting) {
             //do the opening animation of side tab
             currentTransitionState = TransitionState.Transition;
             
             resetPos();
-            fsm.setNewStateIfAllowed(MapFlowState.StatScreenSelecting);
+            fsm.setNewStateIfAllowed(StatScreenState.Selecting);
 
             stuff.setText(namedElements.get(currentX).get(currentY).getDescription());
             
@@ -178,27 +171,27 @@ public class StatScreen extends Node {
             
             moveY(0);
         }
-        if (name.equals("move up") && fsm.getState().getEnum() == MapFlowState.StatScreenSelecting) {
+        if (name.equals("move up") && fsm.getState().getEnum() == StatScreenState.Selecting) {
             moveY(-1);
             //moveY(0);
             stuff.setText(namedElements.get(currentX).get(currentY).getDescription());
         }
-        if (name.equals("move down") && fsm.getState().getEnum() == MapFlowState.StatScreenSelecting) {
+        if (name.equals("move down") && fsm.getState().getEnum() == StatScreenState.Selecting) {
             moveY(1);
             //moveY(0);
             stuff.setText(namedElements.get(currentX).get(currentY).getDescription());
         }
-        if (name.equals("move left") && fsm.getState().getEnum() == MapFlowState.StatScreenSelecting) {
+        if (name.equals("move left") && fsm.getState().getEnum() == StatScreenState.Selecting) {
             moveX(-1);
             //moveY(0);
             stuff.setText(namedElements.get(currentX).get(currentY).getDescription());
         }
-        if (name.equals("move right") && fsm.getState().getEnum() == MapFlowState.StatScreenSelecting) {
+        if (name.equals("move right") && fsm.getState().getEnum() == StatScreenState.Selecting) {
             moveX(1);
             //moveY(0);
             stuff.setText(namedElements.get(currentX).get(currentY).getDescription());
         }
-        if ((name.equals("bump left") || name.equals("bump right")) && (fsm.getState().getEnum() == MapFlowState.StatScreenOpened || fsm.getState().getEnum() == MapFlowState.StatScreenSelecting)) {
+        if ((name.equals("bump left") || name.equals("bump right")) && (fsm.getState().getEnum() == StatScreenState.Opened || fsm.getState().getEnum() == StatScreenState.Selecting)) {
             tryToggling(false);
             
             //do the tab switch
@@ -226,7 +219,7 @@ public class StatScreen extends Node {
             namedElements.set(1, (ArrayList<Cosa>)switchedElements.clone());
             switchedElements = temp;
             
-            if (fsm.getState().getEnum() == MapFlowState.StatScreenSelecting) {
+            if (fsm.getState().getEnum() == StatScreenState.Selecting) {
                 moveY(0);
                 stuff.setText(namedElements.get(currentX).get(currentY).getDescription());
             }
@@ -247,23 +240,23 @@ public class StatScreen extends Node {
                 frameTrans -= 3;
             } else {
                 frameTrans = 0;
-                fsm.setNewStateIfAllowed(new FsmState(MapFlowState.StatScreenOpened));
+                fsm.setNewStateIfAllowed(StatScreenState.Opened);
                 currentTransitionState = TransitionState.Standby;
             }
         }
         
         switch (fsm.getState().getEnum()) {
-            case StatScreenOpened: 
+            case Opened: 
             {
                 specialNode.rotate(0, 0, (FastMath.PI / -240f));
                 sword.setTexture("ColorMap", assetManager.loadTexture("Interface/GUI/stat_screen/transition/default.png"));
                 break;
             }    
-            case GuiClosed: 
+            case Closed: 
             {
                 break;
             }
-            case StatScreenSelecting: 
+            case Selecting: 
             {
                 specialNode.rotate(0, 0, (FastMath.PI / -240f));
                 
@@ -285,7 +278,7 @@ public class StatScreen extends Node {
                         break;
                     default:
                         break;
-            }
+                }
                 
                 break;
             }
@@ -1291,16 +1284,16 @@ public class StatScreen extends Node {
             this.tu = tu;
             
             rawBaseStats = Arrays.asList(
-                new StatBundle<>(BaseStat.Level, tu.getRawStat(BaseStat.Level)), //level
-                new StatBundle<>(BaseStat.Strength, tu.getRawStat(BaseStat.Strength) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Strength)), //str
-                new StatBundle<>(BaseStat.Ether, tu.getRawStat(BaseStat.Ether) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Ether)), //ether
-                new StatBundle<>(BaseStat.Agility, tu.getRawStat(BaseStat.Agility) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Agility)), //agi
-                new StatBundle<>(BaseStat.Comprehension, tu.getRawStat(BaseStat.Comprehension) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Comprehension)), //comp
-                new StatBundle<>(BaseStat.Dexterity, tu.getRawStat(BaseStat.Dexterity) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Dexterity)), //dex
-                new StatBundle<>(BaseStat.Defense, tu.getRawStat(BaseStat.Defense) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Defense)), //def
-                new StatBundle<>(BaseStat.Resilience, tu.getRawStat(BaseStat.Resilience) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Resilience)), //rsl
-                new StatBundle<>(BaseStat.Mobility, tu.getRawStat(BaseStat.Mobility) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Mobility)), //mobility
-                new StatBundle<>(BaseStat.Physique, tu.getRawStat(BaseStat.Physique) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Physique)) //physique
+                new StatBundle<>(BaseStat.Level, tu.getRawBaseStat(BaseStat.Level)), //level
+                new StatBundle<>(BaseStat.Strength, tu.getRawBaseStat(BaseStat.Strength) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Strength)), //str
+                new StatBundle<>(BaseStat.Ether, tu.getRawBaseStat(BaseStat.Ether) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Ether)), //ether
+                new StatBundle<>(BaseStat.Agility, tu.getRawBaseStat(BaseStat.Agility) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Agility)), //agi
+                new StatBundle<>(BaseStat.Comprehension, tu.getRawBaseStat(BaseStat.Comprehension) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Comprehension)), //comp
+                new StatBundle<>(BaseStat.Dexterity, tu.getRawBaseStat(BaseStat.Dexterity) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Dexterity)), //dex
+                new StatBundle<>(BaseStat.Defense, tu.getRawBaseStat(BaseStat.Defense) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Defense)), //def
+                new StatBundle<>(BaseStat.Resilience, tu.getRawBaseStat(BaseStat.Resilience) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Resilience)), //rsl
+                new StatBundle<>(BaseStat.Mobility, tu.getRawBaseStat(BaseStat.Mobility) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Mobility)), //mobility
+                new StatBundle<>(BaseStat.Physique, tu.getRawBaseStat(BaseStat.Physique) + tu.getJobClass().getBaseStatBonuses().get(BaseStat.Physique)) //physique
             );
             
             int[] tempBuffs = getTotalBonuses(data, BonusType.Raw, false); //exclude raw bonuses

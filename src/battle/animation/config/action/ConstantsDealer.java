@@ -27,9 +27,31 @@ import general.math.ParametricFunctionStrings4f.ConstantVector4f;
  * 
  */
 public class ConstantsDealer {
-    public static final Vector3f USER_DIMENSIONS = new Vector3f(0, 0, 0), OPPONENT_DIMENSIONS = new Vector3f(0, 0, 0);
-    public static final Vector4f USER_VEC4 = new Vector4f(0, 0, 0, 0), OPPONENT_VEC4 = new Vector4f(0, 0, 0, 0);
-    public static final ColorRGBA USER_COLOR_CONSTANT = ColorRGBA.White, OPPONENT_COLOR_CONSTANT = ColorRGBA.White;
+    public static final class ParticipantConstants {
+        public final Vector3f DIMENSIONS = new Vector3f(0, 0, 0);
+        public final Vector4f VEC4 = new Vector4f(0, 0, 0, 0);
+        public final ColorRGBA COLOR_CONSTANT = new ColorRGBA(1, 1, 1, 1);
+        
+        public void swapWith(ParticipantConstants other) {
+            //swap vec3s
+            Vector3f dims = new Vector3f(DIMENSIONS);
+            DIMENSIONS.set(other.DIMENSIONS);
+            other.DIMENSIONS.set(dims);
+            
+            //swap vec4s
+            Vector4f participantVec4 = new Vector4f(VEC4);
+            VEC4.set(other.VEC4);
+            other.VEC4.set(participantVec4);
+            
+            //swap colors
+            ColorRGBA colorConst = new ColorRGBA(COLOR_CONSTANT);
+            COLOR_CONSTANT.set(other.COLOR_CONSTANT);
+            other.COLOR_CONSTANT.set(colorConst);
+        }
+    }
+    
+    public static final ParticipantConstants USER = new ParticipantConstants();
+    public static final ParticipantConstants OPPONENT = new ParticipantConstants();
     
     public static final char[] EXPRESSION_CONSTANTS = { //these constants get replaced by their actual values so use whatever characters you want, but avoid using common mathematical chars such as 'e'
         'U',  // User starting value (typically denotes original position with Vector3f, in terms of BattleBox %)
@@ -43,20 +65,7 @@ public class ConstantsDealer {
     };
     
     public static void swapFields() {
-        //swaps vec3s
-        Vector3f userDims = new Vector3f(USER_DIMENSIONS);
-        USER_DIMENSIONS.set(OPPONENT_DIMENSIONS);
-        OPPONENT_DIMENSIONS.set(userDims);
-        
-        //swap vec4s
-        Vector4f uservec4 = new Vector4f(USER_VEC4);
-        USER_VEC4.set(OPPONENT_VEC4);
-        OPPONENT_VEC4.set(uservec4);
-        
-        //swap colors
-        ColorRGBA userColorConst = new ColorRGBA(USER_COLOR_CONSTANT);
-        USER_COLOR_CONSTANT.set(OPPONENT_COLOR_CONSTANT);
-        OPPONENT_COLOR_CONSTANT.set(userColorConst);
+        USER.swapWith(OPPONENT);
     }
     
     private static ConstantVector3f[] vec3map(Vector3f... vec3s) {
@@ -90,8 +99,8 @@ public class ConstantsDealer {
         return vec3map(
             userVec3f,            // U: user startPos
             opponentVec3f,        // E: opponent startPos
-            USER_DIMENSIONS,      // W: user sprite dimensions
-            OPPONENT_DIMENSIONS,  // G: opponent sprite dimensions
+            USER.DIMENSIONS,      // W: user sprite dimensions
+            OPPONENT.DIMENSIONS,  // G: opponent sprite dimensions
             Vector3F.random(),    // R: random()
             Vector3F.javaRandom() // J: javaRandom()
         );
@@ -101,8 +110,8 @@ public class ConstantsDealer {
         return vec4map(
             userVec4f,            // U: user vec4
             opponentVec4f,        // E: opponent vec4
-            USER_VEC4,            // W: user static vec4 constant
-            OPPONENT_VEC4,        // G: opponent static vec4 constant
+            USER.VEC4,            // W: user static vec4 constant
+            OPPONENT.VEC4,        // G: opponent static vec4 constant
             Vector4F.random(),    // R: random()
             Vector4F.javaRandom() // J: javaRandom()
         );
@@ -112,8 +121,8 @@ public class ConstantsDealer {
         return rgbaMap(
             userColor,                      // U: user color
             opponentColor,                  // E: opponent color
-            USER_COLOR_CONSTANT,            // W: user static ColorRGBA constant
-            OPPONENT_COLOR_CONSTANT,        // G: opponent static ColorRGBA constant
+            USER.COLOR_CONSTANT,            // W: user static ColorRGBA constant
+            OPPONENT.COLOR_CONSTANT,        // G: opponent static ColorRGBA constant
             ColorRGBA.randomColor(),        // R: random()
             Vector4F.randomGaussianColor()  // J: randomGaussianColor()
         );

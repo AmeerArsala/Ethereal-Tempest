@@ -12,12 +12,12 @@ import com.jme3.asset.AssetManager;
 import com.jme3.font.Rectangle;
 import com.jme3.math.ColorRGBA;
 import etherealtempest.fsm.MasterFsmState;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import etherealtempest.info.Conveyor;
 import fundamental.item.Item;
-import fundamental.stats.Bonus;
-import fundamental.stats.Bonus.BonusType;
-import fundamental.stats.RawBroadBonus;
+import fundamental.stats.alteration.Bonus;
+import fundamental.stats.alteration.Bonus.BonusType;
+import fundamental.RawBroadBonus;
 import fundamental.talent.Talent;
 import fundamental.talent.TalentConcept;
 import fundamental.talent.TalentCondition;
@@ -76,7 +76,7 @@ public class Weapon extends Item {
         float rectangleWidth = 50f;
         float rectangleHeight = 25f;
         
-        if (data.getUnit().getEquippedWPN() == null || data.getUnit().getEquippedWPN() != this) {
+        if (data.getUnit().getEquippedWeapon() == null || data.getUnit().getEquippedWeapon() != this) {
             //add equip option
             Rectangle rect = new Rectangle(rectangleX, rectangleY, rectangleWidth, rectangleHeight);
             TextProperties equipProperties =

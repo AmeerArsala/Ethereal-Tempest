@@ -206,6 +206,10 @@ public class Cursor extends Node implements OnTile {
     }
     
     public void setVisible(boolean isVisible) {
+        if (visible == isVisible) { //optimization
+            return;
+        }
+        
         visible = isVisible;
         if (visible) {
             if (!hasChild(square.getGeometry())) {
@@ -321,13 +325,18 @@ public class Cursor extends Node implements OnTile {
     public void update(float tpf) {
         updateCorrection(tpf);
         updateTraversals(tpf);
-        updateForInteraction(tpf);
         
-        if (fsm.canTakeInput()) {
-            interpreter.update(tpf);
+        if (fsm.getEnumState() == CursorState.Idle) {
+            rangeDisplay.cancelRange();
+        } else {
+            updateForInteraction(tpf);
+        
+            if (fsm.canTakeInput()) {
+                interpreter.update(tpf);
+            }
+            
+            updatePointerAndLighting(tpf);
         }
-        
-        updatePointerAndLighting(tpf);
         
         timer.update(tpf);
     }

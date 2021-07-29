@@ -10,7 +10,7 @@ import fundamental.ability.Ability;
 import fundamental.skill.Skill;
 import fundamental.talent.Talent;
 import fundamental.tool.Tool;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import java.util.ArrayList;
 import java.util.List;
 import maps.layout.MapCoords;

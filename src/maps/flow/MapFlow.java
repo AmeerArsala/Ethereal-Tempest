@@ -13,7 +13,6 @@ import com.atr.jme.font.util.StringContainer.VAlign;
 import com.atr.jme.font.util.StringContainer.WrapMode;
 import com.atr.jme.font.util.Style;
 import com.jme3.asset.AssetManager;
-import com.jme3.font.Rectangle;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
@@ -25,12 +24,12 @@ import etherealtempest.fsm.FSM.MapFlowState;
 import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.fsm.FsmState;
 import etherealtempest.Globals;
+import etherealtempest.fsm.FSM.CursorState;
 import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.info.Conveyor;
 import general.procedure.RequestDealer;
 import fundamental.talent.TalentCondition.Occasion;
 import general.tools.GameTimer;
-import general.math.function.MathFunction;
 import general.procedure.ProcedureGroup;
 import general.ui.text.FontProperties;
 import general.ui.text.FontProperties.KeyType;
@@ -86,6 +85,7 @@ public class MapFlow { //eventually make this the map controller
     
     private Turn turn; //phase
     private int currentTurn = 1, phaseIndex = -1;
+    private boolean allowInput = true;
     
     private final FSM<MapFlowState> fsm = new FSM<MapFlowState>() {
         @Override
@@ -117,6 +117,10 @@ public class MapFlow { //eventually make this the map controller
                     initiator = null;
                     receiver = null;
                     break;
+                case MapDefault:
+                    cursor.getFSM().forceState(CursorState.CursorDefault);
+                    cursor.setVisible(allowInput = true);
+                    break;
             }
         }
         
@@ -128,12 +132,12 @@ public class MapFlow { //eventually make this the map controller
                 initiator = cursor.selectedUnit;
                 receiver = cursor.receivingEnd;
                 data.setUnit(initiator).setEnemyUnit(receiver);
-                    
+                
                 data.createCombatants();
                 initiator.onOccasion(data, occasionState);
-                   
+                
                 data.swapUnits();
-                    
+                
                 data.createCombatants();
                 receiver.onOccasion(data, occasionState);
             }
@@ -169,6 +173,7 @@ public class MapFlow { //eventually make this the map controller
     
     public Turn getTurn() { return turn; }
     public int getTurnNumber() { return currentTurn; }
+    public boolean allowInput() { return allowInput; }
     
     public Fight getCurrentFight() { return currentFight; }
     
@@ -195,6 +200,18 @@ public class MapFlow { //eventually make this the map controller
             .setMapEntities(mapEntities)
             .setAssetManager(assetManager)
             .setMapFlowRequestTaker(requestTaker);
+    }
+    
+    public boolean unitProceduresOccurring() {
+        for (TangibleUnit unit : units) {
+            if (unit.getFSM().getEnumState() != UnitState.Dead) {
+                if (!unit.getVisuals().getProcedureGroup().isEmpty() || unit.getVisuals().getEffectQueueSize() > 0) {
+                    return true;
+                }
+            }
+        }
+        
+        return false;
     }
     
     public void update(float tpf) {
@@ -227,6 +244,11 @@ public class MapFlow { //eventually make this the map controller
             
             switch (fsm.getEnumState()) {
                 case MapDefault:
+                    break;
+                case BeginningOfTurn:
+                    if (!unitProceduresOccurring()) {
+                        fsm.setNewStateIfAllowed(MapFlowState.MapDefault);
+                    }
                     break;
                 case PostBattle: //after potential deaths have been applied on the map
                     //modify later
@@ -265,7 +287,7 @@ public class MapFlow { //eventually make this the map controller
         
         localGuiNode.attachChild(phaseText);
         
-        final float seconds = 2;
+        final float seconds = 1.5f;
         final GameTimer timer = new GameTimer();
         queue.add((tpf) -> {
             float alpha = 1.5f * FastMath.sin((FastMath.PI / seconds) * timer.getTime());
@@ -281,10 +303,13 @@ public class MapFlow { //eventually make this the map controller
             timer.update(tpf); 
             return false;
         });
+        
+        cursor.setVisible(allowInput = false);
+        cursor.getFSM().setNewStateIfAllowed(CursorState.Idle);
     }
     
-    public String getPhaseString() { //Player Turn, Enemy Turn, Ally Turn, 3rd party turn, 4th party turn, 5th party turn... etc.
-        return (turn != Turn.XthParty ? turn.name() : ("" + phaseIndex + GeneralUtils.ordinalNumberSuffix(phaseIndex) + "Party")) + " Turn";
+    public String getPhaseString() { //Player Turn, Enemy Turn, Ally Turn, 3rd Party Turn, 4th Party Turn, 5th Party Turn... etc.
+        return (turn != Turn.XthParty ? turn.name() : (phaseIndex + GeneralUtils.ordinalNumberSuffix(phaseIndex) + "Party")) + " Turn";
     }
     
     public Text2D createPhaseText(String text) {

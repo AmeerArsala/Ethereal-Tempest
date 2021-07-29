@@ -12,7 +12,7 @@ import etherealtempest.info.Conveyor;
 import general.procedure.Request;
 import fundamental.Attribute;
 import fundamental.tool.Tool.ToolType;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import java.util.Arrays;
 import java.util.List;
 import maps.layout.Coords;

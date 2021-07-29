@@ -5,6 +5,7 @@
  */
 package fundamental.unit;
 
+import fundamental.unit.aspect.UnitAllegiance;
 import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.ai.AllegianceRecognizer;
@@ -16,7 +17,7 @@ import fundamental.formula.Formula;
 import fundamental.item.Item;
 import fundamental.item.weapon.Weapon;
 import fundamental.skill.Skill;
-import fundamental.stats.Bonus;
+import fundamental.stats.alteration.Bonus;
 import fundamental.stats.StatBundle;
 import fundamental.talent.Talent;
 import fundamental.talent.TalentConcept;
@@ -39,10 +40,43 @@ import maps.layout.tile.TileStatisticalData;
  * 
  * This class is for methods relative to the unit's position
  */
-public class PositionedUnit extends UnitCharacter implements OnTile {
+public class PositionedUnit extends CharacterizedUnit implements OnTile {
     public static final int DEFAULT_TRADE_DISTANCE = 1; //adjacent
     
-    protected final PositionedUnitParams params;
+    public static class Params {
+        public boolean hasStashAccess;
+        public boolean isLeader;
+        public boolean isBoss;
+    
+        public Params() {
+            hasStashAccess = false;
+            isLeader = false;
+            isBoss = false;
+        }
+        
+        public Params(boolean hasStashAccess, boolean isLeader, boolean isBoss) {
+            this.hasStashAccess = hasStashAccess;
+            this.isLeader = isLeader;
+            this.isBoss = isBoss;
+        }
+        
+        public Params hasStashAccess(boolean hasStashAccess) {
+            this.hasStashAccess = hasStashAccess;
+            return this;
+        }
+        
+        public Params isLeader(boolean isLeader) {
+            this.isLeader = isLeader;
+            return this;
+        }
+        
+        public Params isBoss(boolean isBoss) {
+            this.isBoss = isBoss;
+            return this;
+        }
+    }
+    
+    protected final Params params;
     
     protected final MapCoords pos = new MapCoords();
     protected final MapCoords previousPos = new MapCoords();
@@ -52,13 +86,13 @@ public class PositionedUnit extends UnitCharacter implements OnTile {
     private Skill inUse = null;
     private final List<String> namesOfUnitsToTalkTo = new ArrayList<>();
     
-    public PositionedUnit(Unit X, CharacterUnitInfo info, PositionedUnitParams startingParams, UnitAllegiance startingAllegiance) {
+    public PositionedUnit(Unit X, CharacterizedUnit.Info info, Params startingParams, UnitAllegiance startingAllegiance) {
         super(X, info);
         params = startingParams;
         allegiance = startingAllegiance;
     }
 
-    public PositionedUnitParams getParams() { 
+    public Params getParams() { 
         return params; 
     }
     

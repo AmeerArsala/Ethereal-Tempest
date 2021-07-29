@@ -13,7 +13,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.shader.VarType;
 import com.simsilica.lemur.LayerComparator;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

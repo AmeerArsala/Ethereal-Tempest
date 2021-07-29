@@ -108,7 +108,6 @@ public abstract class LoadingScreenAppState extends BaseAppState {
             loadingProgressBar.setOnlyChangeColor(ColorRGBA.White);
             loadingProgressBar.setColor(barColor);
             loadingProgressBar.setTextureRange(new Vector2f(27f / BAR_TEXTURE_WIDTH_PX, 28f / BAR_TEXTURE_HEIGHT_PX), new Vector2f(1015f / BAR_TEXTURE_WIDTH_PX, 192f / BAR_TEXTURE_HEIGHT_PX));
-            //loadingProgressBar.setTextureRange((27f / BAR_TEXTURE_WIDTH_PX), (1015f / BAR_TEXTURE_WIDTH_PX));
             
             return loadingProgressBar;
         }

@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
-import com.jme3.texture.Texture;
 import fundamental.Entity;
 import fundamental.item.weapon.WeaponType;
 import fundamental.jobclass.animation.ActionDecider;
@@ -52,39 +51,58 @@ public class JobClass extends Entity {
     private final int tier;
     private final int Resolve;
     
-    private final HashMap<BaseStat, Integer> bonusStats;
-    private final HashMap<BaseStat, Integer> maxStats;
-    private final HashMap<BattleStat, Integer> battleBonus; //acc, avo, crit, crit avo
+    private final HashMap<BaseStat, Integer> bonusBaseStats;
+    private final HashMap<BattleStat, Integer> bonusBattleStats;
+    private final HashMap<BaseStat, Integer> bonusGrowthRates;
+    private final HashMap<BaseStat, Integer> maxBaseStats;
     
     private final List<WeaponType> wieldableWeaponTypes;
     private final List<MobilityType> mobilityTypes;
     
     private final HashMap<WeaponType, ActionDecider> battleAnimationConfigurations;
     
-    public JobClass(String name, String desc, int tier, List<MobilityType> mobilityTypes, List<WeaponType> wieldableWeaponTypes, List<StatBundle<BaseStat>> bonusStats, List<StatBundle<BattleStat>> battleBonus, List<StatBundle<BaseStat>> maxStats, HashMap<WeaponType, ActionDecider> battleAnimationConfigurations) {
+    public JobClass(
+        String name, String desc, int tier, 
+        List<MobilityType> mobilityTypes, List<WeaponType> wieldableWeaponTypes, 
+        List<StatBundle<BaseStat>> bonusBaseStats, 
+        List<StatBundle<BattleStat>> bonusBattleStats,
+        List<StatBundle<BaseStat>> bonusGrowthRates,
+        List<StatBundle<BaseStat>> maxBaseStats, 
+        HashMap<WeaponType, ActionDecider> battleAnimationConfigurations
+    ) {
         super(name);
         this.desc = desc;
         this.tier = tier;
         this.mobilityTypes = mobilityTypes;
         this.wieldableWeaponTypes = wieldableWeaponTypes;
-        this.bonusStats = StatBundle.createBaseStatsFromBundles(bonusStats);
-        this.battleBonus = StatBundle.createBattleStatsFromBundles(battleBonus);
-        this.maxStats = StatBundle.createBaseStatsFromBundles(maxStats);
+        this.bonusBaseStats = StatBundle.createBaseStatsFromBundles(bonusBaseStats);
+        this.bonusBattleStats = StatBundle.createBattleStatsFromBundles(bonusBattleStats);
+        this.bonusGrowthRates = StatBundle.createBaseStatsFromBundles(bonusGrowthRates);
+        this.maxBaseStats = StatBundle.createBaseStatsFromBundles(maxBaseStats);
         this.battleAnimationConfigurations = battleAnimationConfigurations;
         
         Resolve = calculateResolve();
     }
     
     //copies fields
-    public JobClass(String name, String desc, int tier, List<MobilityType> mobilityTypes, List<WeaponType> wieldableWeaponTypes, HashMap<BaseStat, Integer> bonusStats, HashMap<BattleStat, Integer> battleBonus, HashMap<BaseStat, Integer> maxStats, HashMap<WeaponType, ActionDecider> battleAnimationConfigurations) {
+    public JobClass(
+        String name, String desc, int tier, 
+        List<MobilityType> mobilityTypes, List<WeaponType> wieldableWeaponTypes, 
+        HashMap<BaseStat, Integer> bonusBaseStats, 
+        HashMap<BattleStat, Integer> bonusBattleStats,
+        HashMap<BaseStat, Integer> bonusGrowthRates,
+        HashMap<BaseStat, Integer> maxBaseStats,
+        HashMap<WeaponType, ActionDecider> battleAnimationConfigurations
+    ) {
         super(name);
         this.desc = desc;
         this.tier = tier;
         this.mobilityTypes = mobilityTypes;
         this.wieldableWeaponTypes = wieldableWeaponTypes;
-        this.bonusStats = bonusStats;
-        this.battleBonus = battleBonus;
-        this.maxStats = maxStats;
+        this.bonusBaseStats = bonusBaseStats;
+        this.bonusBattleStats = bonusBattleStats;
+        this.bonusGrowthRates = bonusGrowthRates;
+        this.maxBaseStats = maxBaseStats;
         this.battleAnimationConfigurations = battleAnimationConfigurations;
         
         Resolve = calculateResolve();
@@ -105,9 +123,10 @@ public class JobClass extends Entity {
     public String getDescription() { return desc; }
     public int getTier() { return tier; }
     
-    public HashMap<BaseStat, Integer> getBaseStatBonuses() { return bonusStats; }
-    public HashMap<BattleStat, Integer> getBattleStatBonuses() { return battleBonus; } // Acc, Avo, Crit, CritAvo, AS, ATK, En, EtherDef
-    public HashMap<BaseStat, Integer> getMaxStats() { return maxStats; }
+    public HashMap<BaseStat, Integer> getBaseStatBonuses() { return bonusBaseStats; }
+    public HashMap<BattleStat, Integer> getBattleStatBonuses() { return bonusBattleStats; }
+    public HashMap<BaseStat, Integer> getGrowthRateBonuses() { return bonusGrowthRates; }
+    public HashMap<BaseStat, Integer> getMaxStats() { return maxBaseStats; }
     
     public List<WeaponType> getUsableWeapons() { return wieldableWeaponTypes; }
     public List<MobilityType> getMobilityTypes() { return mobilityTypes; }

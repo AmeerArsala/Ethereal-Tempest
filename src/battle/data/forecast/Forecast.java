@@ -10,7 +10,7 @@ import battle.data.participant.Combatant;
 import etherealtempest.info.Conveyor;
 import fundamental.stats.BaseStat;
 import fundamental.stats.BattleStat;
-import fundamental.stats.Bonus.StatType;
+import fundamental.stats.alteration.Bonus.StatType;
 import fundamental.talent.TalentConcept;
 import fundamental.talent.TalentCondition.Occasion;
 

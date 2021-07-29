@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package fundamental.unit;
+package fundamental.unit.aspect;
 
 import com.google.gson.annotations.SerializedName;
 import com.jme3.math.ColorRGBA;

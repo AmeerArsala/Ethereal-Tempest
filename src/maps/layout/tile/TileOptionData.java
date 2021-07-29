@@ -6,7 +6,7 @@
 package maps.layout.tile;
 
 import com.google.gson.annotations.SerializedName;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 
 /**
  *

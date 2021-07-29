@@ -10,7 +10,7 @@ import etherealtempest.info.Conveyor;
 import battle.data.event.Strike;
 import fundamental.stats.BaseStat;
 import fundamental.stats.BattleStat;
-import fundamental.stats.Bonus.StatType;
+import fundamental.stats.alteration.Bonus.StatType;
 import fundamental.stats.StatBundle;
 import fundamental.talent.Talent;
 import fundamental.tool.Tool;

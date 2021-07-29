@@ -6,8 +6,8 @@
 package battle.data.forecast;
 
 import battle.data.participant.Combatant;
-import fundamental.stats.Bonus;
-import fundamental.stats.Toll;
+import fundamental.stats.alteration.Bonus;
+import fundamental.stats.alteration.Toll;
 import java.util.ArrayList;
 import java.util.List;
 

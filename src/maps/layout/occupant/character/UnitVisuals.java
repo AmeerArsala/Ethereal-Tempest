@@ -62,7 +62,7 @@ public class UnitVisuals {
     private final BasicProgressBar hpBar, tpBar;
     
     private final LinkedList<DeserializedParticleEffect> effectQueue = new LinkedList<>();
-    private final ProcedureGroup queue = new ProcedureGroup();
+    private final ProcedureGroup procedureGroup = new ProcedureGroup();
     private final AssetManager assetManager;
     
     private final Spritesheet spritesheetInfo;
@@ -80,7 +80,7 @@ public class UnitVisuals {
         
         //create rotation
         Quaternion rotation = new Quaternion();
-        rotation.fromAngles((FastMath.PI / -3f), (FastMath.PI / -2f), 0);
+        rotation.fromAngles(FastMath.PI / -3f, -FastMath.HALF_PI, 0);
         
         float size = (25f / 16f) * Tile.SIDE_LENGTH;
         
@@ -158,14 +158,15 @@ public class UnitVisuals {
     public Spritesheet getSpritesheetInfo() { return spritesheetInfo; }
     public AnimationState getAnimationState() { return animState; }
     
+    public ProcedureGroup getProcedureGroup() { return procedureGroup; }
     public int getEffectQueueSize() { return effectQueue.size(); }
     
     public void addToEffectQueue(DeserializedParticleEffect particleEffect) {
         particleEffect.onEffectStart((tpf) -> {
             Quaternion rotation = new Quaternion();
-            rotation.fromAngles((FastMath.PI / -3f), (FastMath.PI / -2f), 0);
+            rotation.fromAngles(FastMath.PI / -3f, -FastMath.HALF_PI, 0);
             particleEffect.getModelRootNode().setLocalRotation(rotation);
-                
+            
             node.attachChild(particleEffect.getModelRootNode());
         });
         
@@ -178,7 +179,7 @@ public class UnitVisuals {
     }
     
     public void addToQueue(SimpleProcedure procedure) {
-        queue.add(procedure);
+        procedureGroup.add(procedure);
     }
     
     public void detachBars() {
@@ -230,8 +231,8 @@ public class UnitVisuals {
     }
     
     protected void update(float tpf, Camera cam) {
-        //update queue
-        queue.update(tpf);
+        //update procedureGroup
+        procedureGroup.update(tpf);
         
         //update hp and tp bar positions
         //TODO: fix this

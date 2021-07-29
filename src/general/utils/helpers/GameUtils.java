@@ -8,7 +8,7 @@ package general.utils.helpers;
 import com.jme3.math.ColorRGBA;
 import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.fsm.MasterFsmState;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import etherealtempest.info.Conveyor;
 import java.util.ArrayList;
 import java.util.List;

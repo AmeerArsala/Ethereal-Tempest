@@ -5,7 +5,7 @@
  */
 package fundamental.item;
 
-import fundamental.stats.RawBroadBonus;
+import fundamental.RawBroadBonus;
 
 /**
  *

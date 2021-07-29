@@ -12,8 +12,7 @@ import fundamental.stats.BaseStat;
 import fundamental.stats.BaseStatsDeserialization;
 import fundamental.stats.BattleStat;
 import fundamental.stats.BattleStatsDeserialization;
-import fundamental.stats.StatBundle;
-import fundamental.stats.StatBundleDeserialization;
+import fundamental.unit.Unit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -29,10 +28,8 @@ public class JobClassDeserialization {
     private int tier;
     private BaseStatsDeserialization bonusBaseStats;
     private BattleStatsDeserialization bonusBattleStats;
+    private BaseStatsDeserialization bonusGrowthRates;
     private BaseStatsDeserialization maxStats;
-    //private StatBundleDeserialization[] bonusBaseStats;
-    //private StatBundleDeserialization[] bonusBattleStats;
-    //private StatBundleDeserialization[] maxStats;
     private WeaponType[] wieldableWeaponTypes;
     private MobilityType[] mobilityTypes;
     private ClassBattleAnimationSetDeserialization[] battleAnimationConfigurations;
@@ -40,8 +37,10 @@ public class JobClassDeserialization {
     public JobClassDeserialization
     (
         String name, String desc, int tier,
-        BaseStatsDeserialization bonusBaseStats, BattleStatsDeserialization bonusBattleStats, BaseStatsDeserialization maxStats,
-        //StatBundleDeserialization[] bonusBaseStats, StatBundleDeserialization[] bonusBattleStats, StatBundleDeserialization[] maxStats,
+        BaseStatsDeserialization bonusBaseStats,
+        BattleStatsDeserialization bonusBattleStats,
+        BaseStatsDeserialization bonusGrowthRates,
+        BaseStatsDeserialization maxStats,
         WeaponType[] wieldableWeaponTypes, MobilityType[] mobilityTypes,
         ClassBattleAnimationSetDeserialization[] battleAnimationConfigurations
     ) 
@@ -51,6 +50,7 @@ public class JobClassDeserialization {
         this.tier = tier;
         this.bonusBaseStats = bonusBaseStats;
         this.bonusBattleStats = bonusBattleStats;
+        this.bonusGrowthRates = bonusGrowthRates;
         this.maxStats = maxStats;
         this.wieldableWeaponTypes = wieldableWeaponTypes;
         this.mobilityTypes = mobilityTypes;
@@ -71,12 +71,10 @@ public class JobClassDeserialization {
     }
     
     public JobClass constructJobClass() {
-        HashMap<BaseStat, Integer> baseStatBonuses = bonusBaseStats.createBaseStatMap();
-        HashMap<BattleStat, Integer> battleStatBonuses = bonusBattleStats.createBattleStatMap();
-        HashMap<BaseStat, Integer> maxBaseStats = maxStats.createBaseStatMap();
-        //List<StatBundle<BaseStat>> baseStatBonuses = StatBundleDeserialization.constructBaseStatBundleGroup(bonusBaseStats);
-        //List<StatBundle<BattleStat>> battleStatBonuses = StatBundleDeserialization.constructBattleStatBundleGroup(bonusBattleStats);
-        //List<StatBundle<BaseStat>> maxBaseStats = StatBundleDeserialization.constructBaseStatBundleGroup(maxStats);
+        HashMap<BaseStat, Integer> baseStatBonuses = bonusBaseStats.createBaseStatMap(0);
+        HashMap<BattleStat, Integer> battleStatBonuses = bonusBattleStats.createBattleStatMap(0);
+        HashMap<BaseStat, Integer> growthRateBonuses = bonusGrowthRates.createBaseStatMap(100, 0);
+        HashMap<BaseStat, Integer> maxBaseStats = maxStats.createBaseStatsLoadoutMap(Unit.MAX_LEVEL, 0);
         
         List<WeaponType> usableWeaponTypes = new ArrayList<>();
         usableWeaponTypes.addAll(Arrays.asList(wieldableWeaponTypes));
@@ -90,6 +88,6 @@ public class JobClassDeserialization {
             battleAnimationConfigs.put(CBASD.getWeaponType(), CBASD.getAnimationConfig());
         }
         
-        return new JobClass(name, desc, tier, movementTypes, usableWeaponTypes, baseStatBonuses, battleStatBonuses, maxBaseStats, battleAnimationConfigs);
+        return new JobClass(name, desc, tier, movementTypes, usableWeaponTypes, baseStatBonuses, battleStatBonuses, growthRateBonuses, maxBaseStats, battleAnimationConfigs);
     }
 }

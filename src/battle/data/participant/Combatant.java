@@ -10,7 +10,7 @@ import etherealtempest.info.Conveyor;
 import fundamental.skill.Skill;
 import fundamental.stats.BaseStat;
 import fundamental.stats.BattleStat;
-import fundamental.stats.Toll.Exchange;
+import fundamental.stats.alteration.Toll.Exchange;
 import general.math.FloatPair;
 import java.util.HashMap;
 import java.util.Objects;
@@ -118,7 +118,7 @@ public class Combatant {
                 appendToBaseStat(costType.getCorrelatingStat(), -skillInUse.getToll().getValue());
             } else {
                 //if this skill is being used with a cost of durability, this assumes that the equipped tool is a weapon
-                tu.getEquippedWPN().addCurrentDurability(-skillInUse.getToll().getValue());
+                tu.getEquippedWeapon().addCurrentDurability(-skillInUse.getToll().getValue());
             }
         }
     }
@@ -180,10 +180,10 @@ public class Combatant {
     }
     
     public void applyAllStatsToUnit() {
-        tu.setRawStat(BaseStat.Level, combatBaseStats.get(BaseStat.Level));
+        tu.setRawBaseStat(BaseStat.Level, combatBaseStats.get(BaseStat.Level));
         
-        tu.setRawStat(BaseStat.CurrentHP, combatBaseStats.get(BaseStat.CurrentHP));
-        tu.setRawStat(BaseStat.CurrentTP, combatBaseStats.get(BaseStat.CurrentTP));
+        tu.setRawBaseStat(BaseStat.CurrentHP, combatBaseStats.get(BaseStat.CurrentHP));
+        tu.setRawBaseStat(BaseStat.CurrentTP, combatBaseStats.get(BaseStat.CurrentTP));
         
         statistics.apply(tu.getUnitInfo());
     }

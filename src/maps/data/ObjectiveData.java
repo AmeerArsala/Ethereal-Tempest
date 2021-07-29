@@ -9,7 +9,7 @@ import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.info.Conveyor;
 import general.utils.helpers.GameUtils;
 import etherealtempest.fsm.MasterFsmState;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import maps.layout.MapLevel;
 import maps.layout.occupant.MapEntity;
 import maps.layout.occupant.MapEntity.DamageLevel;

@@ -17,7 +17,7 @@ import fundamental.item.weapon.Weapon;
 import fundamental.skill.Skill;
 import general.utils.helpers.GameUtils;
 import etherealtempest.fsm.MasterFsmState;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import etherealtempest.info.ActionInfo;
 import etherealtempest.info.ActionInfo.PostMoveAction;
 import fundamental.Attribute;

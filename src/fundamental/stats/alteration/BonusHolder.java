@@ -3,9 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package fundamental.stats;
+package fundamental.stats.alteration;
 
-import fundamental.stats.Bonus.BonusType;
+import fundamental.stats.BaseStat;
+import fundamental.stats.BattleStat;
+import fundamental.stats.alteration.Bonus.BonusType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;

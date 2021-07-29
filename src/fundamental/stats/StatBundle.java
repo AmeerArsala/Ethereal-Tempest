@@ -5,7 +5,8 @@
  */
 package fundamental.stats;
 
-import fundamental.stats.Bonus.StatType;
+import fundamental.stats.alteration.Bonus;
+import fundamental.stats.alteration.Bonus.StatType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,41 +72,6 @@ public class StatBundle<E extends java.lang.Enum> {
         return battleStats;
     }
     
-    public static ArrayList<BaseStat> createBaseStats() {
-        ArrayList<BaseStat> ret = new ArrayList<>();
-        ret.addAll(Arrays.asList(
-                BaseStat.Level, 
-                BaseStat.MaxHP,
-                BaseStat.MaxTP,
-                BaseStat.Strength, 
-                BaseStat.Ether, 
-                BaseStat.Agility, 
-                BaseStat.Comprehension, 
-                BaseStat.Dexterity, 
-                BaseStat.Defense, 
-                BaseStat.Resilience, 
-                BaseStat.Mobility,
-                BaseStat.Physique,
-                BaseStat.Adrenaline
-            ));
-        
-        return ret;
-    }
-    
-    public static ArrayList<BattleStat> createBattleStats() {
-        ArrayList<BattleStat> ret = new ArrayList<>();
-        ret.addAll(Arrays.asList(
-                BattleStat.Accuracy,
-                BattleStat.AttackPower,
-                BattleStat.AttackSpeed,
-                BattleStat.Crit,
-                BattleStat.CritEvasion,
-                BattleStat.Evasion
-        ));
-        
-        return ret;
-    }
-    
     public static List<StatBundle<BaseStat>> uniformBaseStats(int uniform) {
         return Arrays.asList(
             new StatBundle<>(BaseStat.Level, uniform),
@@ -134,29 +100,4 @@ public class StatBundle<E extends java.lang.Enum> {
             new StatBundle<>(BattleStat.Evasion, uniform)
         );
     }
-    
-    public static HashMap<BaseStat, Integer> BaseStatCanvas(int num) {
-        HashMap<BaseStat, Integer> canvas = new HashMap<>();
-        
-        BaseStat[] stats = BaseStat.values();
-        
-        for (BaseStat stat : stats) {
-            canvas.put(stat, num);
-        }
-        
-        return canvas;
-    }
-    
-    public static HashMap<BattleStat, Integer> BattleStatCanvas(int num) {
-        HashMap<BattleStat, Integer> canvas = new HashMap<>();
-        
-        BattleStat[] stats = BattleStat.values();
-        
-        for (BattleStat stat : stats) {
-            canvas.put(stat, num);
-        }
-        
-        return canvas;
-    }
-    
 }

@@ -30,7 +30,7 @@ import com.jme3.scene.Spatial.CullHint;
 import com.jme3.texture.Texture;
 import enginetools.math.Vector3F;
 import etherealtempest.fsm.FSM.FighterState;
-import fundamental.unit.CharacterUnitInfo;
+import fundamental.unit.CharacterizedUnit;
 import general.procedure.functional.UpdateLoop;
 import general.utils.helpers.MathUtils;
 import general.visual.sprite.OverlaySheetConfig;
@@ -161,14 +161,14 @@ public class Fighter {
         if (currentRole == Participant.Striker) {
             forecast.getCombatant().applySkillTollIfAny();
             nextAttackAnimation();
-            setConstants(ConstantsDealer.USER_DIMENSIONS, ConstantsDealer.USER_VEC4, ConstantsDealer.USER_COLOR_CONSTANT);
+            setConstants(ConstantsDealer.USER);
         } else { // currentRole == Participant.Victim
-            setConstants(ConstantsDealer.OPPONENT_DIMENSIONS, ConstantsDealer.OPPONENT_VEC4, ConstantsDealer.OPPONENT_COLOR_CONSTANT);
+            setConstants(ConstantsDealer.OPPONENT);
         }
     }
     
-    private void setConstants(Vector3f dimensions, Vector4f vec4f, ColorRGBA color) {
-        dimensions.set(Vector3F.fit(sprite.getPercentageDimensions(), 0f));
+    private void setConstants(ConstantsDealer.ParticipantConstants holder) {
+        holder.DIMENSIONS.set(Vector3F.fit(sprite.getPercentageDimensions(), 0f));
         //TODO: set vec4f and color params
     }
     
@@ -246,7 +246,7 @@ public class Fighter {
             );
         }
         
-        public BattleSprite createBattleSprite(String folderRoot, Texture spritesheetTexture, CharacterUnitInfo unitInfo, boolean usesHitPoint, boolean mirrored) {
+        public BattleSprite createBattleSprite(String folderRoot, Texture spritesheetTexture, CharacterizedUnit.Info unitInfo, boolean usesHitPoint, boolean mirrored) {
             String configJsonPath = "Sprites\\" + folderRoot + "config.json";
             AttackSheetConfig sheetConfig = PossibleConfig.deserialize(configJsonPath).getPossibleSpritesheet().setFileRoot("Sprites\\" + folderRoot);
             OverlaySheetConfig overlayConfig = OverlaySheetConfig.deserialize(folderRoot + "character_overlay\\" + unitInfo.getBattleOverlayConfigName());

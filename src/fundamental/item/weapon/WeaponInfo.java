@@ -9,7 +9,7 @@ import com.google.gson.Gson;
 import fundamental.jobclass.JobClass.MobilityType;
 import fundamental.item.BasicItem;
 import fundamental.stats.BaseStat;
-import fundamental.stats.RawBroadBonus;
+import fundamental.RawBroadBonus;
 import fundamental.tool.DamageTool;
 import java.io.IOException;
 import java.io.Reader;

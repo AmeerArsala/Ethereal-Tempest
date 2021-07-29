@@ -5,10 +5,12 @@
  */
 package fundamental.unit;
 
+import fundamental.unit.aspect.UnitAllegiance;
+import fundamental.unit.aspect.UnitStatus;
 import fundamental.jobclass.JobClass;
 import etherealtempest.info.Conveyor;
 import fundamental.Entity;
-import fundamental.stats.Toll;
+import fundamental.stats.alteration.Toll;
 import fundamental.item.Item;
 import fundamental.item.weapon.Weapon;
 import fundamental.ability.Ability;
@@ -23,7 +25,7 @@ import fundamental.skill.SkillManager;
 import fundamental.stats.BaseStat;
 import fundamental.stats.BattleStat;
 import fundamental.talent.Talent;
-import fundamental.stats.BonusHolder;
+import fundamental.stats.alteration.BonusHolder;
 import fundamental.tool.DamageTool;
 import fundamental.stats.StatBundle;
 import fundamental.talent.TalentManager;
@@ -38,9 +40,8 @@ import java.util.List;
 public class Unit extends Entity {
     public static final int MAX_LEVEL = 99;
     
-    //DISCLAIMER: maxTP (the BaseStat enum) does not actually refer to the Unit's maximum tp stat, but rather an accumulation of the amount of points it has grown through growth rate increases, the rest of the stat is calculated by other stats
-    public static final HashMap<BaseStat, Integer> DEFAULT_ENEMY_GROWTH_RATES() { return StatBundle.BaseStatCanvas(100); }
-    public static final List<StatBundle<BaseStat>> DEFAULT_ENEMY_GROWTH_RATES_LIST() { return StatBundle.uniformBaseStats(100); }
+    //DISCLAIMER: MaxTP (the BaseStat enum) does not actually refer to the Unit's maximum TP stat, but rather an accumulation of the amount of points it has grown through growth rate increases, the rest of the stat is calculated by other stats
+    public static final HashMap<BaseStat, Integer> DEFAULT_ENEMY_GROWTH_RATES() { return BaseStat.canvas(100); }
     
     protected JobClass jobclass;
     protected UnitStatus status = UnitStatus.HEALTHY; //status ailments, etc.
@@ -62,33 +63,18 @@ public class Unit extends Entity {
     protected Weapon equippedWeapon = null;
 
     protected final BonusHolder tempBonuses = new BonusHolder(); //NOT RAW BONUSES
-    
-    public Unit(String name, JobClass jc, List<StatBundle<BaseStat>> baseStatPackage, List<StatBundle<BaseStat>> growthRatePackage, List<Item> items, List<Formula> formulas, List<Talent> talents, List<Skill> skills, List<Ability> abilities, List<Formation> formations) {
-        super(name);
-        jobclass = jc;
-        stats = StatBundle.createBaseStatsFromBundles(baseStatPackage);
-        personalGrowthRates = StatBundle.createBaseStatsFromBundles(growthRatePackage);
-        
-        inventory = new Inventory(items); // 10 items max in inventory
-        formulaManager = new FormulaManager(formulas, 15); // 15 formulas max
-        talentManager = new TalentManager(talents); // 6 max
-        skillManager = new SkillManager(skills, 5); // 5 max
-        abilityManager = new AbilityManager(abilities, 7); // 7 max
-        formationManager = new FormationManager(formations);
-        
-        finishInitialization();
-    }
-    
+
+    //main constructor
     public Unit(String name, JobClass jobclass, HashMap<BaseStat, Integer> stats, HashMap<BaseStat, Integer> personalGrowthRates, List<Item> items, List<Formula> formulas, List<Talent> talents, List<Skill> skills, List<Ability> abilities, List<Formation> formations) {
         super(name);
         this.jobclass = jobclass;
         this.stats = stats;
         this.personalGrowthRates = personalGrowthRates;
         
-        inventory = new Inventory(items); // 10 items max in inventory
+        inventory = new Inventory(items);                  // 10 items max in inventory
         formulaManager = new FormulaManager(formulas, 15); // 15 formulas max
-        talentManager = new TalentManager(talents); // 6 max
-        skillManager = new SkillManager(skills, 5); // 5 max
+        talentManager = new TalentManager(talents);        // 6 max
+        skillManager = new SkillManager(skills, 5);        // 5 max
         abilityManager = new AbilityManager(abilities, 7); // 7 max
         formationManager = new FormationManager(formations);
         
@@ -111,9 +97,19 @@ public class Unit extends Entity {
         finishInitialization();
     }
     
+    //via StatBundles
+    public Unit(String name, JobClass jobclass, List<StatBundle<BaseStat>> baseStatPackage, List<StatBundle<BaseStat>> growthRatePackage, List<Item> items, List<Formula> formulas, List<Talent> talents, List<Skill> skills, List<Ability> abilities, List<Formation> formations) {
+        this(name, jobclass, StatBundle.createBaseStatsFromBundles(baseStatPackage), StatBundle.createBaseStatsFromBundles(growthRatePackage), items, formulas, talents, skills, abilities, formations);
+    }
+    
+    //copy constructor
+    public Unit(Unit copy) {
+        this(copy.name, copy.jobclass, copy.stats, copy.personalGrowthRates, copy.inventory, copy.formulaManager, copy.talentManager, copy.skillManager, copy.abilityManager, copy.formationManager);
+    }
+    
     private void finishInitialization() {
-        currentHP = stats.get(BaseStat.MaxHP) + jobclass.getBaseStatBonuses().get(BaseStat.MaxHP);
-        currentTP = ((stats.get(BaseStat.MaxHP) + ((stats.get(BaseStat.Ether) + stats.get(BaseStat.Resilience)) * 2)) / 2) + jobclass.getBaseStatBonuses().get(BaseStat.MaxTP); //MAXTP = (MAXHP + ((ETHER + RSL) * 2)) / 2
+        currentHP = stats.get(BaseStat.CurrentHP) + jobclass.getBaseStatBonuses().get(BaseStat.MaxHP);
+        currentTP = calculateTPBody() + jobclass.getBaseStatBonuses().get(BaseStat.MaxTP); //MAXTP_EXTRA = (MAXHP + ((ETHER + RSL) * 2)) / 2
         
         autoEquip();
     }
@@ -137,14 +133,14 @@ public class Unit extends Entity {
         allegiance = loyalty;
     }
     
-    //Items, Formulas, and Formations extend FreelyAssociated
+    //Items, Formulas, and Formations extend Gear
     public Inventory getInventory() { return inventory; }
     public FormulaManager getFormulaManager() { return formulaManager; }
     public FormationManager getFormationManager() { return formationManager; }
     public List<Formation> getFormations() { return formationManager.getAll(); }
     public Formation equippedFormation() { return formationManager.getEquippedFormation(); };
     
-    //Talents, Skills, and Abilities extend Associated
+    //Talents, Skills, and Abilities extend Attribute
     public TalentManager getTalentManager() { return talentManager; }
     public SkillManager getSkillManager() { return skillManager; }
     public AbilityManager getAbilityManager() { return abilityManager; }
@@ -179,7 +175,7 @@ public class Unit extends Entity {
         return abilities;
     }
     
-    public Weapon getEquippedWPN() { return equippedWeapon; }
+    public Weapon getEquippedWeapon() { return equippedWeapon; }
     public Formula getEquippedFormula() { return equippedFormula; }
     
     public Tool getEquippedTool() { 
@@ -216,15 +212,14 @@ public class Unit extends Entity {
     
     public HashMap<BaseStat, Integer> getRawStats() { return stats; }
     public HashMap<BaseStat, Integer> getGrowthRates() { return personalGrowthRates; }
-    
     public BonusHolder getTempBonuses() { return tempBonuses; }
     
     public void setGrowthRate(BaseStat stat, int growth) {
         personalGrowthRates.replace(stat, growth);
     }
     
-    public void setRawStat(BaseStat statname, int amount) {
-        switch (statname) {
+    public void setRawBaseStat(BaseStat stat, int amount) {
+        switch (stat) {
             case CurrentHP:
                 currentHP = amount;
                 break;
@@ -232,15 +227,15 @@ public class Unit extends Entity {
                 currentTP = amount;
                 break;
             default:
-                stats.replace(statname, amount);
+                stats.replace(stat, amount);
                 break;
         }
     }
     
-    public int getRawStat(BaseStat statname) {
-        if (statname == BaseStat.CurrentHP) { return currentHP; }
+    public int getRawBaseStat(BaseStat stat) {
+        if (stat == BaseStat.CurrentHP) { return currentHP; }
         
-        return statname == BaseStat.CurrentTP ? currentTP : stats.get(statname); 
+        return stat == BaseStat.CurrentTP ? currentTP : stats.get(stat); 
     }
     
     public int getBaseStat(BaseStat statName) {
@@ -252,11 +247,11 @@ public class Unit extends Entity {
             case Level:
                 return stats.get(BaseStat.Level);
             case MaxTP:
-                return stats.get(BaseStat.MaxTP) +  calculateTPBody() + getTotalBaseStatBonus(BaseStat.MaxTP);
+                return getMaxTP();
             case Mobility:
-                return getMOBILITY();
+                return getMOBILITY();   //for the classes that extend this
             case Adrenaline:
-                return getADRENALINE();
+                return getADRENALINE(); //for the classes that extend this
             default:
                 return stats.get(statName) + getTotalBaseStatBonus(statName);
         }
@@ -270,24 +265,33 @@ public class Unit extends Entity {
         return ((float)currentTP) / getMaxTP();
     }
     
-    public int simulateTP(int hpextra, int etherextra, int rslextra) {
-        return (((hpextra + stats.get(BaseStat.MaxHP)) + (((etherextra + stats.get(BaseStat.Ether)) + (rslextra + stats.get(BaseStat.Resilience))) * 2)) / 2) - calculateTPBody();
+    public static int calculateTPBody(int maxHP, int ether, int rsl) { //MAXTP_EXTRA = (MAXHP + ((ETHER + RSL) * 2)) / 2
+        return ((maxHP + ((ether + rsl) * 2)) / 2);
     }
     
-    private int calculateTPBody() {
-        return ((stats.get(BaseStat.MaxHP) + ((stats.get(BaseStat.Ether) + stats.get(BaseStat.Resilience)) * 2)) / 2);
+    public int calculateTPBody() {
+        return calculateTPBody(stats.get(BaseStat.MaxHP), stats.get(BaseStat.Ether), stats.get(BaseStat.Resilience));
+    }
+    
+    //DISCLAIMER: 'deltaEther' does NOT refer to the delta type of Ether, but rather the change in the Ether stat
+    public int simulateDeltaTP(int deltaMaxHP, int deltaEther, int deltaRSL) {
+        int maxHP = stats.get(BaseStat.MaxHP);
+        int ether = stats.get(BaseStat.Ether);
+        int rsl = stats.get(BaseStat.Resilience);
+        
+        return calculateTPBody(maxHP + deltaMaxHP, ether + deltaEther, rsl + deltaRSL) - calculateTPBody(maxHP, ether, rsl); //same as subtracting calculateTPBody()
     }
     
     //Base Stats
     //TODO: maybe change the purpose of AGI, COMP, DEX, PHYSIQUE, and ADRENALINE
     public int getLVL() { return stats.get(BaseStat.Level); }
     public int getMaxHP() { return stats.get(BaseStat.MaxHP) + getTotalBaseStatBonus(BaseStat.MaxHP); }
-    public int getMaxTP() { return stats.get(BaseStat.MaxTP) +  calculateTPBody() + getTotalBaseStatBonus(BaseStat.MaxTP); }
+    public int getMaxTP() { return stats.get(BaseStat.MaxTP) + calculateTPBody() + getTotalBaseStatBonus(BaseStat.MaxTP); }
     public int getSTR() { return stats.get(BaseStat.Strength) + getTotalBaseStatBonus(BaseStat.Strength); }
     public int getETHER() { return stats.get(BaseStat.Ether) + getTotalBaseStatBonus(BaseStat.Ether); }
     public int getAGI() { return stats.get(BaseStat.Agility) + getTotalBaseStatBonus(BaseStat.Agility); }
     public int getDEX() { return stats.get(BaseStat.Dexterity) + getTotalBaseStatBonus(BaseStat.Dexterity); }
-    public int getCOMP() { return stats.get(BaseStat.Comprehension) + getTotalBaseStatBonus(BaseStat.Comprehension); } //basically luck
+    public int getCOMP() { return stats.get(BaseStat.Comprehension) + getTotalBaseStatBonus(BaseStat.Comprehension); }
     public int getDEF() { return stats.get(BaseStat.Defense) + getTotalBaseStatBonus(BaseStat.Defense); }
     public int getRSL() { return stats.get(BaseStat.Resilience) + getTotalBaseStatBonus(BaseStat.Resilience); }
     public int getMOBILITY() { return stats.get(BaseStat.Mobility) + getTotalBaseStatBonus(BaseStat.Mobility); }
@@ -332,7 +336,7 @@ public class Unit extends Entity {
         return getCOMP() + getTotalBattleStatBonus(BattleStat.CritEvasion); 
     }
     
-    public int getAS() {  //FIX LATER
+    public int getAS() {  //TODO: CHANGE LATER
         return getAGI() + getTotalBattleStatBonus(BattleStat.AttackSpeed);
     }
     
@@ -366,7 +370,7 @@ public class Unit extends Entity {
     }
     
     public HashMap<BaseStat, Integer> rollLevelUp() {
-        HashMap<BaseStat, Integer> roll = StatBundle.BaseStatCanvas(0); //create an empty one filled with 0's
+        HashMap<BaseStat, Integer> roll = BaseStat.canvas(0); //create an empty one filled with 0's
         
         for (BaseStat based : BaseStat.values()) {
             int rate = personalGrowthRates.get(based);
@@ -379,7 +383,8 @@ public class Unit extends Entity {
             roll.replace(based, roll.get(based) + growth);
         }
         
-        roll.replace(BaseStat.MaxTP, roll.get(BaseStat.MaxTP) + simulateTP(roll.get(BaseStat.MaxHP), roll.get(BaseStat.Ether), roll.get(BaseStat.Resilience)));
+        //TODO: test this
+        //roll.replace(BaseStat.MaxTP, roll.get(BaseStat.MaxTP) + simulateDeltaTP(roll.get(BaseStat.MaxHP), roll.get(BaseStat.Ether), roll.get(BaseStat.Resilience)));
         
         //can't level up in these stats, and can't go past 1 level in a level up
         roll.replace(BaseStat.CurrentHP, 0);
@@ -494,5 +499,7 @@ public class Unit extends Entity {
     }
     
     @Override
-    public String toString() { return name; }
+    public String toString() { 
+        return "Unit: " + name + "; Object String: " + super.toString(); 
+    }
 }

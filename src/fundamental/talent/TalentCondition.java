@@ -105,7 +105,7 @@ public abstract class TalentCondition {
     public static final TalentCondition POWERED_BY_ELEMENT = new TalentCondition("if user's equipped weapon is powered by an element, ", Occasion.AfterCombat) {
         @Override
         public boolean getCondition(Conveyor data) {
-            return data.getUnit().getEquippedWPN() != null && data.getUnit().getEquippedWPN().poweredByElement.length() > 2;
+            return data.getUnit().getEquippedWeapon() != null && data.getUnit().getEquippedWeapon().poweredByElement.length() > 2; //TODO: change this
         }
     };
     

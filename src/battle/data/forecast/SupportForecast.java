@@ -58,7 +58,7 @@ public class SupportForecast extends Forecast<SingularSupportForecast> {
             desirability += Math.round(100f * receiverForecast.getCombatant().getBaseStat(BaseStat.MaxTP) / receiverForecast.getCombatant().getUnit().getBaseStat(BaseStat.CurrentTP));
         }
         
-        Weapon wpn = receiverForecast.getCombatant().getUnit().getEquippedWPN();
+        Weapon wpn = receiverForecast.getCombatant().getUnit().getEquippedWeapon();
         if (receiverForecast.durabilityRecovered > 0 && wpn != null) {
             desirability += Math.round(100f * wpn.getMaxDurability() / wpn.getCurrentDurability());
         }

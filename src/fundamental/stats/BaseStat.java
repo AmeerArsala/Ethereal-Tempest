@@ -6,6 +6,7 @@
 package fundamental.stats;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.HashMap;
 
 /**
  *
@@ -42,5 +43,17 @@ public enum BaseStat {
         
         public String getName() {
             return name;
+        }
+        
+        public static HashMap<BaseStat, Integer> canvas(int num) {
+            HashMap<BaseStat, Integer> canvas = new HashMap<>();
+            
+            BaseStat[] stats = BaseStat.values();
+            
+            for (BaseStat stat : stats) {
+                canvas.put(stat, num);
+            }
+            
+            return canvas;
         }
     }

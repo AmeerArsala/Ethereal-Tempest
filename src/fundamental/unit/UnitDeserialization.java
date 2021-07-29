@@ -86,6 +86,6 @@ public class UnitDeserialization {
             formationList.add(supplier.get());
         }
         
-        return new Unit(name, jobClass.get(), baseStats.createBaseStatMap(), growthRates.createBaseStatMap(), itemList, formulaList, talentList, skillList, abilityList, formationList);
+        return new Unit(name, jobClass.get(), baseStats.createBaseStatsLoadoutMap(), growthRates.createBaseStatMap(100, 0), itemList, formulaList, talentList, skillList, abilityList, formationList);
     }
 }

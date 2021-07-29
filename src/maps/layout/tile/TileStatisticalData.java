@@ -5,8 +5,8 @@
  */
 package maps.layout.tile;
 
-import fundamental.stats.Bonus;
-import fundamental.stats.Bonus.BonusType;
+import fundamental.stats.alteration.Bonus;
+import fundamental.stats.alteration.Bonus.BonusType;
 import fundamental.talent.Talent;
 import fundamental.talent.TalentCondition.Occasion;
 import java.util.ArrayList;

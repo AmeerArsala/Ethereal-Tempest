@@ -77,7 +77,7 @@ public class BattleAnimation {
             BattleAnimationSegment segment = segments.get(index);
             segment.update(tpf);
             
-            //check if finished; if it was an attack, call onStrikeFinished
+            //Check if the segment is finished. If so, increment segment index. If it was an attack, call onStrikeFinished
             if (segment.isFinished()) {
                 ++index;
                 if (segment.isAttack()) {

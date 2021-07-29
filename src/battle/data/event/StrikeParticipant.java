@@ -10,7 +10,7 @@ import battle.data.participant.Combatant;
 import battle.data.participant.Combatant.AttackType;
 import fundamental.skill.Skill;
 import fundamental.stats.BaseStat;
-import fundamental.stats.Toll;
+import fundamental.stats.alteration.Toll;
 import fundamental.talent.BattleTalent;
 import fundamental.talent.Talent;
 import fundamental.talent.TalentCondition.Occasion;
@@ -60,7 +60,7 @@ public class StrikeParticipant {
         combatant.getStatistics().tpLost += tpLoss;
         
         if (combatant.getAttackType() == AttackType.Weapon) {
-            combatant.getUnit().getEquippedWPN().addCurrentDurability(durabilityChange);
+            combatant.getUnit().getEquippedWeapon().addCurrentDurability(durabilityChange);
             combatant.getStatistics().durabilityUsed += Math.abs(durabilityChange);
         }
     }

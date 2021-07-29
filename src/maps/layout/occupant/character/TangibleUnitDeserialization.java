@@ -6,9 +6,9 @@
 package maps.layout.occupant.character;
 
 import com.jme3.asset.AssetManager;
-import fundamental.unit.CharacterUnitInfo;
-import fundamental.unit.PositionedUnitParams;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.CharacterizedUnit;
+import fundamental.unit.PositionedUnit;
+import fundamental.unit.aspect.UnitAllegiance;
 import fundamental.unit.UnitDeserialization;
 import maps.layout.MapCoords;
 
@@ -19,11 +19,11 @@ import maps.layout.MapCoords;
 public class TangibleUnitDeserialization {
     private UnitAllegiance allegiance;
     private UnitDeserialization unit;
-    private CharacterUnitInfo unitCharacterInfo;
-    private PositionedUnitParams params;
+    private CharacterizedUnit.Info unitCharacterInfo;
+    private PositionedUnit.Params params;
     private MapCoords position;
     
-    public TangibleUnitDeserialization(UnitAllegiance allegiance, UnitDeserialization unit, CharacterUnitInfo unitCharacterInfo, PositionedUnitParams params, MapCoords position) {
+    public TangibleUnitDeserialization(UnitAllegiance allegiance, UnitDeserialization unit, CharacterizedUnit.Info unitCharacterInfo, PositionedUnit.Params params, MapCoords position) {
         this.allegiance = allegiance;
         this.unit = unit;
         this.unitCharacterInfo = unitCharacterInfo;

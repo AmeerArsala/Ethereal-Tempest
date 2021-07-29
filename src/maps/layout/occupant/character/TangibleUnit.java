@@ -25,12 +25,11 @@ import etherealtempest.ai.AI;
 import etherealtempest.ai.AI.Behavior;
 import etherealtempest.ai.AI.Condition;
 import etherealtempest.ai.ConditionalBehavior;
-import fundamental.unit.UnitAllegiance;
-import fundamental.stats.Bonus;
-import fundamental.stats.Bonus.BonusType;
-import fundamental.stats.Bonus.StatType;
+import fundamental.unit.aspect.UnitAllegiance;
+import fundamental.stats.alteration.Bonus;
+import fundamental.stats.alteration.Bonus.BonusType;
+import fundamental.stats.alteration.Bonus.StatType;
 import fundamental.talent.TalentCondition.Occasion;
-import fundamental.unit.CharacterUnitInfo;
 import fundamental.unit.PositionedUnit;
 import general.tools.GameTimer;
 import maps.layout.occupant.character.Spritesheet.AnimationState;
@@ -41,7 +40,7 @@ import maps.flow.MapFlow;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
 import etherealtempest.GameProtocols;
-import fundamental.unit.PositionedUnitParams;
+import fundamental.unit.CharacterizedUnit;
 import maps.layout.occupant.VenturePeek;
 
 /**
@@ -94,7 +93,7 @@ public class TangibleUnit extends PositionedUnit {
         }
     };
     
-    public TangibleUnit(Unit X, CharacterUnitInfo info, PositionedUnitParams startingParams, UnitAllegiance startingAllegiance, AssetManager assetManager) {
+    public TangibleUnit(Unit X, CharacterizedUnit.Info info, PositionedUnit.Params startingParams, UnitAllegiance startingAllegiance, AssetManager assetManager) {
         super(X, info, startingParams, startingAllegiance);
         
         //create visuals
@@ -107,7 +106,7 @@ public class TangibleUnit extends PositionedUnit {
         visuals.updateSprite();
     }
     
-    public TangibleUnit(Unit X, CharacterUnitInfo info, PositionedUnitParams startingParams, UnitAllegiance startingAllegiance, MapCoords startingPos, AssetManager assetManager) {
+    public TangibleUnit(Unit X, CharacterizedUnit.Info info, PositionedUnit.Params startingParams, UnitAllegiance startingAllegiance, MapCoords startingPos, AssetManager assetManager) {
         this(X, info, startingParams, startingAllegiance, assetManager);
         pos.set(startingPos);
     }

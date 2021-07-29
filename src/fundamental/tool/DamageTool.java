@@ -9,7 +9,7 @@ import fundamental.jobclass.JobClass.MobilityType;
 import fundamental.item.weapon.WeaponAttribute;
 import fundamental.item.weapon.WeaponType;
 import fundamental.stats.BaseStat;
-import fundamental.stats.RawBroadBonus;
+import fundamental.RawBroadBonus;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -6,12 +6,12 @@
 package fundamental.formation;
 
 import com.google.gson.Gson;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import fundamental.Gear;
-import fundamental.stats.Bonus.StatType;
+import fundamental.stats.alteration.Bonus.StatType;
 import fundamental.stats.StatBundle;
 import fundamental.stats.BaseStat;
-import fundamental.stats.RawBroadBonus;
+import fundamental.RawBroadBonus;
 import fundamental.talent.Talent;
 import java.io.IOException;
 import java.io.Reader;

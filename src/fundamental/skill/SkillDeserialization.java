@@ -8,7 +8,7 @@ package fundamental.skill;
 import fundamental.stats.BattleStat;
 import fundamental.stats.StatBundle;
 import fundamental.stats.StatBundleDeserialization;
-import fundamental.stats.Toll;
+import fundamental.stats.alteration.Toll;
 import fundamental.talent.Talent;
 import fundamental.talent.TalentConcept;
 import fundamental.tool.Tool.ToolType;

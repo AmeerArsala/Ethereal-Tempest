@@ -3,12 +3,14 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package fundamental.stats;
+package fundamental;
 
+import fundamental.stats.alteration.Bonus;
 import fundamental.ability.Ability;
 import fundamental.skill.Skill;
-import fundamental.stats.Bonus.BonusType;
-import fundamental.stats.Bonus.StatType;
+import fundamental.stats.StatBundle;
+import fundamental.stats.alteration.Bonus.BonusType;
+import fundamental.stats.alteration.Bonus.StatType;
 import fundamental.talent.Talent;
 import fundamental.talent.TalentCondition.Occasion;
 import java.util.ArrayList;
@@ -87,11 +89,11 @@ public class RawBroadBonus {
         String desc = "";
         
         if (acquiredSkill != null) {
-            desc += "Grants the Skill '" + acquiredSkill.getName() + "'\n";
+            desc += "Grants the Skill '" + acquiredSkill.getName() + "\n";
         }
         
         if (acquiredAbility != null) {
-            desc += "Grants the Ability '" + acquiredAbility.getName() + "'\n";
+            desc += "Grants the Ability '" + acquiredAbility.getName() + "\n";
         }
         
         if (acquiredTalent != null) {

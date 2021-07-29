@@ -9,8 +9,8 @@ import etherealtempest.info.Conveyor;
 import fundamental.Calculation;
 import fundamental.item.weapon.WeaponAttribute;
 import fundamental.item.weapon.WeaponType;
-import fundamental.stats.RawBroadBonus;
-import fundamental.stats.Toll;
+import fundamental.RawBroadBonus;
+import fundamental.stats.alteration.Toll;
 import java.util.ArrayList;
 import java.util.List;
 

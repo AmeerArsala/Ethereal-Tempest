@@ -5,7 +5,7 @@
  */
 package battle.data.participant;
 
-import fundamental.unit.CharacterUnitInfo;
+import fundamental.unit.CharacterizedUnit;
 
 /**
  *
@@ -38,7 +38,7 @@ public class CombatantStatistics {
         this.durabilityUsed = durabilityUsed;
     }
     
-    void apply(CharacterUnitInfo info) {
+    void apply(CharacterizedUnit.Info info) {
         info.addTotalExpGained(expGained);
         info.addTotalDamageDone(damageDone);
         info.addTotalDamageTaken(damageTaken);

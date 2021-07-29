@@ -5,7 +5,7 @@
  */
 package fundamental.stats;
 
-import fundamental.stats.Bonus.StatType;
+import fundamental.stats.alteration.Bonus.StatType;
 import java.util.ArrayList;
 import java.util.List;
 

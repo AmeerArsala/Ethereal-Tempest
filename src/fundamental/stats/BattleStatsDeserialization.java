@@ -28,29 +28,41 @@ public class BattleStatsDeserialization {
         this.Evasion = Evasion;
     }
     
-    public HashMap<BattleStat, Integer> createBattleStatMap() {
-        int statCount = 6;
-        HashMap<BattleStat, Integer> statMap = new HashMap<>();
-        
+    /*
         BattleStat[] battleStats = {
-            BattleStat.Accuracy,
             BattleStat.AttackPower,
-            BattleStat.AttackSpeed,
+            BattleStat.Accuracy,
+            BattleStat.Evasion,
             BattleStat.Crit,
             BattleStat.CritEvasion,
-            BattleStat.Evasion
+            BattleStat.AttackSpeed
         };
-        
-        int[] stats = {
-            Accuracy != null ? Accuracy : 0,
-            AttackPower != null ? AttackPower : 0,
-            AttackSpeed != null ? AttackSpeed : 0,
-            Crit != null ? Crit : 0,
-            CritEvasion != null ? CritEvasion : 0,
-            Evasion != null ? Evasion : 0
+    
+        ^^^ equivalent to BattleStat.values()
+    */
+    
+    public int[] battleStatValueArray(int defaultVal) {
+        return new int[] {
+            AttackPower != null ? AttackPower : defaultVal,
+            Accuracy != null ? Accuracy : defaultVal,
+            Evasion != null ? Evasion : defaultVal,
+            Crit != null ? Crit : defaultVal,
+            CritEvasion != null ? CritEvasion : defaultVal,
+            AttackSpeed != null ? AttackSpeed : defaultVal
         };
+    }
+    
+    public HashMap<BattleStat, Integer> createBattleStatMap() {
+        return createBattleStatMap(0);
+    }
+    
+    public HashMap<BattleStat, Integer> createBattleStatMap(int defaultVal) {
+        HashMap<BattleStat, Integer> statMap = new HashMap<>();
         
-        for (int i = 0; i < statCount; i++) {
+        BattleStat[] battleStats = BattleStat.values();
+        int[] stats = battleStatValueArray(defaultVal);
+        
+        for (int i = 0; i < battleStats.length; i++) {
             statMap.put(battleStats[i], stats[i]);
         }
         

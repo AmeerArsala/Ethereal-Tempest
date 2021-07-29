@@ -25,6 +25,20 @@
     "CritEvasion": 0,
     "Evasion": 0
   },
+  "bonusGrowthRates": {
+    "MaxHP": 0,
+    "MaxTP": 0,
+    "Strength": 10,
+    "Ether": 0,
+    "Agility": 5,
+    "Dexterity": 5,
+    "Comprehension": 0,
+    "Defense": 5,
+    "Resilience": 0,
+    "Mobility": 5,
+    "Physique": 5,
+    "BaseAdrenaline": 0
+  },
   "maxStats": {
     "Level": 50,
     "MaxHP": 32,

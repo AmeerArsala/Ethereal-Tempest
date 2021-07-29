@@ -5,7 +5,7 @@
  */
 package fundamental.formation;
 
-import fundamental.stats.RawBroadBonus;
+import fundamental.RawBroadBonus;
 import fundamental.stats.StatBundle;
 import fundamental.stats.StatBundleDeserialization;
 import fundamental.tool.Tool.ToolType;

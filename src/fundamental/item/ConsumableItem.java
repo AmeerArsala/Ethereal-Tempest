@@ -5,8 +5,8 @@
  */
 package fundamental.item;
 
-import fundamental.stats.RawBroadBonus;
-import fundamental.stats.Toll.Exchange;
+import fundamental.RawBroadBonus;
+import fundamental.stats.alteration.Toll.Exchange;
 
 /**
  *

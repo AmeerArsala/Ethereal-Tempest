@@ -14,7 +14,7 @@ import com.jme3.math.FastMath;
 import enginetools.MaterialCreator;
 import etherealtempest.info.Conveyor;
 import fundamental.Gear;
-import fundamental.stats.RawBroadBonus;
+import fundamental.RawBroadBonus;
 import general.math.function.RGBAFunction;
 import general.ui.Padding;
 import general.ui.menu.BasicMenu;

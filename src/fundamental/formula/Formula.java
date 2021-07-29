@@ -7,11 +7,11 @@ package fundamental.formula;
 
 import battle.animation.config.EntityAnimation.AnimationSource;
 import com.google.gson.Gson;
-import fundamental.stats.Toll;
-import fundamental.stats.Toll.Exchange;
+import fundamental.stats.alteration.Toll;
+import fundamental.stats.alteration.Toll.Exchange;
 import etherealtempest.fsm.MasterFsmState;
 import fundamental.BattleVisual;
-import fundamental.unit.UnitAllegiance;
+import fundamental.unit.aspect.UnitAllegiance;
 import fundamental.tool.DamageTool;
 import fundamental.Gear;
 import fundamental.tool.SupportTool;

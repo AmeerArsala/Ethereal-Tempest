@@ -97,7 +97,8 @@ public abstract class FSM<T extends Enum> {
         return lastState.getEnum();
     }
     
-    public enum GameState {
+    
+    public enum GameState { //TODO: put stuff here
         
     }
     
@@ -116,13 +117,13 @@ public abstract class FSM<T extends Enum> {
         
         PreBattle,
         DuringBattle,
-        PostBattle,
-        
-        //StatScreen states
-        StatScreenOpened,
-        StatScreenSelecting,
-        
-        GuiClosed
+        PostBattle;
+    }
+    
+    public enum StatScreenState {
+        Opened,
+        Selecting,
+        Closed
     }
     
     public enum CursorState {

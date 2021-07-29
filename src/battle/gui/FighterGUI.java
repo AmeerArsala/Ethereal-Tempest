@@ -363,8 +363,8 @@ public class FighterGUI {
         String equippedName;
         Texture iconTex;
         if (participant.getAttackType() == AttackType.Weapon) {
-            equippedName = participant.getUnit().getEquippedWPN().getName();
-            iconTex = participant.getUnit().getEquippedWPN().getWeaponData().getType().getIconTexture();
+            equippedName = participant.getUnit().getEquippedWeapon().getName();
+            iconTex = participant.getUnit().getEquippedWeapon().getWeaponData().getType().getIconTexture();
         } else { // participant.getAttackType() == AttackType.Formula
             equippedName = participant.getUnit().getEquippedFormula().getName();
             iconTex = participant.getUnit().getEquippedFormula().getActualFormulaData().getType().getIconTexture();

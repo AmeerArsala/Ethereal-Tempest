@@ -5,8 +5,6 @@
  */
 package fundamental;
 
-import fundamental.stats.RawBroadBonus;
-
 /**
  *
  * @author night
