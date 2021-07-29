@@ -92,12 +92,12 @@ public class SingularForecast extends IndividualForecast {
     
     public void finishFight() {
         combatant.applyAllStatsToUnit();
-        combatant.getUnit().getUnitInfo().incrementFights();
+        combatant.getUnit().getUnitStatisticsModifier().incrementFights();
         if (combatant.getBaseStat(BaseStat.CurrentHP) <= 0) { //dead
-            combatant.getUnit().getUnitInfo().incrementLosses();
+            combatant.getUnit().getUnitStatisticsModifier().incrementLosses();
             combatant.getUnit().getFSM().setNewStateIfAllowed(UnitState.Dying);
         } else if (opponent.getBaseStat(BaseStat.CurrentHP) <= 0) {
-            opponent.getUnit().getUnitInfo().incrementWins();
+            opponent.getUnit().getUnitStatisticsModifier().incrementWins();
         }
     }
     

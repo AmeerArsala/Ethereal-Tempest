@@ -6,6 +6,7 @@
 package fundamental.unit;
 
 import com.google.gson.annotations.Expose;
+import com.jme3.math.FastMath;
 import com.jme3.texture.Texture;
 import fundamental.stats.BaseStat;
 import java.util.Arrays;
@@ -16,25 +17,89 @@ import java.util.Arrays;
  */
 public class CharacterizedUnit extends Unit {
     private final Info info;
+    private final StatisticsModifier unitStatisticsModifier; 
     
     //copies fields
-    public CharacterizedUnit(Unit X, Info info) {
+    public CharacterizedUnit(Unit X, Info unitInfo) {
         super(X.getName(), X.getJobClass(), X.getRawBaseStats(), X.getGrowthRates(), X.getInventory(), X.getFormulaManager(), X.getTalentManager(), X.getSkillManager(), X.getAbilityManager(), X.getFormationManager());
-        this.info = info;
+        info = unitInfo;
+        
+        unitStatisticsModifier = new StatisticsModifier() {
+            @Override
+            public void incrementWins() {
+                ++info.wins;
+            }
+        
+            @Override
+            public void incrementLosses() {
+                ++info.losses;
+                growthRates.addToAllPityGrowthRates(4, Arrays.asList(BaseStat.Level, BaseStat.CurrentHP, BaseStat.CurrentTP, BaseStat.Adrenaline));
+            }
+            
+            @Override
+            public void incrementFights() {
+                ++info.fights;
+                growthRates.addToAllPityGrowthRates(1, Arrays.asList(BaseStat.Level, BaseStat.CurrentHP, BaseStat.CurrentTP, BaseStat.Adrenaline));
+            }
+            
+            @Override
+            public void addTotalDamageDone(int dmg) {
+                info.totalDamageDone += dmg;
+            }
+            
+            @Override
+            public void addTotalDamageTaken(int dmg) {
+                info.totalDamageTaken += dmg;
+                onAddTotalDamageTaken(dmg);
+            }
+            
+            @Override
+            public void addTotalTPlost(int tp) {
+                info.totalTPlost += tp;
+                onAddTotalTPlost(tp);
+            }
+            
+            @Override
+            public void addTotalExpGained(int exp) {
+                info.totalExpGained += exp;
+            }
+            
+            @Override
+            public void addTotalHitsDodged(int dodges) {
+                info.totalHitsDodged += dodges;
+                onAddTotalHitsDodged(dodges);
+            }
+            
+            @Override
+            public void addTotalCriticals(int crits) {
+                info.totalCriticals += crits;
+                onAddTotalCriticals(crits);
+            }
+            
+            @Override
+            public void addTotalDurabilityUsed(float used) {
+                info.totalDurabilityUsed += used;
+                onAddTotalDurabilityUsed(used);
+            }
+        };
     }
     
     public Info getUnitInfo() {
         return info;
     }
+
+    public StatisticsModifier getUnitStatisticsModifier() {
+        return unitStatisticsModifier;
+    }
     
-    public class Info {
+    public static class Info {
         @Expose(deserialize = false) private Texture portraitTexture;
         private String portraitTexturePath;     // example: "Textures/portraits/Morva.png"
         private String battleOverlayConfigName; // example: "morva.json"
         
-        private int wins = 0, losses = 0, fights = 0;
-        private int totalDamageDone = 0, totalDamageTaken = 0, totalTPlost = 0, totalExpGained = 0, totalHitsDodged = 0, totalCriticals = 0;
-        private float totalDurabilityUsed = 0f;
+        int wins = 0, losses = 0, fights = 0;
+        int totalDamageDone = 0, totalDamageTaken = 0, totalTPlost = 0, totalExpGained = 0, totalHitsDodged = 0, totalCriticals = 0;
+        float totalDurabilityUsed = 0f;
         
         public Info(String portraitTexturePath, String battleOverlayConfigName) {
             this.portraitTexturePath = portraitTexturePath;
@@ -88,50 +153,61 @@ public class CharacterizedUnit extends Unit {
         public void setBattleOverlayConfigName(String overlayName) { // use for like: Morva to Morvanael
             battleOverlayConfigName = overlayName;
         }
+    }
+    
+    public static interface StatisticsModifier {
+        public void incrementWins();
+        public void incrementLosses();
+        public void incrementFights();
+        public void addTotalDamageDone(int dmg);
+        public void addTotalDamageTaken(int dmg);
+        public void addTotalTPlost(int tp);
+        public void addTotalExpGained(int exp);
+        public void addTotalHitsDodged(int dodges);
+        public void addTotalCriticals(int crits);
+        public void addTotalDurabilityUsed(float used);
+    }
+    
+    private void onAddTotalDamageTaken(int dmg) {
+        float dmgRatio = ((float)dmg) / getMaxHP();
         
-        public void incrementWins() {
-            ++wins;
+        int def = getDEF();
+        int rsl = getRSL();
+        
+        BaseStat pityStat;
+        if (dmgRatio > 0.5f) {
+            //take the lower of the 2 defensive stats and use it as pity
+            if (def <= rsl) {
+                pityStat = BaseStat.Defense;
+            } else {
+                pityStat = BaseStat.Resilience;
+            }
+        } else {
+            //take the higher of the 2 defensive stats and use it as pity
+            if (rsl >= def) {
+                pityStat = BaseStat.Resilience;
+            } else {
+                pityStat = BaseStat.Defense;
+            }
         }
         
-        public void incrementLosses() {
-            ++losses;
-            growthRates.addToAllPityGrowthRates(4, Arrays.asList(BaseStat.Level, BaseStat.CurrentHP, BaseStat.CurrentTP, BaseStat.Adrenaline));
-        }
-        
-        public void incrementFights() {
-            ++fights;
-            growthRates.addToAllPityGrowthRates(1, Arrays.asList(BaseStat.Level, BaseStat.CurrentHP, BaseStat.CurrentTP, BaseStat.Adrenaline));
-        }
-        
-        public void addTotalDamageDone(int dmg) {
-            totalDamageDone += dmg;
-        }
-        
-        public void addTotalDamageTaken(int dmg) {
-            totalDamageTaken += dmg;
-        }
-        
-        public void addTotalTPlost(int tp) {
-            totalTPlost += tp;
-        }
-        
-        public void addTotalExpGained(int exp) {
-            totalExpGained += exp;
-        }
-        
-        public void addTotalHitsDodged(int dodges) {
-            totalHitsDodged += dodges;
-            growthRates.addToPityGrowthRate(BaseStat.Agility, dodges * 5);
-        }
-        
-        public void addTotalCriticals(int crits) {
-            totalCriticals += crits;
-            growthRates.addToPityGrowthRate(BaseStat.Dexterity, crits * 10);
-        }
-        
-        public void addTotalDurabilityUsed(float used) {
-            totalDurabilityUsed += used;
-            growthRates.addToPityGrowthRate(BaseStat.MaxTP, (int)used);
-        }
+        growthRates.addToPityGrowthRate(pityStat, (int)(15f * dmgRatio));
+        growthRates.addToPityGrowthRate(BaseStat.MaxHP, (int)(17.5f * dmgRatio));
+    }
+    
+    private void onAddTotalTPlost(int tp) {
+        growthRates.addToPityGrowthRate(BaseStat.MaxTP, (int)FastMath.clamp(tp / 2f, 1, 10));
+    }
+    
+    private void onAddTotalHitsDodged(int dodges) {
+        growthRates.addToPityGrowthRate(BaseStat.Agility, dodges * 5);
+    }
+    
+    private void onAddTotalCriticals(int crits) {
+        growthRates.addToPityGrowthRate(BaseStat.Dexterity, crits * 7);
+    }
+    
+    private void onAddTotalDurabilityUsed(float used) {
+        growthRates.addToPityGrowthRate(BaseStat.Physique, (int)FastMath.clamp(used, 1, 5));
     }
 }

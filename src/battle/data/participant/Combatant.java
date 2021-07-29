@@ -185,7 +185,7 @@ public class Combatant {
         tu.setRawBaseStat(BaseStat.CurrentHP, combatBaseStats.get(BaseStat.CurrentHP));
         tu.setRawBaseStat(BaseStat.CurrentTP, combatBaseStats.get(BaseStat.CurrentTP));
         
-        statistics.apply(tu.getUnitInfo());
+        statistics.apply(tu.getUnitStatisticsModifier());
     }
     
     public float secondsToDrain(BaseStat statToDrain, BaseStat defensiveStat, int dmg, boolean isCrit) {

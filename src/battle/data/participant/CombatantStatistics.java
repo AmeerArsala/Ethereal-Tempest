@@ -38,13 +38,13 @@ public class CombatantStatistics {
         this.durabilityUsed = durabilityUsed;
     }
     
-    void apply(CharacterizedUnit.Info info) {
-        info.addTotalExpGained(expGained);
-        info.addTotalDamageDone(damageDone);
-        info.addTotalDamageTaken(damageTaken);
-        info.addTotalDurabilityUsed(durabilityUsed);
-        info.addTotalTPlost(tpLost);
-        info.addTotalHitsDodged(hitsDodged);
-        info.addTotalCriticals(numOfCrits);
+    void apply(CharacterizedUnit.StatisticsModifier modifier) {
+        modifier.addTotalExpGained(expGained);
+        modifier.addTotalDamageDone(damageDone);
+        modifier.addTotalDamageTaken(damageTaken);
+        modifier.addTotalDurabilityUsed(durabilityUsed);
+        modifier.addTotalTPlost(tpLost);
+        modifier.addTotalHitsDodged(hitsDodged);
+        modifier.addTotalCriticals(numOfCrits);
     }
 }

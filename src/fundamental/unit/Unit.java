@@ -247,7 +247,7 @@ public class Unit extends Entity {
             case Level:
                 return stats.get(BaseStat.Level);
             case MaxTP:
-                return getMaxTP();
+                return getMaxTP();      //not for the classes that extend this, but if you need to then go for it
             case Mobility:
                 return getMOBILITY();   //for the classes that extend this
             case Adrenaline:
@@ -402,6 +402,8 @@ public class Unit extends Entity {
             
             if (growth > 0) {
                 growthRates.flushPityDeltaGrowthRate(based);
+            } else if (growth == 0 && based != BaseStat.Mobility && based != BaseStat.Adrenaline) {
+                growthRates.addToPityGrowthRate(based, 3);
             }
         }
     }
@@ -413,6 +415,8 @@ public class Unit extends Entity {
             
             if (growth > 0) {
                 growthRates.flushPityDeltaGrowthRate(based);
+            } else if (growth == 0 && based != BaseStat.Mobility && based != BaseStat.Adrenaline) {
+                growthRates.addToPityGrowthRate(based, 3);
             }
         }
     }
