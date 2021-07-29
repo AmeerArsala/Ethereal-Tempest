@@ -35,7 +35,7 @@
           {
             "strFunc": {
               "parameter": "t",
-              "xFunction": "0.1"
+              "xFunction": "0.01"
             },
             "domain": "0-?" //0 to infinity; could be written in any way as long as 0 is the first character and ? is the last character. Other examples: "0 to ?", "0?", "0 ?", "0, ?", etc.
           }

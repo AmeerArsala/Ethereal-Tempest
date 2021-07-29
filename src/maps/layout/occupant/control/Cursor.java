@@ -325,18 +325,14 @@ public class Cursor extends Node implements OnTile {
     public void update(float tpf) {
         updateCorrection(tpf);
         updateTraversals(tpf);
+        updateForInteraction(tpf);
         
-        if (fsm.getEnumState() == CursorState.Idle) {
-            rangeDisplay.cancelRange();
-        } else {
-            updateForInteraction(tpf);
-        
-            if (fsm.canTakeInput()) {
-                interpreter.update(tpf);
-            }
-            
-            updatePointerAndLighting(tpf);
+        if (fsm.canTakeInput()) {
+            interpreter.update(tpf);
         }
+            
+        updatePointerAndLighting(tpf);
+        
         
         timer.update(tpf);
     }
@@ -391,7 +387,8 @@ public class Cursor extends Node implements OnTile {
                 fsm.setNewStateIfAllowed(CursorState.AnyoneHovered); //sets it if and only if fsm.getEnumState() == CursorState.CursorDefault
                 
                 if (fsm.getEnumState() == CursorState.AnyoneHovered || (fsm.getEnumState() == CursorState.AnyoneSelected && tu.isSelected())) {
-                    rangeDisplay.displayRange(tu, fsm.getEnumState().getCorrespondingTileOpacity());
+                    float tileOpacity = visible ? fsm.getEnumState().getCorrespondingTileOpacity() : 0;
+                    rangeDisplay.displayRange(tu, tileOpacity);
                 }
             } else if (!tu.isSelected() && fsm.getEnumState() != CursorState.AnyoneSelected) { //if nobody is selected nor is this unit selected
                 fsm.setNewStateIfAllowed(CursorState.CursorDefault); //cancels range too

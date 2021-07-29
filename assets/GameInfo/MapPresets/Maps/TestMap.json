@@ -69,6 +69,7 @@
           "Level": 1,
           "MaxHP": 28,
           "MaxTP": 0,
+          //"CurrentHP": 14,
           "Strength": 8,
           "Ether": 5,
           "Agility": 16,

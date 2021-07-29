@@ -118,7 +118,6 @@ public class MapFlow { //eventually make this the map controller
                     receiver = null;
                     break;
                 case MapDefault:
-                    cursor.getFSM().forceState(CursorState.CursorDefault);
                     cursor.setVisible(allowInput = true);
                     break;
             }
@@ -292,7 +291,6 @@ public class MapFlow { //eventually make this the map controller
         queue.add((tpf) -> {
             float alpha = 1.5f * FastMath.sin((FastMath.PI / seconds) * timer.getTime());
             phaseText.setTextAlpha(alpha);
-            //phaseText.setTextColor(new ColorRGBA(1, 1, 1, alpha));
             
             if (alpha < 0f) {
                 localGuiNode.detachChild(phaseText);
@@ -305,7 +303,6 @@ public class MapFlow { //eventually make this the map controller
         });
         
         cursor.setVisible(allowInput = false);
-        cursor.getFSM().setNewStateIfAllowed(CursorState.Idle);
     }
     
     public String getPhaseString() { //Player Turn, Enemy Turn, Ally Turn, 3rd Party Turn, 4th Party Turn, 5th Party Turn... etc.
