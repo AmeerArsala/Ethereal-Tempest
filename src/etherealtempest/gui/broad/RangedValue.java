@@ -59,6 +59,10 @@ public abstract class RangedValue {
         proceedToPercent(value / maxNumber, seconds);
     }
     
+    public void proceedToValue(float value, float seconds, float secondsToWaitAtEnd) {
+        proceedToPercent(value / maxNumber, seconds, secondsToWaitAtEnd);
+    }
+    
     //for regular use
     public void proceedToPercent(float percent, float seconds) {
         GameTimer local = new GameTimer();
@@ -70,6 +74,26 @@ public abstract class RangedValue {
             if (local.getTime() >= seconds) {
                 setPercent(percent); 
                 return true;
+            }
+            
+            return false;
+        });
+    }
+    
+    //for regular use
+    public void proceedToPercent(float percent, float seconds, float secondsToWaitAtEnd) {
+        GameTimer local = new GameTimer();
+        CartesianFunction func = CartesianFunction.pointSlopeLine(percentFull, percent, 0, seconds);
+        procedures.add((tpf) -> {
+            if (local.getTime() >= seconds + secondsToWaitAtEnd) {
+                return true;
+            }
+            
+            percentFull = func.output(local.getTime());
+            local.update(tpf);
+            
+            if (local.getTime() >= seconds) {
+                setPercent(percent); 
             }
             
             return false;

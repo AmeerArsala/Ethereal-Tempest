@@ -35,6 +35,13 @@ import java.util.Objects;
  * actual frame is the actual frame from the animation
  */
 public class EntityAnimation {
+    public enum Tag {
+        LinksToNextHitPoint, //takes the hitPoint of the next animation
+        Attack,
+        ChainLink, //links to the next animation but if the next one is also ChainLink, it links to the ones after
+        Default;
+    }
+    
     public enum AnimationSource { 
         @SerializedName("Spritesheet") Spritesheet((EntityAnimationCreator<VisibleEntitySpriteAnimation>)(config, params) -> {
             return new VisibleEntitySpriteAnimation(config, params);
@@ -64,15 +71,17 @@ public class EntityAnimation {
     @Expose(deserialize = false) private int minLocalFrameForRegisteringImpact; //each impact can only be registered once
     
     private String configPath; //path to PossibleConfig (config)
-    private Vector2f hitPoint; //hitbox
+    private Tag tag; //tag which specifies certain aspects to further specialize the animation
+    private Vector2f hitPoint; //focal point at which the hit occurs
     private ColumnDomainDelayMapping[] animation; //which frames to use and their delays
     private Boolean loopAnimationVisually; //whether the animation is looped visually or not
     private Float delayForIndefiniteChanges; //delay for Changes that go on for an indefinite duration
     private ActionFrame impact; //impact sound; this can also be the start of casting ether formulas/spells
     private ActionFrame[] otherActionFrames; //other sounds at specified frames
     
-    public EntityAnimation(String configPath, Vector2f hitPoint, ColumnDomainDelayMapping[] animation, Boolean loopAnimationVisually, Float delayForIndefiniteChanges, ActionFrame impact, ActionFrame[] otherActionFrames) {
+    public EntityAnimation(String configPath, Tag tag, Vector2f hitPoint, ColumnDomainDelayMapping[] animation, Boolean loopAnimationVisually, Float delayForIndefiniteChanges, ActionFrame impact, ActionFrame[] otherActionFrames) {
         this.configPath = configPath;
+        this.tag = tag;
         this.hitPoint = hitPoint;
         this.animation = animation;
         this.loopAnimationVisually = loopAnimationVisually;
@@ -103,6 +112,10 @@ public class EntityAnimation {
     }
     
     private void initializeMiscProperties() { //set default values for property fields
+        if (tag == null) {
+            tag = Tag.Default;
+        }
+        
         if (loopAnimationVisually == null) {
             loopAnimationVisually = false;
         }
@@ -128,6 +141,10 @@ public class EntityAnimation {
     
     public PossibleConfig getConfig() { 
         return config; 
+    }
+    
+    public Tag getTag() {
+        return tag;
     }
     
     public Vector2f getHitPoint() {

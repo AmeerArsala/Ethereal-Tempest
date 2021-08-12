@@ -315,8 +315,10 @@ public class FighterGUI {
             uiNode.attachChild(expbar.getExpCircle());
         }
         
+        int previousExpValue = forecast.getCombatant().getUnit().currentEXP;
         int nextExpValue = forecast.getCombatant().addExpGained(); //add exp gained
-        expbar.proceedToValue(nextExpValue, 3f * nextExpValue / Combatant.MAX_EXP_VALUE);
+        float gainedExpRatio = ((nextExpValue - previousExpValue) / ((float)Combatant.MAX_EXP_VALUE));
+        expbar.proceedToValue(nextExpValue, 2.5f * gainedExpRatio, 0.5f);
     }
     
     public void levelUp() {

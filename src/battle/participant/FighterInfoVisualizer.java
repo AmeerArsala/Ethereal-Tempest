@@ -22,6 +22,7 @@ import com.jme3.scene.shape.Box;
 import com.jme3.scene.Geometry;
 import com.jme3.material.Material;
 import enginetools.MaterialCreator;
+import enginetools.math.Vector3F;
 import etherealtempest.fsm.FSM;
 import etherealtempest.fsm.FSM.FighterState;
 import etherealtempest.fsm.FsmState;
@@ -142,30 +143,6 @@ public class FighterInfoVisualizer {
         }
     }
     
-    public FighterAnimationController.AnimationParams onReceiveImpact(Strike currentStrike) {
-        VisualTransition animation = hpImpact(currentStrike);
-        
-        return new FighterAnimationController.AnimationParams(
-            (tpf) -> {
-                //damage number rising
-                animation.update(tpf);
-            },
-            (enemySprite) -> {
-                boolean finished;
-                
-                //return true if damage number is finished showing up and hp is finished draining
-                if (currentStrike.didHit()) {
-                    //BUG: (animation.getTransitionProgress() == Progress.Finished) is never true
-                    finished = animation.getTransitionProgress() == Progress.Finished && gui.getHPHeart().isQueueEmpty();
-                } else {
-                    finished = animation.getTransitionProgress() == Progress.Finished;
-                }
-                
-                return finished;
-            }
-        );
-    }
-    
     public FighterAnimationController.AnimationParams onStartPossibleModification() {
         List<VisualTransition> animations = new ArrayList<>();
         
@@ -196,6 +173,29 @@ public class FighterInfoVisualizer {
                 }
                 
                 return true;
+            }
+        );
+    }
+    
+    public FighterAnimationController.AnimationParams onReceiveImpact(Strike currentStrike) {
+        VisualTransition animation = hpImpact(currentStrike);
+        
+        return new FighterAnimationController.AnimationParams(
+            (tpf) -> {
+                //damage number rising
+                animation.update(tpf);
+            },
+            (enemySprite) -> {
+                boolean finished;
+                
+                //return true if damage number is finished showing up and hp is finished draining
+                if (currentStrike.didHit()) {
+                    finished = animation.getTransitionProgress() == Progress.Finished && gui.getHPHeart().isQueueEmpty();
+                } else {
+                    finished = animation.getTransitionProgress() == Progress.Finished;
+                }
+                
+                return finished;
             }
         );
     }
@@ -266,7 +266,7 @@ public class FighterInfoVisualizer {
             battleBoxInfo
         );
         
-        return createRisingText(text, 0.4f);
+        return createRisingText(text, 0.5f);
     }
     
     private VisualTransition createRisingText(Text2D text, float seconds) {
@@ -287,13 +287,22 @@ public class FighterInfoVisualizer {
         );
         
         animation.onFinishTransitions(() -> {
-            sprite.detachChild(text);
+            sprite.getParent().detachChild(text);
         });
         
-        sprite.attachChild(text);
+        sprite.getParent().attachChild(text);
         
-        Vector2f relativeTranslation = sprite.vectorInPositiveDirection(sprite.getDamageNumberLocation(), true);
-        text.move(relativeTranslation.x, relativeTranslation.y, 0.01f);
+        /*
+        Vector2f damageNumberPos = battleBoxInfo.boxLengths().multLocal(sprite.getDamageNumberLocationPercent());
+        damageNumberPos.x += battleBoxInfo.getLeftEdgePosition();
+        damageNumberPos.y += battleBoxInfo.getBottomEdgePosition();
+        text.setLocalTranslation(Vector3F.fit(damageNumberPos, 0.011f));
+        */
+        
+        text.setLocalTranslation(sprite.getDamageNumberLocation());
+        
+        //Vector2f relativeTranslation = sprite.vectorInPositiveDirection(sprite.getDamageNumberLocation(), true);
+        //text.move(relativeTranslation.x, relativeTranslation.y, 0.011f);
         
         return animation;
     }

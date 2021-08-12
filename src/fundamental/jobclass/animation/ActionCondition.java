@@ -28,22 +28,27 @@ public enum ActionCondition {
         //A Followup animation is used iff the last non-special Strike was made by the user
         //A Strike is considered 'special' if it is either a crit or triggers a BattleTalent
         //Fun Fact: If you think about it, a followup Strike will always occur on an odd index
-        for (int i = rep.getStrikeReel().getIndex(); i > 0; --i) {
-            Participant role = rep.getRoleForStrike(i);
-            
-            if (role != Participant.Striker) {
+        int i = rep.getStrikeReel().getIndex();
+        CombatFlowData.Representative strikeRep = UserIsStriker.test(rep) ? rep : rep.getOpponent();
+        if (i % 2 == 1) { //odd index
+            Participant prevRole = strikeRep.getRoleForStrike(i - 1);
+            if (prevRole != Participant.Striker) {
                 return false;
             }
             
-            boolean strikeIsSpecial = 
-                rep.getStrikeReel().strikeTheater.getActualStrike(i).isCrit() || 
-                rep.getStrikeReel().strikeTheater.getActualStrike(i).getStriker().triggeredBattleTalent();
+            boolean currentStrikeIsSpecial =
+                strikeRep.getStrikeReel().strikeTheater.getActualStrike(i).isCrit() || 
+                strikeRep.getStrikeReel().strikeTheater.getActualStrike(i).getStriker().triggeredBattleTalent();
             
-            if (!strikeIsSpecial) { //role == Participant.Striker evaluates to true
+            //maybe remove the prevStrikeWasSpecial in case you prefer it
+            boolean prevStrikeWasSpecial =
+                strikeRep.getStrikeReel().strikeTheater.getActualStrike(i - 1).isCrit() || 
+                strikeRep.getStrikeReel().strikeTheater.getActualStrike(i - 1).getStriker().triggeredBattleTalent();
+            
+            if (!currentStrikeIsSpecial && !prevStrikeWasSpecial) { //role == Participant.Striker evaluates to true
                 return true;
             }
         }
-        
         
         return false;
     }),

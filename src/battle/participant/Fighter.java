@@ -18,6 +18,8 @@ import battle.data.forecast.SingularForecast;
 import battle.environment.BattleBox;
 import battle.environment.BoxMetadata;
 import battle.gui.FighterGUI;
+import battle.participant.paramswrapper.AnimationArgsWrapper;
+import battle.participant.paramswrapper.DashAnimationArgsWrapper;
 import battle.participant.visual.BattleSprite;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
@@ -99,10 +101,10 @@ public class Fighter {
     public void setOpponent(Fighter opponent) {
         opponentSprite = opponent.sprite;
         controller.getCurrentAnimationQueue().onStrikeFinished(
-            () -> { 
+            () -> {
                 decisionData.getStrikeReel().incrementIndex(); //only increment once and do it before anything else
                 onStrikeEnd.run();
-            }, 
+            },
             opponent.onStrikeEnd
         );
         
@@ -154,15 +156,17 @@ public class Fighter {
         
         decisionData.incrementMinStrikeIndexToReceiveImpact();
         
-        controller.nextReceiveImpactAnimation(visualizer.onReceiveImpact(currentStrike), opponentSprite, decisionData);
+        controller.nextReceiveImpactAnimation(new AnimationArgsWrapper(visualizer.onReceiveImpact(currentStrike), opponentSprite, decisionData));
     }
     
     public void attemptStrike() {
         if (currentRole == Participant.Striker) {
+            sprite.divergeFromDefaultZPos(0.01f);
             forecast.getCombatant().applySkillTollIfAny();
             nextAttackAnimation();
             setConstants(ConstantsDealer.USER);
         } else { // currentRole == Participant.Victim
+            sprite.revertToDefaultZPos();
             setConstants(ConstantsDealer.OPPONENT);
         }
     }
@@ -188,6 +192,8 @@ public class Fighter {
         Strike strike = decisionData.getStrikeReel().getCurrentStrike();
         UpdateLoop onDashUpdate;
         FighterAnimationController.AnimationParams animParams = visualizer.onStartPossibleModification();
+        
+        AnimationArgsWrapper args = new AnimationArgsWrapper(animParams, opponentSprite, decisionData);
 
         //if using skill, use skill animation. If triggered talent, use that animation. Otherwise, use regular attack animation
         if (strike.isSkill()) { //skill attack
@@ -197,7 +203,7 @@ public class Fighter {
                 //onDashUpdate
             };
             
-            controller.nextSkillAttackAnimation(skillName, onDashUpdate, animParams, opponentSprite, decisionData);
+            controller.nextSkillAttackAnimation(skillName, args.withDashUpdate(onDashUpdate));
         } else if (strike.getStriker().triggeredBattleTalent()) { //battle talent attack
             String triggeredTalentName = strike.getStriker().getTriggeredBattleTalent().getName();
             
@@ -205,14 +211,14 @@ public class Fighter {
                 //onDashUpdate
             };
             
-            controller.nextBattleTalentAttackAnimation(triggeredTalentName, onDashUpdate, animParams, opponentSprite, decisionData);
+            controller.nextBattleTalentAttackAnimation(triggeredTalentName, args.withDashUpdate(onDashUpdate));
         } else { //regular attack
             
             onDashUpdate = (tpf) -> {
                 //onDashUpdate
             };
             
-            controller.nextAttackAnimation(onDashUpdate, animParams, opponentSprite, decisionData);
+            controller.nextAttackAnimation(args.withDashUpdate(onDashUpdate));
         }
     }
     
@@ -289,6 +295,7 @@ public class Fighter {
             }
             
             sprite.setLocalTranslation(horizontalEdge, verticalEdge, zLocation);
+            sprite.setDefaultZPos(zLocation);
             sprite.setCullHint(CullHint.Never);
             
             sprite.setHitPointIfAllowed(sheetConfig.getHitPoint());

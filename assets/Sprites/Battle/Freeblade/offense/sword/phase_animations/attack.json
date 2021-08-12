@@ -1,5 +1,6 @@
 {
   "configPath": "Sprites\\Battle\\Freeblade\\offense\\sword\\config.json",
+  "tag": "Attack",
   "hitPoint": {
     "x": 0.275,
     "y": 0.65

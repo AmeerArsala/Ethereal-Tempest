@@ -24,14 +24,17 @@ import java.util.concurrent.Future;
 public class Globals {
     public static final int STANDARD_FPS = 60;
     public static final Vector3f WORLD_UP_VECTOR = new Vector3f(0, 1, 0); //do not fuck with this unless you set it back to normal after
+    public static boolean gameIsFrozen = false;
     
     static final GameTimer timer = new GameTimer();
     static final ProcedureGroup tasks = new ProcedureGroup();
     static Main app;
     
     static void update(float tpf) {
-        tasks.update(tpf);
-        timer.update(tpf);
+        if (!gameIsFrozen) {
+            tasks.update(tpf);
+            timer.update(tpf);
+        }
     }
     
     public static int frameCount() {

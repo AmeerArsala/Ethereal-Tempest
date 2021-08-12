@@ -66,7 +66,7 @@ import maps.flow.MapFlow.Turn;
 import maps.data.MapData;
 import maps.layout.occupant.MapEntity;
 import maps.layout.MapCoords;
-import etherealtempest.GameProtocols;
+import etherealtempest.GameplayProtocols;
 import etherealtempest.fsm.FSM.StatScreenState;
 import maps.data.MapLevelLoader;
 import maps.layout.tile.Tile;
@@ -149,6 +149,23 @@ public class MapLevelAppState extends AbstractAppState {
             @Override
             public void onAction(String name, boolean keyPressed, float tpf) {
                 if (!MapLevelLoader.isCurrentMapLevelDoneLoading() || !mapFlow.allowInput()) {
+                    return;
+                }
+                
+                if (name.equals("toggle freeze") && keyPressed) {
+                    Globals.gameIsFrozen = !Globals.gameIsFrozen;
+                    return;
+                }
+                
+                if (Globals.gameIsFrozen) {
+                    if (name.equals("advance frame") && keyPressed) {
+                        Globals.gameIsFrozen = false;
+                        procedures.add((tpf1) -> {
+                            Globals.gameIsFrozen = true;
+                            return true;
+                        });
+                    }
+                    
                     return;
                 }
                 
@@ -253,7 +270,7 @@ public class MapLevelAppState extends AbstractAppState {
         statsMenu.initializeRenders();
         actionMenu.getNode().setLocalTranslation(Globals.getScreenWidth() / 2.07f, (7 / 17f) * Globals.getScreenHeight(), actionMenu.getNode().getLocalTranslation().z);
         
-        GameProtocols.setOpenPostActionMenu(() -> {
+        GameplayProtocols.setOpenPostActionMenu(() -> {
             localGuiNode.attachChild(actionMenu.getNode());
             mapFlow.getCursor().setVisible(false);
             actionMenu.setOpen(true);
@@ -345,6 +362,8 @@ public class MapLevelAppState extends AbstractAppState {
         inputManager.addMapping("lshift", new KeyTrigger(KeyInput.KEY_LSHIFT));
         inputManager.addMapping("F", new KeyTrigger(KeyInput.KEY_F));
         inputManager.addMapping("enter", new KeyTrigger(KeyInput.KEY_RETURN));
+        inputManager.addMapping("toggle freeze", new KeyTrigger(KeyInput.KEY_P));
+        inputManager.addMapping("advance frame", new KeyTrigger(KeyInput.KEY_PERIOD));
         inputManager.addMapping("left click", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addMapping("right click", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addMapping("scroll up", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
@@ -367,6 +386,9 @@ public class MapLevelAppState extends AbstractAppState {
         inputManager.addListener(actionListener, "lshift");
         inputManager.addListener(actionListener, "F");
         inputManager.addListener(actionListener, "enter");
+        
+        inputManager.addListener(actionListener, "toggle freeze");
+        inputManager.addListener(actionListener, "advance frame");
         
         inputManager.addListener(actionListener, "select");
         inputManager.addListener(actionListener, "deselect");
@@ -401,6 +423,10 @@ public class MapLevelAppState extends AbstractAppState {
     
     @Override
     public void update(float tpf) {
+        if (Globals.gameIsFrozen) {
+            return;
+        }
+        
         //int fps = (int)(1 / tpf);
         
         actionMenu.update(tpf);

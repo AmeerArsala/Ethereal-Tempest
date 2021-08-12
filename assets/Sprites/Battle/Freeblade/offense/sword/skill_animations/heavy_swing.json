@@ -1,5 +1,6 @@
 {
   "configPath": "Sprites\\Battle\\Freeblade\\offense\\sword\\config.json",
+  "tag": "Attack",
   "animation": [
     { //start the sword rise
       "column": 1,

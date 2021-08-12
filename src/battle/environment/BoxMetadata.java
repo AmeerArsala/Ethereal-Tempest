@@ -79,6 +79,10 @@ public class BoxMetadata {
         return (topEdgePositionPercent - bottomEdgePositionPercent) * boxDimensions.y;
     }
     
+    public Vector2f boxLengths() {
+        return new Vector2f(horizontalLength(), verticalLength());
+    }
+    
     public float percentDiffFromLeftEdge(float localTranslationX) {
         return percentDiffFromHorizontalEdge(leftEdgePositionPercent, localTranslationX);
     }
@@ -106,7 +110,7 @@ public class BoxMetadata {
     private float percentDiffFromVerticalEdge(float posPercent, float localTranslationY) {
         return MathUtils.percentDiffFromEdge(
             posPercent, 
-            verticalLength(), //used to be boxDimensions.y
+            verticalLength(),  //used to be boxDimensions.y
             localTranslationY
         );
     }

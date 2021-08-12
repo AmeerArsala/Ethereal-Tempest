@@ -142,7 +142,7 @@ public class Unit extends Entity {
     public FormulaManager getFormulaManager() { return formulaManager; }
     public FormationManager getFormationManager() { return formationManager; }
     public List<Formation> getFormations() { return formationManager.getAll(); }
-    public Formation equippedFormation() { return formationManager.getEquippedFormation(); };
+    public Formation getEquippedFormation() { return formationManager.getEquippedFormation(); };
     
     //Talents, Skills, and Abilities extend Attribute
     public TalentManager getTalentManager() { return talentManager; }
@@ -332,7 +332,7 @@ public class Unit extends Entity {
         return totalBonus;
     }
     
-    public int getCritEvasion() { 
+    public int getCritEvasion() {
         return getCOMP() + getTotalBattleStatBonus(BattleStat.CritEvasion); 
     }
     

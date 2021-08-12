@@ -39,7 +39,7 @@ import java.util.List;
 import maps.flow.MapFlow;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;
-import etherealtempest.GameProtocols;
+import etherealtempest.GameplayProtocols;
 import fundamental.unit.CharacterizedUnit;
 import maps.layout.occupant.VenturePeek;
 
@@ -218,7 +218,7 @@ public class TangibleUnit extends PositionedUnit {
                 remapPosition(moveSeq.getFinalPos());
                 
                 //open post action menu
-                GameProtocols.OpenPostActionMenu();
+                GameplayProtocols.OpenPostActionMenu();
                 
                 fsm.setNewStateIfAllowed(UnitState.Active);
                 return true;

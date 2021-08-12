@@ -5,6 +5,8 @@
  */
 package battle.animation;
 
+import battle.animation.config.EntityAnimation;
+import com.jme3.math.Vector2f;
 import com.jme3.scene.Node;
 import java.util.List;
 import java.util.function.Consumer;
@@ -26,7 +28,27 @@ public class BattleAnimationSegment {
         this.concurrent = concurrent;
         this.isAttack = isAttack;
         
-        for (VisibleEntityAnimation anim : entityAnimations) {
+        for (int i = 0, len = entityAnimations.size(); i < len; ++i) {
+            VisibleEntityAnimation anim = entityAnimations.get(i);
+            EntityAnimation data = anim.getInfo();
+            switch (data.getTag()) {
+                case LinksToNextHitPoint:
+                    Vector2f hitPoint = data.getHitPoint();
+                    if (i + 1 < len && hitPoint != null) {
+                        hitPoint.set(entityAnimations.get(i + 1).getInfo().getHitPoint());
+                    }
+                    break;
+                case Attack:
+                    //TODO: this
+                    break;
+                case ChainLink:
+                    //TODO: this; see description on the comment next to the original declaration of the enum
+                    break;
+                case Default:
+                    //TODO: this
+                    break;
+            }
+            
             System.out.println(anim.toString());
         }
     }

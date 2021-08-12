@@ -807,8 +807,8 @@ public class AI {
             }
         }
             
-        if (opciones.getAvailableActions().contains(PostMoveAction.Formation) && reference.equippedFormation().getMostDesiredTechnique().getToolType() == ToolType.SupportSelf) {
-            bestFormationTechnique = reference.equippedFormation().getMostDesiredTechnique();
+        if (opciones.getAvailableActions().contains(PostMoveAction.Formation) && reference.getEquippedFormation().getMostDesiredTechnique().getToolType() == ToolType.SupportSelf) {
+            bestFormationTechnique = reference.getEquippedFormation().getMostDesiredTechnique();
         }
             
         if (opciones.getAvailableActions().contains(PostMoveAction.Item)) {
@@ -866,7 +866,7 @@ public class AI {
         Ability bestAbility = null;
         MapCoords bestAbilityCoords = null;
         
-        FormationTechnique bestFormationTechnique = null, mostDesirableTechnique = reference.equippedFormation().getMostDesiredTechnique();
+        FormationTechnique bestFormationTechnique = null, mostDesirableTechnique = reference.getEquippedFormation().getMostDesiredTechnique();
         MapCoords bestFormationCoords = null;
         
         Item bestItem = null;
@@ -1028,7 +1028,7 @@ public class AI {
         Ability bestAbility = null;
         MapCoords bestAbilityCoords = null;
         
-        FormationTechnique bestFormationTechnique = null, mostDesirableTechnique = reference.equippedFormation().getMostDesiredTechnique();
+        FormationTechnique bestFormationTechnique = null, mostDesirableTechnique = reference.getEquippedFormation().getMostDesiredTechnique();
         MapCoords bestFormationCoords = null;
         
         Item bestItem = null;

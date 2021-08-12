@@ -87,7 +87,7 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
             entityAnimationRoot.addChangesToQueueIfAny(action.getUserChanges(), getBattleBoxInfo(), true);        // fromSelf == true
             opponentAnimationRoot.addChangesToQueueIfAny(action.getOpponentChanges(), getBattleBoxInfo(), false); // fromSelf == false
             
-            String sound = action.getSoundPath();
+            //String sound = action.getSoundPath();
             //TODO: play the sound
         }
         

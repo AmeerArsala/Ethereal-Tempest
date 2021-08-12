@@ -189,6 +189,13 @@ public class Combatant {
     }
     
     public float secondsToDrain(BaseStat statToDrain, BaseStat defensiveStat, int dmg, boolean isCrit) {
+        float statBased = statBasedSecondsToDrain(statToDrain, defensiveStat, dmg, isCrit);
+        float basic = basicSecondsToDrain(dmg, isCrit);
+        
+        return Math.min(statBased, basic);
+    }
+    
+    public float statBasedSecondsToDrain(BaseStat statToDrain, BaseStat defensiveStat, int dmg, boolean isCrit) {
         FloatPair domain = new FloatPair(0.2f, 1.25f);
         
         float multiplier = 0.5f; //base is 0.5f
@@ -203,6 +210,13 @@ public class Combatant {
         float seconds = multiplier * (combatBaseStats.get(statToDrain) / damage) * (defense / attack);
         
         return domain.bound(seconds);
+    }
+    
+    public float basicSecondsToDrain(int dmg, boolean isCrit) {
+        float secondsPerHealthPoint = 0.05f;
+        float seconds = dmg * secondsPerHealthPoint;
+        
+        return isCrit ? seconds / 2f : seconds;
     }
     
     public void calculateEXP(Combatant opponent) {

@@ -26,7 +26,7 @@ import etherealtempest.fsm.FSM.CursorState;
 import etherealtempest.fsm.FSM.MapFlowState;
 import etherealtempest.fsm.FSM.UnitState;
 import etherealtempest.fsm.FsmState;
-import etherealtempest.GameProtocols;
+import etherealtempest.GameplayProtocols;
 import etherealtempest.fsm.MasterFsmState;
 import etherealtempest.geometry.GeometricBody;
 import general.tools.input.ComplexInputReader;
@@ -489,7 +489,7 @@ public class Cursor extends Node implements OnTile {
                         pointer.getMaterial().setColor("Color", CursorFSM.DEFAULT_COLOR);
                         
                         setPosition(selectedUnit.getPos());
-                        GameProtocols.OpenPostActionMenu();
+                        GameplayProtocols.OpenPostActionMenu();
                     }
                 }
             }

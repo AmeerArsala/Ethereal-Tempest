@@ -167,8 +167,8 @@ public class PositionedUnit extends CharacterizedUnit implements OnTile {
         }
         
         List<FormationTechnique> usableFormationTechniques = new ArrayList<>();
-        if (equippedFormation() != null) {
-            usableFormationTechniques.addAll(equippedFormation().techniquesAvailableAt(pos, allegiance));
+        if (getEquippedFormation() != null) {
+            usableFormationTechniques.addAll(getEquippedFormation().techniquesAvailableAt(pos, allegiance));
         }
         
         return new ActionInfo(

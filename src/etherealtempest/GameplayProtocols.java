@@ -9,7 +9,7 @@ package etherealtempest;
  *
  * @author night
  */
-public class GameProtocols {
+public class GameplayProtocols {
     private static Runnable OpenPostActionMenu = () -> {};
     
     public static void setOpenPostActionMenu(Runnable open) {

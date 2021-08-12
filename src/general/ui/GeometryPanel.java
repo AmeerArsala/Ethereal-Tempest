@@ -74,6 +74,12 @@ public class GeometryPanel extends Node {
         super.setMaterial(mat);
     }
     
+    @Override
+    public void setCullHint(CullHint cullHint) {
+        super.setCullHint(cullHint);
+        geometry.setCullHint(cullHint);
+    }
+    
     public final Vector2f getUnscaledDimensions() {
         Vector3f geometryLocalScale = geometry.getLocalScale();
         return new Vector2f(width * geometryLocalScale.x, height * geometryLocalScale.y);

@@ -5,6 +5,7 @@
  */
 package battle.animation;
 
+import com.jme3.math.Vector2f;
 import com.jme3.scene.Node;
 import general.procedure.OrdinalQueue;
 import java.util.List;
@@ -108,6 +109,11 @@ public class BattleAnimation {
         }
         
         return remaining;
+    }
+    
+    //gets hitpoint of the very first animation in the very first segment
+    public Vector2f getVeryFirstHitPoint() {
+        return segments.get(0).getEntityAnimations().get(0).getInfo().getHitPoint();
     }
     
     

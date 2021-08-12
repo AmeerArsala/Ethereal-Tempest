@@ -50,4 +50,15 @@ public class MathUtils {
         
         return max;
     }
+    
+    public static float min(float... nums) {
+        float min = nums[0];
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] < min) {
+                min = nums[i];
+            }
+        }
+        
+        return min;
+    }
 }
