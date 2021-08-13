@@ -18,7 +18,6 @@ import com.jme3.scene.Node;
 import fundamental.jobclass.animation.ActionDecider;
 import fundamental.jobclass.animation.NextActionSequence;
 import general.procedure.functional.UpdateLoop;
-import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
 /**

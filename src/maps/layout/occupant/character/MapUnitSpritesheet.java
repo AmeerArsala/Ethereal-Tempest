@@ -14,7 +14,7 @@ import maps.layout.Coords;
  *
  * @author night
  */
-public class Spritesheet { //this is specifically for TangibleUnit sprites (on map sprites)
+public class MapUnitSpritesheet { //this is specifically for TangibleUnit sprites (on map sprites)
     public enum AnimationState {
         @SerializedName("MovingDown") MovingDown(new Coords(0, -1)),
         @SerializedName("MovingRight") MovingRight(new Coords(1, 0)),
@@ -54,7 +54,7 @@ public class Spritesheet { //this is specifically for TangibleUnit sprites (on m
     @Expose(deserialize = false) private String folderName;
     @Expose(deserialize = false) private HashMap<AnimationState, Integer> startingPositions; //the actual positions in terms of material.setFloat("Position", ...);
     
-    public Spritesheet(SheetRow[] rows, int maxColumns, String fileName, String outlineSheet) {
+    public MapUnitSpritesheet(SheetRow[] rows, int maxColumns, String fileName, String outlineSheet) {
         this.rows = rows;
         this.maxColumns = maxColumns;
         this.fileName = fileName;
@@ -120,7 +120,7 @@ public class Spritesheet { //this is specifically for TangibleUnit sprites (on m
         return sum;
     }
     
-    public Spritesheet setAnimations() {
+    public MapUnitSpritesheet setAnimations() {
         startingPositions = new HashMap<>();
         startingPositions.put(rows[0].animation, 0);
         for (int i = 1; i < rows.length; i++) {
@@ -130,7 +130,7 @@ public class Spritesheet { //this is specifically for TangibleUnit sprites (on m
         return this;
     }
     
-    public Spritesheet setFolderName(String name) {
+    public MapUnitSpritesheet setFolderName(String name) {
         folderName = name;
         return this;
     }

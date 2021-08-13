@@ -32,7 +32,7 @@ import fundamental.stats.alteration.Bonus.StatType;
 import fundamental.talent.TalentCondition.Occasion;
 import fundamental.unit.PositionedUnit;
 import general.tools.GameTimer;
-import maps.layout.occupant.character.Spritesheet.AnimationState;
+import maps.layout.occupant.character.MapUnitSpritesheet.AnimationState;
 import general.visual.DeserializedParticleEffect;
 import java.util.LinkedHashMap;
 import java.util.List;

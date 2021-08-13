@@ -35,7 +35,7 @@ import general.procedure.SimpleOrdinalQueue;
 import general.procedure.functional.SimpleProcedure;
 import general.utils.wrapper.Duo;
 import maps.data.MapTextures;
-import maps.layout.occupant.character.Spritesheet.AnimationState;
+import maps.layout.occupant.character.MapUnitSpritesheet.AnimationState;
 import maps.layout.Coords;
 import maps.layout.MapLevel;
 import maps.layout.MapCoords;

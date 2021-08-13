@@ -32,12 +32,12 @@ public class TangibleUnitDeserialization {
     }
     
     public TangibleUnit constructTangibleUnit(AssetManager assetManager) {
-        unitCharacterInfo.reset(); //change later
+        unitCharacterInfo.reset(); //TODO: change later
         return new TangibleUnit(unit.constructUnit(), unitCharacterInfo, params, allegiance, assetManager);
     }
     
     public TangibleUnit constructPositionedTangibleUnit(AssetManager assetManager) {
-        unitCharacterInfo.reset(); //change later
+        unitCharacterInfo.reset(); //TODO: change later
         return new TangibleUnit(unit.constructUnit(), unitCharacterInfo, params, allegiance, position, assetManager);
     }
 }

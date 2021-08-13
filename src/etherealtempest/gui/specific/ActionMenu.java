@@ -25,12 +25,12 @@ import general.ui.menu.RadialMenu;
 public class ActionMenu {
     private static final FloatPair SHAKE_DOMAIN = new FloatPair(0f, Float.POSITIVE_INFINITY); // Domain: [0f, infinity)
     private static final FloatPair SHAKE_RANGE = new FloatPair(-2f, 2f); // Range: [-2f, 2f] 
-    public static final RandomizedPiecewiseFunction SHAKE_PARAM = new RandomizedPiecewiseFunction(SHAKE_DOMAIN, SHAKE_RANGE, MathFunction.CONSTANT(1f), false); //1-second partitions
-    public static final RandomizedPiecewiseFunction SHAKE_PARAM2 = new RandomizedPiecewiseFunction(SHAKE_DOMAIN, SHAKE_RANGE, MathFunction.CONSTANT(1f), false);
+    public static final RandomizedPiecewiseFunction SHAKE_PARAM = new RandomizedPiecewiseFunction(SHAKE_DOMAIN, SHAKE_RANGE, MathFunction.CONSTANT(1f), false);  //1-second partitions
+    public static final RandomizedPiecewiseFunction SHAKE_PARAM2 = new RandomizedPiecewiseFunction(SHAKE_DOMAIN, SHAKE_RANGE, MathFunction.CONSTANT(1f), false); //1-second partitions
     public static final ParametricFunction DEFAULT_SHAKING = new ParametricFunction(SHAKE_PARAM, SHAKE_PARAM2).setInstanceGenType(ParametricFunction.FRESH);
     
     
-    private final Node menuNode = new Node("menu");
+    private final Node menuNode = new Node("post move menu");
     private final Runnable onCloseMenu;
     
     private Panel geoBackdrop;

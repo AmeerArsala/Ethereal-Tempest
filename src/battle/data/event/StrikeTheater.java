@@ -35,27 +35,30 @@ public class StrikeTheater {
     
     private final List<Strike> strikes;
     private final List<Strike> actualStrikes; //only contains the strikes that are actually carried out
-    private final List<Participant> A_Roles, B_Roles; //A is the "striker" in the first Strike, while B is the "victim" in the first Strike
+    private final List<Participant> A_Roles, B_Roles; //A represents "participant A", while B represents "participant B"
     
     private class StrikeEventContributor {
         private final SingularForecast forecast;
         private final Conveyor context;
+        private final List<Participant> contributorRoles, opponentRoles;
         private int BP;
         
-        public StrikeEventContributor(SingularForecast sfc, Conveyor data, boolean isInitiator) {
+        public StrikeEventContributor(SingularForecast sfc, Conveyor data, List<Participant> roles, List<Participant> foeRoles, boolean isInitiator) {
             forecast = sfc;
             context = data;
+            contributorRoles = roles;
+            opponentRoles = foeRoles;
             BP = forecast.getInitialBP(isInitiator);
         }
         
         public void attemptContribution() {
-            if (BP > 0) {
+            if (BP > 0) { //this check is NOT redundant
                 List<Strike> eventStrikes = forecast.createStrike(context).getAllStrikesFromThis();
                 for (Strike strike : eventStrikes) {
                     strikes.add(strike);
                         
-                    A_Roles.add(Participant.Striker);
-                    B_Roles.add(Participant.Victim);
+                    contributorRoles.add(Participant.Striker);
+                    opponentRoles.add(Participant.Victim);
                 }
                 
                 BP -= forecast.getBPcostPerHit();
@@ -73,8 +76,8 @@ public class StrikeTheater {
         A_Roles = new ArrayList<>();
         B_Roles = new ArrayList<>();
         
-        StrikeEventContributor initiatorContributor = new StrikeEventContributor(initiator, data, true);
-        StrikeEventContributor receiverContributor = new StrikeEventContributor(receiver, data, false);
+        StrikeEventContributor initiatorContributor = new StrikeEventContributor(initiator, data, A_Roles, B_Roles, true);
+        StrikeEventContributor receiverContributor = new StrikeEventContributor(receiver, data, B_Roles, A_Roles, false);
 
         for (int k = 0; initiatorContributor.shouldContinueFighting() || receiverContributor.shouldContinueFighting(); k++) {
             if (k % 2 == 0) { //even; initiator's strike
@@ -207,7 +210,7 @@ public class StrikeTheater {
     private int calculateHPOfBefore(List<Participant> roles, int strikeIndex) {
         int startingStrikeIndex = 0;
         int HP = getParticipant(roles.get(startingStrikeIndex), startingStrikeIndex).getBaseStat(BaseStat.CurrentHP);
-        for (int i = 0; i <= strikeIndex; ++i) {
+        for (int i = 0; i < strikeIndex; ++i) {
             if (roles.get(i) == Participant.Victim) {
                 HP -= strikes.get(i).getDamage();
             }

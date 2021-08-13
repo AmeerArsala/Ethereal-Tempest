@@ -40,7 +40,8 @@ public class MapData {
     private MapLayerData[] layers;
     private TangibleUnitDeserialization[] units;
     
-    @Expose(deserialize = false) private List<TangibleUnit> startingUnits;
+    @Expose(deserialize = false) 
+    private List<TangibleUnit> startingUnits;
     
     public MapData(String mapName, int maxRows, int maxColumns, String objectiveName, String[] weatherAndEffects, String[] tileTexturesUsed, BattleTerrain[] battleTerrainsUsed, Translation[] translations, MapLayerData[] layers, TangibleUnitDeserialization[] units) {
         this.mapName = mapName;

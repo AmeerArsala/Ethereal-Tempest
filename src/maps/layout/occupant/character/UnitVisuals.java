@@ -34,7 +34,7 @@ import etherealtempest.geometry.GeometricBody;
 import etherealtempest.gui.broad.BasicProgressBar;
 import general.procedure.functional.SimpleProcedure;
 import general.procedure.ProcedureGroup;
-import maps.layout.occupant.character.Spritesheet.AnimationState;
+import maps.layout.occupant.character.MapUnitSpritesheet.AnimationState;
 import general.utils.helpers.GameUtils;
 import general.visual.DeserializedParticleEffect;
 import java.io.IOException;
@@ -65,7 +65,7 @@ public class UnitVisuals {
     private final ProcedureGroup procedureGroup = new ProcedureGroup();
     private final AssetManager assetManager;
     
-    private final Spritesheet spritesheetInfo;
+    private final MapUnitSpritesheet spritesheetInfo;
     private AnimationState animState = AnimationState.Idle;
     
     public UnitVisuals(String name, String jobClassName, ColorRGBA baseOutlineColor, AssetManager assetManager) {
@@ -155,7 +155,7 @@ public class UnitVisuals {
     public Node getHPNode() { return hpBar.getGeometryPanel(); }
     public Node getTPNode() { return tpBar.getGeometryPanel(); }
     
-    public Spritesheet getSpritesheetInfo() { return spritesheetInfo; }
+    public MapUnitSpritesheet getSpritesheetInfo() { return spritesheetInfo; }
     public AnimationState getAnimationState() { return animState; }
     
     public ProcedureGroup getProcedureGroup() { return procedureGroup; }
@@ -282,25 +282,25 @@ public class UnitVisuals {
         );
     }
     
-    public static Spritesheet deserializeSpritesheet(String name, String jobClassName) {
+    public static MapUnitSpritesheet deserializeSpritesheet(String name, String jobClassName) {
         try {
             Gson gson = new Gson();
             Reader reader = Files.newBufferedReader(Paths.get("assets\\Sprites\\Map\\" + jobClassName + "\\" + name + "\\config.json"));
             
-            return gson.fromJson(reader, Spritesheet.class).setFolderName(name).setAnimations();
+            return gson.fromJson(reader, MapUnitSpritesheet.class).setFolderName(name).setAnimations();
         }
         catch (IOException ex) {
             return deserializeGenericSpritesheet(jobClassName); //will use generic if name not found in folders
         }
     }
     
-    public static Spritesheet deserializeGenericSpritesheet(String jobClassName) {
+    public static MapUnitSpritesheet deserializeGenericSpritesheet(String jobClassName) {
         String folderName = "generic";
         
         try {
             Gson gson = new Gson();
             Reader reader = Files.newBufferedReader(Paths.get("assets\\Sprites\\Map\\" + jobClassName + "\\" + folderName + "\\config.json"));
-            return gson.fromJson(reader, Spritesheet.class).setFolderName(folderName).setAnimations();
+            return gson.fromJson(reader, MapUnitSpritesheet.class).setFolderName(folderName).setAnimations();
         }
         catch (IOException ex) {
             ex.printStackTrace();

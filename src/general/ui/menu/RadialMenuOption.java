@@ -102,12 +102,27 @@ public abstract class RadialMenuOption<DATA> extends MenuOption<DATA> {
     @Override
     protected void updateCustom(float tpf, float time) {
         if (hovered) {
-            iconGeom.getMaterial().setColor("Color", HoveredOrange.mult(1 + (0.25f * FastMath.abs(FastMath.sin(time)))));
+            iconGeom.getMaterial().setColor("Color", HoveredOrange.mult(1 + (0.25f * Math.abs(FastMath.sin(time)))));
         }
         
         if (!idleOnHoveredOnly || (idleOnHoveredOnly && hovered)) {
-            optionNode.setLocalTranslation(startPos.x + idleMovement.x(time), startPos.y + idleMovement.y(time), startPos.z);
+            optionNode.setLocalTranslation(startPos.add(optimizedIdleMovement(time)));
+            //optionNode.setLocalTranslation(startPos.x + idleMovement.x(time), startPos.y + idleMovement.y(time), startPos.z);
         }
+    }
+    
+    //bounces back and forth between a domain of [0, 10] so too many extra objects aren't created
+    private Vector3f optimizedIdleMovement(float time) {
+        float correspondingTime;
+        
+        int cutoff = 10; // domain [0, 10]
+        if ((int)(time / cutoff) % 2 == 0) { //if even, bounce forward (positive direction)
+            correspondingTime = time % cutoff;
+        } else { //if odd, bounce backward (negative direction)
+            correspondingTime = cutoff - (time % cutoff);
+        }
+        
+        return new Vector3f(idleMovement.x(correspondingTime), idleMovement.y(correspondingTime), 0);
     }
     
     public void rotate(float theta) {

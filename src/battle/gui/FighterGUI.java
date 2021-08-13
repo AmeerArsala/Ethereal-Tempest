@@ -349,6 +349,7 @@ public class FighterGUI {
                     levelUpPanel.levelUp();
                 });
                 
+                System.err.println("level up!!!");
                 expbar.addTransitionToGroup(transition);
             }
         );

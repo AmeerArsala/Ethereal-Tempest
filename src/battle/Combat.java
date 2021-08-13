@@ -57,6 +57,8 @@ public class Combat {
         
         initiator.attemptStrike();
         receiver.attemptStrike();
+        
+        
     }
     
     public Node getNode() { return node; }

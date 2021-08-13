@@ -8,6 +8,7 @@ package battle.animation.config.action;
 import battle.participant.visual.BattleParticleEffect;
 import battle.participant.visual.BattleSprite;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
@@ -122,7 +123,7 @@ public class Changes {
         return index == -1 ? null : thetaVelocities[index].getStrFunc().outputVector(
             framesSinceActionFrame,
             ConstantsDealer.Vec3f_Constants(userAngle, opponentAngle)
-        );
+        ).multLocal(FastMath.DEG_TO_RAD);
     }
     
     public Vector3f getLocalScale(int framesSinceActionFrame, Vector3f userScale, Vector3f opponentScale) {
