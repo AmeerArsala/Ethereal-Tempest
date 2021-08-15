@@ -26,6 +26,11 @@ import java.util.function.Function;
  */
 public class EngineUtils {
     
+    public static Vector3f localDimensions(Spatial sptl) {
+        BoundingBox box = (BoundingBox)sptl.getWorldBound();
+        return sptl.worldToLocal(box.getExtent(null), null);
+    }
+    
     public static void setLocalScaleFromCenter(Spatial target, float scale) {
         BoundingBox box = (BoundingBox)target.getWorldBound();
         float midpointXPreScale = box.getXExtent() / 2f;

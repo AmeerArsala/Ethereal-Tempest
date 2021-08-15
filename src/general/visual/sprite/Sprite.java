@@ -32,7 +32,7 @@ public class Sprite extends GeometryPanel {
     public Sprite(float width, float height, AssetManager assetManager) {
         super(width, height, RenderQueue.Bucket.Transparent);
         
-        mat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
+        mat = new Material(assetManager, "MatDefs/custom/Spritesheet.j3md");
         mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
         super.setMaterial(mat);
     }
@@ -58,10 +58,14 @@ public class Sprite extends GeometryPanel {
         return new Vector2f(xFacing, 1);
     }
     
+    protected void onMirrorStateChanged(boolean willBeMirrored) {
+        xFacing *= -1;
+    }
+    
     @Override
     public void setMirrored(boolean mirrored) {
         if (mirrored != isMirrored()) {
-            xFacing *= -1;
+            onMirrorStateChanged(mirrored);
         }
         
         super.setMirrored(mirrored);

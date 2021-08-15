@@ -130,29 +130,17 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
     
     @Override
     public String toString() {
-        return "VisibleEntityAnimation: " + info.getJsonPath();
+        return "VisibleEntityAnimation: " + info.getJsonPath() + "; Object String: " + super.toString();
     }
     
     //                        <S> is the User Spatial
-    protected class EntityRoot<S extends Spatial> {
+    protected class EntityRoot<S extends Spatial> extends RootPackage<S> {
         private final boolean isOpponent;
-        
-        public final S root;
         public final ProcedureGroup queue = new ProcedureGroup();
-        public final Vector3f positiveDirection;
         
         public EntityRoot(RootPackage<S> rootPackage, boolean isOpponent) {
+            super(rootPackage.root, rootPackage.positiveDirectionVector, rootPackage.centerPointDefault, rootPackage.dimensionsSupplier);
             this.isOpponent = isOpponent;
-            root = rootPackage.root;
-            positiveDirection = rootPackage.positiveDirectionVector;
-        }
-    
-        public void setPositiveDirection(boolean x, boolean y, boolean z) {
-            int $x = x ? 1 : -1;
-            int $y = y ? 1 : -1;
-            int $z = z ? 1 : -1;
-        
-            positiveDirection.set($x, $y, $z);
         }
     
         public void addChangesToQueueIfAny(Changes changes, BoxMetadata battleBoxInfo, boolean fromSelf) {
@@ -165,8 +153,9 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
                     return changes.generateChangePack(
                         framesSince++, 
                         root,
-                        (isOpponent ? opponentAnimationRoot.root : entityAnimationRoot.root)
-                    ).apply(root, battleBoxInfo, positiveDirection, fromSelf);
+                        (isOpponent ? entityAnimationRoot.root : opponentAnimationRoot.root),
+                        centerPointDefault
+                    ).apply(root, battleBoxInfo, positiveDirectionVector, dimensionsSupplier.get(), fromSelf);
                 }
             });
         }

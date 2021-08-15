@@ -157,6 +157,11 @@ public class MapLevelAppState extends AbstractAppState {
                     return;
                 }
                 
+                //testing purposes w/ camera during battle
+                if (fsm.getEnumState() == MapFlowState.DuringBattle) {
+                    mapFlow.getCurrentFight().resolveInput(name, tpf, keyPressed);
+                }
+                
                 if (Globals.gameIsFrozen) {
                     if (name.equals("advance frame") && keyPressed) {
                         Globals.gameIsFrozen = false;
@@ -207,11 +212,6 @@ public class MapLevelAppState extends AbstractAppState {
                     if (change != null) {
                         fsm.setNewStateIfAllowed(change.setAssetManager(assetManager));
                     }
-                }
-                
-                //testing purposes w/ camera during battle
-                if (fsm.getEnumState() == MapFlowState.DuringBattle) {
-                    mapFlow.getCurrentFight().resolveInput(name, tpf, keyPressed);
                 }
                 
                 //all the below inputs are for testing purposes

@@ -80,6 +80,10 @@ public class GeometryPanel extends Node {
         geometry.setCullHint(cullHint);
     }
     
+    public final Vector2f getRawUnscaledDimensions() {
+        return new Vector2f(width, height);
+    }
+    
     public final Vector2f getUnscaledDimensions() {
         Vector3f geometryLocalScale = geometry.getLocalScale();
         return new Vector2f(width * geometryLocalScale.x, height * geometryLocalScale.y);
@@ -89,12 +93,18 @@ public class GeometryPanel extends Node {
         return getUnscaledDimensions().multLocal(Vector2F.salvage(getLocalScale()));
     }
     
+    public final Vector3f getRawUnscaledDimensions3D() {
+        return Vector3F.fit(getRawUnscaledDimensions(), 1);
+    }
+    
     public final Vector3f getUnscaledDimensions3D() {
-        return Vector3F.fit(getUnscaledDimensions(), 1);
+        //return Vector3F.fit(getUnscaledDimensions(), 1);
+        return geometry.getLocalScale().mult(new Vector3f(width, height, 1));
     }
     
     public final Vector3f getScaledDimensions3D() {
-        return Vector3F.fit(getScaledDimensions(), 1);
+        //return Vector3F.fit(getScaledDimensions(), 1);
+        return getUnscaledDimensions3D().multLocal(getLocalScale());
     }
     
     public final Vector3f getLocalAngle() {
@@ -146,8 +156,7 @@ public class GeometryPanel extends Node {
     }
     
     public Vector3f getPositiveDirection3DVector() {
-        Vector2f vec = getPositiveDirection2DVector();
-        return new Vector3f(vec.x, vec.y, 1);
+        return Vector3F.fit(getPositiveDirection2DVector(), 1);
     }
     
     public Vector2f getPositiveDirection2DVector() {

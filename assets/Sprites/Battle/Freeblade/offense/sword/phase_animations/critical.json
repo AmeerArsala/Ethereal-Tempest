@@ -19,7 +19,7 @@
       "animationSegment": {
         "from": 3,
         "to": 3,
-        "delay": 0.10
+        "delay": 0.25
       }
     },
     { //jump slash flurry
@@ -103,18 +103,18 @@
       }
     },
     {
-      "column": 3,
-      "frame": 3,
+      "column": 4,
+      "frame": 0,
       "soundPath": "", //TODO: add slicing sound
       "userChanges": {
         "velocities": [
-          /*{
+          {
             "strFunc": {
               "parameter": "t",
-              "yFunction": "(8 / 49) * ((3 * ((2t / 7) - 1)^2) - 1)"
+              "yFunction": "(2/7)*((2*t/7)-1)*((((2*t/7)-1)^2)-1)"
             },
             "domain": "0-7"
-          }*/
+          }
         ],
         "thetaVelocities": [],
         "localScales": [],
@@ -122,22 +122,22 @@
       },
       "opponentChanges": {
         "velocities": [
-          /*{
+          {
             "strFunc": {
               "parameter": "t",
-              "yFunction": "(8 / 49) * ((3 * ((2t / 7) - 1)^2) - 1)"
+              "yFunction": "(2/7)*((2*t/7)-1)*((((2*t/7)-1)^2)-1)"
             },
             "domain": "0-7"
-          }*/
+          }
         ],
         "thetaVelocities": [
-          /*{
+          {
             "strFunc": {
               "parameter": "t",
-              "zFunction": "45"
+              "zFunction": "10000"
             },
             "domain": "0-7"
-          }*/
+          }
         ],
         "localScales": [],
         "colors": []

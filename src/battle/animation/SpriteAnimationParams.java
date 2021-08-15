@@ -20,8 +20,8 @@ public class SpriteAnimationParams {
     public boolean mirror = false; //NextAction sets this
     
     public SpriteAnimationParams(BattleSprite userSprite, BattleSprite opponentSprite, AssetManager assetManager, Predicate<BattleSprite> secondEndAnimationCondition) {
-        this.userSprite = new RootPackage<>(userSprite, userSprite.getPositiveDirection3DVector());
-        this.opponentSprite = new RootPackage<>(opponentSprite, opponentSprite.getPositiveDirection3DVector());
+        this.userSprite = new RootPackage<>(userSprite, userSprite.getPositiveDirection3DVector(), userSprite.getDefaultCenterPoint(), () -> { return userSprite.getUnscaledDimensions3D(); });
+        this.opponentSprite = new RootPackage<>(opponentSprite, opponentSprite.getPositiveDirection3DVector(), opponentSprite.getDefaultCenterPoint(), () -> { return opponentSprite.getUnscaledDimensions3D(); });
         this.assetManager = assetManager;
         this.secondEndAnimationCondition = secondEndAnimationCondition;
     }

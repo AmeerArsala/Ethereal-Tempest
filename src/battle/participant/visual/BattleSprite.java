@@ -46,6 +46,9 @@ public class BattleSprite extends ModifiedSprite {
     private Point hitPoint = null;
     private ZoneBox hurtbox;
     private Vector2f damageNumberLocation;
+    private Vector2f centerPointDefault; //in percents of Sprite dimensions
+    
+    private boolean textureIsRotating = false;
     
     public BattleSprite(Vector2f dimensions, AssetManager assetManager, BoxMetadata battleBoxInfo, boolean usesHitPoint) {
         super(dimensions, assetManager);
@@ -79,6 +82,10 @@ public class BattleSprite extends ModifiedSprite {
         return allowDisplacement;
     }
     
+    public boolean isTextureRotating() {
+        return textureIsRotating;
+    }
+    
     public ColorRGBA getColor() {
         return color;
     }
@@ -93,6 +100,14 @@ public class BattleSprite extends ModifiedSprite {
     
     public Vector2f getDamageNumberLocationSpritePercent() {
         return damageNumberLocation;
+    }
+    
+    public Vector2f getDefaultCenterPoint() {
+        return centerPointDefault;
+    }
+    
+    public void setIsTextureRotating(boolean rotating) {
+        textureIsRotating = rotating;
     }
     
     public void setDefaultZPos(float zDefault) {
@@ -111,8 +126,12 @@ public class BattleSprite extends ModifiedSprite {
         allowDisplacement = allow;
     }
     
-    public void setDamageNumberLocation(Vector2f dmgNumLoc) {
+    public void setDamageNumberLocationSpritePercent(Vector2f dmgNumLoc) {
         damageNumberLocation = dmgNumLoc;
+    }
+    
+    public void setDefaultCenterPoint(Vector2f centerPoint) {
+        centerPointDefault = centerPoint;
     }
     
     public void setHitPointIfAllowed(Vector2f hitPointInPercentage) { //use sprite cell percentage
@@ -174,6 +193,17 @@ public class BattleSprite extends ModifiedSprite {
     
     public Vector3f getDamageNumberLocation() {
         return new Point(damageNumberLocation).nonRelative3DPoint().setZ(0.11f);
+    }
+    
+    /*public Vector3f getDefaultCenterPointLocation() {
+        return new Point(Vector2F.salvage(centerPointDefault)).nonRelative3DPoint().setZ(getLocalTranslation().z);
+    }*/
+    
+    @Override
+    public void onMirrorStateChanged(boolean willBeMirrored) {
+        super.onMirrorStateChanged(willBeMirrored);
+        //damageNumberLocation.x = 1.0f - damageNumberLocation.x;
+        //centerPointDefault.x = 1.0f - centerPointDefault.x;
     }
     
     @Override

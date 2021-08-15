@@ -25,7 +25,7 @@
           {
             "strFunc": {
               "parameter": "t",
-              "xFunction": "-U / 2" //U is original userPos from that frame, E is the enemyPos from that frame. W is the user sprite width
+              "xFunction": "-U/2" //U is original userPos from that frame, E is the enemyPos from that frame. W is the user sprite width
             },
             "domain": "0-1"
           }

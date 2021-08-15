@@ -9,6 +9,7 @@ import general.math.FloatVariable;
 import java.util.ArrayList;
 import java.util.List;
 import org.mariuszgromada.math.mxparser.Argument;
+import org.mariuszgromada.math.mxparser.Expression;
 import org.mariuszgromada.math.mxparser.Function;
 
 /**
@@ -21,7 +22,7 @@ public class ParsedMathFunction extends MathFunction {
     private final String expressionStr;
     private String decipheredExpression;
     
-    private final Function parsedFunction; 
+    private final Function parsedFunction;
     private final Argument input;
     private final FloatVariable[] constants;
     
@@ -32,8 +33,8 @@ public class ParsedMathFunction extends MathFunction {
         this.constants = constants;
         
         updateDecipheredExpression();
-        parsedFunction = new Function(functionName + "(" + parameter + ") = " + decipheredExpression);   
-        input = new Argument(parameter + " = " + 0); //set to 0 for the time being
+        parsedFunction = new Function(functionName + "(" + parameter + ")=" + decipheredExpression);
+        input = new Argument(parameter + "=" + 0); //set to 0 for the time being
     }
     
     public ParsedMathFunction(String functionName, char parameter, String expressionStr, char[] constantNames) {
@@ -107,12 +108,18 @@ public class ParsedMathFunction extends MathFunction {
             decipheredExpression = constant.decipher(decipheredExpression);
         }
     }
+    
+    public String callOf(float inputVal) {
+        return functionName + "(" + inputVal + ")";
+    }
 
     @Override
     protected float f(float x) {
         input.setArgumentValue(x);
+        Expression outcome = new Expression(functionName + "(" + parameter + ")", input);
+        outcome.addDefinitions(parsedFunction);
         
-        float result = (float)parsedFunction.calculate(input);
+        float result = (float)outcome.calculate();
         //System.out.println("Expression: " + parsedFunction.getFunctionExpressionString() + " -> " + result);
         return result;
     }

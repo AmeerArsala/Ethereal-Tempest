@@ -9,6 +9,7 @@ import battle.animation.config.AttackSheetConfig;
 import battle.animation.config.EntityAnimation;
 import battle.participant.visual.BattleSprite;
 import com.jme3.asset.AssetManager;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import general.visual.sprite.Sprite;
 
@@ -37,7 +38,8 @@ public class VisibleEntitySpriteAnimation extends VisibleEntityAnimation<BattleS
     @Override
     protected void mirror() {
         entityAnimationRoot.root.mirror();
-        entityAnimationRoot.positiveDirection.set(entityAnimationRoot.root.getPositiveDirection3DVector());
+        entityAnimationRoot.positiveDirectionVector.set(entityAnimationRoot.root.getPositiveDirection3DVector());
+        //entityAnimationRoot.centerPointDefault.x = 1.0f - entityAnimationRoot.centerPointDefault.x; <-- this is already done to the Object in BattleSprite.java
     }
 
     @Override

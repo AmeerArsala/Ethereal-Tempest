@@ -298,10 +298,11 @@ public class Fighter {
             sprite.setDefaultZPos(zLocation);
             sprite.setCullHint(CullHint.Never);
             
-            sprite.setHitPointIfAllowed(sheetConfig.getHitPoint());
+            //sprite.setHitPointIfAllowed(sheetConfig.getHitPoint()); hitpoint is set later
             sprite.setHurtbox(sheetConfig.getHurtbox());
             sprite.setAllowDisplacementTransformationsFromOpponent(sheetConfig.letEnemyChangeTransformationValues());
-            sprite.setDamageNumberLocation(sheetConfig.getDamageNumberLocation());
+            sprite.setDamageNumberLocationSpritePercent(sheetConfig.getDamageNumberLocation());
+            sprite.setDefaultCenterPoint(sheetConfig.getCenterPoint());
             
             return sprite;
         }

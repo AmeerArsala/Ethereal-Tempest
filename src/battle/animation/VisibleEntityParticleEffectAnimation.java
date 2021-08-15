@@ -59,7 +59,7 @@ public class VisibleEntityParticleEffectAnimation extends VisibleEntityAnimation
     
     @Override
     protected void mirror() {
-    
+        //TODO: this
     }
 
     @Override

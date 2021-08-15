@@ -27,20 +27,24 @@ public class Changes {
     private Change3f[] thetaVelocities; //angular velocity in degrees; units: degrees/frame 
     private Change3f[] localScales; //not a velocity function
     private Change4f[] colors; //not a velocity function
+    private Vector2f centerPoint;
     
     public Changes() {}
     
-    public Changes(Change3f[] velocities, Change3f[] thetaVelocities, Change3f[] localScales, Change4f[] colors) {
+    public Changes(Change3f[] velocities, Change3f[] thetaVelocities, Change3f[] localScales, Change4f[] colors, Vector2f centerPoint) {
         this.velocities = velocities;
         this.thetaVelocities = thetaVelocities;
         this.localScales = localScales;
         this.colors = colors;
+        this.centerPoint = centerPoint;
     }
     
     Change3f[] getVelocities() { return velocities; }
     Change3f[] getAngularVelocities() { return thetaVelocities; }
     Change3f[] getLocalScales() { return localScales; }
     Change4f[] getColors() { return colors; }
+    
+    public Vector2f getCenterPoint() { return centerPoint; }
     
     static <S> IdentifiedDuo<Vector2f, Vector3f> obtainVariableChanges(S root) {
         Vector2f percentagePos;
@@ -62,11 +66,12 @@ public class Changes {
     /**
      * 
      * @param framesSinceActionFrame
-     * @param user do NOT pass in something that is an instance of Spatial; either BattleSprite or BattleParticleEffect.ParticleRootNode
+     * @param user     do NOT pass in something that is an instance of Spatial; either BattleSprite or BattleParticleEffect.ParticleRootNode
      * @param opponent do NOT pass in something that is an instance of Spatial; either BattleSprite or BattleParticleEffect.ParticleRootNode
-     * @return 
+     * @param centerPointDefault default centerPoint in percents
+     * @return a ChangePack
      */
-    public ChangePack generateChangePack(int framesSinceActionFrame, Spatial user, Spatial opponent) {
+    public ChangePack generateChangePack(int framesSinceActionFrame, Spatial user, Spatial opponent, Vector2f centerPointDefault) {
         IdentifiedDuo<Vector2f, Vector3f> userVariableChanges = obtainVariableChanges(user);         // A is percentagePos, B is localAngle
         IdentifiedDuo<Vector2f, Vector3f> opponentVariableChanges = obtainVariableChanges(opponent); // A is percentagePos, B is localAngle
         
@@ -85,6 +90,7 @@ public class Changes {
         }
         
         return new ChangePack(
+            centerPoint != null ? centerPoint : centerPointDefault,
             getVelocity(framesSinceActionFrame, userVariableChanges.getA(), opponentVariableChanges.getA()),
             getAngularVelocity(framesSinceActionFrame, userVariableChanges.getB(), opponentVariableChanges.getB()),
             getLocalScale(framesSinceActionFrame, user.getLocalScale(), opponent.getLocalScale()),

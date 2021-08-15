@@ -87,7 +87,7 @@ public class UnitVisuals {
         //initialize sprite
         Quad spriteQuad = new Quad(size, size);
         Geometry sprite = new Geometry(name + " map sprite Geometry", spriteQuad);
-        Material spriteMat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
+        Material spriteMat = new Material(assetManager, "MatDefs/custom/Spritesheet.j3md");
         Texture tex = assetManager.loadTexture(folderPath + spritesheetInfo.getSheet());
         
         initializeSprite(sprite, spriteMat, tex, rotation);
@@ -96,7 +96,7 @@ public class UnitVisuals {
         //initialize outline
         Quad outlineQuad = new Quad(size, size);
         Geometry outline = new Geometry("outline", outlineQuad);
-        Material outlineMat = new Material(assetManager, "MatDefs/Spritesheet.j3md");
+        Material outlineMat = new Material(assetManager, "MatDefs/custom/Spritesheet.j3md");
         Texture outlineTexture = assetManager.loadTexture(folderPath + spritesheetInfo.getOutlineSheet());
         
         initializeSprite(outline, outlineMat, outlineTexture, rotation);

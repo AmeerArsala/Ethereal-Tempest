@@ -6,13 +6,16 @@
 package battle.participant.visual;
 
 import battle.environment.BoxMetadata;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import general.utils.helpers.EngineUtils;
 import general.visual.DeserializedParticleEffect;
 import general.visual.sprite.Sprite;
+import java.util.function.Supplier;
 
 /**
  *
@@ -40,7 +43,7 @@ public class BattleParticleEffect extends DeserializedParticleEffect {
     
     @Override
     public void createModelRootNode(Node modelRoot) {
-        modelRoot = new ParticleRootNode("BattleParticleEffect class: modelRoot");
+        modelRoot = new ParticleRootNode("BattleParticleEffect class: modelRoot", () -> { return getParticleRootNode(); });
     }
     
     public ParticleRootNode getParticleRootNode() {
@@ -51,16 +54,24 @@ public class BattleParticleEffect extends DeserializedParticleEffect {
         private int xFacing = Sprite.FACING_LEFT;
         private BoxMetadata battleBoxInfo;
         
-        public ParticleRootNode() {
+        private final Supplier<Node> particleNodeSupplier;
+        
+        public ParticleRootNode(Supplier<Node> particleNodeGetter) {
             super();
+            particleNodeSupplier = particleNodeGetter;
         }
         
-        public ParticleRootNode(String name) {
+        public ParticleRootNode(String name, Supplier<Node> particleNodeGetter) {
             super(name);
+            particleNodeSupplier = particleNodeGetter;
         }
         
         public BoxMetadata getBattleBoxInfo() {
             return battleBoxInfo;
+        }
+        
+        public Node getParticleNode() {
+            return particleNodeSupplier.get();
         }
         
         public void setBattleBoxInfo(BoxMetadata info) {
@@ -97,6 +108,10 @@ public class BattleParticleEffect extends DeserializedParticleEffect {
             float[] angles = rot.toAngles(null);
         
             return new Vector3f(angles[0], angles[1], angles[2]);
+        }
+        
+        public Vector3f getLocalDimensions() {
+            return EngineUtils.localDimensions(this);
         }
     }
 }
