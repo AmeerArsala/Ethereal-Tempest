@@ -439,8 +439,11 @@ public class Cursor extends Node implements OnTile {
                     //for moving
                     if (fsm.getEnumState() == CursorState.AnyoneSelected) {
                         if (selectedUnit.getPos().getLayer() == pos.getLayer() && pos.getCoords().nonDiagonalDistanceFrom(selectedUnit.getPos().getCoords()) <= selectedUnit.getMOBILITY()) {
+                            if (!getCurrentTile().isTraversable()) {
+                                return null;
+                            }
+                            
                             fsm.setNewStateIfAllowed(CursorState.AnyoneMoving);
-                            //selectedUnit.moveTo(pos);
                             selectedUnit.moveWith(arrowTrain.asArrayWithoutRoot());
                             
                             if (tu != null) {

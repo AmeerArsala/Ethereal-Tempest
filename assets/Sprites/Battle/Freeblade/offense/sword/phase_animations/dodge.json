@@ -8,7 +8,7 @@
       "animationSegment": {
         "from": 0,
         "to": 7,
-        "delay": 0.0
+        "delay": 0.075
       }
     }
   ],
@@ -26,7 +26,7 @@
             "strFunc": {
               "parameter": "t",
               "xFunction": "-0.025",
-              "yFunction": "-32t + 0.025"
+              "yFunction": "(-0.05*t)+0.05"
             },
             "domain": "0-2" //inclusive; goes for 3 frames after the ActionFrame, starting at the ActionFrame; frameSinceActionFrame: 0, framesSinceActionFrame: 1, and framesSinceActionFrame: 2
           }
@@ -44,7 +44,7 @@
     },
     {
       "column": 7,
-      "frame": 1,
+      "frame": 5,
       "soundPath": "", //TODO: add dodging sound
       "userChanges": {
         "velocities": [
@@ -52,7 +52,7 @@
             "strFunc": {
               "parameter": "t",
               "xFunction": "0.025",
-              "yFunction": "-32t + 0.025"
+              "yFunction": "(-0.05*t)+0.05"
             },
             "domain": "0-2"
           }

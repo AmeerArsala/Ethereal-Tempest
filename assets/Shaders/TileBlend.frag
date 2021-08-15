@@ -145,7 +145,7 @@ void main() {
     bool top =    (topIndex != m_CurrentIndex)    && (texCoord.y > (1.0 - variance.y)); //(texCoord.y >= (1 - blendAmp))
     bool bottom = (bottomIndex != m_CurrentIndex) && (texCoord.y < variance.y);         //(texCoord.y <= blendAmp)
     bool left =   (leftIndex != m_CurrentIndex)   && (texCoord.x < variance.x);         //(texCoord.x <= blendAmp)
-    bool right =  (rightIndex != m_CurrentIndex)  && (texCoord.x > (1.0 - variance.y)); //(texCoord.x >= (1 - blendAmp))
+    bool right =  (rightIndex != m_CurrentIndex)  && (texCoord.x > (1.0 - variance.x)); //(texCoord.x >= (1 - blendAmp))
     
     bool usesPriority;
     

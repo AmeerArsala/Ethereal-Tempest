@@ -189,10 +189,10 @@
                   "animationJsonPath": "phase_animations\\dodge.json",
                   "type": "Spritesheet"
                 },
-                "mirror": true,
+                "mirror": false, //used to be true
                 "concurrent": false,
                 "isAttack": false
-              },
+              }/*,
               {
                 "action": {
                   "animationJsonPath": "phase_animations\\finisher.json",
@@ -201,7 +201,7 @@
                 "mirror": false,
                 "concurrent": false,
                 "isAttack": true
-              }
+              }*/
             ]
           },
           "ELSE": { //then use normal dodge

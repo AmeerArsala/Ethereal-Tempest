@@ -203,7 +203,7 @@ public class FighterInfoVisualizer {
     private VisualTransition hpImpact(Strike currentStrike) {
         Text2D text = generateDamageText(
             currentStrike.getDamage(),
-            currentStrike.didHit(),
+            !currentStrike.didHit(),
             false, //not tp
             gui.getAssetManager(),
             battleBoxInfo
@@ -243,6 +243,7 @@ public class FighterInfoVisualizer {
         
         Text2D text = generateDamageText(
             dmg,
+            false,
             gui.getAssetManager(),
             battleBoxInfo
         );
@@ -308,8 +309,8 @@ public class FighterInfoVisualizer {
     }
     
     
-    public static Text2D generateDamageText(int dmg, AssetManager assetManager, BoxMetadata battleBoxInfo) {
-        return generateDamageText(dmg, false, false, assetManager, battleBoxInfo);
+    public static Text2D generateDamageText(int dmg, boolean isMiss, AssetManager assetManager, BoxMetadata battleBoxInfo) {
+        return generateDamageText(dmg, isMiss, false, assetManager, battleBoxInfo);
     }
     
     public static Text2D generateTPText(int dmg, AssetManager assetManager, BoxMetadata battleBoxInfo) {
@@ -338,7 +339,7 @@ public class FighterInfoVisualizer {
             textColor = ColorRGBA.Green;
         } else { // dmg == 0
             if (isMiss) {
-                text = "Miss!";
+                text = "Dodge!";
                 textColor = new ColorRGBA(0.5f, 1f, 1f, 1f);
             } else {
                 text = "Blocked!";
