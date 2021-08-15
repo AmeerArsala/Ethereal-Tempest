@@ -1,0 +1,52 @@
+MaterialDef Simple {
+    MaterialParameters {
+        Texture2D ColorMap
+        Float SizeX: 1
+        Float SizeY: 1
+        Float Position
+        Color Color (Color)
+        
+        Vector2 Pivot
+        Float RotationSpeed: 1.0
+        Boolean IsRotating: false
+		Boolean RotationUsesTime: true
+		Float Angle: 0.0
+    }
+    Technique {
+        VertexShader GLSL100:   Shaders/Spritesheet.vert
+        FragmentShader GLSL100: Shaders/Spritesheet.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+			Time
+        }
+        Defines {
+            HAS_COLOR: Color
+            HAS_PIVOT: Pivot
+        }
+        VertexShaderNodes {
+            ShaderNode CommonVert {
+                Definition : CommonVert : Common/MatDefs/ShaderNodes/Common/CommonVert.j3sn
+                InputMappings {
+                    worldViewProjectionMatrix = WorldParam.WorldViewProjectionMatrix
+                    modelPosition = Global.position.xyz
+                }
+                OutputMappings {
+                    Global.position = projPosition
+                }
+            }
+        }
+        FragmentShaderNodes {
+            ShaderNode ColorMult {
+                Definition : ColorMult : Common/MatDefs/ShaderNodes/Basic/ColorMult.j3sn
+                InputMappings {
+                    color1 = MatParam.Color
+                    color2 = Global.color
+                }
+                OutputMappings {
+                    Global.color = outColor
+                }
+            }
+        }
+    }
+}

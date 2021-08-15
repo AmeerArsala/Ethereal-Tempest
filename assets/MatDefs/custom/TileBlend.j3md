@@ -1,0 +1,67 @@
+MaterialDef Simple {
+    MaterialParameters {
+        Color Color (Color)
+        Texture2D BlendMap
+
+        TextureArray TileTexArray
+        Float BlendAmplitude: 0.15
+        
+        Int CurrentIndex
+        Int TopIndex
+        Int BottomIndex
+        Int RightIndex
+        Int LeftIndex
+		
+		Int CurrentPriority
+		Int TopPriority
+		Int BottomPriority
+		Int RightPriority
+		Int LeftPriority
+    }
+    Technique {
+        VertexShader GLSL150: Shaders/TileBlend.vert
+        FragmentShader GLSL150: Shaders/TileBlend.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+        
+        Defines {
+            HAS_COLOR: Color
+            HAS_BLENDMAP: BlendMap
+            HAS_BLENDAMPLITUDE: BlendAmplitude
+            HAS_TOP: TopIndex
+            HAS_BOTTOM: BottomIndex
+            HAS_RIGHT: RightIndex
+            HAS_LEFT: LeftIndex
+			USES_PRIORITY: CurrentPriority
+        }
+
+        VertexShaderNodes {
+            ShaderNode CommonVert {
+                Definition : CommonVert : Common/MatDefs/ShaderNodes/Common/CommonVert.j3sn
+                InputMappings {
+                    worldViewProjectionMatrix = WorldParam.WorldViewProjectionMatrix
+                    modelPosition = Global.position.xyz
+                }
+                OutputMappings {
+                    Global.position = projPosition
+                }
+            }
+        }
+        FragmentShaderNodes {
+            ShaderNode ColorMult {
+                Definition : ColorMult : Common/MatDefs/ShaderNodes/Basic/ColorMult.j3sn
+                InputMappings {
+                    color1 = MatParam.Color
+                    color2 = Global.color
+                }
+                OutputMappings {
+                    Global.color = outColor
+                }
+            }
+        }
+    }
+}

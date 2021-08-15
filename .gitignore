@@ -6,9 +6,6 @@ assets/Models
 assets/Scenes
 assets/Sounds
 assets/Textures
-assets/MatDefs
-!assets/MatDefs/custom/
-!assets/MatDefs/TTF/
 assets/Effects/Creative Commons
 assets/Effects/Original/Textures
 assets/Effects/Original/Derived Textures

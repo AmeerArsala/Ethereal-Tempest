@@ -1,0 +1,72 @@
+MaterialDef Simple {
+    MaterialParameters {
+		Texture2D ColorMap
+        Color Color (Color)
+		Color OnlyChangeColor
+		Color BaseColor
+        Color BackgroundColor
+		//Color OutlineColor 
+		//Float OutlineThickness: 0.125
+		
+		Boolean UsesGradient: true
+		Float GradientCoefficient: 1.0
+		Float GradientStart: 0.0
+		
+		Boolean UsesYAxis: true
+		Float PercentFilled
+		
+		Float PercentStart: 0.0
+		Float PercentEnd: 1.0
+    }
+    Technique {
+        VertexShader GLSL150: Shaders/ProgressFill.vert
+        FragmentShader GLSL150: Shaders/ProgressFill.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+        
+        Defines {
+			HAS_COLORMAP: ColorMap
+            HAS_COLOR: Color
+			HAS_ONLY_CHANGE_COLOR: OnlyChangeColor
+			HAS_BASECOLOR: BaseColor
+            HAS_BACKGROUND_COLOR: BackgroundColor
+            //HAS_OUTLINE_COLOR: OutlineColor
+            //HAS_OUTLINE_THICKNESS: OutlineThickness
+			HAS_USES_GRADIENT: UsesGradient
+            HAS_GRADIENT_COEFFICIENT: GradientCoefficient
+			HAS_GRADIENT_START: GradientStart
+			HAS_PERCENT_FILLED: PercentFilled
+			HAS_PERCENT_START: PercentStart
+			HAS_PERCENT_END: PercentEnd
+        }
+
+        VertexShaderNodes {
+            ShaderNode CommonVert {
+                Definition : CommonVert : Common/MatDefs/ShaderNodes/Common/CommonVert.j3sn
+                InputMappings {
+                    worldViewProjectionMatrix = WorldParam.WorldViewProjectionMatrix
+                    modelPosition = Global.position.xyz
+                }
+                OutputMappings {
+                    Global.position = projPosition
+                }
+            }
+        }
+        FragmentShaderNodes {
+            ShaderNode ColorMult {
+                Definition : ColorMult : Common/MatDefs/ShaderNodes/Basic/ColorMult.j3sn
+                InputMappings {
+                    color1 = MatParam.Color
+                    color2 = Global.color
+                }
+                OutputMappings {
+                    Global.color = outColor
+                }
+            }
+        }
+    }
+}

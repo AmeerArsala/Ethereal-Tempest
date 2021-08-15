@@ -1,0 +1,50 @@
+MaterialDef Simple {
+    MaterialParameters {
+		Texture2D ColorMap
+        Color Color (Color)
+		Color DiscardColor
+		Float MaxAlphaDiscard
+    }
+    Technique {
+        VertexShader GLSL150: Shaders/Default.vert
+        FragmentShader GLSL150: Shaders/Discard.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+        
+        Defines {
+			HAS_COLORMAP: ColorMap
+            HAS_COLOR: Color
+			HAS_DISCARDCOLOR: DiscardColor
+			HAS_MAX_ALPHA_DISCARD: MaxAlphaDiscard
+        }
+
+        VertexShaderNodes {
+            ShaderNode CommonVert {
+                Definition : CommonVert : Common/MatDefs/ShaderNodes/Common/CommonVert.j3sn
+                InputMappings {
+                    worldViewProjectionMatrix = WorldParam.WorldViewProjectionMatrix
+                    modelPosition = Global.position.xyz
+                }
+                OutputMappings {
+                    Global.position = projPosition
+                }
+            }
+        }
+        FragmentShaderNodes {
+            ShaderNode ColorMult {
+                Definition : ColorMult : Common/MatDefs/ShaderNodes/Basic/ColorMult.j3sn
+                InputMappings {
+                    color1 = MatParam.Color
+                    color2 = Global.color
+                }
+                OutputMappings {
+                    Global.color = outColor
+                }
+            }
+        }
+    }
+}

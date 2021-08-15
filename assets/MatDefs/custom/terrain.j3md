@@ -1,0 +1,23 @@
+MaterialDef Terrain {
+  
+    MaterialParameters {
+        Vector4 Color        
+        Texture2D TextureIdMap  
+        Float cellSize        
+        TextureArray AtlasArray
+    }
+
+    Technique {
+  
+        VertexShader GLSL330:   Shaders/terrain.vert
+        GeometryShader GLSL330: Shaders/terrain.geom
+        FragmentShader GLSL330: Shaders/terrain.frag
+        
+        WorldParameters {
+            WorldViewProjectionMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+    }
+   
+} 

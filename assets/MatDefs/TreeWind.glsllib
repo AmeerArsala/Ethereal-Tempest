@@ -1,0 +1,101 @@
+
+#ifdef USE_WIND
+
+uniform sampler2D m_WindNoise;
+
+uniform float m_FlexHeight;
+uniform float m_TrunkFlexibility;
+uniform float m_BranchFlexibility;
+uniform vec3 m_WorldNoiseOffset;
+
+// A simple noise + time based wind
+vec3 calculateWind( in vec3 groundPos, in vec3 modelPos, in float windStrength ) {
+ 
+    vec3 gPos = groundPos + m_WorldNoiseOffset;
+       
+    vec3 wind = vec3(0.0);    
+
+    float timeMultiplier = 2.0;
+
+    vec3 dir = normalize(modelPos); 
+    vec3 dir2 = abs(dir);
+
+    // Need to use the model's ground position for noise basis
+    // otherwise the tree will warp all over the place and it
+    // will look strange as the trunk stretches and shrinks.
+    vec4 noise = texture2D(m_WindNoise, vec2(gPos.x * 0.01 + g_Time * 0.05, gPos.z * 0.01));
+ 
+    // Calculate the base strength of movement from the 
+    // elevation of the point.  This is the rocking of the whole
+    // tree
+    float height = max(0.0, modelPos.y);
+    
+    // Bend the 'trunkHeight' portion of the tree along a 
+    // simple parabolic curve.  x = y * y
+    float trunkHeight = m_FlexHeight;
+    float factor = min(1.0, height / trunkHeight);
+    float bend = trunkHeight * factor * factor + max(0.0, height - trunkHeight);
+    float strength = noise.y * 0.05 * bend * m_TrunkFlexibility; 
+    float timeShift = (noise.x - 0.5) * 2.0 + gPos.x + gPos.z;
+
+
+    float deflect = sin(timeMultiplier * (g_Time + timeShift)) * windStrength * strength; 
+    wind.x += deflect;
+    wind.y -= deflect * dir.x;
+                        
+    // Add in some radial turbulence by figuring out how
+    // far the branch is the center of the tree and it's
+    // relative direction to the root
+    float turbulence = max(0.0, dir2.z * bend); 
+    float turbulenceStrength = length(dir2.xz);
+    turbulenceStrength *= turbulenceStrength;  // parabolic curve
+    turbulenceStrength *= 0.1;
+    
+    // A second noise parameter that time-lags the first a bit
+    // to give the branches a delayed reaction   
+    vec4 noise2 = texture2D(m_WindNoise, vec2(gPos.x * 0.01 + (g_Time - 0.5) * 0.05, gPos.z * 0.01));
+    float timeShift2 = (noise2.x - 0.5) * 2.0 + gPos.x + gPos.z;
+    float strength2 = turbulence * turbulenceStrength * windStrength * m_BranchFlexibility;
+    strength2 *= noise2.y;
+    float deflect2 = sin(timeMultiplier * (g_Time + timeShift2) * 2.0) * strength2; 
+    wind.x += deflect2;
+    wind.y -= deflect2 * dir.x;
+
+    return wind;
+}
+
+// A simple noise + time based wind
+// Does not include turbulence since that is irrelevant for
+// billboarded trees.
+vec3 calculateImpostorWind( in vec3 groundPos, in vec3 modelPos, in float windStrength ) {
+ 
+    vec3 gPos = groundPos + m_WorldNoiseOffset;
+    
+    vec3 wind = vec3(0.0);    
+
+    float timeMultiplier = 2.0;
+
+    vec3 dir = normalize(modelPos); 
+
+    // Need to use the model's ground position for noise basis
+    // otherwise the tree will warp all over the place and it
+    // will look strange as the trunk stretches and shrinks.
+    vec4 noise = texture2D(m_WindNoise, vec2(gPos.x * 0.01 + g_Time * 0.05, gPos.z * 0.01));
+ 
+    // Calculate the base strength of movement from the 
+    // elevation of the point.  This is the rocking of the whole
+    // tree
+    float height = max(0.0, modelPos.y); 
+    float strength = noise.y * 0.05 * height * m_TrunkFlexibility;
+    float timeShift = (noise.x - 0.5) * 2.0 + gPos.x + gPos.z;
+
+    float deflect = sin(timeMultiplier * (g_Time + timeShift)) * windStrength * strength; 
+    wind.x += deflect;
+    wind.y -= deflect * dir.x;
+                        
+    return wind;
+}
+
+
+#endif
+

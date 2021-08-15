@@ -1,0 +1,35 @@
+
+#ifdef USE_INSTANCING
+attribute mat4 inInstanceData;
+
+mat4 modelMatrix = mat4(vec4(inInstanceData[0].xyz, 0.0), 
+                            vec4(inInstanceData[1].xyz, 0.0), 
+                            vec4(inInstanceData[2].xyz, 0.0), 
+                            vec4(inInstanceData[3].xyz, 1.0));
+mat4 worldMatrix = g_WorldMatrix * modelMatrix;
+                            
+vec3 TransformNormal(vec3 vec)
+{
+/*
+    vec4 quat = vec4(inInstanceData[0].w, inInstanceData[1].w,
+                     inInstanceData[2].w, inInstanceData[3].w);
+
+    //vec = (g_WorldMatrix * vec4(vec, 0.0)).xyz;
+    
+    vec3 worldNormal = vec + vec3(2.0) * cross(cross(vec, quat.xyz) + vec3(quat.w) * vec, quat.xyz);
+    
+    return (g_ViewMatrix * vec4(worldNormal, 0.0)).xyz;
+    */
+    vec4 worldNormal = (worldMatrix * vec4(vec, 0.0));
+    return (g_ViewMatrix * worldNormal).xyz;
+}
+
+#else
+#define worldMatrix g_WorldMatrix
+
+vec3 TransformNormal(vec3 normal) {
+	return g_NormalMatrix * normal;
+}
+                            
+#endif
+
