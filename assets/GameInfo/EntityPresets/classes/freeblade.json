@@ -105,7 +105,7 @@
             }
           */
           "IF": {
-            "conditions": [ "Strike is Crit" ],
+            "conditions": [ "STRIKE[current]:IsCrit#" ],
             "is": true
           },
           "THEN": {
@@ -123,7 +123,7 @@
           },
           "ELSE": {
             "IF": {
-              "conditions": [ "Strike is Followup" ],
+              "conditions": [ "STRIKE[current]:IsFollowup#" ],
               "is": true
             },
             "THEN": {
@@ -155,7 +155,7 @@
           },
           "ALSO": {
             "IF": {
-              "conditions": [ "Next Strike is User" ],
+              "conditions": [ "STRIKE[next]:IsUser#" ],
               "is": false
             },
             "THEN": {
@@ -175,10 +175,10 @@
         },
         "onDodgeCalled": {
           "IF": { // if (nextStrikeIsUser && !nextStrikeWillCrit) { dodgeBehindEnemyIntoFinisher(); } else { regularDodge(); }
-            "conditions": [ "Next Strike is User" ],
+            "conditions": [ "STRIKE[next]:IsUser#" ],
             "is": true,
             "AND": {
-              "conditions": [ "Next Strike Will Crit" ],
+              "conditions": [ "STRIKE[next]:IsCrit#" ],
               "is": false
             }
           },
@@ -284,7 +284,7 @@
             }
           */
           "IF": {
-            "conditions": [ "Strike is Crit" ],
+            "conditions": [ "STRIKE[current]:IsCrit#" ],
             "is": true
           },
           "THEN": {
@@ -329,12 +329,12 @@
                 regularDodge();
               }
             */
-            "conditions": [ "Next Strike is User" ],
+            "conditions": [ "STRIKE[next]:IsUser#" ],
             "is": true
           },
           "THEN": { //next strike won't crit; use dodge into finisher
             "IF": {
-              "conditions": [ "Next Strike Will Crit" ],
+              "conditions": [ "STRIKE[next]:IsCrit#" ],
               "is": true
             },
             "THEN": {

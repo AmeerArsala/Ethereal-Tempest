@@ -438,7 +438,7 @@ public class Cursor extends Node implements OnTile {
                     
                     //for moving
                     if (fsm.getEnumState() == CursorState.AnyoneSelected) {
-                        if (selectedUnit.getPos().getLayer() == pos.getLayer() && pos.getCoords().nonDiagonalDistanceFrom(selectedUnit.getPos().getCoords()) <= selectedUnit.getMOBILITY()) {
+                        if (rangeDisplay.isDisplayedMoveSquare(pos) && selectedUnit.getPos().getLayer() == pos.getLayer() && pos.getCoords().nonDiagonalDistanceFrom(selectedUnit.getPos().getCoords()) <= selectedUnit.getMOBILITY()) {
                             if (!getCurrentTile().isTraversable()) {
                                 return null;
                             }
@@ -462,7 +462,7 @@ public class Cursor extends Node implements OnTile {
                                 interpreter.clear();
                                 selectedUnit.remapPosition(pos.subtract(fsm.selectionDifferenceXY));
                                 return new MasterFsmState(MapFlowState.PreBattle).setConveyor(new Conveyor(selectedUnit).setEnemyUnit(receivingEnd).createCombatants());
-                            } else { //selection
+                            } else if (selectedUnit == null) { //selection
                                 tu.select();
                                 selectedUnit = tu;
                                 arrowTrain.setCapacity(selectedUnit.getMOBILITY());

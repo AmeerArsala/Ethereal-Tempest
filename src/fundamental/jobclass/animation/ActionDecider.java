@@ -10,9 +10,14 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.jme3.asset.AssetManager;
 import com.jme3.texture.Texture;
+import fundamental.jobclass.animation.data.ParticipantMetadataCondition;
+import fundamental.jobclass.animation.data.StrikeMetadataCondition;
+import general.math.function.ParsedMathFunction;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 /**
  *
@@ -112,6 +117,10 @@ public class ActionDecider {
         public void deserializeAll(String folderRoot) {
             deserializeAnimations(folderRoot);
             
+            if (IF != null) {
+                IF.parseConditions();
+            }
+            
             if (THEN != null) {
                 THEN.deserializeAll(folderRoot);
             }
@@ -151,7 +160,12 @@ public class ActionDecider {
     }
     
     public static class Condition {
-        private ActionCondition[] conditions; // array works as an AND
+        //private ActionCondition[] conditions; // array works as an AND
+        private String[] conditions; // array works as an AND
+        
+        @Expose(deserialize = false)
+        private Predicate<CombatFlowData.Representative>[] computedConditions;
+        
         private Condition AND;        // && (AND); evaluates AND over OR (higher priority)
         private Condition OR;         // || (OR)
         private Condition XOR;        // ^ (Exclusive OR aka XOR)
@@ -159,7 +173,7 @@ public class ActionDecider {
         private Condition BINARY_OR;  // | (Binary OR)
         private boolean is; // is true or is false
         
-        public Condition(ActionCondition[] conditions, Condition AND, Condition OR, Condition XOR, Condition BINARY_AND, Condition BINARY_OR, boolean is) {
+        public Condition(String[] conditions, Condition AND, Condition OR, Condition XOR, Condition BINARY_AND, Condition BINARY_OR, boolean is) {
             this.conditions = conditions;
             this.AND = AND;
             this.OR = OR;
@@ -169,12 +183,23 @@ public class ActionDecider {
             this.is = is;
         }
         
-        private boolean evaluateBaseConditions(CombatFlowData.Representative data) {
+        public void parseConditions() {
             if (conditions == null) {
+                return;
+            }
+            
+            computedConditions = new Predicate[conditions.length];
+            for (int i = 0; i < conditions.length; ++i) {
+                computedConditions[i] = parseCondition(conditions[i]);
+            }
+        }
+        
+        private boolean evaluateBaseConditions(CombatFlowData.Representative data) {
+            if (computedConditions == null) {
                 return false;
             }
             
-            for (ActionCondition condition : conditions) {
+            for (Predicate<CombatFlowData.Representative> condition : computedConditions) {
                 if (condition.test(data) != is) {
                     return false;
                 } 
@@ -207,6 +232,38 @@ public class ActionDecider {
             }
             
             return baseConditions;
+        }
+        
+        //Example: "STRIKE[next]:IsCrit#"
+        //"next" is the same as "current+1" or "c+1"
+        //"last" is the same as "current-1" or "c-1"
+        //everything in the square brackets ([]) is a math equation from ParsedMathFunction
+        //Example 2: "STRIKE[0]:DoesDmgPercent#<=50.0"
+        //Example 3: "PARTICIPANT[current+2]:user@WillDie#"
+        //Example 4: "PARTICIPANT[current*2]:opponent@PercentDistanceFromBoxEdge#vertical%> 25.0"
+        //Example 5: "PARTICIPANT[current]:user@PercentDistanceFromBoxEdge#horizontal>=25.0"
+        public static Predicate<CombatFlowData.Representative> parseCondition(String str) {
+            char currentIndexChar = 'c';
+            String functionName = "f";
+        
+            String computedDefinition = str.replaceAll("current", Character.toString(currentIndexChar));
+            computedDefinition = computedDefinition.replaceFirst("next", currentIndexChar + "+1").replaceFirst("last", currentIndexChar + "-1");
+            
+            int endFunctionIndex = computedDefinition.indexOf("]:");
+            String functionExpression = computedDefinition.substring(computedDefinition.indexOf("[") + 1, endFunctionIndex);
+            
+            ParsedMathFunction func = new ParsedMathFunction(functionName, currentIndexChar, functionExpression);
+            ToIntFunction<CombatFlowData.Representative> indexRetriever = (rep) -> { 
+                return func.output(rep.getStrikeReel().getIndex()).intValue(); 
+            };
+            
+            if (computedDefinition.startsWith("STRIKE")) {
+                return StrikeMetadataCondition.parseCondition(computedDefinition.substring(endFunctionIndex + 2), indexRetriever);
+            } else if (computedDefinition.startsWith("PARTICIPANT")) {
+                return ParticipantMetadataCondition.parseCondition(computedDefinition.substring(endFunctionIndex + 2), indexRetriever);
+            }
+            
+            return null;
         }
     }
     

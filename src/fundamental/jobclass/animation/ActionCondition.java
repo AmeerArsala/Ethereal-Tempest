@@ -9,12 +9,17 @@ import battle.data.CombatFlowData;
 import battle.data.event.StrikeTheater;
 import battle.data.event.StrikeTheater.Participant;
 import com.google.gson.annotations.SerializedName;
+import fundamental.jobclass.animation.data.ParticipantMetadataCondition;
+import fundamental.jobclass.animation.data.StrikeMetadataCondition;
+import general.math.function.ParsedMathFunction;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 /**
  *
  * @author night
  */
+@Deprecated
 public enum ActionCondition {
     @SerializedName("User is Striker") UserIsStriker((rep) -> {
         return rep.getRoleForCurrentStrike() == Participant.Striker;
@@ -26,7 +31,7 @@ public enum ActionCondition {
     
     @SerializedName("Strike is Followup") StrikeIsFollowup((rep) -> {
         //A Followup animation is used iff the last non-'special' Strike was made by the user
-        //A Strike is considered 'special' if it is either a crit or triggers a BattleTalent
+        //A Strike is considered 'special' if it is either a crit or triggers a BattleTalent or it is a skill
         int i = rep.getStrikeReel().getIndex();
         
         if (i == 0) {
@@ -49,11 +54,7 @@ public enum ActionCondition {
             strikeRep.getStrikeReel().strikeTheater.getActualStrike(i - 1).isCrit() || 
             strikeRep.getStrikeReel().strikeTheater.getActualStrike(i - 1).getStriker().triggeredBattleTalent();
         
-        if (!currentStrikeIsSpecial && !prevStrikeWasSpecial) { //role == Participant.Striker evaluates to true
-            return true;
-        }
-        
-        return false;
+        return !currentStrikeIsSpecial && !prevStrikeWasSpecial; //role == Participant.Striker evaluates to true
     }),
     
     @SerializedName("Last Strike was User") LastStrikeWasUser((rep) -> {

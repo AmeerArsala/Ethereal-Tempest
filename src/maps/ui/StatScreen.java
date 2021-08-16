@@ -1379,6 +1379,8 @@ public class StatScreen extends Node {
     private void styleStat(OrderedRawStats ORS, TrueTypeNode individualStat, ArrayList<Cosa> col3, String statDescription, int i) {
         //final String statNames[] = {"STR", "ETHER", "AGI", "COMP", "DEX", "DEF", "RSL", "MOBILIT", "PHYSIQU"};
         final Texture[] statTextures = MapTextures.GUI.Stat.asArray();
+        Texture statTexture = statTextures[i];
+        //statTexture.setMagFilter(Texture.MagFilter.Nearest);
         
         StatBundle<BaseStat> sb = ORS.rawBaseStatsWithTempBuffs.get(i + 1);
         StatBundle<BaseStat> baseSB = ORS.rawBaseStats.get(i + 1);
@@ -1417,7 +1419,7 @@ public class StatScreen extends Node {
             
         //attach stat icons
         Panel icon = new Panel(42f * (135f / 128f), 42f * (135f / 128f));
-        icon.setBorder(new QuadBackgroundComponent(statTextures[i]));
+        icon.setBorder(new QuadBackgroundComponent(statTexture));
         icon.move(8.25f, 8f, 0f);
         individualStat.attachChild(icon);
         
