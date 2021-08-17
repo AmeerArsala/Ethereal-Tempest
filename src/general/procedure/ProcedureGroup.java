@@ -14,17 +14,25 @@ import java.util.List;
  *
  * @author night
  */
-public class ProcedureGroup {
-    private final List<SimpleProcedure> procedures = new LinkedList<>();
-    private final ArrayList<SimpleProcedure> finished = new ArrayList<>();
+public class ProcedureGroup extends SimpleProcedureGroup {
+    public static abstract class CustomProcedure implements SimpleProcedure {
+        public final Runnable onFinish;
+        
+        public CustomProcedure(Runnable onFinish) {
+            this.onFinish = onFinish;
+        }
+    }
     
     public ProcedureGroup() {}
     
+    @Override
     public void update(float tpf) {
-        for (SimpleProcedure procedure : procedures) {
+        for (int i = 0, len = procedures.size(); i < len; ++i) {
+            CustomProcedure procedure = (CustomProcedure)procedures.get(i);
             boolean done = procedure.update(tpf);
             if (done) {
                 finished.add(procedure);
+                procedure.onFinish.run();
             }
         }
         
@@ -32,19 +40,26 @@ public class ProcedureGroup {
         finished.clear();
     }
     
+    @Override
     public void add(SimpleProcedure procedure) {
+        procedures.add(new CustomProcedure(() -> {}) {
+            @Override
+            public boolean update(float tpf) {
+                return procedure.update(tpf);
+            }
+        });
+    }
+    
+    public void add(SimpleProcedure procedure, Runnable onFinish) {
+        procedures.add(new CustomProcedure(onFinish) {
+            @Override
+            public boolean update(float tpf) {
+                return procedure.update(tpf);
+            }
+        });
+    }
+    
+    public void add(CustomProcedure procedure) {
         procedures.add(procedure);
-    }
-    
-    public List<SimpleProcedure> getProcedures() {
-        return procedures;
-    }
-    
-    public boolean isEmpty() {
-        return procedures.isEmpty();
-    }
-    
-    public void clear() {
-        procedures.clear();
     }
 }

@@ -5,9 +5,12 @@
  */
 package general.visual.sprite;
 
+import battle.animation.config.action.FlashColor;
 import com.jme3.asset.AssetManager;
+import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
+import java.util.function.Consumer;
 
 /**
  *
@@ -86,6 +89,51 @@ public class ModifiedSprite extends Sprite {
         
         if (hasOverlay()) {
             overlay.setSpritesheetPosition(pos);
+        }
+    }
+    
+    @Override
+    public void cleanAndStartFlashingColor(FlashColor flashColor) {
+        super.cleanAndStartFlashingColor(flashColor);
+        
+        if (hasOverlay()) {
+            overlay.cleanAndStartFlashingColor(flashColor);
+        }
+    }
+    
+    @Override
+    public void startFlashingColorIfAllowed(FlashColor flashColor) {
+        super.startFlashingColorIfAllowed(flashColor);
+        
+        if (hasOverlay()) {
+            overlay.startFlashingColorIfAllowed(flashColor);
+        }
+    }
+    
+    @Override
+    public void startFlashingColor(FlashColor flashColor) {
+        super.startFlashingColor(flashColor);
+        
+        if (hasOverlay()) {
+            overlay.startFlashingColor(flashColor);
+        }
+    }
+    
+    //stops flashing colors (if happening)
+    @Override
+    public void stopFlashing() {
+        super.stopFlashing();
+        
+        if (hasOverlay()) {
+            overlay.stopFlashing();
+        }
+    }
+    
+    public void commandMaterial(Consumer<Material> matConsumer) {
+        matConsumer.accept(getMaterial());
+        
+        if (hasOverlay()) {
+            matConsumer.accept(overlay.getMaterial());
         }
     }
 }

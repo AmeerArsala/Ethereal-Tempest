@@ -34,7 +34,7 @@ public enum StrikeMetadataCondition {
         if (!strikeExists(rep, i)) {
             return false;
         }
-        
+        System.err.println("CurrentIndex: " + rep.getStrikeReel().getIndex() + "; Index: " + i + "; Is Crit? " + rep.getStrikeReel().strikeTheater.getActualStrike(i).isCrit());
         return rep.getStrikeReel().strikeTheater.getActualStrike(i).isCrit();
     }),
     IsSkill((rep, indexRetriever, restOfString) -> {
@@ -92,7 +92,7 @@ public enum StrikeMetadataCondition {
         if (!strikeExists(rep, i)) {
             return false;
         }
-        
+        System.err.println("CurrentIndex: " + rep.getStrikeReel().getIndex() + "; Index: " + i + "; Is User? " + (rep.getRoleForStrike(i) == Participant.Striker));
         return rep.getRoleForStrike(i) == Participant.Striker;
     }),
     DoesDmgPercent((rep, indexRetriever, restOfString) -> {

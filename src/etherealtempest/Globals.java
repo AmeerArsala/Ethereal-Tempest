@@ -11,9 +11,13 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.system.AppSettings;
-import general.tools.GameTimer;
 import general.procedure.ProcedureGroup;
+import general.tools.GameTimer;
 import general.procedure.functional.SimpleProcedure;
+import general.utils.DependentObjectComparator;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -21,17 +25,35 @@ import java.util.concurrent.Future;
  *
  * @author night
  */
+@SuppressWarnings("element-type-mismatch")
 public class Globals {
     public static final int STANDARD_FPS = 60;
     public static final Vector3f WORLD_UP_VECTOR = new Vector3f(0, 1, 0); //do not fuck with this unless you set it back to normal after
-    public static boolean gameIsFrozen = false;
+    public static boolean GameIsFrozen = false;
     
     static final GameTimer timer = new GameTimer();
     static final ProcedureGroup tasks = new ProcedureGroup();
     static Main app;
     
+    private static class TaskID {
+        public final Object id;
+        public final int index;
+        
+        public TaskID(Object id, int index) {
+            this.id = id;
+            this.index = index;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return id.equals(o);
+        }
+    }
+    
+    private static final List<TaskID> taskIDs = new ArrayList<>(); 
+    
     static void update(float tpf) {
-        if (!gameIsFrozen) {
+        if (!GameIsFrozen) {
             tasks.update(tpf);
             timer.update(tpf);
         }
@@ -46,7 +68,71 @@ public class Globals {
     }
     
     public static void addTaskToGlobal(SimpleProcedure task) {
-        tasks.add(task);
+        addTaskToGlobal(timer.getTime(), task);
+    }
+    
+    public static void addTaskToGlobal(Object id, SimpleProcedure task) {
+        tasks.add(task, () -> { //onFinish
+            taskIDs.remove(new DependentObjectComparator(id)); //removes by id
+        });
+        
+        taskIDs.add(new TaskID(id, tasks.size() - 1));
+    }
+    
+    public static void addTaskToGlobal(double id, SimpleProcedure task) {
+        tasks.add(task, () -> { //onFinish
+            taskIDs.remove(new DependentObjectComparator(id)); //removes by id
+        });
+        
+        taskIDs.add(new TaskID(id, tasks.size() - 1));
+    }
+    
+    public static void addTaskToGlobal(float id, SimpleProcedure task) {
+        tasks.add(task, () -> { //onFinish
+            taskIDs.remove(new DependentObjectComparator(id)); //removes by id
+        });
+        
+        taskIDs.add(new TaskID(id, tasks.size() - 1));
+    }
+    
+    public static void addTaskToGlobal(String id, SimpleProcedure task) {
+        tasks.add(task, () -> { //onFinish
+            taskIDs.remove(new DependentObjectComparator(id)); //removes by id
+        });
+        
+        taskIDs.add(new TaskID(id, tasks.size() - 1));
+    }
+    
+    public static void removeTaskFromGlobal(Object id) {
+        taskIDs.remove(new DependentObjectComparator(id)); //removes by id
+    }
+    
+    public static void removeTaskFromGlobal(double id) {
+        taskIDs.remove(new DependentObjectComparator(id)); //removes by id
+    }
+    
+    public static void removeTaskFromGlobal(float id) {
+        taskIDs.remove(new DependentObjectComparator(id)); //removes by id
+    }
+    
+    public static void removeTaskFromGlobal(String id) {
+        taskIDs.remove(new DependentObjectComparator(id)); //removes by id
+    }
+    
+    public static void removeAllTasksFromGlobal(Object id) {
+        while (taskIDs.remove(new DependentObjectComparator(id))) {}
+    }
+    
+    public static void removeAllTasksFromGlobal(double id) {
+        while (taskIDs.remove(new DependentObjectComparator(id))) {}
+    }
+    
+    public static void removeAllTasksFromGlobal(float id) {
+        while (taskIDs.remove(new DependentObjectComparator(id))) {}
+    }
+    
+    public static void removeAllTasksFromGlobal(String id) {
+        while (taskIDs.remove(new DependentObjectComparator(id))) {}
     }
     
     public static <V> Future<V> enqueue(Callable<V> callable) {

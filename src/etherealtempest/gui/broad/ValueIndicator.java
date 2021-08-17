@@ -8,7 +8,7 @@ package etherealtempest.gui.broad;
 import com.jme3.scene.Node;
 import enginetools.math.SpatialOperator;
 import general.tools.GameTimer;
-import general.procedure.ProcedureGroup;
+import general.procedure.SimpleProcedureGroup;
 import general.math.FloatPair;
 import general.math.function.CartesianFunction;
 import general.math.function.ControlledMathFunction;

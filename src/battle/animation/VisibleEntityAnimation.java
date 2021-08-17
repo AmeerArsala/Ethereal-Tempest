@@ -15,7 +15,7 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import general.tools.GameTimer;
 import general.procedure.functional.SimpleProcedure;
-import general.procedure.ProcedureGroup;
+import general.procedure.SimpleProcedureGroup;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -91,8 +91,8 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
             //TODO: play the sound
         }
         
-        entityAnimationRoot.queue.update(tpf);
-        opponentAnimationRoot.queue.update(tpf);
+        entityAnimationRoot.procedures.update(tpf);
+        opponentAnimationRoot.procedures.update(tpf);
     }
     
     public boolean impactOccured() {
@@ -136,7 +136,7 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
     //                        <S> is the User Spatial
     protected class EntityRoot<S extends Spatial> extends RootPackage<S> {
         private final boolean isOpponent;
-        public final ProcedureGroup queue = new ProcedureGroup();
+        public final SimpleProcedureGroup procedures = new SimpleProcedureGroup();
         
         public EntityRoot(RootPackage<S> rootPackage, boolean isOpponent) {
             super(rootPackage.root, rootPackage.positiveDirectionVector, rootPackage.centerPointDefault, rootPackage.dimensionsSupplier);
@@ -144,18 +144,23 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
         }
     
         public void addChangesToQueueIfAny(Changes changes, BoxMetadata battleBoxInfo, boolean fromSelf) {
-            queue.add(new SimpleProcedure() {
+            procedures.add(new SimpleProcedure() {
                 private int framesSince = 0;
+                private float timeSince = 0f;
                 
                 @Override
                 public boolean update(float tpf) {
                     //System.out.println(fromSelf ? "<USER_CHANGES>" : "<OPPONENT_CHANGES>");
-                    return changes.generateChangePack(
-                        framesSince++, 
+                    int currentFrameSince = framesSince++;
+                    boolean done = changes.generateChangePack(
+                        currentFrameSince,
                         root,
                         (isOpponent ? entityAnimationRoot.root : opponentAnimationRoot.root),
                         centerPointDefault
-                    ).apply(root, battleBoxInfo, positiveDirectionVector, dimensionsSupplier.get(), fromSelf);
+                    ).apply(root, battleBoxInfo, positiveDirectionVector, fromSelf, currentFrameSince, timeSince);
+                    
+                    timeSince += tpf;
+                    return done;
                 }
             });
         }

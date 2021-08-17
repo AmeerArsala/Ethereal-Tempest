@@ -30,7 +30,7 @@ import etherealtempest.info.Conveyor;
 import general.procedure.RequestDealer;
 import fundamental.talent.TalentCondition.Occasion;
 import general.tools.GameTimer;
-import general.procedure.ProcedureGroup;
+import general.procedure.SimpleProcedureGroup;
 import general.ui.text.FontProperties;
 import general.ui.text.FontProperties.KeyType;
 import general.ui.text.Text2D;
@@ -66,7 +66,7 @@ public class MapFlow { //eventually make this the map controller
     }
     
     public final GameTimer syncTimer = new GameTimer();
-    public final ProcedureGroup queue = new ProcedureGroup();
+    public final SimpleProcedureGroup queue = new SimpleProcedureGroup();
     
     private final List<Turn> partiesInvolved;
     private final RequestDealer<Conveyor> requestTaker = new RequestDealer<>();

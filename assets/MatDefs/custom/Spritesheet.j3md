@@ -5,23 +5,31 @@ MaterialDef Simple {
         Float SizeY: 1
         Float Position
         Color Color (Color)
+
+        Float AlphaDiscardThreshold: 0.0
+        
+        Color ChangeTo
+        Float ChangeColorFunctionInput: 0.0
+        Boolean ChangeColorFunctionInputUsesTime: true
+        Float ChangeColorFunctionPeriod
         
         Vector2 Pivot
         Float RotationSpeed: 1.0
         Boolean IsRotating: false
-		Boolean RotationUsesTime: true
-		Float Angle: 0.0
+	Boolean RotationUsesTime: true
+	Float Angle: 0.0
     }
     Technique {
         VertexShader GLSL100:   Shaders/Spritesheet.vert
         FragmentShader GLSL100: Shaders/Spritesheet.frag
-
+        
         WorldParameters {
             WorldViewProjectionMatrix
-			Time
+            Time
         }
         Defines {
             HAS_COLOR: Color
+            HAS_CHANGE_TO: ChangeTo
             HAS_PIVOT: Pivot
         }
         VertexShaderNodes {

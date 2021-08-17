@@ -15,6 +15,9 @@ import com.jme3.math.Vector4f;
 import com.jme3.scene.Spatial;
 import general.math.ParametricFunctionStrings3f;
 import general.math.ParametricFunctionStrings4f;
+import general.math.function.CartesianFunction;
+import general.math.function.MathFunction;
+import general.math.function.RGBAFunction;
 import general.utils.wrapper.IdentifiedDuo;
 
 /**
@@ -27,15 +30,17 @@ public class Changes {
     private Change3f[] thetaVelocities; //angular velocity in degrees; units: degrees/frame 
     private Change3f[] localScales; //not a velocity function
     private Change4f[] colors; //not a velocity function
-    private Vector2f centerPoint;
+    private FlashColor flashColor; //flashes this color
+    private Vector2f centerPoint; //point of rotation (pivot)
     
     public Changes() {}
     
-    public Changes(Change3f[] velocities, Change3f[] thetaVelocities, Change3f[] localScales, Change4f[] colors, Vector2f centerPoint) {
+    public Changes(Change3f[] velocities, Change3f[] thetaVelocities, Change3f[] localScales, Change4f[] colors, FlashColor flashColor, Vector2f centerPoint) {
         this.velocities = velocities;
         this.thetaVelocities = thetaVelocities;
         this.localScales = localScales;
         this.colors = colors;
+        this.flashColor = flashColor;
         this.centerPoint = centerPoint;
     }
     
@@ -43,6 +48,7 @@ public class Changes {
     Change3f[] getAngularVelocities() { return thetaVelocities; }
     Change3f[] getLocalScales() { return localScales; }
     Change4f[] getColors() { return colors; }
+    FlashColor getFlashColor() { return flashColor; }
     
     public Vector2f getCenterPoint() { return centerPoint; }
     
@@ -95,7 +101,8 @@ public class Changes {
             getAngularVelocity(framesSinceActionFrame, userVariableChanges.getB(), opponentVariableChanges.getB()),
             getLocalScale(framesSinceActionFrame, user.getLocalScale(), opponent.getLocalScale()),
             rgba,
-            colorMatParam
+            colorMatParam, //corresponds to the parameter 'rgba'
+            flashColor
         );
     }
     

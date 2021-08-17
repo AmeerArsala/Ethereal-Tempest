@@ -33,7 +33,7 @@ import etherealtempest.Main;
 import etherealtempest.geometry.GeometricBody;
 import etherealtempest.gui.broad.BasicProgressBar;
 import general.procedure.functional.SimpleProcedure;
-import general.procedure.ProcedureGroup;
+import general.procedure.SimpleProcedureGroup;
 import maps.layout.occupant.character.MapUnitSpritesheet.AnimationState;
 import general.utils.helpers.GameUtils;
 import general.visual.DeserializedParticleEffect;
@@ -62,7 +62,7 @@ public class UnitVisuals {
     private final BasicProgressBar hpBar, tpBar;
     
     private final LinkedList<DeserializedParticleEffect> effectQueue = new LinkedList<>();
-    private final ProcedureGroup procedureGroup = new ProcedureGroup();
+    private final SimpleProcedureGroup procedureGroup = new SimpleProcedureGroup();
     private final AssetManager assetManager;
     
     private final MapUnitSpritesheet spritesheetInfo;
@@ -158,7 +158,7 @@ public class UnitVisuals {
     public MapUnitSpritesheet getSpritesheetInfo() { return spritesheetInfo; }
     public AnimationState getAnimationState() { return animState; }
     
-    public ProcedureGroup getProcedureGroup() { return procedureGroup; }
+    public SimpleProcedureGroup getProcedureGroup() { return procedureGroup; }
     public int getEffectQueueSize() { return effectQueue.size(); }
     
     public void addToEffectQueue(DeserializedParticleEffect particleEffect) {

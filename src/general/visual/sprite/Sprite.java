@@ -5,13 +5,18 @@
  */
 package general.visual.sprite;
 
+import battle.animation.config.action.FlashColor;
+import battle.animation.config.action.FlashColor.TimeType;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState.BlendMode;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector2f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture.MagFilter;
+import etherealtempest.Globals;
+import general.procedure.functional.SimpleProcedure;
 import general.ui.GeometryPanel;
 
 /**
@@ -24,6 +29,8 @@ public class Sprite extends GeometryPanel {
     private final Material mat;
     private String spritesheetPath;
     protected int xFacing = FACING_RIGHT;
+    
+    private boolean colorFlashing = false;
     
     public Sprite(Vector2f dimensions, AssetManager assetManager) {
         this(dimensions.x, dimensions.y, assetManager);
@@ -42,6 +49,8 @@ public class Sprite extends GeometryPanel {
     public int getXFacing() { return xFacing; } 
     public boolean isFacingRight() { return xFacing == FACING_RIGHT; }
     public boolean isFacingLeft() { return xFacing == FACING_LEFT; }
+    
+    public boolean isColorFlashing() { return colorFlashing; }
     
     @Override
     public Material getMaterial() {
@@ -95,5 +104,51 @@ public class Sprite extends GeometryPanel {
     
     public void setSpritesheetPosition(float pos) {
         mat.setFloat("Position", pos);
+    }
+    
+    public void cleanAndStartFlashingColor(FlashColor flashColor) {
+        stopFlashing();
+        startFlashingColor(flashColor);
+    }
+    
+    public void startFlashingColorIfAllowed(FlashColor flashColor) {
+        if (!colorFlashing) {
+            startFlashingColor(flashColor);
+        }
+    }
+    
+    public void startFlashingColor(FlashColor flashColor) {
+        mat.setColor("ChangeTo", flashColor.getColor());
+        mat.setFloat("ChangeColorFunctionPeriod", flashColor.getPeriod());
+        mat.setBoolean("ChangeColorFunctionInputUsesTime", flashColor.getTimeType() == TimeType.SHADER_TIME);
+        
+        if (flashColor.getTimeType() == TimeType.AUTO_TIME) {
+            Globals.addTaskToGlobal("Flash Color", new SimpleProcedure() {
+                private float time = 0f;
+                private final float period = flashColor.getPeriod();
+                
+                @Override
+                public boolean update(float tpf) {
+                    if (time > period) {
+                        stopFlashing();
+                        return true;
+                    }
+                    
+                    mat.setFloat("ChangeColorFunctionInput", time);
+                    time += tpf;
+                    
+                    return false;
+                }
+            });
+        }
+        
+        colorFlashing = true;
+    }
+    
+    //stops flashing colors (if happening)
+    public void stopFlashing() {
+        mat.clearParam("ChangeTo");
+        Globals.removeAllTasksFromGlobal("Flash Color");
+        colorFlashing = false;
     }
 }

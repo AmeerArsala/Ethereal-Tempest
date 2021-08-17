@@ -9,7 +9,7 @@ import general.math.FloatPair;
 import general.math.function.CartesianFunction;
 import general.math.function.ControlledMathFunction;
 import general.math.function.MathFunction;
-import general.procedure.ProcedureGroup;
+import general.procedure.SimpleProcedureGroup;
 import general.tools.GameTimer;
 import general.visual.animation.VisualTransition;
 
@@ -18,7 +18,7 @@ import general.visual.animation.VisualTransition;
  * @author night
  */
 public abstract class RangedValue {
-    protected final ProcedureGroup procedures = new ProcedureGroup();
+    protected final SimpleProcedureGroup procedures = new SimpleProcedureGroup();
     
     protected final int maxNumber;
     

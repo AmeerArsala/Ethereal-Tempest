@@ -108,7 +108,7 @@ public class FighterInfoVisualizer {
                 break;
             case ApplyingDeath:
                 sprite.getMaterial().setColor("Color", BattleSprite.DIE_FUNCTION.rgba(counter.getTime()));
-                if (counter.getTime() >= BattleSprite.DIE_FUNCTION_LENGTH) { //1.5 seconds to die
+                if (counter.getTime() >= BattleSprite.DIE_FUNCTION_LENGTH) {
                     sprite.removeFromParent();
                     fsm.setNewStateIfAllowed(FighterState.Finished);
                 }
