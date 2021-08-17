@@ -111,6 +111,16 @@ public class BattleAnimation {
         return remaining;
     }
     
+    public boolean isAttack() {
+        for (int i = 0, len = segments.size(); i < len; ++i) {
+            if (segments.get(i).isAttack()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
     //gets hitpoint of the very first animation in the very first segment
     public Vector2f getVeryFirstHitPoint() {
         return segments.get(0).getEntityAnimations().get(0).getInfo().getHitPoint();

@@ -14,6 +14,7 @@
   ],
   "loopAnimationVisually": false,
   "delayForIndefiniteChanges": 0.0,
+  "annulChangesFromOpponent": true,
   "impact": null,
   "otherActionFrames": [
     {

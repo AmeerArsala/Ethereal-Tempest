@@ -107,7 +107,7 @@ public class ChangePack {
                 sprite.setColor(colorMatParam, color);
             }
             
-            if (flashColor != null) {
+            if (flashColor != null && (fromSelf || !sprite.annulsChangesFromOpponent())) {
                 switch (flashColor.getTimeType()) {
                     case FRAMES:
                         if (currentFrameSince <= flashColor.getPeriod()) {

@@ -59,6 +59,10 @@ public class FighterAnimationController {
     }
     
     private void callAnimation(AnimationCallDataWrapper data, AnimationArgsWrapper args) {
+        if (data.animation.isAttack()) {
+            args.opponent.setAnnulsChangesFromOpponent(!args.decisionData.getStrikeReel().getCurrentStrike().didHit());
+        } 
+        
         currentAnimationQueue.addToQueue(
             data.animation, 
             args.animParams.onUpdate,

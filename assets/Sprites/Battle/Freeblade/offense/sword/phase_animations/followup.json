@@ -39,8 +39,8 @@
           "b": 1.0,
           "a": 1.0
         },
-        "period": 2.0,
-        "timeType": "FRAMES"
+        "period": 0.5,
+        "timeType": "AUTO_TIME"
       }
     }
   },

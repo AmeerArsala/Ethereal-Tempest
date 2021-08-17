@@ -78,8 +78,9 @@ public class EntityAnimation {
     private Float delayForIndefiniteChanges; //delay for Changes that go on for an indefinite duration
     private ActionFrame impact; //impact sound; this can also be the start of casting ether formulas/spells
     private ActionFrame[] otherActionFrames; //other sounds at specified frames
+    private Boolean annulChangesFromOpponent;
     
-    public EntityAnimation(String configPath, Tag tag, Vector2f hitPoint, ColumnDomainDelayMapping[] animation, Boolean loopAnimationVisually, Float delayForIndefiniteChanges, ActionFrame impact, ActionFrame[] otherActionFrames) {
+    public EntityAnimation(String configPath, Tag tag, Vector2f hitPoint, ColumnDomainDelayMapping[] animation, Boolean loopAnimationVisually, Float delayForIndefiniteChanges, ActionFrame impact, ActionFrame[] otherActionFrames, Boolean annulChangesFromOpponent) {
         this.configPath = configPath;
         this.tag = tag;
         this.hitPoint = hitPoint;
@@ -88,6 +89,7 @@ public class EntityAnimation {
         this.delayForIndefiniteChanges = delayForIndefiniteChanges;
         this.impact = impact;
         this.otherActionFrames = otherActionFrames;
+        this.annulChangesFromOpponent = annulChangesFromOpponent;
     }
     
     public void initializeParticleEffects(AssetManager assetManager) {
@@ -128,6 +130,10 @@ public class EntityAnimation {
             otherActionFrames = new ActionFrame[0];
         }
         
+        if (annulChangesFromOpponent == null) {
+            annulChangesFromOpponent = false;
+        }
+        
         minLocalFrameForRegisteringImpact = 0;
     }
     
@@ -157,6 +163,10 @@ public class EntityAnimation {
     
     public ActionFrame getImpact() {
         return impact;
+    }
+    
+    public boolean annulChangesFromOpponent() {
+        return annulChangesFromOpponent;
     }
     
     public int getFrames() {
@@ -292,7 +302,7 @@ public class EntityAnimation {
             entityAnimation.initializeActionFrames();
             entityAnimation.initializeLocalFrameConversion();
             entityAnimation.initializeMiscProperties();
-            entityAnimation.jsonPath = jsonPath; //TODO: remove this later
+            entityAnimation.jsonPath = jsonPath;
             entityAnimation.animSource = AnimationSource.Spritesheet;
             
             return entityAnimation;
@@ -313,7 +323,7 @@ public class EntityAnimation {
             entityAnimation.initializeActionFrames();
             entityAnimation.initializeLocalFrameConversion();
             entityAnimation.initializeMiscProperties();
-            entityAnimation.jsonPath = jsonPath; //TODO: remove this later
+            entityAnimation.jsonPath = jsonPath;
             entityAnimation.animSource = AnimationSource.ParticleEffect;
             
             return entityAnimation;

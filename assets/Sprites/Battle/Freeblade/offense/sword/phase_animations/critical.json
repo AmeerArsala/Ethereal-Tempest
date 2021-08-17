@@ -55,8 +55,8 @@
           "b": 0.0,
           "a": 1.0
         },
-        "period": 3.0,
-        "timeType": "FRAMES"
+        "period": 0.50,
+        "timeType": "AUTO_TIME"
       }
     }
   },

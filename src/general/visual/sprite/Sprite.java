@@ -31,6 +31,7 @@ public class Sprite extends GeometryPanel {
     protected int xFacing = FACING_RIGHT;
     
     private boolean colorFlashing = false;
+    private final String flashString;
     
     public Sprite(Vector2f dimensions, AssetManager assetManager) {
         this(dimensions.x, dimensions.y, assetManager);
@@ -42,6 +43,7 @@ public class Sprite extends GeometryPanel {
         mat = new Material(assetManager, "MatDefs/custom/Spritesheet.j3md");
         mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
         super.setMaterial(mat);
+        flashString = "Flash Color" + super.toString();
     }
     
     public String getTexturePath() { return spritesheetPath; } //use this if you want to compare whether textures are different
@@ -123,7 +125,7 @@ public class Sprite extends GeometryPanel {
         mat.setBoolean("ChangeColorFunctionInputUsesTime", flashColor.getTimeType() == TimeType.SHADER_TIME);
         
         if (flashColor.getTimeType() == TimeType.AUTO_TIME) {
-            Globals.addTaskToGlobal("Flash Color", new SimpleProcedure() {
+            Globals.addTaskToGlobal(flashString, new SimpleProcedure() {
                 private float time = 0f;
                 private final float period = flashColor.getPeriod();
                 
@@ -148,7 +150,7 @@ public class Sprite extends GeometryPanel {
     //stops flashing colors (if happening)
     public void stopFlashing() {
         mat.clearParam("ChangeTo");
-        Globals.removeAllTasksFromGlobal("Flash Color");
+        Globals.removeAllTasksFromGlobal(flashString);
         colorFlashing = false;
     }
 }

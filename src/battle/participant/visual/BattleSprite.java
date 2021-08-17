@@ -20,13 +20,14 @@ import general.math.function.ParametricFunction4f;
 import general.math.function.RGBAFunction;
 import general.visual.sprite.ModifiedSprite;
 import general.visual.sprite.Sprite;
+import java.util.List;
 
 /**
  *
  * @author night
  */
 public class BattleSprite extends ModifiedSprite {
-    public static final float DIE_FUNCTION_LENGTH = 1.5f;
+    public static final float DIE_FUNCTION_LENGTH = 1.25f;
     public static final RGBAFunction DIE_FUNCTION = new RGBAFunction(
         new ParametricFunction4f(
             MathFunction.CONSTANT(1f),                                         // R
@@ -49,6 +50,7 @@ public class BattleSprite extends ModifiedSprite {
     private Vector2f centerPointDefault; //in percents of Sprite dimensions
     
     private boolean textureIsRotating = false;
+    private boolean annulChangesFromOpponent = false;
     
     public BattleSprite(Vector2f dimensions, AssetManager assetManager, BoxMetadata battleBoxInfo, boolean usesHitPoint) {
         super(dimensions, assetManager);
@@ -80,6 +82,10 @@ public class BattleSprite extends ModifiedSprite {
     
     public boolean allowDisplacementTransformationsFromOpponent() { 
         return allowDisplacement;
+    }
+    
+    public boolean annulsChangesFromOpponent() {
+        return annulChangesFromOpponent;
     }
     
     public boolean isTextureRotating() {
@@ -124,6 +130,10 @@ public class BattleSprite extends ModifiedSprite {
     
     public void setAllowDisplacementTransformationsFromOpponent(boolean allow) {
         allowDisplacement = allow;
+    }
+    
+    public void setAnnulsChangesFromOpponent(boolean annuls) {
+        annulChangesFromOpponent = annuls;
     }
     
     public void setDamageNumberLocationSpritePercent(Vector2f dmgNumLoc) {

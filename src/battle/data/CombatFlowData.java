@@ -5,6 +5,7 @@
  */
 package battle.data;
 
+import battle.data.event.Strike;
 import battle.data.event.StrikeReel;
 import battle.data.event.StrikeTheater;
 import battle.data.participant.Combatant;
