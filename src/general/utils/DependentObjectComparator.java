@@ -9,6 +9,7 @@ package general.utils;
  *
  * @author night
  */
+@SuppressWarnings("EqualsAndHashcode")
 public class DependentObjectComparator {
     public Object obj;
     
@@ -17,6 +18,7 @@ public class DependentObjectComparator {
     }
     
     @Override
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object o) {
         return o.equals(obj);
     }
