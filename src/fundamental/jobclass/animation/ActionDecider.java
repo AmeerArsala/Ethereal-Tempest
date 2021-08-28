@@ -96,13 +96,15 @@ public class ActionDecider {
         private Procedure ALSO;
         
         private NextAction[] actions;
+        private Boolean STOP_ALL;
         
-        public Procedure(Condition IF, Procedure THEN, Procedure ELSE, Procedure ALSO, NextAction[] actions) {
+        public Procedure(Condition IF, Procedure THEN, Procedure ELSE, Procedure ALSO, NextAction[] actions, Boolean STOP_ALL) {
             this.IF = IF;
             this.THEN = THEN;
             this.ELSE = ELSE;
             this.ALSO = ALSO;
             this.actions = actions;
+            this.STOP_ALL = STOP_ALL;
         }
         
         private void deserializeAnimations(String folderRoot) {
@@ -118,7 +120,7 @@ public class ActionDecider {
             deserializeAnimations(folderRoot);
             
             if (IF != null) {
-                IF.parseConditions();
+                IF.parseAllConditions();
             }
             
             if (THEN != null) {
@@ -132,9 +134,25 @@ public class ActionDecider {
             if (ALSO != null) {
                 ALSO.deserializeAll(folderRoot);
             }
+            
+            //the equivalent of 'return;'
+            if (STOP_ALL == null) {
+                STOP_ALL = false;
+            }
         }
         
-        private List<NextAction> execute(CombatFlowData.Representative data) {
+        private class ExecutionResults {
+            public final List<NextAction> nextActions;
+            public final boolean endsUpStoppingAll;
+            
+            public ExecutionResults(List<NextAction> nextActions, boolean endsUpStoppingAll) {
+                this.nextActions = nextActions;
+                this.endsUpStoppingAll = endsUpStoppingAll;
+            }
+        }
+        
+        //if at any point, the fields' STOP_ALL field == true, prematurely ends method
+        private ExecutionResults execute(CombatFlowData.Representative data) {
             List<NextAction> nextActions = new ArrayList<>();
             
             if (actions != null) {
@@ -142,20 +160,35 @@ public class ActionDecider {
             }
             
             if (IF != null && IF.evaluate(data)) {
-                nextActions.addAll(THEN.execute(data));
+                ExecutionResults Then = THEN.execute(data);
+                nextActions.addAll(Then.nextActions);
+                
+                if (THEN.STOP_ALL || Then.endsUpStoppingAll) {
+                    return new ExecutionResults(nextActions, true);
+                }
             } else if (ELSE != null) {
-                nextActions.addAll(ELSE.execute(data));
+                ExecutionResults Else = ELSE.execute(data);
+                nextActions.addAll(Else.nextActions);
+                
+                if (ELSE.STOP_ALL || Else.endsUpStoppingAll) {
+                    return new ExecutionResults(nextActions, true);
+                }
             }
             
             if (ALSO != null) {
-                nextActions.addAll(ALSO.execute(data));
+                ExecutionResults Also = ALSO.execute(data);
+                nextActions.addAll(Also.nextActions);
+                
+                if (ALSO.STOP_ALL || Also.endsUpStoppingAll) {
+                    return new ExecutionResults(nextActions, true);
+                }
             }
             
-            return nextActions;
+            return new ExecutionResults(nextActions, false);
         }
         
         public NextActionSequence run(CombatFlowData.Representative data) {
-            return new NextActionSequence(execute(data));
+            return new NextActionSequence(execute(data).nextActions);
         }
     }
     
@@ -183,19 +216,37 @@ public class ActionDecider {
             this.is = is;
         }
         
-        public void parseConditions() {
-            if (conditions == null) {
-                return;
-            }
-            
+        //assumes conditions != null
+        public void parseAllConditions() {
             computedConditions = new Predicate[conditions.length];
             for (int i = 0; i < conditions.length; ++i) {
                 computedConditions[i] = parseCondition(conditions[i]);
+            }
+            
+            if (AND != null) {
+                AND.parseAllConditions();
+            }
+            
+            if (OR != null) {
+                OR.parseAllConditions();
+            }
+            
+            if (XOR != null) {
+                XOR.parseAllConditions();
+            }
+            
+            if (BINARY_AND != null) {
+                BINARY_AND.parseAllConditions();
+            }
+            
+            if (BINARY_OR != null) {
+                BINARY_OR.parseAllConditions();
             }
         }
         
         private boolean evaluateBaseConditions(CombatFlowData.Representative data) {
             if (computedConditions == null) {
+                System.out.println("computedConditions == null");
                 return false;
             }
             
@@ -234,15 +285,24 @@ public class ActionDecider {
             return baseConditions;
         }
         
-        //Example: "STRIKE[next]:IsCrit#"
+        //Example 1: "STRIKE[next]:IsCrit#"
         //"next" is the same as "current+1" or "c+1"
         //"last" is the same as "current-1" or "c-1"
-        //everything in the square brackets ([]) is a math equation from ParsedMathFunction
+        //everything in the square brackets ([]) is a math equation from ParsedMathFunction and represents the strike index
         //Example 2: "STRIKE[0]:DoesDmgPercent#<=50.0"
         //Example 3: "PARTICIPANT[current+2]:user@WillDie#"
         //Example 4: "PARTICIPANT[current*2]:opponent@PercentDistanceFromBoxEdge#vertical%> 25.0"
         //Example 5: "PARTICIPANT[current]:user@PercentDistanceFromBoxEdge#horizontal>=25.0"
+        //however, some don't require index, typically in the PARTICIPANT group; a shortcut is provided for making that clearer
+        //Example 6: "PARTICIPANT<<Caller>>:user@PathOfAnimationInUseEndsWith#phase_animations\\idle.json"
         public static Predicate<CombatFlowData.Representative> parseCondition(String str) {
+            String neatParticipantShortcutPrefix = "PARTICIPANT<<Caller>>:";
+            if (str.startsWith(neatParticipantShortcutPrefix)) {
+                return ParticipantMetadataCondition.parseCondition(str.substring(neatParticipantShortcutPrefix.length()), (rep) -> {
+                    return rep.getStrikeReel().getIndex();
+                });
+            }
+            
             char currentIndexChar = 'c';
             String functionName = "f";
         

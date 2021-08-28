@@ -9,7 +9,10 @@ import battle.data.event.Strike;
 import battle.data.event.StrikeReel;
 import battle.data.event.StrikeTheater;
 import battle.data.participant.Combatant;
+import battle.environment.BoxMetadata;
+import battle.participant.visual.BattleSprite;
 import com.jme3.math.Vector2f;
+import com.jme3.renderer.Camera;
 import general.utils.wrapper.Duo;
 import java.util.function.Supplier;
 
@@ -53,7 +56,9 @@ public class CombatFlowData {
         private final Combatant participant;
         private final Vector2f pos;
         
-        private Supplier<Vector2f> posGetter;
+        private BattleSprite sprite;
+        private BoxMetadata battleBoxInfo;
+        private Camera cam;
         
         Representative opponent;
         
@@ -113,13 +118,25 @@ public class CombatFlowData {
         public void incrementMinStrikeIndexToReceiveImpact() {
             ++minStrikeIndexToReceiveImpact;
         }
-
-        public void setPosGetter(Supplier<Vector2f> posGetter) {
-            this.posGetter = posGetter;
+        
+        public void initialize(BattleSprite battleSprite, BoxMetadata boxMetadata, Camera camera) {
+            sprite = battleSprite;
+            battleBoxInfo = boxMetadata;
+            cam = camera;
         }
         
         public void updatePos() {
-            pos.set(posGetter.get());
+            pos.set(sprite.getPercentagePosition());
+        }
+        
+        public BattleSprite getSprite() {
+            return sprite;
+        }
+        
+        //TODO: this stuff below
+        //the screen edges are not the same as battleBox edges
+        public float getScreenLeftEdgePosition() {
+            return cam.getWorldCoordinates(new Vector2f(0, 0), cam.getViewToProjectionZ(Math.abs(cam.getLocation().z - sprite.getWorldTranslation().z))).x;
         }
     }
 }

@@ -58,16 +58,17 @@ public class FighterAnimationController {
         return new AnimationCallDataWrapper(params, animationRoot, nextSequence, animation);
     }
     
-    private void callAnimation(AnimationCallDataWrapper data, AnimationArgsWrapper args) {
+    private void callAnimation(AnimationCallDataWrapper data, AnimationArgsWrapper args, String name) {
         if (data.animation.isAttack()) {
             args.opponent.setAnnulsChangesFromOpponent(!args.decisionData.getStrikeReel().getCurrentStrike().didHit());
-        } 
+        }
         
         currentAnimationQueue.addToQueue(
             data.animation, 
             args.animParams.onUpdate,
             () -> { //onStart
                 //TODO: do something here
+                System.err.println(name + " animation start");
             },
             () -> { //onFinish
                 currentAnimationQueue.resetStarted();
@@ -75,8 +76,8 @@ public class FighterAnimationController {
         );
     }
     
-    private void callAnimation(ActionDecider.Procedure next, AnimationArgsWrapper args) {
-        callAnimation(createAnimation(next, args), args);
+    private void callAnimation(ActionDecider.Procedure next, AnimationArgsWrapper args, String name) {
+        callAnimation(createAnimation(next, args), args, name);
     }
     
     private void callAttributeAnimation(ActionDecider.AttributeAnimation next, DashAnimationArgsWrapper args) {
@@ -84,7 +85,7 @@ public class FighterAnimationController {
             nextDashAnimation(args.onDashUpdate, args.opponent, args.decisionData);
         }
         
-        callAnimation(next.getOnCall(), args); //specify movement in the json file
+        callAnimation(next.getOnCall(), args, "AttributeAnimation: " + next.getName()); //specify movement in the json file
     }
     
     public void nextSkillAttackAnimation(String name, DashAnimationArgsWrapper args) {
@@ -100,7 +101,7 @@ public class FighterAnimationController {
             nextDashAnimation(args.onDashUpdate, args.opponent, args.decisionData);
         }
         
-        callAnimation(animationDecider.getOnAttackCalled(), args);
+        callAnimation(animationDecider.getOnAttackCalled(), args, "Attack");
     }
     
     public void nextDashAnimation(UpdateLoop onUpdate, BattleSprite opponent, CombatFlowData.Representative decisionData) {
@@ -121,21 +122,21 @@ public class FighterAnimationController {
             
             Vector2f hitPointInSpritePercents = callData.animation.getVeryFirstHitPoint();
             if (!opponent.collidesWith(sprite.new Point(hitPointInSpritePercents).toBattleBoxPercentage())) {
-                callAnimation(callData, args);
+                callAnimation(callData, args, "Dash");
             }
         }
     }
     
     public void nextReceiveImpactAnimation(AnimationArgsWrapper args) { 
         if (args.decisionData.getStrikeReel().getCurrentStrike().didHit()) { //assumes this unit is the victim for this strike
-            callAnimation(animationDecider.getOnGotHitCalled(), args);
+            callAnimation(animationDecider.getOnGotHitCalled(), args, "GotHit");
         } else {
-            callAnimation(animationDecider.getOnDodgeCalled(), args);
+            callAnimation(animationDecider.getOnDodgeCalled(), args, "Dodge");
         }
     }
     
     public void nextIdleAnimation(AnimationArgsWrapper args) {
-        callAnimation(animationDecider.getOnIdleCalled(), args);
+        callAnimation(animationDecider.getOnIdleCalled(), args, "Idle");
     }
     
     public void update(float tpf) {

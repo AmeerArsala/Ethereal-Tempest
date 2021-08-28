@@ -9,6 +9,10 @@
       "x": 0.526,
       "y": 0.32
     },
+    "posteriorBottomEdgePoint": {
+      "x": 0.630,
+      "y": 0.0735
+    },
     "hurtbox": {
       "domainX": {
         "a": 0.444,

@@ -12,6 +12,6 @@ import com.jme3.math.Vector3f;
  * @author night
  */
 public class AnimationSpecifications {
-    private Vector3f functionScalars;
+    private Vector3f velocityScalars;
     
 }

@@ -47,6 +47,7 @@ public class VisibleEntitySpriteAnimation extends VisibleEntityAnimation<BattleS
         System.out.println("BEGIN SPRITE ANIMATION PHASE: " + info.getJsonPath());
         
         BattleSprite sprite = entityAnimationRoot.root;
+        sprite.setPathToCurrentAnimationJSON(info.getJsonPath());
         
         /*AttackSheetConfig sheetConfig = info.getConfig().getPossibleSpritesheet();
         

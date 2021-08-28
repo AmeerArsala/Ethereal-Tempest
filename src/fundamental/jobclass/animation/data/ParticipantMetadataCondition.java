@@ -137,6 +137,29 @@ public enum ParticipantMetadataCondition {
         }
         
         return parseComparison(comparisonStr, 100 * leftSide, value);
+    }),
+    CollidesWithFoe((rep, indexRetriever, appliesToUser, restOfString) -> {
+        CombatFlowData.Representative specifiedRep;
+        
+        if (appliesToUser) {
+            specifiedRep = rep;
+        } else { //applies to opponent
+            specifiedRep = rep.getOpponent();
+        }
+        
+        return specifiedRep.getSprite().collidesWith(specifiedRep.getOpponent().getSprite());
+    }),
+    PathOfAnimationInUseEndsWith((rep, indexRetriever, appliesToUser, restOfString) -> {
+        CombatFlowData.Representative specifiedRep;
+        
+        if (appliesToUser) {
+            specifiedRep = rep;
+        } else { //applies to opponent
+            specifiedRep = rep.getOpponent();
+        }
+        
+        String jsonPath = restOfString.substring(1); //right after the '#'
+        return specifiedRep.getSprite().getPathToCurrentAnimationJSON().endsWith(jsonPath);
     });
     
     //For individual stats, create an enum for each one

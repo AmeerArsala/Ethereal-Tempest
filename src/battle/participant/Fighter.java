@@ -73,7 +73,7 @@ public class Fighter {
         boolean mirrorUI = !mirrored; //Example: initiator sprite isn't mirrored, but its UI is because it starts on the right
         
         sprite = common.createBattleSprite(forecast, mirrored);
-        decisionData.setPosGetter(() -> { return sprite.getPercentagePosition(); });
+        decisionData.initialize(sprite, common.battleBoxInfo, common.cam);
         
         controller = new FighterAnimationController(sprite, forecast.getActionDecider(), common.assetManager);
         visualizer = new FighterInfoVisualizer(sprite, new FighterGUI(forecast, common.assetManager, common.cam, mirrorUI), common.battleBoxInfo);

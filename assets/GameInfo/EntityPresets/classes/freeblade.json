@@ -56,7 +56,7 @@
   },
   "wieldableWeaponTypes": [ "Sword", "Delta Ether" ],
   "mobilityTypes": [ "Infantry" ],
-  "battleSpritesheetPaths": ["Sprites/Battle/Freeblade/offense/sword/spritesheet.png", "Sprites/Battle/Freeblade/offense/delta ether/spritesheet.png"],
+  "battleSpritesheetPaths": [ "Sprites/Battle/Freeblade/offense/sword/spritesheet.png", "Sprites/Battle/Freeblade/offense/delta ether/spritesheet.png" ],
   "battleAnimationConfigurations": [
     {
       "weaponType": "Sword",
@@ -70,7 +70,7 @@
                 "type": "Spritesheet"
               },
               "mirror": false,
-              "concurrent": false,
+              "playsSimultaneouslyWithPrevious": false,
               "isAttack": false
             }
           ]
@@ -83,7 +83,7 @@
                 "type": "Spritesheet"
               },
               "mirror": false,
-              "concurrent": false,
+              "playsSimultaneouslyWithPrevious": false,
               "isAttack": false
             }
           ]
@@ -93,6 +93,15 @@
             if (strikeIsCrit) {
               critical();
             } else {
+              if (animationIsMirroredHalfDodge) {
+                finisher();
+                if (!nextStrikeExists || !nextStrikeIsUser) {
+                  mirroredRetreat();
+                }
+
+                return;
+              }
+
               if (strikeIsFollowup) {
                 followup();
               } else {
@@ -100,7 +109,7 @@
               }
             }
 
-            if (!nextStrikeExists || !nextStrikeIsUser) {
+            if (!foeAnimationIsMirroredHalfDodge && (!nextStrikeExists || !nextStrikeIsUser)) {
               retreat();
             }
           */
@@ -116,46 +125,83 @@
                   "type": "Spritesheet"
                 },
                 "mirror": false,
-                "concurrent": false,
+                "playsSimultaneouslyWithPrevious": false,
                 "isAttack": true
               }
             ]
           },
           "ELSE": {
             "IF": {
-              "conditions": [ "STRIKE[current]:IsFollowup#" ],
+              "conditions": [ "PARTICIPANT<<Caller>>:user@PathOfAnimationInUseEndsWith#phase_animations\\halfdodge_halfway_across_box.json" ],
               "is": true
             },
             "THEN": {
               "actions": [
                 {
                   "action": {
-                    "animationJsonPath": "phase_animations\\followup.json",
+                    "animationJsonPath": "phase_animations\\finisher.json",
                     "type": "Spritesheet"
                   },
                   "mirror": false,
-                  "concurrent": false,
+                  "playsSimultaneouslyWithPrevious": false,
                   "isAttack": true
                 }
-              ]
+              ],
+              "IF": {
+                "conditions": [ "STRIKE[next]:IsUser#" ],
+                "is": false
+              },
+              "THEN": {
+                "actions": [
+                  {
+                    "action": {
+                      "animationJsonPath": "phase_animations\\retreat.json",
+                      "type": "Spritesheet"
+                    },
+                    "mirror": true,
+                    "playsSimultaneouslyWithPrevious": false,
+                    "isAttack": false
+                  }
+                ]
+              },
+              "STOP_ALL": true
             },
-            "ELSE": {
-              "actions": [
-                {
-                  "action": {
-                    "animationJsonPath": "phase_animations\\attack.json",
-                    "type": "Spritesheet"
-                  },
-                  "mirror": false,
-                  "concurrent": false,
-                  "isAttack": true
-                }
-              ]
+            "ALSO": {
+              "IF": {
+                "conditions": [ "STRIKE[current]:IsFollowup#" ],
+                "is": true
+              },
+              "THEN": {
+                "actions": [
+                  {
+                    "action": {
+                      "animationJsonPath": "phase_animations\\followup.json",
+                      "type": "Spritesheet"
+                    },
+                    "mirror": false,
+                    "playsSimultaneouslyWithPrevious": false,
+                    "isAttack": true
+                  }
+                ]
+              },
+              "ELSE": {
+                "actions": [
+                  {
+                    "action": {
+                      "animationJsonPath": "phase_animations\\attack.json",
+                      "type": "Spritesheet"
+                    },
+                    "mirror": false,
+                    "playsSimultaneouslyWithPrevious": false,
+                    "isAttack": true
+                  }
+                ]
+              }
             }
           },
           "ALSO": {
             "IF": {
-              "conditions": [ "STRIKE[next]:IsUser#" ],
+              "conditions": [ "PARTICIPANT<<Caller>>:opponent@PathOfAnimationInUseEndsWith#phase_animations\\halfdodge_halfway_across_box.json", "STRIKE[next]:IsUser#" ],
               "is": false
             },
             "THEN": {
@@ -166,7 +212,7 @@
                     "type": "Spritesheet"
                   },
                   "mirror": false,
-                  "concurrent": false,
+                  "playsSimultaneouslyWithPrevious": false,
                   "isAttack": false
                 }
               ]
@@ -174,7 +220,14 @@
           }
         },
         "onDodgeCalled": {
-          "IF": { // if (nextStrikeIsUser && !nextStrikeWillCrit) { dodgeBehindEnemyIntoFinisher(); } else { regularDodge(); }
+          "IF": {
+            /*
+               if (nextStrikeIsUser && !nextStrikeWillCrit) {
+                  halfMirrorDodge();
+               } else {
+                  regularDodge();
+               }
+            */
             "conditions": [ "STRIKE[next]:IsUser#" ],
             "is": true,
             "AND": {
@@ -186,22 +239,22 @@
             "actions": [
               {
                 "action": {
-                  "animationJsonPath": "phase_animations\\dodge.json",
+                  "animationJsonPath": "phase_animations\\halfdodge_halfway_across_box.json",
                   "type": "Spritesheet"
                 },
-                "mirror": true, //used to be true
-                "concurrent": false,
+                "mirror": true,
+                "playsSimultaneouslyWithPrevious": false,
                 "isAttack": false
-              },
-              {
-                "action": {
-                  "animationJsonPath": "phase_animations\\finisher.json",
-                  "type": "Spritesheet"
-                },
-                "mirror": false,
-                "concurrent": false,
-                "isAttack": true
-              }
+              }/*,
+                {
+                  "action": {
+                    "animationJsonPath": "phase_animations\\finisher.json",
+                    "type": "Spritesheet"
+                  },
+                  "mirror": false,
+                  "playsSimultaneouslyWithPrevious": false,
+                  "isAttack": true
+                }*/
             ]
           },
           "ELSE": { //then use normal dodge
@@ -212,7 +265,7 @@
                   "type": "Spritesheet"
                 },
                 "mirror": false,
-                "concurrent": false,
+                "playsSimultaneouslyWithPrevious": false,
                 "isAttack": false
               }
             ]
@@ -230,7 +283,7 @@
                       "type": "Spritesheet"
                     },
                     "mirror": false,
-                    "concurrent": false,
+                    "playsSimultaneouslyWithPrevious": false,
                     "isAttack": true
                   }
                 ]
@@ -245,7 +298,7 @@
                   "type": "Spritesheet"
                 },
                 "mirror": false,
-                "concurrent": false,
+                "playsSimultaneouslyWithPrevious": false,
                 "isAttack": true
               }
             ]
@@ -270,7 +323,7 @@
                 "type": "Spritesheet"
               },
               "mirror": false,
-              "concurrent": false,
+              "playsSimultaneouslyWithPrevious": false,
               "isAttack": false
             }
           ]
@@ -295,7 +348,7 @@
                   "type": "Spritesheet"
                 },
                 "mirror": false,
-                "concurrent": false,
+                "playsSimultaneouslyWithPrevious": false,
                 "isAttack": true
               }
             ]
@@ -308,7 +361,7 @@
                   "type": "Spritesheet"
                 },
                 "mirror": false,
-                "concurrent": false,
+                "playsSimultaneouslyWithPrevious": false,
                 "isAttack": true
               }
             ]
@@ -345,7 +398,7 @@
                     "type": "Spritesheet"
                   },
                   "mirror": true,
-                  "concurrent": false,
+                  "playsSimultaneouslyWithPrevious": false,
                   "isAttack": false
                 },
                 {
@@ -354,7 +407,7 @@
                     "type": "Spritesheet"
                   },
                   "mirror": false,
-                  "concurrent": false,
+                  "playsSimultaneouslyWithPrevious": false,
                   "isAttack": true
                 }
               ]
@@ -367,7 +420,7 @@
                     "type": "Spritesheet"
                   },
                   "mirror": true,
-                  "concurrent": false,
+                  "playsSimultaneouslyWithPrevious": false,
                   "isAttack": false
                 },
                 {
@@ -376,7 +429,7 @@
                     "type": "Spritesheet"
                   },
                   "mirror": false,
-                  "concurrent": false,
+                  "playsSimultaneouslyWithPrevious": false,
                   "isAttack": true
                 }
               ]
@@ -390,7 +443,7 @@
                   "type": "Spritesheet"
                 },
                 "mirror": false,
-                "concurrent": false,
+                "playsSimultaneouslyWithPrevious": false,
                 "isAttack": false
               }
             ]

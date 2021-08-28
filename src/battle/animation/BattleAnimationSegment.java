@@ -16,16 +16,16 @@ import java.util.function.Consumer;
  * @author night
  */
 public class BattleAnimationSegment {
-    private final List<VisibleEntityAnimation> entityAnimations; //the last one is the one with the impact
-    private final boolean concurrent; //if true, plays all at the same time
+    private final List<VisibleEntityAnimation> entityAnimations; //the last one is typically the one with the impact
+    private final boolean simultaneous; //if true, plays all at the same time
     private final boolean isAttack;
     
     private int animationIndex = 0;
     private Runnable onRealImpactOccurred = () -> {};
     
-    public BattleAnimationSegment(List<VisibleEntityAnimation> entityAnimations, boolean concurrent, boolean isAttack) {
+    public BattleAnimationSegment(List<VisibleEntityAnimation> entityAnimations, boolean simultaneous, boolean isAttack) {
         this.entityAnimations = entityAnimations;
-        this.concurrent = concurrent;
+        this.simultaneous = simultaneous;
         this.isAttack = isAttack;
         
         for (int i = 0, len = entityAnimations.size(); i < len; ++i) {
@@ -49,7 +49,7 @@ public class BattleAnimationSegment {
                     break;
             }
             
-            System.out.println(anim.toString());
+            //System.out.println(anim.toString());
         }
     }
     
@@ -57,8 +57,8 @@ public class BattleAnimationSegment {
         return entityAnimations;
     }
     
-    public boolean isConcurrent() {
-        return concurrent;
+    public boolean isSimultaneous() {
+        return simultaneous;
     }
     
     public boolean isAttack() {
@@ -80,15 +80,18 @@ public class BattleAnimationSegment {
     }
     
     public boolean realImpactOccurred() {
-        VisibleEntityAnimation lastAnimation = entityAnimations.get(entityAnimations.size() - 1);
-        
-        if (!concurrent) {
+        if (!simultaneous) {
             VisibleEntityAnimation entityAnimation = firstUnfinishedAnimation();
             return entityAnimation == null ? false : entityAnimation.impactOccured();
+        } else {
+            for (VisibleEntityAnimation VEA : entityAnimations) {
+                if (!VEA.isFinished() && VEA.impactOccured()) {
+                    return true;
+                }
+            }
         }
         
-        //if it is concurrent
-        return lastAnimation.impactOccured(); //real impacts only occur on the last animation on concurrent animations
+        return false;
     }
     
     public void onRealImpactOccurred(Runnable prcdr) {
@@ -96,7 +99,7 @@ public class BattleAnimationSegment {
     }
     
     private void procedure(Consumer<VisibleEntityAnimation> command) {
-        if (concurrent) {
+        if (simultaneous) {
             for (VisibleEntityAnimation entityAnimation : entityAnimations) {
                 command.accept(entityAnimation);
             }
@@ -130,7 +133,7 @@ public class BattleAnimationSegment {
                 entityAnimation.update(tpf);
                 
                 if (realImpactOccurred()) {
-                    System.err.println("onRealImpactOccurred");
+                    System.err.println("onRealImpactOccurred (impact occurs here)");
                     onRealImpactOccurred.run();
                 }
                 

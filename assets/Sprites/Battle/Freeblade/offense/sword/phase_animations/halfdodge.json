@@ -1,0 +1,47 @@
+{
+  "configPath": "Sprites\\Battle\\Freeblade\\offense\\sword\\config.json",
+  "tag": "Default",
+  "hitPoint": null,
+  "animation": [
+    {
+      "column": 7,
+      "animationSegment": {
+        "from": 0,
+        "to": 5,
+        "delay": 0.075
+      }
+    }
+  ],
+  "loopAnimationVisually": false,
+  "delayForIndefiniteChanges": 0.0,
+  "annulChangesFromOpponent": true,
+  "impact": null,
+  "otherActionFrames": [
+    {
+      "column": 7,
+      "frame": 1,
+      "soundPath": "", //TODO: add dodging sound
+      "userChanges": {
+        "velocities": [
+          {
+            "strFunc": {
+              "parameter": "t",
+              "xFunction": "-0.025",
+              "yFunction": "(-0.05*t)+0.05"
+            },
+            "domain": "0-2" //inclusive; goes for 3 frames after the ActionFrame, starting at the ActionFrame; frameSinceActionFrame: 0, framesSinceActionFrame: 1, and framesSinceActionFrame: 2
+          }
+        ],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      },
+      "opponentChanges": {
+        "velocities": [],
+        "thetaVelocities": [],
+        "localScales": [],
+        "colors": []
+      }
+    }
+  ]
+}

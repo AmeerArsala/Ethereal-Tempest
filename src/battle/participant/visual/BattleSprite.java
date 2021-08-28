@@ -20,7 +20,6 @@ import general.math.function.ParametricFunction4f;
 import general.math.function.RGBAFunction;
 import general.visual.sprite.ModifiedSprite;
 import general.visual.sprite.Sprite;
-import java.util.List;
 
 /**
  *
@@ -46,11 +45,14 @@ public class BattleSprite extends ModifiedSprite {
     private ColorRGBA color = new ColorRGBA(1, 1, 1, 1);
     private Point hitPoint = null;
     private ZoneBox hurtbox;
-    private Vector2f damageNumberLocation;
-    private Vector2f centerPointDefault; //in percents of Sprite dimensions
+    private Vector2f damageNumberLocation;     // in percents of Sprite dimensions (FACING_LEFT)
+    private Vector2f centerPointDefault;       // in percents of Sprite dimensions (FACING_LEFT)
+    private Vector2f posteriorBottomEdgePoint; // in percents of Sprite dimensions (FACING_LEFT)
     
     private boolean textureIsRotating = false;
     private boolean annulChangesFromOpponent = false;
+    
+    private String pathToCurrentAnimationJson = "";
     
     public BattleSprite(Vector2f dimensions, AssetManager assetManager, BoxMetadata battleBoxInfo, boolean usesHitPoint) {
         super(dimensions, assetManager);
@@ -92,6 +94,10 @@ public class BattleSprite extends ModifiedSprite {
         return textureIsRotating;
     }
     
+    public String getPathToCurrentAnimationJSON() {
+        return pathToCurrentAnimationJson;
+    }
+    
     public ColorRGBA getColor() {
         return color;
     }
@@ -112,8 +118,24 @@ public class BattleSprite extends ModifiedSprite {
         return centerPointDefault;
     }
     
+    public Vector2f getPosteriorBottomEdgePoint() {
+        return posteriorBottomEdgePoint;
+    }
+    
     public void setIsTextureRotating(boolean rotating) {
         textureIsRotating = rotating;
+    }
+    
+    public void setAllowDisplacementTransformationsFromOpponent(boolean allow) {
+        allowDisplacement = allow;
+    }
+    
+    public void setAnnulsChangesFromOpponent(boolean annuls) {
+        annulChangesFromOpponent = annuls;
+    }
+    
+    public void setPathToCurrentAnimationJSON(String jsonPath) {
+        pathToCurrentAnimationJson = jsonPath;
     }
     
     public void setDefaultZPos(float zDefault) {
@@ -128,20 +150,16 @@ public class BattleSprite extends ModifiedSprite {
         setLocalTranslation(getLocalTranslation().setZ(zPosDefault + deltaZ));
     }
     
-    public void setAllowDisplacementTransformationsFromOpponent(boolean allow) {
-        allowDisplacement = allow;
-    }
-    
-    public void setAnnulsChangesFromOpponent(boolean annuls) {
-        annulChangesFromOpponent = annuls;
-    }
-    
     public void setDamageNumberLocationSpritePercent(Vector2f dmgNumLoc) {
         damageNumberLocation = dmgNumLoc;
     }
     
     public void setDefaultCenterPoint(Vector2f centerPoint) {
         centerPointDefault = centerPoint;
+    }
+    
+    public void setPosteriorBottomEdgePoint(Vector2f rearBottomEdgePoint) {
+        posteriorBottomEdgePoint = rearBottomEdgePoint;
     }
     
     public void setHitPointIfAllowed(Vector2f hitPointInPercentage) { //use sprite cell percentage
@@ -171,6 +189,13 @@ public class BattleSprite extends ModifiedSprite {
     }
     
     public Vector2f getPercentagePosition() {
+        /*Vector3f localTranslation;
+        if (xFacing == FACING_RIGHT) {
+            localTranslation = new Point()
+        } else { // xFacing == FACING_LEFT
+        
+        }*/
+        
         return getPercentagePosition(getLocalTranslation(), true);
     }
     

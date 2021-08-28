@@ -17,20 +17,20 @@ import fundamental.BattleVisual;
  */
 public class NextAction {
     private BattleVisual action;
-    private boolean mirror;
-    private boolean concurrent; //does it play at the same time as the battle animation/its predacessor, or does it wait for its turn?
+    private boolean mirror; //here for convenience purposes
+    private boolean playsSimultaneouslyWithPrevious; //does it play at the same time as the battle animation/its predacessor or does it wait for its turn?
     private boolean isAttack;
     
-    public NextAction(BattleVisual action, boolean mirror, boolean concurrent, boolean isAttack) {
+    public NextAction(BattleVisual action, boolean mirror, boolean playsSimultaneouslyWithPrevious, boolean isAttack) {
         this.action = action;
         this.mirror = mirror;
-        this.concurrent = concurrent;
+        this.playsSimultaneouslyWithPrevious = playsSimultaneouslyWithPrevious;
         this.isAttack = isAttack;
     }
     
     public BattleVisual getAnimation() { return action; }
     public boolean mirrorUserSprite() { return mirror; }
-    public boolean isConcurrent() { return concurrent; }
+    public boolean playsSimultaneouslyWithPrevious() { return playsSimultaneouslyWithPrevious; }
     public boolean isAttack() { return isAttack; }
     
     public VisibleEntityAnimation createAnimation(SpriteAnimationParams params) {

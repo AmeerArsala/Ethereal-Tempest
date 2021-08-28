@@ -23,16 +23,22 @@ public class AttackSheetConfig {
     private int[] framesPerColumn;
     private Vector2f damageNumberLocation; //in percentages of the sprite size, going over 100% is ok
     private Vector2f centerPoint;
+    private Vector2f posteriorBottomEdgePoint;
     private DomainBox hurtbox;
     private boolean letEnemyChangeTransformationValues;
     
     @Expose(deserialize = false) 
     private String fileRoot; 
     
-    public AttackSheetConfig(int[] framesPerColumn, Vector2f damageNumberLocation, Vector2f centerPoint, DomainBox hurtbox, boolean letEnemyChangeTransformationValues) {
+    public AttackSheetConfig(
+        int[] framesPerColumn, 
+        Vector2f damageNumberLocation, Vector2f centerPoint, Vector2f posteriorBottomEdgePoint, DomainBox hurtbox, 
+        boolean letEnemyChangeTransformationValues
+    ) {
         this.framesPerColumn = framesPerColumn;
         this.damageNumberLocation = damageNumberLocation;
         this.centerPoint = centerPoint;
+        this.posteriorBottomEdgePoint = posteriorBottomEdgePoint;
         this.hurtbox = hurtbox;
         this.letEnemyChangeTransformationValues = letEnemyChangeTransformationValues;
     }
@@ -57,6 +63,7 @@ public class AttackSheetConfig {
     public int[] getFramesPerColumn() { return framesPerColumn; }
     public Vector2f getDamageNumberLocation() { return damageNumberLocation; }
     public Vector2f getCenterPoint() { return centerPoint; }
+    public Vector2f getPosteriorBottomEdgePoint() { return posteriorBottomEdgePoint; }
     public DomainBox getHurtbox() { return hurtbox; }
     public boolean letEnemyChangeTransformationValues() { return letEnemyChangeTransformationValues; }
     

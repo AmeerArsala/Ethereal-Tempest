@@ -37,7 +37,7 @@ public abstract class VisibleEntityAnimation<R extends Spatial> {
     private boolean allowVisualUpdate = true;
     
     private final boolean doMirror;
-    private final Predicate<BattleSprite> secondEndCondition; //such as waiting for the opponent's "getting hurt" animation to finish
+    private final Predicate<BattleSprite> secondEndCondition; //such as waiting for the opponent's "getting hurt" animation to finish or colliding with the opponent
     
     private boolean finished = false;
     

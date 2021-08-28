@@ -34,26 +34,45 @@ public class NextActionSequence {
     public List<BattleAnimationSegment> generateBattleAnimationSegments(SpriteAnimationParams params) {
         List<BattleAnimationSegment> battleAnimationSegments = new ArrayList<>();
         
-        int i = 0;
+        int i = 0, size = nextActions.size();
         do {
             List<VisibleEntityAnimation> animations = new ArrayList<>();
             
             NextAction nextAction = nextActions.get(i);
-            boolean concurrent = nextAction.isConcurrent();
+            boolean simultaneous = false;
             boolean isAttack = nextAction.isAttack();
             animations.add(nextAction.createAnimation(params));
             
-            //groups by same concurrency boolean value
-            while (i + 1 < nextActions.size() && nextActions.get(i + 1).isConcurrent() == concurrent) {
-                animations.add(nextActions.get(i + 1).createAnimation(params));
-                isAttack = isAttack || nextActions.get(i + 1).isAttack();
+            // A BattleAnimationSegment will start with something considered to be 'sequential'
+            // 'sequential' does not mean 'withPrevious'; first entry is loosely treated as 'sequential' no matter what its value of playsSimultaneouslyWithPrevious is
+            // The following entries will either be all S
+            if (i + 1 < size) {
+                simultaneous = nextActions.get(i + 1).playsSimultaneouslyWithPrevious();
+            }
+            
+            // Groups by same boolean value of 'simultaneous'
+            // For all the following nextActions (if any) which have the boolean value of playsSimultaneouslyWithPrevious == simultaneous, 
+            // they are added to the animations to use in one segment
+            groupActions: while (i + 1 < size && nextActions.get(i + 1).playsSimultaneouslyWithPrevious() == simultaneous) {
+                if (simultaneous == false && (i + 2 < size && nextActions.get(i + 2).playsSimultaneouslyWithPrevious() == true)) {
+                    // If simulataneous == false, it means i + 1 is 'sequential'
+                    // We want to avoid having a chain of 'sequentials' be followed by a 'withPrevious' (simultaneous == false)
+                    // Same with a chain of 'withPrevious' being followed by a 'sequential' (simultaneous == true), but thankfully that'll be handled automatically by this while condition (the last 'withPrevious' can be added)
+                    // If a chain of 'sequentials' IS followed by a 'withPrevious', we don't want to add the last 'sequential'
+                    
+                    break groupActions;
+                }
+                
+                NextAction followingAction = nextActions.get(i + 1);
+                animations.add(followingAction.createAnimation(params));
+                isAttack = isAttack || followingAction.isAttack();
                 ++i;
             }
             
-            battleAnimationSegments.add(new BattleAnimationSegment(animations, concurrent, isAttack));
+            battleAnimationSegments.add(new BattleAnimationSegment(animations, simultaneous, isAttack));
             
             ++i;
-        } while (i < nextActions.size());
+        } while (i < size);
         
         return battleAnimationSegments;
     }
