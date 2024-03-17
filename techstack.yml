@@ -1,0 +1,67 @@
+repo_name: AmeerArsala/Ethereal-Tempest
+report_id: def71610a3bed966d0d24e942052e3f5
+version: 0.1
+repo_type: Public
+timestamp: '2024-03-17T04:40:36+00:00'
+requested_by: AmeerArsala
+provider: github
+branch: master
+detected_tools_count: 5
+tools:
+- name: GLSL
+  description: A high-level C-style language
+  website_url: https://www.khronos.org/opengl/wiki/Core_Language_(GLSL)
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/6548/default_a66025fbe8f221c489bdaac3a99d84e5f138cbbd.png
+  detection_source_url: https://github.com/AmeerArsala/Ethereal-Tempest
+  detection_source: Repo Metadata
+- name: Java
+  description: A concurrent, class-based, object-oriented, language specifically designed
+    to have as few implementation dependencies as possible
+  website_url: https://www.java.com
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/995/K85ZWV2F.png
+  detection_source_url: https://github.com/AmeerArsala/Ethereal-Tempest
+  detection_source: Repo Metadata
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source_url: https://github.com/AmeerArsala/Ethereal-Tempest
+  detection_source: Repo Metadata
+- name: Gradle
+  description: A powerful build system for the JVM
+  website_url: https://www.gradle.org/
+  license: Apache-2.0
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Java Build Tools
+  image_url: https://img.stackshare.io/service/975/gradlephant-social-black-bg.png
+  detection_source_url: https://github.com/AmeerArsala/Ethereal-Tempest/blob/master/build.gradle
+  detection_source: build.gradle
+  last_updated_by: AmeerArsala
+  last_updated_on: 2020-08-12 23:42:33.000000000 Z
+- name: org.projectlombok:lombok
+  description: 'Spice up your java: Automatic Resource Management'
+  version: 1.18.12
+  license: MIT
+  open_source: true
+  hosted_saas: false
+  category: Libraries
+  sub_category: Maven Packages
+  image_url: https://img.stackshare.io/package/maven/image.png
+  detection_source_url: https://github.com/AmeerArsala/Ethereal-Tempest/blob/master/build.gradle
+  detection_source: build.gradle
+  last_updated_by: AmeerArsala
+  last_updated_on: 2020-10-04 22:23:30.000000000 Z
